@@ -1,0 +1,139 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dbt/jaffle_shop"
+ ],
+ "files": [
+  "dags/airflow-dbt-python/example_local.py",
+  "dags/bashOperator/simple.py"
+ ],
+ "skipped": [],
+ "dags": [
+  {
+   "dag_id": "example_local",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/airflow-dbt-python/example_local.py",
+    "line": 10,
+    "col": 5
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dbt_bash",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/bashOperator/simple.py",
+    "line": 17,
+    "col": 6
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "example_local",
+   "task_id": "dbt_python_run_daily",
+   "operator": "DbtRunOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/airflow-dbt-python/example_local.py",
+    "line": 17,
+    "col": 14
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_bash",
+   "task_id": "dbt_run",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/bashOperator/simple.py",
+    "line": 19,
+    "col": 10
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [
+  {
+   "origin": "dag_static",
+   "kind": "airflow_dbt_operator",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/airflow-dbt-python/example_local.py",
+    "line": 17,
+    "col": 14
+   },
+   "dag_id": "example_local",
+   "task_id": "dbt_python_run_daily",
+   "group_id": null,
+   "dbt_command": "run",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [
+    "+tag:daily"
+   ],
+   "exclude": [
+    "tag:deprecated"
+   ],
+   "selector": null,
+   "resolved_models": [],
+   "resolved_nodes": [],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "target": null,
+   "command_text": "run --select +tag:daily --exclude tag:deprecated",
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "in_scope": true
+  }
+ ],
+ "dependencies": [],
+ "unresolved": [
+  {
+   "file": "dags/bashOperator/simple.py",
+   "line": 19,
+   "col": 10,
+   "reason": "shell command not statically resolvable: Add over these values is not evaluated",
+   "dag_id": "dbt_bash",
+   "task_id": "dbt_run",
+   "category": "shell",
+   "mentions_dbt": true
+  }
+ ],
+ "stats": {
+  "files_scanned": 2,
+  "files_skipped": 0,
+  "dbt_project_dirs_skipped": 0,
+  "dags": 2,
+  "links": 1,
+  "links_resolved": 1,
+  "links_unknown": 0,
+  "dependencies": 0,
+  "unresolved": 1
+ }
+}

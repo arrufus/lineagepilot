@@ -1,0 +1,641 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dbt"
+ ],
+ "files": [
+  "airflow/dags/dag.py",
+  "airflow/dags/initialise_data.py"
+ ],
+ "skipped": [],
+ "dags": [
+  {
+   "dag_id": "4_daily_dbt_models",
+   "how": "DAG()",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 49,
+    "col": 12
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "3_snapshot_dbt_models",
+   "how": "DAG()",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 56,
+    "col": 15
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "2_init_once_dbt_models",
+   "how": "DAG()",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 63,
+    "col": 16
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "how": "DAG()",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 19,
+    "col": 24
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "4_daily_dbt_models",
+   "task_id": null,
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 80,
+    "col": 23
+   },
+   "dynamic": "inside a for-loop (line 75): tasks created a dynamic number of times"
+  },
+  {
+   "dag_id": "3_snapshot_dbt_models",
+   "task_id": null,
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 90,
+    "col": 23
+   },
+   "dynamic": "inside a for-loop (line 75): tasks created a dynamic number of times"
+  },
+  {
+   "dag_id": "2_init_once_dbt_models",
+   "task_id": null,
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/dag.py",
+    "line": 101,
+    "col": 23
+   },
+   "dynamic": "inside a for-loop (line 75): tasks created a dynamic number of times"
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_schema",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 25,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_aisles",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 32,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_aisles",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 39,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_aisles",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 46,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_departments",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 53,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_departments",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 60,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_departments",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 67,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_products",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 74,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_products",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 81,
+    "col": 5
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_products",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 88,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_orders",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 95,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_orders",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 102,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_orders",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 109,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_order_products__prior",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 116,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_order_products__prior",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 123,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_order_products__prior",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 130,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "drop_table_order_products__train",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 137,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "create_order_products__train",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 144,
+    "col": 6
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "1_load_initial_data",
+   "task_id": "load_order_products__train",
+   "operator": "PostgresOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 151,
+    "col": 6
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [],
+ "dependencies": [
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_aisles",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 158,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_aisles",
+   "downstream": "airflow:1_load_initial_data.create_aisles",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 158,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_aisles",
+   "downstream": "airflow:1_load_initial_data.load_aisles",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 158,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_departments",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 159,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_departments",
+   "downstream": "airflow:1_load_initial_data.create_departments",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 159,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_departments",
+   "downstream": "airflow:1_load_initial_data.load_departments",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 159,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_products",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 160,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_products",
+   "downstream": "airflow:1_load_initial_data.create_products",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 160,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_products",
+   "downstream": "airflow:1_load_initial_data.load_products",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 160,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_orders",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 161,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_orders",
+   "downstream": "airflow:1_load_initial_data.create_orders",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 161,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_orders",
+   "downstream": "airflow:1_load_initial_data.load_orders",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 161,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_order_products__prior",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 162,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_order_products__prior",
+   "downstream": "airflow:1_load_initial_data.create_order_products__prior",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 162,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_order_products__prior",
+   "downstream": "airflow:1_load_initial_data.load_order_products__prior",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 162,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_schema",
+   "downstream": "airflow:1_load_initial_data.drop_table_order_products__train",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 163,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.drop_table_order_products__train",
+   "downstream": "airflow:1_load_initial_data.create_order_products__train",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 163,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "1_load_initial_data",
+   "upstream": "airflow:1_load_initial_data.create_order_products__train",
+   "downstream": "airflow:1_load_initial_data.load_order_products__train",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/initialise_data.py",
+    "line": 163,
+    "col": 0
+   }
+  }
+ ],
+ "unresolved": [
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 17,
+   "col": 9,
+   "reason": "reads a dbt manifest.json at DAG-parse time; tasks generated from it are dynamic",
+   "category": "dynamic",
+   "via_call_at": [
+    [
+     73,
+     8
+    ]
+   ]
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 80,
+   "col": 23,
+   "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+   "dag_id": "4_daily_dbt_models",
+   "category": "shell",
+   "mentions_dbt": false,
+   "dynamic": true
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 90,
+   "col": 23,
+   "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+   "dag_id": "3_snapshot_dbt_models",
+   "category": "shell",
+   "mentions_dbt": false,
+   "dynamic": true
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 101,
+   "col": 23,
+   "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+   "dag_id": "2_init_once_dbt_models",
+   "category": "shell",
+   "mentions_dbt": false,
+   "dynamic": true
+  }
+ ],
+ "stats": {
+  "files_scanned": 2,
+  "files_skipped": 0,
+  "dbt_project_dirs_skipped": 0,
+  "dags": 4,
+  "links": 0,
+  "links_resolved": 0,
+  "links_unknown": 0,
+  "dependencies": 18,
+  "unresolved": 4
+ }
+}

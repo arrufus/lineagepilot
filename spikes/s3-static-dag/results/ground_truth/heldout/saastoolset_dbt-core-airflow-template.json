@@ -1,0 +1,52 @@
+{
+ "repo": "saastoolset/dbt-core-airflow-template",
+ "url": "https://github.com/saastoolset/dbt-core-airflow-template",
+ "sha": "d4cd1d2414c3313fd94456fc63f6c84cff32bc1e",
+ "license": "GPL-3.0 (read as data only, nothing copied)",
+ "scan": {
+  "paths": [
+   "dags/airflow-dbt-python",
+   "dags/bashOperator"
+  ],
+  "workspace": "."
+ },
+ "labelled_by": "hand, labelled BLIND before the frozen scanner (sha256 of src/ in work/scanner_fingerprint_before_heldout.txt) was run on this repo",
+ "note": "The repo's Cosmos DAGs are copies of astronomer/cosmos-demo (only schedule -> schedule_interval differs), so only the two distinct files are held out.",
+ "out_of_scope_tasks": [],
+ "links": [
+  {
+   "id": "example_local.dbt_python_run_daily",
+   "file": "dags/airflow-dbt-python/example_local.py",
+   "line": 17,
+   "dag_id": "example_local",
+   "unit": "task",
+   "task_id": "dbt_python_run_daily",
+   "dbt_command": "run",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [],
+   "reason": "airflow-dbt-python DbtRunOperator select +tag:daily: no model in dbt/jaffle_shop has a 'daily' tag (only 'customers')"
+  },
+  {
+   "id": "dbt_bash.dbt_run",
+   "file": "dags/bashOperator/simple.py",
+   "lines": [
+    19
+   ],
+   "dag_id": "dbt_bash",
+   "unit": "dynamic",
+   "expect": "unknown",
+   "legit": true,
+   "reason": "'cd ' + jaffle_shop_path adds a str to a pathlib.Path: TypeError at import, so this DAG never loads; any resolved link would be a false positive"
+  }
+ ],
+ "unresolved_review": [
+  {
+   "file": "dags/bashOperator/simple.py",
+   "line": 19,
+   "legit": true,
+   "why": "str + pathlib.Path raises TypeError at import; the scanner's reason (Add not evaluated) is right in effect but does not name the TypeError"
+  }
+ ]
+}

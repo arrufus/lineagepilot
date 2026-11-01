@@ -118,3 +118,25 @@ def test_column_parser_prints_to_stdout_on_failure(mods, capsys):
     out = mods["sql_column_parser"].SQLColumnParser("duckdb").parse_select_statement("select from where (")
     assert out == []
     assert "Failed to parse SQL" in capsys.readouterr().out
+
+
+def test_trim_shim_gives_identical_result():
+    """The labelled trimming loader (memory headroom) must not change the ParseResult."""
+    code = f"""
+import asyncio, json
+from spike.loader import load_parsers, json_backend_in_use
+m = load_parsers(json_backend='stdlib-trim')
+r = asyncio.run(m['dbt_parser'].DbtParser().parse({{'manifest_path': {str(FIX / 'synth-24' / 'manifest.json')!r},
+    'catalog_path': {str(FIX / 'synth-24' / 'catalog.json')!r}}}))
+print(json.dumps({{'backend': json_backend_in_use(), 'summary': r.summary(),
+    'edges': [[e.source_urn, e.target_urn] for e in r.edges]}}))
+"""
+    p = run_python(code)
+    assert p.returncode == 0, p.stderr
+    out = json.loads(p.stdout.strip().splitlines()[-1])
+    assert out["backend"] == "stdlib-trim-shim"
+    from tests.conftest import parse
+    from spike.loader import load_parsers
+    ref = parse(load_parsers(), FIX / "synth-24" / "manifest.json", FIX / "synth-24" / "catalog.json")
+    assert out["summary"] == ref.summary()
+    assert out["edges"] == [[e.source_urn, e.target_urn] for e in ref.edges]

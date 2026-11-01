@@ -15,14 +15,14 @@ Each phase ends in exit evidence. Two phases end in go/no-go **gates** that deci
 | Phase | Focus | Estimate | Ends with |
 |---|---|---|---|
 | 0 | Spikes and customer discovery | 2 weeks | **Gate G0**: proceed or stop |
-| 1 | `lineagepilot_core` library | 3 weeks | Core passes fixtures and performance budgets |
+| 1 | `lineagepilot_core` library | about 4 weeks (S2 added parser fixes and task 1.9) | Core passes fixtures and performance budgets |
 | 2 | Language server and extension shell | 2–3 weeks | Integration tests green on 3 operating systems |
 | 3 | Lineage graph webview | 2 weeks | Interactive graph from the ported components |
 | 4 | Change Impact Review (the wedge) | 2–3 weeks | Acceptance scenario passes (dbt part) |
 | 5 | Airflow linkage | 2–3 weeks | Full acceptance scenario passes |
 | 6 | Beta and release | 2 weeks | **Gate G1**: continue, pivot or stop |
 
-- **One engineer**: about 15–18 weeks.
+- **One engineer**: about 16–19 weeks, after the Phase 0 findings. Task 5.5's corpus labelling runs in parallel.
 - **Two engineers** (Python and TypeScript): about 11–13 weeks. After Phase 2, Phase 3 can run in parallel with Phases 4 and 5.
 
 The **legacy wind-down** runs alongside and is not on the critical path. Rotating the Snowflake key cannot wait for any phase.
@@ -52,13 +52,14 @@ If G0 fails, stop before Phase 1. Little beyond the spikes has been built at tha
 | ID | Task |
 |---|---|
 | 1.1 | Create `packages/core` with uv and `uv.lock`. Add an `import-linter` contract banning `sqlalchemy`, `fastapi` and `pydantic`. Add a CI job. |
-| 1.2 | Move the parsers (`base`, `dbt_parser`, `dbt_config`, `sql_parser`, `sql_column_parser`, `data_flow_annotations`, `dbt_manifest_resolver`) and their unit tests. Rewrite imports, and add the stdlib `json` fallback for `orjson`. |
+| 1.2 | Move the parsers (`base`, `dbt_parser`, `dbt_config`, `sql_parser`, `data_flow_annotations`, `dbt_manifest_resolver`) and their unit tests. Rewrite imports, and add the stdlib `json` fallback for `orjson`. Then fix what S2 found: <br>• the per-column lineage loop; <br>• `has_tests` derived from `test.*` nodes; <br>• exposures; <br>• source file paths and `patch_path`; <br>• `unique_id` identity; <br>• the v12 schema gate; <br>• no `print()`. <br>Test against real manifests, not hand-written ones. |
 | 1.3 | `MetadataGraph`: canonical IDs, logical-to-physical edges, evidence records and `Unresolved` records (design §5). |
 | 1.4 | Traversal: upstream and downstream at model and column level, depth caps, cycle safety, and an impact query. |
 | 1.5 | Rules engine: five result states, a coverage-aware score, the 12 carried and 6 remapped rules, and `.lineagepilot/rules.yml` packs with length-capped, time-limited regexes. |
 | 1.6 | PII indicators that trace every upstream path, not just the first, labelled as indicators rather than verified exposure. |
 | 1.7 | Exporters (JSON, Mermaid, DOT, GraphML, Cypher, CSV) with per-format escaping, plus hypothesis property tests. |
 | 1.8 | Snapshot cache keyed by manifest hash, and a headless entry point: `lineagepilot index` and `lineagepilot impact`. |
+| 1.9 | Column lineage with `sqlglot.lineage` and a schema from `catalog.json`, replacing `sql_column_parser` (S2). Models without a catalog, or that fail to parse, are `unknown`. Must be done before task 1.4's column-level traversal. |
 
 **Exit**:
 - Coverage of at least 80%.
@@ -125,14 +126,15 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 
 | ID | Task |
 |---|---|
-| 5.1 | Grow the S3 spike into `dag_static.py`: Cosmos, `BashOperator`/`KubernetesPodOperator` dbt commands, SQL operators, and task dependencies with literal operands. |
-| 5.2 | Load annotation files through the reused `data_flow_annotations.py`. |
-| 5.3 | Feed `orchestrates` edges into CodeLens, the Airflow tree view and the Change Impact Review. |
-| 5.4 | Emit `unknown` records for dynamic DAGs and unresolved selectors. |
+| 5.1 | Grow the S3 spike into `dag_static.py`. It covers Cosmos, `BashOperator`/`KubernetesPodOperator`/`DockerOperator` dbt commands, SQL operators, and task dependencies. Add the resolution S3 showed is needed (design section 6.2): <br>• workspace-module constants; <br>• `Path(__file__)` and environment-variable defaults; <br>• one-level helper inlining; <br>• `cwd`; <br>• Airflow file discovery; <br>• dbt-loom exclusion; <br>• version-pinned selectors with a `dbt ls` conformance test. |
+| 5.2 | Load annotation files through the reused `data_flow_annotations.py`, including a container path map. Add suffix matching for `/usr/local/airflow`-style paths. |
+| 5.3 | Feed `orchestrates` edges into CodeLens, the Airflow tree view and the Change Impact Review. Show heuristic links by default, labelled. |
+| 5.4 | Emit `unknown` records for dynamic DAGs and unresolved selectors, using the named categories from S3, at the call site. |
+| 5.5 | Held-out corpus: 10 or more unseen dbt+Airflow repositories, labelled before any Phase 5 tuning. It can start straight after G0 (DCS-56q.5). |
 
 **Exit**:
 - The full acceptance scenario passes.
-- On the S3 repositories, the miss rate is measured and reported, not only the hits.
+- With the scanner frozen, the miss rate on the 5.5 held-out corpus is measured and reported, not only the hits. The S3 repositories are in-sample and do not count.
 
 ---
 

@@ -36,7 +36,7 @@ MODULES: list[tuple[str, str]] = [
 # Modules the language server must never pull in (design section 4.4).
 FORBIDDEN_MODULES = ("httpx", "snowflake", "sqlalchemy", "fastapi", "pydantic")
 
-JsonBackend = Literal["orjson", "stdlib"]
+JsonBackend = Literal["orjson", "stdlib", "stdlib-trim"]
 
 
 class _StdlibOrjson(types.ModuleType):
@@ -63,6 +63,36 @@ class _StdlibOrjson(types.ModuleType):
         return json.dumps(obj).encode()
 
 
+_UNUSED_RESOURCES = {"test", "macro", "doc", "unit_test"}
+_UNUSED_KEYS = ("raw_code", "compiled_code")
+
+
+def _trim_hook(d: dict) -> dict:
+    """Drop, while decoding, what DbtParser never reads, so it is never held."""
+    rt = d.get("resource_type")
+    if rt in _UNUSED_RESOURCES:
+        return {"resource_type": rt}
+    for k in _UNUSED_KEYS:
+        if k in d:
+            del d[k]
+    return d
+
+
+class _StdlibTrimOrjson(_StdlibOrjson):
+    """LABELLED VARIANT, not as-is: stdlib json with an object_hook that drops
+    test/macro/doc bodies and raw/compiled SQL during decoding. The ParseResult is
+    unchanged (tests/test_loader.py checks); it exists to show the memory headroom.
+    Compiled SQL for column lineage would then be read per model, on demand."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.__dict__["_lineagepilot_trim"] = True
+
+    @staticmethod
+    def loads(data: bytes | str):  # noqa: D401
+        return json.loads(data, object_hook=_trim_hook)
+
+
 def _stub_package(name: str) -> types.ModuleType:
     mod = types.ModuleType(name)
     mod.__path__ = []  # a package, but nothing can be found inside it
@@ -81,10 +111,10 @@ def load_parsers(json_backend: JsonBackend = "orjson") -> dict[str, types.Module
         mods = {n.rsplit(".", 1)[1]: sys.modules[n] for n, _ in MODULES}
         return mods
 
-    if json_backend == "stdlib":
+    if json_backend in ("stdlib", "stdlib-trim"):
         if "orjson" in sys.modules and not getattr(sys.modules["orjson"], "_lineagepilot_shim", False):
             raise RuntimeError("real orjson already imported; cannot install stdlib shim")
-        sys.modules["orjson"] = _StdlibOrjson()
+        sys.modules["orjson"] = _StdlibTrimOrjson() if json_backend == "stdlib-trim" else _StdlibOrjson()
 
     for pkg in ("src", "src.parsers"):
         if pkg not in sys.modules:
@@ -121,4 +151,6 @@ def json_backend_in_use() -> str:
     mod = sys.modules.get("orjson")
     if mod is None:
         return "none"
+    if getattr(mod, "_lineagepilot_trim", False):
+        return "stdlib-trim-shim"
     return "stdlib-shim" if getattr(mod, "_lineagepilot_shim", False) else "orjson"

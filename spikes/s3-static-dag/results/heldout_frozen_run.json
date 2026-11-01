@@ -1,0 +1,50 @@
+{
+ "what": "Held-out result of the scanner frozen BEFORE these repos were read (src sha256 below). Transcribed from that run; the scanner was changed afterwards (BashOperator cwd= support).",
+ "scanner_src_sha256_before_heldout": "0033e97fb308ba146cd9674bcd4e158fa8b18678d58f5dd3ad55340346c03816",
+ "repos": {
+  "konosp/dbt-airflow-docker-compose": {
+   "dag_files_scanned": 2,
+   "expected_links": 3,
+   "correct": 0,
+   "legit_unknowns": 3,
+   "misses": 0,
+   "false_positives": 0
+  },
+  "danielvdende/data-testing-with-airflow": {
+   "dag_files_scanned": 1,
+   "expected_links": 2,
+   "correct": 2,
+   "legit_unknowns": 0,
+   "misses": 0,
+   "false_positives": 0,
+   "caveat": "both correct only via the single-dbt-project fallback: BashOperator(cwd=...) was not read. Latent miss in a multi-project repo; fixed after the hold-out."
+  },
+  "GokuMohandas/data-engineering": {
+   "dag_files_scanned": 2,
+   "expected_links": 2,
+   "correct": 2,
+   "legit_unknowns": 0,
+   "misses": 0,
+   "false_positives": 0
+  },
+  "saastoolset/dbt-core-airflow-template (2 distinct files)": {
+   "dag_files_scanned": 2,
+   "expected_links": 2,
+   "correct": 1,
+   "legit_unknowns": 1,
+   "misses": 0,
+   "false_positives": 0,
+   "caveat": "the broken DAG ('cd ' + Path) came out unknown because str + Path is not modelled, not because the TypeError was detected"
+  }
+ },
+ "totals": {
+  "dag_files_scanned": 7,
+  "expected_links": 9,
+  "expected_resolvable": 5,
+  "correct": 5,
+  "legit_unknowns": 4,
+  "misses": 0,
+  "false_positives": 0,
+  "correct_by_fallback_heuristic": 2
+ }
+}

@@ -1,0 +1,2189 @@
+{
+ "spike": "S3 static DAG analysis",
+ "question": "Does AST-only scanning give correct task-to-dbt-model links on 3 public example DAG repositories?",
+ "repos": {
+  "astronomer-cosmos": {
+   "url": "https://github.com/astronomer/astronomer-cosmos",
+   "sha": "c92d0b23ff8cfc4c96f8b0bf2ec13f2f496d4fc2",
+   "sha_pinned": "c92d0b23ff8cfc4c96f8b0bf2ec13f2f496d4fc2",
+   "sha_ok": true,
+   "scan_paths": [
+    "dev/dags"
+   ],
+   "metrics": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 68,
+    "correct": 61,
+    "misses": 0,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 57,
+     "inferred": 4
+    },
+    "dependency_edges": 43,
+    "unresolved_records": 10
+   },
+   "misses": [],
+   "false_positives": [],
+   "unexpected_unknown_links": [],
+   "out_of_scope_dbt_links": [
+    {
+     "file": "dev/dags/cosmos_seed_dag.py",
+     "line": 47,
+     "dag_id": "extract_dag",
+     "task_or_group": null,
+     "dbt_command": "run-operation",
+     "status": "unknown",
+     "models": null,
+     "reasons": [
+      "inside a for-loop (line 46): tasks created a dynamic number of times",
+      "task_id not resolvable: f-string part {seed} is not resolvable (loop variable of the for-loop at line 46)"
+     ]
+    },
+    {
+     "file": "dev/dags/dbt_docs.py",
+     "line": 46,
+     "dag_id": "docs_dag",
+     "task_or_group": "generate_dbt_docs_aws",
+     "dbt_command": "docs generate",
+     "status": "resolved",
+     "models": [],
+     "reasons": []
+    },
+    {
+     "file": "dev/dags/dbt_docs.py",
+     "line": 55,
+     "dag_id": "docs_dag",
+     "task_or_group": "generate_dbt_docs_azure",
+     "dbt_command": "docs generate",
+     "status": "resolved",
+     "models": [],
+     "reasons": []
+    },
+    {
+     "file": "dev/dags/dbt_docs.py",
+     "line": 64,
+     "dag_id": "docs_dag",
+     "task_or_group": "generate_dbt_docs_gcs",
+     "dbt_command": "docs generate",
+     "status": "resolved",
+     "models": [],
+     "reasons": []
+    },
+    {
+     "file": "dev/dags/example_operators.py",
+     "line": 125,
+     "dag_id": "example_operators",
+     "task_or_group": "clone",
+     "dbt_command": "clone",
+     "status": "resolved",
+     "models": [],
+     "reasons": []
+    },
+    {
+     "file": "dev/dags/jaffle_shop_kubernetes.py",
+     "line": 87,
+     "dag_id": "jaffle_shop_kubernetes",
+     "task_or_group": "generate_dbt_docs_aws",
+     "dbt_command": "docs generate",
+     "status": "resolved",
+     "models": [],
+     "reasons": []
+    }
+   ],
+   "unresolved_review": [
+    {
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "line": 62,
+     "category": "link",
+     "reason": "manifest is remote (s3://cosmos-manifest-test/manifest.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (s3://): not in the workspace"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "line": 81,
+     "category": "link",
+     "reason": "manifest is remote (gs://cosmos_remote_target/manifest.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (gs://)"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "line": 97,
+     "category": "link",
+     "reason": "manifest is remote (abfs://cosmos-manifest-test/manifest.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (abfs://)"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "line": 115,
+     "category": "dependency",
+     "reason": "dependency operand is not a known task (>>/<<)",
+     "legit": true,
+     "review": "aws_s3_example exists only if the Amazon provider imports (try/except ModuleNotFoundError): environment-dependent edge"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "line": 83,
+     "category": "link",
+     "reason": "manifest is remote (s3://cosmos-manifest-test/manifest_with_selector.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (s3://)"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "line": 99,
+     "category": "link",
+     "reason": "manifest is remote (gs://cosmos_remote_target/manifest_with_selector.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (gs://)"
+    },
+    {
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "line": 115,
+     "category": "link",
+     "reason": "manifest is remote (abfs://cosmos-manifest-test/manifest_with_selector.json); not readable offline",
+     "legit": true,
+     "review": "remote manifest (abfs://)"
+    },
+    {
+     "file": "dev/dags/cosmos_seed_dag.py",
+     "line": 47,
+     "category": "link",
+     "reason": "inside a for-loop (line 46): tasks created a dynamic number of times; task_id not resolvable: f-string part {seed} is not resolvable (loop variable of the for-loop at line 46)",
+     "legit": true,
+     "review": "run-operation tasks created in a for-loop (out of scope command, genuinely loop-created)"
+    },
+    {
+     "file": "dev/dags/example_tasks_map.py",
+     "line": 57,
+     "category": "dependency",
+     "reason": "inside a for-loop (line 50): tasks created a dynamic number of times; dependency operand is not a known task (>>/<<)",
+     "legit": true,
+     "review": "loop over dag.dbt_graph.filtered_nodes, a runtime Cosmos object"
+    },
+    {
+     "file": "dev/dags/performance_dag.py",
+     "line": 25,
+     "category": "link",
+     "reason": "dbt project has no model files in the workspace (generated at build time?)",
+     "legit": true,
+     "review": "models are generated by tests/perf; the repo has none"
+    }
+   ],
+   "rows": [
+    {
+     "id": "basic_cosmos_dag",
+     "file": "dev/dags/basic_cosmos_dag.py",
+     "dag_id": "basic_cosmos_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "basic_cosmos_dag_full_module_path_imports",
+     "file": "dev/dags/basic_cosmos_dag_full_module_path_imports.py",
+     "dag_id": "basic_cosmos_dag_full_module_path_imports",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "basic_cosmos_task_group.customers",
+     "file": "dev/dags/basic_cosmos_task_group.py",
+     "dag_id": "basic_cosmos_task_group",
+     "expect": "resolved",
+     "task_or_group": "customers",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "basic_cosmos_task_group.orders",
+     "file": "dev/dags/basic_cosmos_task_group.py",
+     "dag_id": "basic_cosmos_task_group",
+     "expect": "resolved",
+     "task_or_group": "orders",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "different_owners.seeds",
+     "file": "dev/dags/basic_cosmos_task_group_different_owners.py",
+     "dag_id": "basic_cosmos_task_group_different_owners",
+     "expect": "resolved",
+     "task_or_group": "seeds",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "different_owners.models",
+     "file": "dev/dags/basic_cosmos_task_group_different_owners.py",
+     "dag_id": "basic_cosmos_task_group_different_owners",
+     "expect": "resolved",
+     "task_or_group": "models",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "cosmos_callback_dag",
+     "file": "dev/dags/cosmos_callback_dag.py",
+     "dag_id": "cosmos_callback_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "manifest_example.local_example",
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "dag_id": "cosmos_manifest_example",
+     "expect": "resolved",
+     "task_or_group": "local_example",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "manifest_example.aws_s3_example",
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "dag_id": "cosmos_manifest_example",
+     "expect": "unknown",
+     "task_or_group": "aws_s3_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (s3://cosmos-manifest-test/manifest.json); not readable offline"
+     ]
+    },
+    {
+     "id": "manifest_example.gcp_gs_example",
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "dag_id": "cosmos_manifest_example",
+     "expect": "unknown",
+     "task_or_group": "gcp_gs_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (gs://cosmos_remote_target/manifest.json); not readable offline"
+     ]
+    },
+    {
+     "id": "manifest_example.azure_abfs_example",
+     "file": "dev/dags/cosmos_manifest_example.py",
+     "dag_id": "cosmos_manifest_example",
+     "expect": "unknown",
+     "task_or_group": "azure_abfs_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (abfs://cosmos-manifest-test/manifest.json); not readable offline"
+     ]
+    },
+    {
+     "id": "selectors_example.pre_condition",
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "dag_id": "cosmos_manifest_selectors_example",
+     "expect": "resolved",
+     "task_or_group": "pre_condition",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "selectors_example.local_example",
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "dag_id": "cosmos_manifest_selectors_example",
+     "expect": "resolved",
+     "task_or_group": "local_example",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.orders"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "selectors_example.aws_s3_example",
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "dag_id": "cosmos_manifest_selectors_example",
+     "expect": "unknown",
+     "task_or_group": "aws_s3_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (s3://cosmos-manifest-test/manifest_with_selector.json); not readable offline"
+     ]
+    },
+    {
+     "id": "selectors_example.gcp_gs_example",
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "dag_id": "cosmos_manifest_selectors_example",
+     "expect": "unknown",
+     "task_or_group": "gcp_gs_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (gs://cosmos_remote_target/manifest_with_selector.json); not readable offline"
+     ]
+    },
+    {
+     "id": "selectors_example.azure_abfs_example",
+     "file": "dev/dags/cosmos_manifest_selectors_example.py",
+     "dag_id": "cosmos_manifest_selectors_example",
+     "expect": "unknown",
+     "task_or_group": "azure_abfs_example",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "manifest is remote (abfs://cosmos-manifest-test/manifest_with_selector.json); not readable offline"
+     ]
+    },
+    {
+     "id": "cosmos_profile_mapping",
+     "file": "dev/dags/cosmos_profile_mapping.py",
+     "dag_id": "cosmos_profile_mapping",
+     "expect": "resolved",
+     "task_or_group": "dbt_task_group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "extract_dag.seed_jaffle_shop",
+     "file": "dev/dags/cosmos_seed_dag.py",
+     "dag_id": "extract_dag",
+     "expect": "resolved",
+     "task_or_group": "seed_jaffle_shop",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "bidirectional.project_a_stage1",
+     "file": "dev/dags/cross_project_bidirectional_dag.py",
+     "dag_id": "cross_project_bidirectional_dag",
+     "expect": "resolved",
+     "task_or_group": "project_a_stage1",
+     "expected_models": [
+      "model.project_a.stg_a_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "bidirectional.project_b_stage1",
+     "file": "dev/dags/cross_project_bidirectional_dag.py",
+     "dag_id": "cross_project_bidirectional_dag",
+     "expect": "resolved",
+     "task_or_group": "project_b_stage1",
+     "expected_models": [
+      "model.project_b.stg_b_orders"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "bidirectional.project_a_stage2",
+     "file": "dev/dags/cross_project_bidirectional_dag.py",
+     "dag_id": "cross_project_bidirectional_dag",
+     "expect": "resolved",
+     "task_or_group": "project_a_stage2",
+     "expected_models": [
+      "model.project_a.rpt_a_customer_orders"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "bidirectional.project_b_stage2",
+     "file": "dev/dags/cross_project_bidirectional_dag.py",
+     "dag_id": "cross_project_bidirectional_dag",
+     "expect": "resolved",
+     "task_or_group": "project_b_stage2",
+     "expected_models": [
+      "model.project_b.rpt_b_customer_summary"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "cross_dbt_ls.upstream",
+     "file": "dev/dags/cross_project_dbt_ls_dag.py",
+     "dag_id": "cross_project_dbt_ls_dag",
+     "expect": "resolved",
+     "task_or_group": "upstream",
+     "expected_models": [
+      "model.upstream.int_customer_orders",
+      "model.upstream.int_orders_enriched",
+      "model.upstream.stg_customers",
+      "model.upstream.stg_order_items",
+      "model.upstream.stg_orders",
+      "model.upstream.stg_products"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "cross_dbt_ls.downstream",
+     "file": "dev/dags/cross_project_dbt_ls_dag.py",
+     "dag_id": "cross_project_dbt_ls_dag",
+     "expect": "resolved",
+     "task_or_group": "downstream",
+     "expected_models": [
+      "model.downstream.dim_payment_methods",
+      "model.downstream.fct_customer_revenue",
+      "model.downstream.fct_revenue",
+      "model.downstream.rpt_revenue_summary"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "cross_manifest.upstream",
+     "file": "dev/dags/cross_project_manifest_dag.py",
+     "dag_id": "cross_project_manifest_dag",
+     "expect": "resolved",
+     "task_or_group": "upstream",
+     "expected_models": [
+      "model.upstream.int_customer_orders",
+      "model.upstream.int_orders_enriched",
+      "model.upstream.stg_customers",
+      "model.upstream.stg_order_items",
+      "model.upstream.stg_orders",
+      "model.upstream.stg_products"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "cross_manifest.downstream_finance",
+     "file": "dev/dags/cross_project_manifest_dag.py",
+     "dag_id": "cross_project_manifest_dag",
+     "expect": "resolved",
+     "task_or_group": "downstream_finance",
+     "expected_models": [
+      "model.downstream.dim_payment_methods",
+      "model.downstream.fct_customer_revenue",
+      "model.downstream.fct_revenue",
+      "model.downstream.rpt_revenue_summary"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_cosmos_dbt_build",
+     "file": "dev/dags/example_cosmos_dbt_build.py",
+     "dag_id": "example_cosmos_dbt_build",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "example_cosmos_python_models",
+     "file": "dev/dags/example_cosmos_python_models.py",
+     "dag_id": "example_cosmos_python_models",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_cosmos_sources",
+     "file": "dev/dags/example_cosmos_sources.py",
+     "dag_id": "example_cosmos_sources",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "databricks_metric_view_local",
+     "file": "dev/dags/example_databricks_metric_view.py",
+     "dag_id": "databricks_metric_view_local",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.databricks_metric_view.order_metrics",
+      "model.databricks_metric_view.orders",
+      "model.databricks_metric_view.revenue_by_status"
+     ],
+     "confidence": "inferred",
+     "outcome": "correct"
+    },
+    {
+     "id": "databricks_metric_view_watcher",
+     "file": "dev/dags/example_databricks_metric_view.py",
+     "dag_id": "databricks_metric_view_watcher",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.databricks_metric_view.order_metrics",
+      "model.databricks_metric_view.orders",
+      "model.databricks_metric_view.revenue_by_status"
+     ],
+     "confidence": "inferred",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_deps_example",
+     "file": "dev/dags/example_dbt_deps.py",
+     "dag_id": "dbt_deps_example",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.my_dbt_project.example_model"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_duckdb_dag",
+     "file": "dev/dags/example_duckdb_dag.py",
+     "dag_id": "example_duckdb_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.stg_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_model_version",
+     "file": "dev/dags/example_model_version.py",
+     "dag_id": "example_model_version",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.model_version.customers.v1",
+      "model.model_version.customers.v2",
+      "model.model_version.orders",
+      "model.model_version.stg_customers.v1",
+      "model.model_version.stg_customers.v2",
+      "model.model_version.stg_orders.v1",
+      "model.model_version.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.seed",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.run",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "run",
+     "expected_models": [
+      "model.jaffle_shop.stg_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.test",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "test",
+     "expected_models": [
+      "model.jaffle_shop.stg_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.snapshot",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "snapshot",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.build",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "build",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_operators.seed_raw_orders",
+     "file": "dev/dags/example_operators.py",
+     "dag_id": "example_operators",
+     "expect": "resolved",
+     "task_or_group": "seed_raw_orders",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_outlets.seed",
+     "file": "dev/dags/example_outlets.py",
+     "dag_id": "example_outlets",
+     "expect": "resolved",
+     "task_or_group": "seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_outlets.seed_raw_orders",
+     "file": "dev/dags/example_outlets.py",
+     "dag_id": "example_outlets",
+     "expect": "resolved",
+     "task_or_group": "seed_raw_orders",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_outlets.run__dataset",
+     "file": "dev/dags/example_outlets.py",
+     "dag_id": "example_outlets",
+     "expect": "resolved",
+     "task_or_group": "run__dataset",
+     "expected_models": [
+      "model.jaffle_shop.stg_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_outlets.run__dataset_alias",
+     "file": "dev/dags/example_outlets.py",
+     "dag_id": "example_outlets",
+     "expect": "resolved",
+     "task_or_group": "run__dataset_alias",
+     "expected_models": [
+      "model.jaffle_shop.stg_orders"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_seed_rendering",
+     "file": "dev/dags/example_seed_rendering.py",
+     "dag_id": "example_seed_rendering",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "snowflake_semantic_view_local",
+     "file": "dev/dags/example_snowflake_semantic_view.py",
+     "dag_id": "snowflake_semantic_view_local",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.snowflake_semantic_view.orders",
+      "model.snowflake_semantic_view.orders_semantic_view",
+      "model.snowflake_semantic_view.revenue_by_status"
+     ],
+     "confidence": "inferred",
+     "outcome": "correct"
+    },
+    {
+     "id": "snowflake_semantic_view_watcher",
+     "file": "dev/dags/example_snowflake_semantic_view.py",
+     "dag_id": "snowflake_semantic_view_watcher",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.snowflake_semantic_view.orders",
+      "model.snowflake_semantic_view.orders_semantic_view",
+      "model.snowflake_semantic_view.revenue_by_status"
+     ],
+     "confidence": "inferred",
+     "outcome": "correct"
+    },
+    {
+     "id": "source_pruning_dag",
+     "file": "dev/dags/example_source_pruning.py",
+     "dag_id": "source_pruning_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "source_rendering_dag",
+     "file": "dev/dags/example_source_rendering.py",
+     "dag_id": "source_rendering_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "watcher_source_rendering_dag",
+     "file": "dev/dags/example_source_rendering.py",
+     "dag_id": "watcher_source_rendering_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_task_mapping.dbt_run",
+     "file": "dev/dags/example_task_mapping.py",
+     "dag_id": "example_task_mapping",
+     "expect": "resolved",
+     "task_or_group": "dbt_run",
+     "expected_models": [
+      "model.my_dbt_project.example_model"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "taskflow_operator_args",
+     "file": "dev/dags/example_taskflow_operator_args.py",
+     "dag_id": "example_taskflow_operator_args",
+     "expect": "resolved",
+     "task_or_group": "transform_task_group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "taskflow_project_config",
+     "file": "dev/dags/example_taskflow_project_config.py",
+     "dag_id": "example_taskflow_project_config",
+     "expect": "resolved",
+     "task_or_group": "transform_task_group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "customized_cosmos_dag",
+     "file": "dev/dags/example_tasks_map.py",
+     "dag_id": "customized_cosmos_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_multiple_parents_test",
+     "file": "dev/dags/example_tests_multiple_parents.py",
+     "dag_id": "example_multiple_parents_test",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.my_dbt_project.combined_model",
+      "model.my_dbt_project.model_a",
+      "model.my_dbt_project.model_b"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_virtualenv.tmp-venv-group",
+     "file": "dev/dags/example_virtualenv.py",
+     "dag_id": "example_virtualenv",
+     "expect": "resolved",
+     "task_or_group": "tmp-venv-group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_virtualenv.cached-venv-group",
+     "file": "dev/dags/example_virtualenv.py",
+     "dag_id": "example_virtualenv",
+     "expect": "resolved",
+     "task_or_group": "cached-venv-group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_virtualenv_mini.seed",
+     "file": "dev/dags/example_virtualenv_mini.py",
+     "dag_id": "example_virtualenv_mini",
+     "expect": "resolved",
+     "task_or_group": "seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_watcher",
+     "file": "dev/dags/example_watcher.py",
+     "dag_id": "example_watcher",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_watcher_synchronous",
+     "file": "dev/dags/example_watcher.py",
+     "dag_id": "example_watcher_synchronous",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "jaffle_shop_kubernetes.load_seeds",
+     "file": "dev/dags/jaffle_shop_kubernetes.py",
+     "dag_id": "jaffle_shop_kubernetes",
+     "expect": "resolved",
+     "task_or_group": "load_seeds",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "jaffle_shop_kubernetes.dbt_task_group",
+     "file": "dev/dags/jaffle_shop_kubernetes.py",
+     "dag_id": "jaffle_shop_kubernetes",
+     "expect": "resolved",
+     "task_or_group": "dbt_task_group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "jaffle_shop_watcher_kubernetes",
+     "file": "dev/dags/jaffle_shop_watcher_kubernetes.py",
+     "dag_id": "jaffle_shop_watcher_kubernetes",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "performance_dag",
+     "file": "dev/dags/performance_dag.py",
+     "dag_id": "performance_dag",
+     "expect": "unknown",
+     "task_or_group": "cosmos_dag",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "dbt project has no model files in the workspace (generated at build time?)"
+     ]
+    },
+    {
+     "id": "simple_dag_async",
+     "file": "dev/dags/simple_dag_async.py",
+     "dag_id": "simple_dag_async",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "simple_dag_async_taskgroup",
+     "file": "dev/dags/simple_dag_async.py",
+     "dag_id": "simple_dag_async_taskgroup",
+     "expect": "resolved",
+     "task_or_group": "first_dbt_task_group",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.stg_customers"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "user_defined_profile",
+     "file": "dev/dags/user_defined_profile.py",
+     "dag_id": "user_defined_profile",
+     "expect": "resolved",
+     "task_or_group": "dbt_task_group",
+     "expected_models": [
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "example_watcher_with_freshness",
+     "file": "dev/dags/watcher_with_freshness_check.py",
+     "dag_id": "example_watcher_with_freshness",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.altered_jaffle_shop.customers",
+      "model.altered_jaffle_shop.ephemeral_customers",
+      "model.altered_jaffle_shop.ephemeral_customers_downstream",
+      "model.altered_jaffle_shop.orders",
+      "model.altered_jaffle_shop.stg_customers",
+      "model.altered_jaffle_shop.stg_orders",
+      "model.altered_jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    }
+   ]
+  },
+  "cosmos-demo": {
+   "url": "https://github.com/astronomer/cosmos-demo",
+   "sha": "169707b8b725fb3b852f7eb58dc6edff818c9a57",
+   "sha_pinned": "169707b8b725fb3b852f7eb58dc6edff818c9a57",
+   "sha_ok": true,
+   "scan_paths": [
+    "dags"
+   ],
+   "metrics": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 9,
+    "misses": 0,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 1,
+    "confidence_of_correct": {
+     "heuristic": 9
+    },
+    "dependency_edges": 2,
+    "unresolved_records": 0
+   },
+   "misses": [],
+   "false_positives": [],
+   "unexpected_unknown_links": [],
+   "out_of_scope_dbt_links": [],
+   "unresolved_review": [],
+   "rows": [
+    {
+     "id": "simple_dag",
+     "file": "dags/basic/simple_dag.py",
+     "dag_id": "simple_dag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "simple_task_group",
+     "file": "dags/basic/simple_task_group.py",
+     "dag_id": "simple_task_group",
+     "expect": "resolved",
+     "task_or_group": "my_jaffle_shop_project",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct",
+     "task_ids_match": true
+    },
+    {
+     "id": "simple_dag_async",
+     "file": "dags/execution_modes/async_mode.py",
+     "dag_id": "simple_dag_async",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "example_watcher",
+     "file": "dags/execution_modes/watcher_mode.py",
+     "dag_id": "example_watcher",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "customers_tag",
+     "file": "dags/filtering/customers_tag.py",
+     "dag_id": "customers_tag",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "only_models",
+     "file": "dags/filtering/only_models.py",
+     "dag_id": "only_models",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "only_seeds",
+     "file": "dags/filtering/only_seeds.py",
+     "dag_id": "only_seeds",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_profile_example",
+     "file": "dags/profiles/dbt_profile.py",
+     "dag_id": "dbt_profile_example",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_profile_overrides",
+     "file": "dags/profiles/overrides.py",
+     "dag_id": "dbt_profile_overrides",
+     "expect": "resolved",
+     "task_or_group": "cosmos_dag",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    }
+   ]
+  },
+  "airflow-dbt-demo": {
+   "url": "https://github.com/astronomer/airflow-dbt-demo",
+   "sha": "8da816d0c7db1a9bd012c051bbde21a5d0a612f5",
+   "sha_pinned": "8da816d0c7db1a9bd012c051bbde21a5d0a612f5",
+   "sha_ok": true,
+   "scan_paths": [
+    "dags"
+   ],
+   "metrics": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 5,
+    "misses": 0,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {
+     "heuristic": 5
+    },
+    "dependency_edges": 3,
+    "unresolved_records": 6
+   },
+   "misses": [],
+   "false_positives": [],
+   "unexpected_unknown_links": [],
+   "out_of_scope_dbt_links": [],
+   "unresolved_review": [
+    {
+     "file": "dags/dbt_advanced.py",
+     "line": 36,
+     "category": "dynamic",
+     "reason": "reads a dbt manifest.json at DAG-parse time; tasks generated from it are dynamic",
+     "legit": true,
+     "review": "json.load of target/manifest.json at parse time"
+    },
+    {
+     "file": "dags/dbt_advanced.py",
+     "line": 45,
+     "category": "shell",
+     "reason": "inside a for-loop (line 76): tasks created a dynamic number of times; shell command not statically resolvable: f-string part {model} is not resolvable (loop variable of the for-loop at line 76)",
+     "legit": true,
+     "review": "per-model dbt run BashOperator built in a loop over the manifest"
+    },
+    {
+     "file": "dags/dbt_advanced.py",
+     "line": 55,
+     "category": "shell",
+     "reason": "inside a for-loop (line 76): tasks created a dynamic number of times; shell command not statically resolvable: f-string part {model} is not resolvable (loop variable of the for-loop at line 76)",
+     "legit": true,
+     "review": "per-model dbt test BashOperator built in the same loop"
+    },
+    {
+     "file": "dags/dbt_advanced.py",
+     "line": 91,
+     "category": "dependency",
+     "reason": "inside a for-loop (line 82): tasks created a dynamic number of times; dependency operand is not a known task (>>/<<)",
+     "legit": true,
+     "review": "dependencies between loop-created tasks"
+    },
+    {
+     "file": "dags/dbt_advanced_utility.py",
+     "line": 51,
+     "category": "wrapper",
+     "reason": "include.dbt_dag_parser.DbtDagParser(...) is defined in include/dbt_dag_parser.py and creates BashOperator, TaskGroup at parse time from non-literal inputs; tasks not resolved statically",
+     "legit": true,
+     "review": "DbtDagParser (include/) builds per-model tasks from the manifest"
+    },
+    {
+     "file": "dags/dbt_advanced_utility.py",
+     "line": 60,
+     "category": "dependency",
+     "reason": "dependency operand is not a known task (>>/<<)",
+     "legit": true,
+     "review": "edges to the dynamic dbt_run/dbt_test groups"
+    }
+   ],
+   "rows": [
+    {
+     "id": "dbt_basic_dag.dbt_seed",
+     "file": "dags/dbt_basic.py",
+     "dag_id": "dbt_basic_dag",
+     "expect": "resolved",
+     "task_or_group": "dbt_seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_basic_dag.dbt_run",
+     "file": "dags/dbt_basic.py",
+     "dag_id": "dbt_basic_dag",
+     "expect": "resolved",
+     "task_or_group": "dbt_run",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_basic_dag.dbt_test",
+     "file": "dags/dbt_basic.py",
+     "dag_id": "dbt_basic_dag",
+     "expect": "resolved",
+     "task_or_group": "dbt_test",
+     "expected_models": [
+      "model.jaffle_shop.customers",
+      "model.jaffle_shop.orders",
+      "model.jaffle_shop.stg_customers",
+      "model.jaffle_shop.stg_orders",
+      "model.jaffle_shop.stg_payments"
+     ],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_advanced_dag.dbt_seed",
+     "file": "dags/dbt_advanced.py",
+     "dag_id": "dbt_advanced_dag",
+     "expect": "resolved",
+     "task_or_group": "dbt_seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_advanced_dag.per_model_tasks",
+     "file": "dags/dbt_advanced.py",
+     "dag_id": "dbt_advanced_dag",
+     "expect": "unknown",
+     "task_or_group": "dynamic",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "inside a for-loop (line 76): tasks created a dynamic number of times; shell command not statically resolvable: f-string part {model} is not resolvable (loop variable of the for-loop at line 76)"
+     ]
+    },
+    {
+     "id": "dbt_advanced_dag_utility.dbt_seed",
+     "file": "dags/dbt_advanced_utility.py",
+     "dag_id": "dbt_advanced_dag_utility",
+     "expect": "resolved",
+     "task_or_group": "dbt_seed",
+     "expected_models": [],
+     "confidence": "heuristic",
+     "outcome": "correct"
+    },
+    {
+     "id": "dbt_advanced_dag_utility.dbt_run_group_and_test_group",
+     "file": "dags/dbt_advanced_utility.py",
+     "dag_id": "dbt_advanced_dag_utility",
+     "expect": "unknown",
+     "task_or_group": "dynamic",
+     "outcome": "unknown_legit",
+     "scanner_reasons": [
+      "include.dbt_dag_parser.DbtDagParser(...) is defined in include/dbt_dag_parser.py and creates BashOperator, TaskGroup at parse time from non-literal inputs; tasks not resolved statically"
+     ]
+    }
+   ]
+  }
+ },
+ "totals": {
+  "dag_files_scanned": 53,
+  "expected_links": 84,
+  "expected_resolvable": 75,
+  "expected_unknown": 9,
+  "found": 84,
+  "correct": 75,
+  "misses": 0,
+  "legit_unknowns": 9,
+  "false_positives": 0,
+  "unexpected_unknown_links": 0,
+  "task_id_checks": 7,
+  "task_id_checks_passed": 7,
+  "miss_rate": 0.0,
+  "correct_rate_resolvable": 1.0
+ },
+ "ablations": {
+  "astronomer-cosmos": {
+   "full": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 68,
+    "correct": 61,
+    "misses": 0,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 57,
+     "inferred": 4
+    },
+    "dependency_edges": 43,
+    "unresolved_records": 10
+   },
+   "no_cross_module_imports": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 68,
+    "correct": 61,
+    "misses": 0,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 57,
+     "inferred": 4
+    },
+    "dependency_edges": 43,
+    "unresolved_records": 10
+   },
+   "no_container_path_remap": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 68,
+    "correct": 60,
+    "misses": 1,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0147,
+    "miss_rate_resolvable": 0.0164,
+    "correct_rate_resolvable": 0.9836,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 56,
+     "inferred": 4
+    },
+    "dependency_edges": 43,
+    "unresolved_records": 12
+   },
+   "no_helper_call_inlining": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 64,
+    "correct": 57,
+    "misses": 4,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 1,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0588,
+    "miss_rate_resolvable": 0.0656,
+    "correct_rate_resolvable": 0.9344,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 53,
+     "inferred": 4
+    },
+    "dependency_edges": 39,
+    "unresolved_records": 15
+   },
+   "single_file_literals_only": {
+    "dag_files_scanned": 41,
+    "expected_links": 68,
+    "expected_resolvable": 61,
+    "expected_unknown": 7,
+    "found": 64,
+    "correct": 56,
+    "misses": 5,
+    "legit_unknowns": 7,
+    "false_positives": 0,
+    "unexpected_unknown_links": 1,
+    "out_of_scope_dbt_links": 6,
+    "miss_rate": 0.0735,
+    "miss_rate_resolvable": 0.082,
+    "correct_rate_resolvable": 0.918,
+    "task_id_checks": 6,
+    "task_id_checks_passed": 6,
+    "confidence_of_correct": {
+     "heuristic": 52,
+     "inferred": 4
+    },
+    "dependency_edges": 39,
+    "unresolved_records": 17
+   }
+  },
+  "cosmos-demo": {
+   "full": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 9,
+    "misses": 0,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 1,
+    "confidence_of_correct": {
+     "heuristic": 9
+    },
+    "dependency_edges": 2,
+    "unresolved_records": 0
+   },
+   "no_cross_module_imports": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 0,
+    "misses": 9,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 1.0,
+    "miss_rate_resolvable": 1.0,
+    "correct_rate_resolvable": 0.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {},
+    "dependency_edges": 2,
+    "unresolved_records": 9
+   },
+   "no_container_path_remap": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 0,
+    "misses": 9,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 1.0,
+    "miss_rate_resolvable": 1.0,
+    "correct_rate_resolvable": 0.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {},
+    "dependency_edges": 2,
+    "unresolved_records": 9
+   },
+   "no_helper_call_inlining": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 9,
+    "misses": 0,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 1,
+    "confidence_of_correct": {
+     "heuristic": 9
+    },
+    "dependency_edges": 2,
+    "unresolved_records": 0
+   },
+   "single_file_literals_only": {
+    "dag_files_scanned": 9,
+    "expected_links": 9,
+    "expected_resolvable": 9,
+    "expected_unknown": 0,
+    "found": 9,
+    "correct": 0,
+    "misses": 9,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 1.0,
+    "miss_rate_resolvable": 1.0,
+    "correct_rate_resolvable": 0.0,
+    "task_id_checks": 1,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {},
+    "dependency_edges": 2,
+    "unresolved_records": 9
+   }
+  },
+  "airflow-dbt-demo": {
+   "full": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 5,
+    "misses": 0,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {
+     "heuristic": 5
+    },
+    "dependency_edges": 3,
+    "unresolved_records": 6
+   },
+   "no_cross_module_imports": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 5,
+    "misses": 0,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {
+     "heuristic": 5
+    },
+    "dependency_edges": 3,
+    "unresolved_records": 6
+   },
+   "no_container_path_remap": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 0,
+    "misses": 5,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.7143,
+    "miss_rate_resolvable": 1.0,
+    "correct_rate_resolvable": 0.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {},
+    "dependency_edges": 3,
+    "unresolved_records": 11
+   },
+   "no_helper_call_inlining": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 5,
+    "misses": 0,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.0,
+    "miss_rate_resolvable": 0.0,
+    "correct_rate_resolvable": 1.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {
+     "heuristic": 5
+    },
+    "dependency_edges": 3,
+    "unresolved_records": 8
+   },
+   "single_file_literals_only": {
+    "dag_files_scanned": 3,
+    "expected_links": 7,
+    "expected_resolvable": 5,
+    "expected_unknown": 2,
+    "found": 7,
+    "correct": 0,
+    "misses": 5,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "out_of_scope_dbt_links": 0,
+    "miss_rate": 0.7143,
+    "miss_rate_resolvable": 1.0,
+    "correct_rate_resolvable": 0.0,
+    "task_id_checks": 0,
+    "task_id_checks_passed": 0,
+    "confidence_of_correct": {},
+    "dependency_edges": 3,
+    "unresolved_records": 13
+   }
+  }
+ },
+ "ablation_totals": {
+  "full": {
+   "correct": 75,
+   "misses": 0,
+   "expected_links": 84
+  },
+  "no_cross_module_imports": {
+   "correct": 66,
+   "misses": 9,
+   "expected_links": 84
+  },
+  "no_container_path_remap": {
+   "correct": 60,
+   "misses": 15,
+   "expected_links": 84
+  },
+  "no_helper_call_inlining": {
+   "correct": 71,
+   "misses": 4,
+   "expected_links": 84
+  },
+  "single_file_literals_only": {
+   "correct": 56,
+   "misses": 19,
+   "expected_links": 84
+  }
+ },
+ "heldout": {
+  "note": "current scanner on the held-out repos; the frozen-scanner result is in results/heldout_frozen_run.json",
+  "repos": {
+   "konosp_dbt-airflow-docker-compose": {
+    "url": "https://github.com/konosp/dbt-airflow-docker-compose",
+    "sha": "25f03315cd35228b3211fb46e28d763a997ca952",
+    "sha_pinned": "25f03315cd35228b3211fb46e28d763a997ca952",
+    "metrics": {
+     "dag_files_scanned": 2,
+     "expected_links": 3,
+     "expected_resolvable": 0,
+     "expected_unknown": 3,
+     "found": 3,
+     "correct": 0,
+     "misses": 0,
+     "legit_unknowns": 3,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "out_of_scope_dbt_links": 0,
+     "miss_rate": 0.0,
+     "miss_rate_resolvable": null,
+     "correct_rate_resolvable": null,
+     "task_id_checks": 0,
+     "task_id_checks_passed": 0,
+     "confidence_of_correct": {},
+     "dependency_edges": 18,
+     "unresolved_records": 4
+    },
+    "misses": [],
+    "false_positives": [],
+    "unresolved_review": [
+     {
+      "file": "airflow/dags/dag.py",
+      "line": 17,
+      "category": "dynamic",
+      "reason": "reads a dbt manifest.json at DAG-parse time; tasks generated from it are dynamic",
+      "legit": true,
+      "review": "json.load of /dbt/target/manifest.json at parse time"
+     },
+     {
+      "file": "airflow/dags/dag.py",
+      "line": 80,
+      "category": "shell",
+      "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+      "legit": true,
+      "review": "daily models: BashOperator per node in a loop"
+     },
+     {
+      "file": "airflow/dags/dag.py",
+      "line": 90,
+      "category": "shell",
+      "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+      "legit": true,
+      "review": "snapshot-tagged models: same loop"
+     },
+     {
+      "file": "airflow/dags/dag.py",
+      "line": 101,
+      "category": "shell",
+      "reason": "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments",
+      "legit": true,
+      "review": "init-once models: same loop"
+     }
+    ],
+    "rows": [
+     {
+      "id": "4_daily_dbt_models.loop",
+      "file": "airflow/dags/dag.py",
+      "dag_id": "4_daily_dbt_models",
+      "expect": "unknown",
+      "task_or_group": "dynamic",
+      "outcome": "unknown_legit",
+      "scanner_reasons": [
+       "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments"
+      ]
+     },
+     {
+      "id": "3_snapshot_dbt_models.loop",
+      "file": "airflow/dags/dag.py",
+      "dag_id": "3_snapshot_dbt_models",
+      "expect": "unknown",
+      "task_or_group": "dynamic",
+      "outcome": "unknown_legit",
+      "scanner_reasons": [
+       "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments"
+      ]
+     },
+     {
+      "id": "2_init_once_dbt_models.loop",
+      "file": "airflow/dags/dag.py",
+      "dag_id": "2_init_once_dbt_models",
+      "expect": "unknown",
+      "task_or_group": "dynamic",
+      "outcome": "unknown_legit",
+      "scanner_reasons": [
+       "inside a for-loop (line 75): tasks created a dynamic number of times; shell command not statically resolvable: .format() with non-literal arguments"
+      ]
+     }
+    ]
+   },
+   "danielvdende_data-testing-with-airflow": {
+    "url": "https://github.com/danielvdende/data-testing-with-airflow",
+    "sha": "86600ee5dcffe54adb2e4b620f404ff2c13cd887",
+    "sha_pinned": "86600ee5dcffe54adb2e4b620f404ff2c13cd887",
+    "metrics": {
+     "dag_files_scanned": 1,
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "found": 2,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "out_of_scope_dbt_links": 0,
+     "miss_rate": 0.0,
+     "miss_rate_resolvable": 0.0,
+     "correct_rate_resolvable": 1.0,
+     "task_id_checks": 0,
+     "task_id_checks_passed": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dependency_edges": 3,
+     "unresolved_records": 0
+    },
+    "misses": [],
+    "false_positives": [],
+    "unresolved_review": [],
+    "rows": [
+     {
+      "id": "awesome_dag.dbt_run",
+      "file": "dags/dag.py",
+      "dag_id": "awesome_dag",
+      "expect": "resolved",
+      "task_or_group": "dbt_run",
+      "expected_models": [
+       "model.bank_transactions.enriched_transactions",
+       "model.bank_transactions.filter_countries"
+      ],
+      "confidence": "heuristic",
+      "outcome": "correct"
+     },
+     {
+      "id": "awesome_dag.dbt_test",
+      "file": "dags/dag.py",
+      "dag_id": "awesome_dag",
+      "expect": "resolved",
+      "task_or_group": "dbt_test",
+      "expected_models": [
+       "model.bank_transactions.enriched_transactions"
+      ],
+      "confidence": "heuristic",
+      "outcome": "correct"
+     }
+    ]
+   },
+   "GokuMohandas_data-engineering": {
+    "url": "https://github.com/GokuMohandas/data-engineering",
+    "sha": "1d346983ad79575f1c9729ae6ec8574a6de37de7",
+    "sha_pinned": "1d346983ad79575f1c9729ae6ec8574a6de37de7",
+    "metrics": {
+     "dag_files_scanned": 2,
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "found": 2,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "out_of_scope_dbt_links": 0,
+     "miss_rate": 0.0,
+     "miss_rate_resolvable": 0.0,
+     "correct_rate_resolvable": 1.0,
+     "task_id_checks": 0,
+     "task_id_checks_passed": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dependency_edges": 6,
+     "unresolved_records": 0
+    },
+    "misses": [],
+    "false_positives": [],
+    "unresolved_review": [],
+    "rows": [
+     {
+      "id": "dataops.transform.run",
+      "file": "airflow/dags/workflows.py",
+      "dag_id": "dataops",
+      "expect": "resolved",
+      "task_or_group": "transform",
+      "expected_models": [
+       "model.dbt_transforms.labeled_projects"
+      ],
+      "confidence": "heuristic",
+      "outcome": "correct"
+     },
+     {
+      "id": "dataops.transform.test",
+      "file": "airflow/dags/workflows.py",
+      "dag_id": "dataops",
+      "expect": "resolved",
+      "task_or_group": "transform",
+      "expected_models": [
+       "model.dbt_transforms.labeled_projects"
+      ],
+      "confidence": "heuristic",
+      "outcome": "correct"
+     }
+    ]
+   },
+   "saastoolset_dbt-core-airflow-template": {
+    "url": "https://github.com/saastoolset/dbt-core-airflow-template",
+    "sha": "d4cd1d2414c3313fd94456fc63f6c84cff32bc1e",
+    "sha_pinned": "d4cd1d2414c3313fd94456fc63f6c84cff32bc1e",
+    "metrics": {
+     "dag_files_scanned": 2,
+     "expected_links": 2,
+     "expected_resolvable": 1,
+     "expected_unknown": 1,
+     "found": 2,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 1,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "out_of_scope_dbt_links": 0,
+     "miss_rate": 0.0,
+     "miss_rate_resolvable": 0.0,
+     "correct_rate_resolvable": 1.0,
+     "task_id_checks": 0,
+     "task_id_checks_passed": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dependency_edges": 0,
+     "unresolved_records": 1
+    },
+    "misses": [],
+    "false_positives": [],
+    "unresolved_review": [
+     {
+      "file": "dags/bashOperator/simple.py",
+      "line": 19,
+      "category": "shell",
+      "reason": "shell command not statically resolvable: Add over these values is not evaluated",
+      "legit": true,
+      "review": "str + pathlib.Path raises TypeError at import; the scanner's reason (Add not evaluated) is right in effect but does not name the TypeError"
+     }
+    ],
+    "rows": [
+     {
+      "id": "example_local.dbt_python_run_daily",
+      "file": "dags/airflow-dbt-python/example_local.py",
+      "dag_id": "example_local",
+      "expect": "resolved",
+      "task_or_group": "dbt_python_run_daily",
+      "expected_models": [],
+      "confidence": "heuristic",
+      "outcome": "correct"
+     },
+     {
+      "id": "dbt_bash.dbt_run",
+      "file": "dags/bashOperator/simple.py",
+      "dag_id": "dbt_bash",
+      "expect": "unknown",
+      "task_or_group": "dynamic",
+      "outcome": "unknown_legit",
+      "scanner_reasons": [
+       "shell command not statically resolvable: Add over these values is not evaluated"
+      ]
+     }
+    ]
+   }
+  },
+  "totals": {
+   "dag_files_scanned": 7,
+   "expected_links": 9,
+   "expected_resolvable": 5,
+   "correct": 5,
+   "misses": 0,
+   "legit_unknowns": 4,
+   "false_positives": 0
+  },
+  "frozen_run": {
+   "dag_files_scanned": 7,
+   "expected_links": 9,
+   "expected_resolvable": 5,
+   "correct": 5,
+   "legit_unknowns": 4,
+   "misses": 0,
+   "false_positives": 0,
+   "correct_by_fallback_heuristic": 2
+  }
+ },
+ "selector_agreement": {
+  "dbt_version": "1.12.6",
+  "expressions": 44,
+  "supported_expressions": 42,
+  "agree": 42,
+  "disagree": 0,
+  "engine_unknown_on_supported": 0,
+  "unsupported_expressions": 2,
+  "unsupported_answered_unknown": 2,
+  "standin_manifest": {
+   "what": "same expressions over the approximate stand-in built from project files (YAML-selector cases excluded: they live in the manifest)",
+   "expressions": 40,
+   "supported_expressions": 38,
+   "agree": 38,
+   "disagree": 0,
+   "engine_unknown_on_supported": 0,
+   "unsupported_expressions": 2,
+   "unsupported_answered_unknown": 2
+  }
+ }
+}

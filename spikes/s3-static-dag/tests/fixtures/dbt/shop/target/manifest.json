@@ -85,7 +85,7 @@
     "meta": {},
     "tags": []
    },
-   "created_at": 1793542730.899541,
+   "created_at": 1793544868.372252,
    "depends_on": {
     "macros": [],
     "nodes": [
@@ -134,9 +134,9 @@
   "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
   "dbt_version": "1.12.6",
   "env": {},
-  "generated_at": "2026-11-01T14:18:50.336833Z",
-  "invocation_id": "918a7bda-6b76-4c8b-bed1-39d10b523ae1",
-  "invocation_started_at": "2026-11-01T14:18:50.086650Z",
+  "generated_at": "2026-11-01T14:54:27.820876Z",
+  "invocation_id": "8bc8ca7d-03b5-4d8f-b29f-3d670c79b031",
+  "invocation_started_at": "2026-11-01T14:54:27.064358Z",
   "project_id": "fb54f3c5992b96d001bb16e8e92d968d",
   "project_name": "shop",
   "quoting": {
@@ -145,7 +145,7 @@
    "identifier": true,
    "schema": true
   },
-  "run_started_at": "2026-11-01T14:18:50.087327+00:00",
+  "run_started_at": "2026-11-01T14:54:27.064571+00:00",
   "send_anonymous_usage_stats": false,
   "user_id": null
  },
@@ -212,7 +212,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.733666,
+   "created_at": 1793544868.215858,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -355,7 +355,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.0476758,
+   "created_at": 1793544868.510304,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -482,7 +482,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.7359328,
+   "created_at": 1793544868.217896,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -638,7 +638,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.048665,
+   "created_at": 1793544868.511303,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -767,7 +767,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.050781,
+   "created_at": 1793544868.5134132,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -890,7 +890,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.051507,
+   "created_at": 1793544868.5141718,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1013,7 +1013,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.7404218,
+   "created_at": 1793544868.2221491,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1132,7 +1132,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.7414231,
+   "created_at": 1793544868.223273,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1249,7 +1249,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.742678,
+   "created_at": 1793544868.224417,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1369,7 +1369,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.710881,
+   "created_at": 1793544868.195217,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1490,7 +1490,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.727391,
+   "created_at": 1793544868.209884,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1609,7 +1609,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.724376,
+   "created_at": 1793544868.208129,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1751,7 +1751,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.965855,
+   "created_at": 1793544868.4339368,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -1888,7 +1888,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.966301,
+   "created_at": 1793544868.43439,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -2008,7 +2008,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.731287,
+   "created_at": 1793544868.213789,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -2126,7 +2126,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.72891,
+   "created_at": 1793544868.211585,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -2229,7 +2229,7 @@
     "tags": [],
     "unique_key": null
    },
-   "created_at": 1793542730.883651,
+   "created_at": 1793544868.356617,
    "database": "memory",
    "depends_on": {
     "macros": []
@@ -2254,7 +2254,7 @@
    "raw_code": "",
    "relation_name": "\"memory\".\"main\".\"country_codes\"",
    "resource_type": "seed",
-   "root_path": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s3-static-dag/work/dbt/shop",
+   "root_path": "<fixture>",
    "schema": "main",
    "tags": [],
    "unique_id": "seed.shop.country_codes",
@@ -2306,7 +2306,7 @@
     "tags": [],
     "unique_key": null
    },
-   "created_at": 1793542730.8824341,
+   "created_at": 1793544868.355572,
    "database": "memory",
    "depends_on": {
     "macros": []
@@ -2331,7 +2331,7 @@
    "raw_code": "",
    "relation_name": "\"memory\".\"main\".\"products\"",
    "resource_type": "seed",
-   "root_path": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s3-static-dag/work/dbt/shop",
+   "root_path": "<fixture>",
    "schema": "main",
    "tags": [],
    "unique_id": "seed.shop.products",
@@ -2400,7 +2400,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542730.818191,
+   "created_at": 1793544868.2951522,
    "database": "memory",
    "depends_on": {
     "macros": [],
@@ -2485,7 +2485,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.052442,
+   "created_at": 1793544868.515157,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -2578,7 +2578,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.009376,
+   "created_at": 1793544868.474565,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -2670,7 +2670,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.053138,
+   "created_at": 1793544868.515865,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -2774,7 +2774,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.048047,
+   "created_at": 1793544868.51068,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -2867,7 +2867,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.0084338,
+   "created_at": 1793544868.4735842,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -2959,7 +2959,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793542731.010067,
+   "created_at": 1793544868.475271,
    "database": "memory",
    "depends_on": {
     "macros": [
@@ -3186,7 +3186,7 @@
      "raw_data"
     ]
    },
-   "created_at": 1793542731.069407,
+   "created_at": 1793544868.530616,
    "database": "memory",
    "description": "",
    "doc_blocks": [],
@@ -3269,7 +3269,7 @@
      "raw_data"
     ]
    },
-   "created_at": 1793542731.070047,
+   "created_at": 1793544868.531214,
    "database": "memory",
    "description": "",
    "doc_blocks": [],
@@ -3352,7 +3352,7 @@
      "raw_data"
     ]
    },
-   "created_at": 1793542731.070236,
+   "created_at": 1793544868.531401,
    "database": "memory",
    "description": "",
    "doc_blocks": [],

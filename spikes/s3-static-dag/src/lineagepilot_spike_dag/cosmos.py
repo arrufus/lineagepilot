@@ -218,7 +218,10 @@ def expand_tasks(
     rows: list[dict[str, Any]] = []
     extra: list[dict[str, Any]] = []
     detached: dict[str, Node] = {}
-    for uid in selected:
+    folder_groups: dict[str, str] = {}
+    # Cosmos iterates nodes in load order; with group_nodes_by_folder that order matters (see below).
+    ordered = [uid for uid in manifest.nodes if uid in selected_set]
+    for uid in ordered:
         node = manifest.nodes[uid]
         if node.resource_type not in TESTABLE:
             continue
@@ -227,8 +230,12 @@ def expand_tasks(
         name = node_task_name(node)
         folder = ""
         if spec.group_nodes_by_folder:
-            parts = [p for p in posixpath.dirname(node.original_file_path).split("/") if p]
-            folder = "".join(f"{p}." for p in parts)
+            # create_task_groups_based_on_folder with the default (non-hierarchical) naming caches task
+            # groups by the bare folder name, so same-named folders collapse into the first group created.
+            for part in [x for x in posixpath.dirname(node.original_file_path).split("/") if x not in ("", ".")]:
+                if part not in folder_groups:
+                    folder_groups[part] = f"{folder}{part}."
+                folder = folder_groups[part]
         p = prefix + folder
         node_tests = [t for t in tests.get(uid, []) if any(d in selected_set for d in t.depends_on)]
         non_detached = [t for t in node_tests if not (spec.detach_tests and len(t.depends_on) > 1)]

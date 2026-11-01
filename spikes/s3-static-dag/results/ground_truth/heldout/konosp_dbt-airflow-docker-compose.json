@@ -1,0 +1,83 @@
+{
+ "repo": "konosp/dbt-airflow-docker-compose",
+ "url": "https://github.com/konosp/dbt-airflow-docker-compose",
+ "sha": "25f03315cd35228b3211fb46e28d763a997ca952",
+ "license": "Apache-2.0 (read as data only)",
+ "scan": {
+  "paths": [
+   "airflow/dags"
+  ],
+  "workspace": "."
+ },
+ "labelled_by": "hand, labelled BLIND before the frozen scanner (sha256 of src/ in work/scanner_fingerprint_before_heldout.txt) was run on this repo",
+ "out_of_scope_tasks": [
+  {
+   "file": "airflow/dags/initialise_data.py",
+   "what": "19 PostgresOperator tasks, no dbt"
+  }
+ ],
+ "links": [
+  {
+   "id": "4_daily_dbt_models.loop",
+   "file": "airflow/dags/dag.py",
+   "lines": [
+    80
+   ],
+   "dag_id": "4_daily_dbt_models",
+   "unit": "dynamic",
+   "expect": "unknown",
+   "legit": true,
+   "reason": "one BashOperator per 'daily'-tagged model, created in a for-loop over manifest.json read at parse time"
+  },
+  {
+   "id": "3_snapshot_dbt_models.loop",
+   "file": "airflow/dags/dag.py",
+   "lines": [
+    90
+   ],
+   "dag_id": "3_snapshot_dbt_models",
+   "unit": "dynamic",
+   "expect": "unknown",
+   "legit": true,
+   "reason": "same loop, 'snapshot'-tagged models"
+  },
+  {
+   "id": "2_init_once_dbt_models.loop",
+   "file": "airflow/dags/dag.py",
+   "lines": [
+    101
+   ],
+   "dag_id": "2_init_once_dbt_models",
+   "unit": "dynamic",
+   "expect": "unknown",
+   "legit": true,
+   "reason": "same loop, 'init-once'-tagged models"
+  }
+ ],
+ "unresolved_review": [
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 17,
+   "legit": true,
+   "why": "json.load of /dbt/target/manifest.json at parse time"
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 80,
+   "legit": true,
+   "why": "daily models: BashOperator per node in a loop"
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 90,
+   "legit": true,
+   "why": "snapshot-tagged models: same loop"
+  },
+  {
+   "file": "airflow/dags/dag.py",
+   "line": 101,
+   "legit": true,
+   "why": "init-once models: same loop"
+  }
+ ]
+}

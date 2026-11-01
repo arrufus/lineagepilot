@@ -2,7 +2,12 @@
 
 **Question.** Can one universal VSIX carry the Python language server's dependencies as pure Python, and start a pygls server that returns a CodeLens on macOS, Windows and Linux, with Python 3.10 and 3.13?
 
-**Answer.** Yes on macOS and Linux, measured. The same VSIX, built once on macOS, passed on macOS arm64 and Linux arm64 inside VS Code 1.144.0. Its bundle also passed the stdio server tests on Linux x86_64. **Windows has not run yet**: the CI workflow is written but needs a push to GitHub. Decision D-2 (a Python language server) holds, subject to that Windows run.
+**Answer.** Yes, on all three operating systems.
+
+- **Locally:** the VSIX, built once on macOS, passed on macOS arm64 and Linux arm64 inside VS Code 1.144.0.
+- **In CI:** a VSIX built once on Linux passed on Windows, macOS and Ubuntu with Python 3.10 and 3.13. That was GitHub Actions run 41317287230, on commit 04cfa69: 54 of 54 tests.
+
+Decision D-2 (a Python language server) holds.
 
 ## Done-when criteria
 
@@ -12,8 +17,8 @@
 | Universal VSIX | **Met** | 1.36 MB packed, 384 files, no `TargetPlatform`. `scripts/check_vsix.py` enforces it. |
 | Interpreter found via `@vscode/python-extension` | **Met** | `python-extension` runs pass on macOS and Linux, on 3.10 and 3.13 |
 | CodeLens on macOS, Python 3.10 and 3.13 | **Met** | 6 VS Code runs, 18/18 tests |
-| CodeLens on Linux, Python 3.10 and 3.13 | **Met** | 6 VS Code runs on arm64, 18/18 tests. Stdio tests also pass on x86_64. |
-| CodeLens on Windows, Python 3.10 and 3.13 | **Not measured** | `.github/workflows/lineagepilot-s1.yml` covers it |
+| CodeLens on Linux, Python 3.10 and 3.13 | **Met** | 6 VS Code runs on arm64, 18/18 tests. In CI on x86_64: 18/18. |
+| CodeLens on Windows, Python 3.10 and 3.13 | **Met** | CI on windows-latest: 6 VS Code runs, 18/18 tests |
 
 ## Results
 
@@ -28,7 +33,13 @@ The **source** column says how the extension found the interpreter: the machine-
 | Linux arm64 | python-extension | 3.10.17, 3.13.3 | 3/3, 3/3 |
 | Linux arm64 | path | 3.11.2 (`/usr/bin/python3`) | 3/3, 3/3 |
 | Linux x86_64 | stdio tests only | 3.10.22, 3.13.18 | 28 passed each |
-| Windows | all | 3.10, 3.13 | not run |
+| Windows (CI) | setting, python-extension | 3.10.11, 3.13.16 | 3/3 each |
+| Windows (CI) | path (`py -3`) | 3.15.x, the runner's default | 3/3, 3/3 |
+| macOS arm64 (CI) | setting, python-extension | 3.10.11, 3.13.17 | 3/3 each |
+| macOS arm64 (CI) | path | 3.15.1 (Homebrew) | 3/3, 3/3 |
+| Ubuntu x86_64 (CI) | all three | 3.10.22, 3.13.17 | 9/9, 9/9 |
+
+The first attempt of the Ubuntu 3.13 CI job timed out downloading VS Code, before any test ran; the re-run passed. The workflow now pins VS Code 1.144.0, and retries the download and nothing else.
 
 The three VS Code tests check three things:
 - The packaged server returns the CodeLens `2 upstream refs, 2 tables | spike_shop | Python x.y.z`. Building that title uses the bundled pygls, sqlglot and PyYAML.
@@ -119,6 +130,5 @@ To regenerate the lock files, use the commands at the top of `requirements.in` a
 
 ## Not done
 
-- **Windows.** It needs the workflow to run on GitHub. Nothing has been pushed.
 - **The uv-managed interpreter fallback**, step 4 of the resolution order. It is out of scope for the spike and moves to Phase 2.4.
 - **A restricted-mode run in real VS Code.** The trust rule is unit-tested only. Phase 2.5 adds the integration test.

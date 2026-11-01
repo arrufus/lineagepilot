@@ -1,0 +1,517 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dbt"
+ ],
+ "files": [
+  "dags/dbt_advanced.py",
+  "dags/dbt_advanced_utility.py",
+  "dags/dbt_basic.py"
+ ],
+ "skipped": [],
+ "dags": [
+  {
+   "dag_id": "dbt_advanced_dag",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/dbt_advanced.py",
+    "line": 25,
+    "col": 5
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dbt_advanced_dag_utility",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 22,
+    "col": 5
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dbt_basic_dag",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 17,
+    "col": 5
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "dbt_advanced_dag",
+   "task_id": "dbt_seed",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced.py",
+    "line": 67,
+    "col": 15
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_advanced_dag",
+   "task_id": null,
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced.py",
+    "line": 45,
+    "col": 23
+   },
+   "dynamic": "inside a for-loop (line 76): tasks created a dynamic number of times"
+  },
+  {
+   "dag_id": "dbt_advanced_dag",
+   "task_id": null,
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced.py",
+    "line": 55,
+    "col": 23
+   },
+   "dynamic": "inside a for-loop (line 76): tasks created a dynamic number of times"
+  },
+  {
+   "dag_id": "dbt_advanced_dag_utility",
+   "task_id": "start",
+   "operator": "DummyOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 31,
+    "col": 18
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_advanced_dag_utility",
+   "task_id": "dbt_seed",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 33,
+    "col": 15
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_advanced_dag_utility",
+   "task_id": "end",
+   "operator": "DummyOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 47,
+    "col": 16
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_seed",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 35,
+    "col": 15
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_run",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 40,
+    "col": 14
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_test",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 45,
+    "col": 15
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dbt_advanced.py",
+    "line": 67,
+    "col": 15
+   },
+   "dag_id": "dbt_advanced_dag",
+   "task_id": "dbt_seed",
+   "group_id": null,
+   "dbt_command": "seed",
+   "project_path": "dbt",
+   "manifest": {
+    "kind": "committed",
+    "path": "dbt/target/manifest.json",
+    "generated_at": "2021-05-25T20:18:01.201241Z",
+    "dbt_version": "0.19.1",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v1.json",
+    "approximate": false
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [],
+   "resolved_nodes": [
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt' does not exist here; mapped to dbt by its last 1 path component(s)"
+   ],
+   "target": null,
+   "command_text": "seed --profiles-dir /usr/local/airflow/dbt --project-dir /usr/local/airflow/dbt",
+   "project_path_raw": "/usr/local/airflow/dbt",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 33,
+    "col": 15
+   },
+   "dag_id": "dbt_advanced_dag_utility",
+   "task_id": "dbt_seed",
+   "group_id": null,
+   "dbt_command": "seed",
+   "project_path": "dbt",
+   "manifest": {
+    "kind": "committed",
+    "path": "dbt/target/manifest.json",
+    "generated_at": "2021-05-25T20:18:01.201241Z",
+    "dbt_version": "0.19.1",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v1.json",
+    "approximate": false
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [],
+   "resolved_nodes": [
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt' does not exist here; mapped to dbt by its last 1 path component(s)"
+   ],
+   "target": null,
+   "command_text": "--no-write-json seed --profiles-dir /usr/local/airflow/dbt --project-dir /usr/local/airflow/dbt",
+   "project_path_raw": "/usr/local/airflow/dbt",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 35,
+    "col": 15
+   },
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_seed",
+   "group_id": null,
+   "dbt_command": "seed",
+   "project_path": "dbt",
+   "manifest": {
+    "kind": "committed",
+    "path": "dbt/target/manifest.json",
+    "generated_at": "2021-05-25T20:18:01.201241Z",
+    "dbt_version": "0.19.1",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v1.json",
+    "approximate": false
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [],
+   "resolved_nodes": [
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt' does not exist here; mapped to dbt by its last 1 path component(s)"
+   ],
+   "target": null,
+   "command_text": "seed --profiles-dir /usr/local/airflow/dbt --project-dir /usr/local/airflow/dbt",
+   "project_path_raw": "/usr/local/airflow/dbt",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 40,
+    "col": 14
+   },
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_run",
+   "group_id": null,
+   "dbt_command": "run",
+   "project_path": "dbt",
+   "manifest": {
+    "kind": "committed",
+    "path": "dbt/target/manifest.json",
+    "generated_at": "2021-05-25T20:18:01.201241Z",
+    "dbt_version": "0.19.1",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v1.json",
+    "approximate": false
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt' does not exist here; mapped to dbt by its last 1 path component(s)"
+   ],
+   "target": null,
+   "command_text": "run --profiles-dir /usr/local/airflow/dbt --project-dir /usr/local/airflow/dbt",
+   "project_path_raw": "/usr/local/airflow/dbt",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 45,
+    "col": 15
+   },
+   "dag_id": "dbt_basic_dag",
+   "task_id": "dbt_test",
+   "group_id": null,
+   "dbt_command": "test",
+   "project_path": "dbt",
+   "manifest": {
+    "kind": "committed",
+    "path": "dbt/target/manifest.json",
+    "generated_at": "2021-05-25T20:18:01.201241Z",
+    "dbt_version": "0.19.1",
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v1.json",
+    "approximate": false
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "project path '/usr/local/airflow/dbt' does not exist here; mapped to dbt by its last 1 path component(s)",
+    "dbt test: linked to selected nodes that have at least one test"
+   ],
+   "target": null,
+   "command_text": "test --profiles-dir /usr/local/airflow/dbt --project-dir /usr/local/airflow/dbt",
+   "project_path_raw": "/usr/local/airflow/dbt",
+   "in_scope": true
+  }
+ ],
+ "dependencies": [
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dbt_advanced_dag_utility",
+   "upstream": "airflow:dbt_advanced_dag_utility.start",
+   "downstream": "airflow:dbt_advanced_dag_utility.dbt_seed",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dbt_advanced_utility.py",
+    "line": 60,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dbt_basic_dag",
+   "upstream": "airflow:dbt_basic_dag.dbt_seed",
+   "downstream": "airflow:dbt_basic_dag.dbt_run",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 50,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dbt_basic_dag",
+   "upstream": "airflow:dbt_basic_dag.dbt_run",
+   "downstream": "airflow:dbt_basic_dag.dbt_test",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dbt_basic.py",
+    "line": 50,
+    "col": 4
+   }
+  }
+ ],
+ "unresolved": [
+  {
+   "file": "dags/dbt_advanced.py",
+   "line": 36,
+   "col": 13,
+   "reason": "reads a dbt manifest.json at DAG-parse time; tasks generated from it are dynamic",
+   "dag_id": "dbt_advanced_dag",
+   "category": "dynamic",
+   "via_call_at": [
+    [
+     73,
+     11
+    ]
+   ]
+  },
+  {
+   "file": "dags/dbt_advanced.py",
+   "line": 45,
+   "col": 23,
+   "reason": "inside a for-loop (line 76): tasks created a dynamic number of times; shell command not statically resolvable: f-string part {model} is not resolvable (loop variable of the for-loop at line 76)",
+   "dag_id": "dbt_advanced_dag",
+   "category": "shell",
+   "mentions_dbt": true,
+   "dynamic": true,
+   "via_call_at": [
+    [
+     79,
+     30
+    ]
+   ]
+  },
+  {
+   "file": "dags/dbt_advanced.py",
+   "line": 55,
+   "col": 23,
+   "reason": "inside a for-loop (line 76): tasks created a dynamic number of times; shell command not statically resolvable: f-string part {model} is not resolvable (loop variable of the for-loop at line 76)",
+   "dag_id": "dbt_advanced_dag",
+   "category": "shell",
+   "mentions_dbt": true,
+   "dynamic": true,
+   "via_call_at": [
+    [
+     80,
+     35
+    ]
+   ]
+  },
+  {
+   "file": "dags/dbt_advanced.py",
+   "line": 91,
+   "col": 20,
+   "reason": "inside a for-loop (line 82): tasks created a dynamic number of times; dependency operand is not a known task (>>/<<)",
+   "dag_id": "dbt_advanced_dag",
+   "category": "dependency",
+   "dynamic": true
+  },
+  {
+   "file": "dags/dbt_advanced_utility.py",
+   "line": 51,
+   "col": 17,
+   "reason": "include.dbt_dag_parser.DbtDagParser(...) is defined in include/dbt_dag_parser.py and creates BashOperator, TaskGroup at parse time from non-literal inputs; tasks not resolved statically",
+   "dag_id": "dbt_advanced_dag_utility",
+   "category": "wrapper"
+  },
+  {
+   "file": "dags/dbt_advanced_utility.py",
+   "line": 60,
+   "col": 4,
+   "reason": "dependency operand is not a known task (>>/<<)",
+   "dag_id": "dbt_advanced_dag_utility",
+   "category": "dependency"
+  }
+ ],
+ "stats": {
+  "files_scanned": 3,
+  "files_skipped": 0,
+  "dbt_project_dirs_skipped": 0,
+  "dags": 3,
+  "links": 5,
+  "links_resolved": 5,
+  "links_unknown": 0,
+  "dependencies": 3,
+  "unresolved": 6
+ }
+}

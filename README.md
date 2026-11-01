@@ -19,4 +19,4 @@ extension/        the VS Code extension (Phase 2)
 
 ## Status
 
-Phase 0 is in progress. The spike reports are in [spikes/](spikes/).
+Phase 0 is complete: S1–S3 have been measured and S4 was waived. The recommendation to proceed, and the evidence for it, are in [spikes/G0_REPORT.md](spikes/G0_REPORT.md). Phase 1 starts once Gate G0 (beads DCS-1ay.5) is closed.

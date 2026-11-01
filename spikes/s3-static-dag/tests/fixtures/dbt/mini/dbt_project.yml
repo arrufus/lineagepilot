@@ -1,0 +1,12 @@
+# Fixture project for the stand-in manifest (no target/manifest.json on purpose).
+name: "mini"
+config-version: 2
+source-paths: ["models"]   # dbt < 1.0 key, still accepted by the stand-in
+data-paths: ["data"]
+models:
+  mini:
+    materialized: table
+    core:
+      +tags: core
+    legacy:
+      +enabled: false

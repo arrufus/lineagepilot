@@ -1,0 +1,251 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dags/dbt"
+ ],
+ "files": [
+  "dags/dag.py"
+ ],
+ "skipped": [
+  {
+   "path": "dbt",
+   "why": "dbt project directory"
+  },
+  {
+   "path": "spark/generate_data.py",
+   "why": "Airflow safe-mode heuristic (no 'dag' and 'airflow')"
+  },
+  {
+   "path": "spark/union_transactions.py",
+   "why": "Airflow safe-mode heuristic (no 'dag' and 'airflow')"
+  },
+  {
+   "path": "spark/tests/conftest.py",
+   "why": "Airflow safe-mode heuristic (no 'dag' and 'airflow')"
+  },
+  {
+   "path": "spark/tests/test_union_transactions.py",
+   "why": "Airflow safe-mode heuristic (no 'dag' and 'airflow')"
+  }
+ ],
+ "dags": [
+  {
+   "dag_id": "awesome_dag",
+   "how": "DAG()",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 27,
+    "col": 6
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "awesome_dag",
+   "task_id": "union_transactions",
+   "operator": "SparkSubmitOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 35,
+    "col": 21
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "awesome_dag",
+   "task_id": "test_union_transactions",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 43,
+    "col": 26
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "awesome_dag",
+   "task_id": "dbt_run",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 48,
+    "col": 10
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "awesome_dag",
+   "task_id": "dbt_test",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 55,
+    "col": 11
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 48,
+    "col": 10
+   },
+   "dag_id": "awesome_dag",
+   "task_id": "dbt_run",
+   "group_id": null,
+   "dbt_command": "run",
+   "project_path": "dags/dbt",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.bank_transactions.enriched_transactions",
+    "model.bank_transactions.filter_countries"
+   ],
+   "resolved_nodes": [
+    "model.bank_transactions.enriched_transactions",
+    "model.bank_transactions.filter_countries"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "__file__ resolved to the file's real path",
+    "project taken from the working directory dags/dbt",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "target": null,
+   "command_text": "run",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 55,
+    "col": 11
+   },
+   "dag_id": "awesome_dag",
+   "task_id": "dbt_test",
+   "group_id": null,
+   "dbt_command": "test",
+   "project_path": "dags/dbt",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.bank_transactions.enriched_transactions"
+   ],
+   "resolved_nodes": [
+    "model.bank_transactions.enriched_transactions"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "__file__ resolved to the file's real path",
+    "project taken from the working directory dags/dbt",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "model set computed over an approximate stand-in manifest",
+    "dbt test: linked to selected nodes that have at least one test"
+   ],
+   "target": null,
+   "command_text": "test",
+   "in_scope": true
+  }
+ ],
+ "dependencies": [
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "awesome_dag",
+   "upstream": "airflow:awesome_dag.union_transactions",
+   "downstream": "airflow:awesome_dag.test_union_transactions",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 62,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "awesome_dag",
+   "upstream": "airflow:awesome_dag.test_union_transactions",
+   "downstream": "airflow:awesome_dag.dbt_run",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 62,
+    "col": 0
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "awesome_dag",
+   "upstream": "airflow:awesome_dag.dbt_run",
+   "downstream": "airflow:awesome_dag.dbt_test",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/dag.py",
+    "line": 62,
+    "col": 0
+   }
+  }
+ ],
+ "unresolved": [],
+ "stats": {
+  "files_scanned": 1,
+  "files_skipped": 4,
+  "dbt_project_dirs_skipped": 1,
+  "dags": 1,
+  "links": 2,
+  "links_resolved": 2,
+  "links_unknown": 0,
+  "dependencies": 3,
+  "unresolved": 0
+ }
+}

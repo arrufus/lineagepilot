@@ -1,0 +1,1312 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dbt/jaffle_shop"
+ ],
+ "files": [
+  "dags/basic/simple_dag.py",
+  "dags/basic/simple_task_group.py",
+  "dags/execution_modes/async_mode.py",
+  "dags/execution_modes/watcher_mode.py",
+  "dags/filtering/customers_tag.py",
+  "dags/filtering/only_models.py",
+  "dags/filtering/only_seeds.py",
+  "dags/profiles/dbt_profile.py",
+  "dags/profiles/overrides.py"
+ ],
+ "skipped": [],
+ "dags": [
+  {
+   "dag_id": "simple_dag",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/basic/simple_dag.py",
+    "line": 8,
+    "col": 13
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "simple_task_group",
+   "how": "@dag",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 19,
+    "col": 0
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "simple_dag_async",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/execution_modes/async_mode.py",
+    "line": 11,
+    "col": 19
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "example_watcher",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/execution_modes/watcher_mode.py",
+    "line": 10,
+    "col": 18
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "customers_tag",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/filtering/customers_tag.py",
+    "line": 8,
+    "col": 16
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "only_models",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/filtering/only_models.py",
+    "line": 8,
+    "col": 14
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "only_seeds",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/filtering/only_seeds.py",
+    "line": 8,
+    "col": 13
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dbt_profile_example",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/profiles/dbt_profile.py",
+    "line": 7,
+    "col": 22
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dbt_profile_overrides",
+   "how": "DbtDag()",
+   "location": {
+    "file": "dags/profiles/overrides.py",
+    "line": 8,
+    "col": 24
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "simple_task_group",
+   "task_id": "pre_dbt",
+   "operator": "EmptyOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 23,
+    "col": 14
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "simple_task_group",
+   "task_id": "my_jaffle_shop_project",
+   "operator": "DbtTaskGroup",
+   "kind": "cosmos_task_group",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 25,
+    "col": 18
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "simple_task_group",
+   "task_id": "post_dbt",
+   "operator": "EmptyOperator",
+   "kind": "operator",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 32,
+    "col": 15
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/basic/simple_dag.py",
+    "line": 8,
+    "col": 13
+   },
+   "dag_id": "simple_dag",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders.run",
+      "orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_task_group",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 25,
+    "col": 18
+   },
+   "dag_id": "simple_task_group",
+   "task_id": null,
+   "group_id": "my_jaffle_shop_project",
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "my_jaffle_shop_project.<name>.run + my_jaffle_shop_project.<name>.test (node has tests) | my_jaffle_shop_project.<name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "my_jaffle_shop_project.orders.run",
+      "my_jaffle_shop_project.orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "my_jaffle_shop_project.customers.run",
+      "my_jaffle_shop_project.customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "my_jaffle_shop_project.stg_customers.run",
+      "my_jaffle_shop_project.stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "my_jaffle_shop_project.stg_orders.run",
+      "my_jaffle_shop_project.stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "my_jaffle_shop_project.stg_payments.run",
+      "my_jaffle_shop_project.stg_payments.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "my_jaffle_shop_project.raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "my_jaffle_shop_project.raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "my_jaffle_shop_project.raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/execution_modes/async_mode.py",
+    "line": 11,
+    "col": 19
+   },
+   "dag_id": "simple_dag_async",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>_run",
+   "cosmos": {
+    "test_behavior": "none",
+    "load_method": "automatic",
+    "execution_mode": "airflow_async",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders_run"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers_run"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers_run"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders_run"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments_run"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/execution_modes/watcher_mode.py",
+    "line": 10,
+    "col": 18
+   },
+   "dag_id": "example_watcher",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "watcher",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders.run",
+      "orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [
+    {
+     "task_id": "dbt_producer_watcher",
+     "runs": "dbt build over the whole selection (watcher producer)"
+    }
+   ],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/filtering/customers_tag.py",
+    "line": 8,
+    "col": 16
+   },
+   "dag_id": "customers_tag",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [
+    "tag:customers"
+   ],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/filtering/only_models.py",
+    "line": 8,
+    "col": 14
+   },
+   "dag_id": "only_models",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [
+    "path:models"
+   ],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders.run",
+      "orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/filtering/only_seeds.py",
+    "line": 8,
+    "col": 13
+   },
+   "dag_id": "only_seeds",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [
+    "path:seeds"
+   ],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [],
+   "resolved_nodes": [
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/profiles/dbt_profile.py",
+    "line": 7,
+    "col": 22
+   },
+   "dag_id": "dbt_profile_example",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders.run",
+      "orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "cosmos_dag",
+   "confidence": "heuristic",
+   "location": {
+    "file": "dags/profiles/overrides.py",
+    "line": 8,
+    "col": 24
+   },
+   "dag_id": "dbt_profile_overrides",
+   "task_id": null,
+   "group_id": null,
+   "dbt_command": "cosmos_render",
+   "project_path": "dbt/jaffle_shop",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments"
+   ],
+   "resolved_nodes": [
+    "model.jaffle_shop.customers",
+    "model.jaffle_shop.orders",
+    "model.jaffle_shop.stg_customers",
+    "model.jaffle_shop.stg_orders",
+    "model.jaffle_shop.stg_payments",
+    "seed.jaffle_shop.raw_customers",
+    "seed.jaffle_shop.raw_orders",
+    "seed.jaffle_shop.raw_payments"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "jaffle_shop_path resolved via import from include/constants.py",
+    "project path '/usr/local/airflow/dbt/jaffle_shop' does not exist here; mapped to dbt/jaffle_shop by its last 2 path component(s)",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "LoadMode.AUTOMATIC without manifest_path: Cosmos runs dbt ls at parse time; resolved over the project's manifest instead",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "task_id_pattern": "<name>.run + <name>.test (node has tests) | <name>_run (no tests)",
+   "cosmos": {
+    "test_behavior": "after_each",
+    "load_method": "automatic",
+    "execution_mode": "local",
+    "source_rendering_behavior": "none",
+    "seed_rendering_behavior": "always",
+    "group_nodes_by_folder": false,
+    "project_path_from": "ProjectConfig.dbt_project_path"
+   },
+   "project_path_raw": "/usr/local/airflow/dbt/jaffle_shop",
+   "tasks": [
+    {
+     "unique_id": "model.jaffle_shop.orders",
+     "resource_type": "model",
+     "task_ids": [
+      "orders.run",
+      "orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.customers",
+     "resource_type": "model",
+     "task_ids": [
+      "customers.run",
+      "customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_customers",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_customers.run",
+      "stg_customers.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_orders",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_orders.run",
+      "stg_orders.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "model.jaffle_shop.stg_payments",
+     "resource_type": "model",
+     "task_ids": [
+      "stg_payments.run",
+      "stg_payments.test"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_customers",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_customers_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_orders",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_orders_seed"
+     ],
+     "operator": "dbt"
+    },
+    {
+     "unique_id": "seed.jaffle_shop.raw_payments",
+     "resource_type": "seed",
+     "task_ids": [
+      "raw_payments_seed"
+     ],
+     "operator": "dbt"
+    }
+   ],
+   "extra_tasks": [],
+   "in_scope": true
+  }
+ ],
+ "dependencies": [
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "simple_task_group",
+   "upstream": "airflow:simple_task_group.pre_dbt",
+   "downstream": "airflow:simple_task_group.my_jaffle_shop_project",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 34,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "simple_task_group",
+   "upstream": "airflow:simple_task_group.my_jaffle_shop_project",
+   "downstream": "airflow:simple_task_group.post_dbt",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "dags/basic/simple_task_group.py",
+    "line": 34,
+    "col": 4
+   }
+  }
+ ],
+ "unresolved": [],
+ "stats": {
+  "files_scanned": 9,
+  "files_skipped": 0,
+  "dbt_project_dirs_skipped": 0,
+  "dags": 9,
+  "links": 9,
+  "links_resolved": 9,
+  "links_unknown": 0,
+  "dependencies": 2,
+  "unresolved": 0
+ }
+}

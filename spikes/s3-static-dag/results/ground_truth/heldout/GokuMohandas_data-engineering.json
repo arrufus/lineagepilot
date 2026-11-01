@@ -1,0 +1,56 @@
+{
+ "repo": "GokuMohandas/data-engineering",
+ "url": "https://github.com/GokuMohandas/data-engineering",
+ "sha": "1d346983ad79575f1c9729ae6ec8574a6de37de7",
+ "license": "none found (read as data only)",
+ "scan": {
+  "paths": [
+   "airflow/dags"
+  ],
+  "workspace": "."
+ },
+ "labelled_by": "hand, labelled BLIND before the frozen scanner (sha256 of src/ in work/scanner_fingerprint_before_heldout.txt) was run on this repo",
+ "out_of_scope_tasks": [
+  {
+   "file": "airflow/dags/example.py",
+   "what": "python tasks only"
+  }
+ ],
+ "links": [
+  {
+   "id": "dataops.transform.run",
+   "file": "airflow/dags/workflows.py",
+   "line": 66,
+   "dag_id": "dataops",
+   "unit": "task",
+   "task_id": "transform",
+   "dbt_command": "run",
+   "command_index": 0,
+   "project_path": "dbt_transforms",
+   "expect": "resolved",
+   "package": "dbt_transforms",
+   "models": [
+    "labeled_projects"
+   ],
+   "reason": "f'cd {DBT_ROOT_DIR} && dbt run && dbt test'; DBT_ROOT_DIR = Path(Path(__file__).parent.parent.parent.absolute(), 'dbt_transforms')"
+  },
+  {
+   "id": "dataops.transform.test",
+   "file": "airflow/dags/workflows.py",
+   "line": 66,
+   "dag_id": "dataops",
+   "unit": "task",
+   "task_id": "transform",
+   "dbt_command": "test",
+   "command_index": 1,
+   "project_path": "dbt_transforms",
+   "expect": "resolved",
+   "package": "dbt_transforms",
+   "models": [
+    "labeled_projects"
+   ],
+   "reason": "second dbt command in the same bash string; labeled_projects has schema tests"
+  }
+ ],
+ "unresolved_review": []
+}

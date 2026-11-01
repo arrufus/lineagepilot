@@ -350,6 +350,42 @@ def _alt_lineage(sql: str, columns: list[str], dialect: str, schema: dict[str, A
             "schema_tables": sum(len(t) for d in (schema or {}).values() for t in d.values())}
 
 
+def column_lineage_quality(manifest: dict[str, Any]) -> dict[str, Any]:
+    """Run the as-is SQLColumnParser on every compiled model and measure whether
+    its output could link a column to an upstream relation at all."""
+    from spike.loader import load_parsers
+    mods = load_parsers()
+    dialect = manifest.get("metadata", {}).get("adapter_type") or "postgres"
+    parser = mods["sql_column_parser"].SQLColumnParser(dialect=dialect)
+    rel = {n.get("alias") or n["name"] for n in manifest["nodes"].values()
+           if n.get("resource_type") in ("model", "seed", "snapshot")}
+    rel |= {s.get("identifier") or s["name"] for s in manifest.get("sources", {}).values()}
+    star = explicit = empty = src_cols = to_relation = 0
+    times = []
+    for node in manifest["nodes"].values():
+        if node.get("resource_type") != "model" or not node.get("compiled_code"):
+            continue
+        buf = io.StringIO()
+        with contextlib.redirect_stdout(buf):
+            t = time.perf_counter()
+            maps = parser.parse_select_statement(node["compiled_code"])
+            times.append(time.perf_counter() - t)
+        if not maps:
+            empty += 1
+        elif [m.target_column for m in maps] == ["*"]:
+            star += 1
+        else:
+            explicit += 1
+            for m in maps:
+                for c in m.source_columns:
+                    src_cols += 1
+                    if "." in c and c.rsplit(".", 1)[0] in rel:
+                        to_relation += 1
+    return {"models": len(times), "star_only": star, "explicit_select": explicit, "no_output": empty,
+            "source_columns": src_cols, "source_columns_naming_a_relation": to_relation,
+            "per_model_s": pct(times)}
+
+
 # --------------------------------------------------------------------------- event loop
 def event_loop_block(manifest: Path, catalog: Path | None, variant: str = "optimised") -> dict[str, Any]:
     """How long DbtParser.parse() blocks an asyncio loop (pygls runs on one)."""
@@ -576,6 +612,27 @@ def per_version_cold() -> list[dict[str, Any]]:
     return rows
 
 
+def memory_variants(sizes: list[str], reps: int = 3) -> dict[str, Any]:
+    """Peak RSS of the indexing process per JSON loader (optimised parser).
+    stdlib-trim is a LABELLED variant that drops unused objects while decoding."""
+    out: dict[str, Any] = {}
+    for size in sizes:
+        manifest, catalog = manifests_for(size)
+        rows = {}
+        for backend in ("orjson", "stdlib", "stdlib-trim"):
+            runs = [run_worker("cold", manifest=manifest, catalog=catalog, variant="optimised", json_backend=backend)
+                    for _ in range(reps)]
+            rows[backend] = {"total_s": summarise(runs), "peak_rss_mb": summarise(runs, "peak_rss_mb"),
+                             "rss_after_parse_mb": max(r.get("rss_after_parse_mb") or 0 for r in runs),
+                             "fingerprints": sorted({r["fingerprint"] for r in runs}),
+                             "summary": {k: runs[0][k] for k in ("capsules", "columns", "edges")}}
+            print(f"  memory {size} {backend}: peak {rows[backend]['peak_rss_mb']['max']:.0f} MB, "
+                  f"total p50 {rows[backend]['total_s']['p50']:.2f}s", flush=True)
+        rows["identical_graphs"] = len({fp for r in rows.values() for fp in r["fingerprints"]}) == 1
+        out[size] = rows
+    return out
+
+
 def merge_results(tag: str, data: dict[str, Any]) -> Path:
     RESULTS.mkdir(exist_ok=True)
     path = RESULTS / "bench_results.json"
@@ -603,10 +660,30 @@ def main() -> None:
     r.add_argument("--reps", type=int, default=5)
     r.add_argument("--as-is-reps", type=int, default=5)
     r.add_argument("--skip-per-version", action="store_true")
+    qual = sub.add_parser("quality")
+    qual.add_argument("--sizes", nargs="+", default=["jaffle", "2000", "5000"])
+    mem = sub.add_parser("memory")
+    mem.add_argument("--sizes", nargs="+", default=["2000", "5000"])
+    mem.add_argument("--reps", type=int, default=3)
     a = ap.parse_args()
     if a.cmd == "worker":
         res = worker(a.task, a)
         sys.stdout.write("\n" + json.dumps(res, default=str) + "\n")
+    elif a.cmd == "quality":
+        tag = f"py{sys.version_info.major}.{sys.version_info.minor}"
+        path = RESULTS / "bench_results.json"
+        allres = json.loads(path.read_text())
+        allres[tag]["column_lineage_quality"] = {
+            size: column_lineage_quality(json.loads(manifests_for(size)[0].read_bytes())) for size in a.sizes}
+        path.write_text(json.dumps(allres, indent=1, default=str))
+        print(json.dumps(allres[tag]["column_lineage_quality"], indent=1))
+    elif a.cmd == "memory":
+        tag = f"py{sys.version_info.major}.{sys.version_info.minor}"
+        path = RESULTS / "bench_results.json"
+        allres = json.loads(path.read_text())
+        allres[tag]["memory_variants"] = memory_variants(a.sizes, a.reps)
+        path.write_text(json.dumps(allres, indent=1, default=str))
+        print(path)
     else:
         tag = f"py{sys.version_info.major}.{sys.version_info.minor}"
         data = orchestrate(a.sizes, a.reps, a.as_is_reps, not a.skip_per_version)

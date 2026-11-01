@@ -1,0 +1,25 @@
+version: 2
+sources:
+  - name: raw
+    tables:
+      - name: events
+        tags: [raw_events]
+models:
+  - name: report
+    latest_version: 2
+    versions:
+      - v: 1
+      - v: 2
+    tests:
+      - unique:
+          column_name: id
+  - name: wide
+    config:
+      tags: ["wide_cfg"]
+    columns:
+      - name: id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('base')
+              field: id

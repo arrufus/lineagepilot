@@ -1,0 +1,55 @@
+{
+ "repo": "danielvdende/data-testing-with-airflow",
+ "url": "https://github.com/danielvdende/data-testing-with-airflow",
+ "sha": "86600ee5dcffe54adb2e4b620f404ff2c13cd887",
+ "license": "Apache-2.0 (read as data only)",
+ "scan": {
+  "paths": [
+   "dags"
+  ],
+  "workspace": "."
+ },
+ "labelled_by": "hand, labelled BLIND before the frozen scanner (sha256 of src/ in work/scanner_fingerprint_before_heldout.txt) was run on this repo",
+ "out_of_scope_tasks": [
+  {
+   "file": "dags/dag.py",
+   "what": "test_union_transactions runs pytest, union_transactions is SparkSubmit"
+  }
+ ],
+ "links": [
+  {
+   "id": "awesome_dag.dbt_run",
+   "file": "dags/dag.py",
+   "line": 48,
+   "dag_id": "awesome_dag",
+   "unit": "task",
+   "task_id": "dbt_run",
+   "dbt_command": "run",
+   "project_path": "dags/dbt",
+   "expect": "resolved",
+   "package": "bank_transactions",
+   "models": [
+    "enriched_transactions",
+    "filter_countries"
+   ],
+   "reason": "bash_command='dbt run' with BashOperator(cwd=DBT_DIRECTORY); DBT_DIRECTORY = dirname(realpath(__file__)) + '/dbt/'"
+  },
+  {
+   "id": "awesome_dag.dbt_test",
+   "file": "dags/dag.py",
+   "line": 55,
+   "dag_id": "awesome_dag",
+   "unit": "task",
+   "task_id": "dbt_test",
+   "dbt_command": "test",
+   "project_path": "dags/dbt",
+   "expect": "resolved",
+   "package": "bank_transactions",
+   "models": [
+    "enriched_transactions"
+   ],
+   "reason": "dbt test: only enriched_transactions has schema tests; the singular tests query bank.* tables without ref()"
+  }
+ ],
+ "unresolved_review": []
+}

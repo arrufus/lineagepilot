@@ -1,0 +1,365 @@
+{
+ "scanner": {
+  "origin": "dag_static",
+  "version": "0.0.1",
+  "executes_user_code": false,
+  "options": {
+   "cross_module": true,
+   "path_remap": true,
+   "inline_calls": true,
+   "safe_mode": true
+  }
+ },
+ "workspace": "<repo root>",
+ "dbt_projects": [
+  "dbt_transforms"
+ ],
+ "files": [
+  "airflow/dags/example.py",
+  "airflow/dags/workflows.py"
+ ],
+ "skipped": [],
+ "dags": [
+  {
+   "dag_id": "example1",
+   "how": "@dag",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 20,
+    "col": 0
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "example2",
+   "how": "@dag",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 52,
+    "col": 0
+   },
+   "confidence": "declared"
+  },
+  {
+   "dag_id": "dataops",
+   "how": "@dag",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 33,
+    "col": 0
+   },
+   "confidence": "declared"
+  }
+ ],
+ "tasks": [
+  {
+   "dag_id": "example1",
+   "task_id": "task_1",
+   "operator": "@task",
+   "kind": "decorated_task",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 29,
+    "col": 8
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "example1",
+   "task_id": "task_2",
+   "operator": "@task",
+   "kind": "decorated_task",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 30,
+    "col": 8
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "example2",
+   "task_id": "task_1",
+   "operator": "PythonOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 54,
+    "col": 13
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "example2",
+   "task_id": "task_2",
+   "operator": "PythonOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 55,
+    "col": 13
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "extract_and_load_projects",
+   "operator": "AirbyteTriggerSyncOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 36,
+    "col": 32
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "extract_and_load_tags",
+   "operator": "AirbyteTriggerSyncOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 44,
+    "col": 28
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "validate_projects",
+   "operator": "GreatExpectationsOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 52,
+    "col": 24
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "validate_tags",
+   "operator": "GreatExpectationsOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 58,
+    "col": 20
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "transform",
+   "operator": "BashOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 66,
+    "col": 16
+   },
+   "dynamic": null
+  },
+  {
+   "dag_id": "dataops",
+   "task_id": "validate_transforms",
+   "operator": "GreatExpectationsOperator",
+   "kind": "operator",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 67,
+    "col": 26
+   },
+   "dynamic": null
+  }
+ ],
+ "links": [
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 66,
+    "col": 16
+   },
+   "dag_id": "dataops",
+   "task_id": "transform",
+   "group_id": null,
+   "dbt_command": "run",
+   "project_path": "dbt_transforms",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.dbt_transforms.labeled_projects"
+   ],
+   "resolved_nodes": [
+    "model.dbt_transforms.labeled_projects"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "__file__ resolved to the file's real path",
+    "project taken from the working directory dbt_transforms",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "model set computed over an approximate stand-in manifest"
+   ],
+   "command_index": 0,
+   "target": null,
+   "command_text": "run",
+   "in_scope": true
+  },
+  {
+   "origin": "dag_static",
+   "kind": "bash",
+   "confidence": "heuristic",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 66,
+    "col": 16
+   },
+   "dag_id": "dataops",
+   "task_id": "transform",
+   "group_id": null,
+   "dbt_command": "test",
+   "project_path": "dbt_transforms",
+   "manifest": {
+    "kind": "stand_in",
+    "path": null,
+    "generated_at": null,
+    "dbt_version": null,
+    "dbt_schema_version": null,
+    "approximate": true
+   },
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "resolved_models": [
+    "model.dbt_transforms.labeled_projects"
+   ],
+   "resolved_nodes": [
+    "model.dbt_transforms.labeled_projects"
+   ],
+   "status": "resolved",
+   "unknown_reasons": [],
+   "notes": [
+    "__file__ resolved to the file's real path",
+    "project taken from the working directory dbt_transforms",
+    "no target/manifest.json: approximate stand-in manifest built from project files",
+    "model set computed over an approximate stand-in manifest",
+    "dbt test: linked to selected nodes that have at least one test"
+   ],
+   "command_index": 1,
+   "target": null,
+   "command_text": "test",
+   "in_scope": true
+  }
+ ],
+ "dependencies": [
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "example2",
+   "upstream": "airflow:example2.task_1",
+   "downstream": "airflow:example2.task_2",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/example.py",
+    "line": 56,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dataops",
+   "upstream": "airflow:dataops.extract_and_load_projects",
+   "downstream": "airflow:dataops.validate_projects",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 75,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dataops",
+   "upstream": "airflow:dataops.extract_and_load_tags",
+   "downstream": "airflow:dataops.validate_tags",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 76,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dataops",
+   "upstream": "airflow:dataops.validate_projects",
+   "downstream": "airflow:dataops.transform",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 77,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dataops",
+   "upstream": "airflow:dataops.validate_tags",
+   "downstream": "airflow:dataops.transform",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 77,
+    "col": 4
+   }
+  },
+  {
+   "edge": "task_depends_on",
+   "origin": "dag_static",
+   "dag_id": "dataops",
+   "upstream": "airflow:dataops.transform",
+   "downstream": "airflow:dataops.validate_transforms",
+   "how": ">>",
+   "confidence": "declared",
+   "location": {
+    "file": "airflow/dags/workflows.py",
+    "line": 77,
+    "col": 4
+   }
+  }
+ ],
+ "unresolved": [],
+ "stats": {
+  "files_scanned": 2,
+  "files_skipped": 0,
+  "dbt_project_dirs_skipped": 0,
+  "dags": 3,
+  "links": 2,
+  "links_resolved": 2,
+  "links_unknown": 0,
+  "dependencies": 6,
+  "unresolved": 0
+ }
+}

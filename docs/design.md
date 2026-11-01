@@ -237,8 +237,11 @@ This fixes the review's F11 (unsupported checks counted as passes). Rule packs l
 - **Discovery**: find projects by `dbt_project.yml`. Read `target/manifest.json`, `catalog.json` if present, and compiled SQL from the manifest's `compiled_code` or `target/compiled/`.
 - **Staleness**: if a model file is newer than the manifest, the status bar warns.
 - **Refresh**: the "Refresh dbt artifacts" command runs `dbt parse` or `dbt compile`. It is available in **trusted workspaces only** and always uses a user-configured executable, never a workspace-configured one.
-- **Column lineage**: the existing `sql_column_parser` over compiled SQL, using the dialect from `adapter_type`. A model that cannot be parsed shows as `unknown`, not as having no lineage.
-- **Versions**: support the manifest schemas produced by dbt Core 1.8+ and by Fusion. Spike S2 pins the exact versions.
+- **Column lineage**: `sqlglot.lineage` over compiled SQL, using the dialect from `adapter_type` and a schema built from `catalog.json`. Spike S2 found that the existing `sql_column_parser` returns a single `*` for 86–100% of compiled dbt models, so it is not reused. `sqlglot.lineage` with a catalog schema resolved 91–99% of columns, in at most 0.35 s per model. A model that cannot be parsed, or that has no catalog, shows as `unknown`, not as having no lineage.
+- **Versions**: manifest schema **v12** is supported. Spike S2 found that dbt Core 1.8, 1.9, 1.10, 1.11 and 1.12 and Fusion 2.0.9 all write v12. The check uses `metadata.dbt_schema_version`, never `dbt_version`, because Fusion reports `dbt_version` 2.0.x.
+  - A newer schema version gets a warning, a best-effort parse and structural checks; if the checks fail, the index is marked `unknown`.
+  - An older one gets a warning that it is untested.
+  - Fusion is stricter about YAML and omits some keys, such as column `data_type`, but none that the parser reads.
 
 ### 6.2 Airflow (MVP: static analysis)
 
@@ -247,9 +250,29 @@ DAG files are parsed with Python's `ast` module. **They are never imported or ex
 - Astronomer Cosmos `DbtDag` and `DbtTaskGroup`: the project path and select/exclude arguments.
 - `BashOperator` and `KubernetesPodOperator` commands that invoke `dbt run`, `dbt build` or `dbt test --select ...`.
 - SQL operators with literal SQL, resolved to table references with sqlglot.
-- Task dependencies from `>>`, `<<`, `set_upstream` and `set_downstream`, where the operands are literals.
+- Task dependencies from `>>`, `<<`, `set_upstream`, `set_downstream` and `chain()`, where the operands resolve to known tasks.
 
 Dynamic DAGs (loops, factories, templated selectors) produce `unknown` records rather than guesses.
+
+**What spike S3 changed** (1 November 2026). Literal operands alone are not enough: a scanner limited to literals missed 19 of 84 links (22.6%) on the three sample repositories. The scanner therefore also resolves, still with the AST only:
+- constants imported from other workspace modules;
+- `Path(__file__)` arithmetic, and environment-variable defaults (confidence `heuristic`);
+- one level of inlining for local helper functions called with literals;
+- the working directory of a `BashOperator` (`cwd`).
+
+Remapping container paths was the largest single fix, recovering 15 of the 84 links. It works two ways:
+- `/usr/local/airflow`-style paths are matched to workspace folders by suffix, as `heuristic`.
+- An explicit path map goes in the annotation file.
+
+Other rules from S3:
+- **Heuristic is the normal confidence.** 71 of the 75 correct links were `heuristic`, so the review shows heuristic links by default, labelled as such.
+- **Cosmos links come from the manifest.** A Cosmos link is stored once, at group level. Its per-model task ids are derived from the manifest, including which models have tests. The mapping is pinned to a Cosmos version range, and the S3 README documents it.
+- **dbt-loom external nodes are excluded.** They have no file, and linking them gives false positives.
+- **Selector semantics follow the manifest's dbt version.** dbt 1.10 changed wildcard matching. A `dbt ls` conformance test runs in CI.
+- **File discovery matches Airflow's.** That means the safe-mode heuristic, `.airflowignore`, and skipping dbt project folders.
+- **Unknowns are named.** The categories: remote manifest (`s3://`, `gs://`, `abfs://`), tasks generated from `manifest.json` at parse time, wrapper class, loop or factory, generated project, unsupported selector, Jinja, and a DAG that cannot load. Each is reported at the call site.
+
+S3's evidence is in-sample: the scanner was built while reading the same repositories. A held-out corpus of 10 or more repositories, labelled before tuning, is the Phase 5 exit test (beads DCS-56q.5).
 
 **Reused**: `data_flow_annotations.py` (YAML mappings for anything the scanner cannot see) and `dbt_manifest_resolver.py`. **New**: `dag_static.py`.
 
@@ -343,17 +366,20 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 
 ## 11. Performance budgets
 
-These are targets to validate in spike S2, not measurements.
+Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64 CPython. Each "measured" cell shows the worst of Python 3.10 and 3.13. "Fixed" means the parser with its per-column lineage loop replaced by a dictionary lookup (beads DCS-58r.2).
 
-| Operation | Budget |
-|---|---|
-| Cold index, 2,000-model manifest | ≤ 5 s |
-| Warm start from snapshot | ≤ 1 s |
-| CodeLens and hover | ≤ 100 ms p95 |
-| Model-level impact | ≤ 300 ms |
-| Column lineage for one model | ≤ 2 s |
-| Graph webview | 500 nodes stay interactive |
-| Language server memory, 5,000 models | ≤ 500 MB RSS |
+| Operation | Budget | Measured, 5,000 models |
+|---|---|---|
+| Cold index, 2,000-model manifest | ≤ 5 s | 3.07 s as-is; 0.89 s fixed |
+| Cold index, 5,000 models (reference) | none set | 16.5 s as-is (misses even the 2,000-model budget); 2.16 s fixed |
+| Warm start from snapshot | ≤ 1 s | 0.18 s from JSON; SQLite is slower (0.22 s) |
+| CodeLens and hover | ≤ 100 ms p95 | under 0.01 ms (lookup only) |
+| Model-level impact | ≤ 300 ms | 0.38 ms |
+| Column lineage for one model | ≤ 2 s | ≤ 0.35 s with `sqlglot.lineage` (section 6.1) |
+| Graph webview | 500 nodes stay interactive | Phase 3 |
+| Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. |
+
+So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
 
 ---
 
@@ -363,7 +389,8 @@ These are targets to validate in spike S2, not measurements.
 
 | Current module | Fate |
 |---|---|
-| `parsers/base.py`, `dbt_parser.py`, `dbt_config.py`, `sql_parser.py`, `sql_column_parser.py`, `data_flow_annotations.py`, `dbt_manifest_resolver.py` | **Move** to `lineagepilot_core` unchanged except for imports. Stdlib `json` becomes the fallback for `orjson`. |
+| `parsers/base.py`, `dbt_parser.py`, `dbt_config.py`, `sql_parser.py`, `data_flow_annotations.py`, `dbt_manifest_resolver.py` | **Move** to `lineagepilot_core` and **fix what spike S2 found** (beads DCS-58r.2). Stdlib `json` becomes the fallback for `orjson`. The fixes: <br>• Replace the per-column lineage loop, which costs O(columns × nodes). <br>• Derive `has_tests` from `test.*` nodes; it is always False on real manifests today. <br>• Parse exposures. <br>• Keep source file paths and `patch_path`. <br>• Key nodes by `unique_id`, because versioned models collide today. <br>• Gate on the schema version. <br>• Remove the `print()` that would corrupt the LSP channel. |
+| `parsers/sql_column_parser.py` | **Replace** with `sqlglot.lineage` plus a catalog schema (section 6.1, beads DCS-58r.8). |
 | `parsers/airflow_parser.py`, `airflow_config.py` (REST) | **Keep** for live mode after the MVP. Their configuration is reworked per section 10. |
 | `parsers/snowflake_*` | **Park** until after the MVP; fix the SQL construction first. |
 | `services/conformance.py` | **Port** the 12 dbt-native rules and remap 6 more (below) onto a graph protocol with five result states. **Drop** the 42 rules that depend on entities which exist only in the server. |

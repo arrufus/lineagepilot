@@ -5772,6 +5772,6221 @@
     },
     "identical": true
    }
-  ]
+  ],
+  "memory_variants": {
+   "2000": {
+    "orjson": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.7260903330752626,
+      "p95": 0.7290732714696787,
+      "max": 0.7294047090690583,
+      "min": 0.703830249956809,
+      "mean": 0.7197750973670433
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 430.8,
+      "p95": 431.43,
+      "max": 431.5,
+      "min": 430.5,
+      "mean": 430.93333333333334
+     },
+     "rss_after_parse_mb": 203.78125,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "stdlib": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.8033131670672446,
+      "p95": 0.8084957413841038,
+      "max": 0.809071582974866,
+      "min": 0.8012493329588324,
+      "mean": 0.8045446943336477
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 347.5,
+      "p95": 347.95,
+      "max": 348.0,
+      "min": 347.5,
+      "mean": 347.6666666666667
+     },
+     "rss_after_parse_mb": 167.859375,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "stdlib-trim": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.7897357089677826,
+      "p95": 0.7902666702633724,
+      "max": 0.7903256659628823,
+      "min": 0.7848361250944436,
+      "mean": 0.7882991666750362
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 288.5,
+      "p95": 288.59000000000003,
+      "max": 288.6,
+      "min": 288.4,
+      "mean": 288.5
+     },
+     "rss_after_parse_mb": 263.765625,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "identical_graphs": true
+   },
+   "5000": {
+    "orjson": {
+     "total_s": {
+      "n": 3,
+      "p50": 1.874664666946046,
+      "p95": 1.8835325911059044,
+      "max": 1.8845179160125554,
+      "min": 1.8608778750058264,
+      "mean": 1.8733534859881427
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 1011.0,
+      "p95": 1011.1800000000001,
+      "max": 1011.2,
+      "min": 1010.8,
+      "mean": 1011.0
+     },
+     "rss_after_parse_mb": 399.53125,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "stdlib": {
+     "total_s": {
+      "n": 3,
+      "p50": 2.184748249943368,
+      "p95": 2.2296484247664923,
+      "max": 2.2346373330801725,
+      "min": 2.183692374965176,
+      "mean": 2.201025985996239
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 781.6,
+      "p95": 783.22,
+      "max": 783.4,
+      "min": 775.2,
+      "mean": 780.0666666666666
+     },
+     "rss_after_parse_mb": 334.015625,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "stdlib-trim": {
+     "total_s": {
+      "n": 3,
+      "p50": 1.9751089999917895,
+      "p95": 1.986534425325226,
+      "max": 1.9878039170289412,
+      "min": 1.97227233403828,
+      "mean": 1.9783950836863369
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 658.7,
+      "p95": 659.1500000000001,
+      "max": 659.2,
+      "min": 657.3,
+      "mean": 658.4
+     },
+     "rss_after_parse_mb": 299.390625,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "identical_graphs": true
+   }
+  },
+  "column_lineage_quality": {
+   "jaffle": {
+    "models": 13,
+    "star_only": 13,
+    "explicit_select": 0,
+    "no_output": 0,
+    "source_columns": 0,
+    "source_columns_naming_a_relation": 0,
+    "per_model_s": {
+     "n": 13,
+     "p50": 0.00047433306463062763,
+     "p95": 0.005490816780365991,
+     "max": 0.010889791999943554,
+     "min": 0.0001235000090673566,
+     "mean": 0.0013104710960760713
+    }
+   },
+   "2000": {
+    "models": 2000,
+    "star_only": 1711,
+    "explicit_select": 289,
+    "no_output": 0,
+    "source_columns": 5249,
+    "source_columns_naming_a_relation": 1,
+    "per_model_s": {
+     "n": 2000,
+     "p50": 0.0008695625001564622,
+     "p95": 0.001454141014255583,
+     "max": 0.06029691593721509,
+     "min": 0.00017804198432713747,
+     "mean": 0.0009557479514623992
+    }
+   },
+   "5000": {
+    "models": 5000,
+    "star_only": 4314,
+    "explicit_select": 686,
+    "no_output": 0,
+    "source_columns": 12836,
+    "source_columns_naming_a_relation": 1,
+    "per_model_s": {
+     "n": 5000,
+     "p50": 0.0008563125738874078,
+     "p95": 0.0014770791050978008,
+     "max": 0.18874241691082716,
+     "min": 0.0001763750333338976,
+     "mean": 0.0009729812913341448
+    }
+   }
+  }
+ },
+ "py3.10": {
+  "env": {
+   "python": "3.10.17",
+   "implementation": "CPython",
+   "machine": "arm64",
+   "system": "Darwin",
+   "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+   "cpu": "Apple M4 Max",
+   "sqlglot": "30.27.0",
+   "orjson": "3.13.0"
+  },
+  "budgets": {
+   "cold_index_2000_s": 5.0,
+   "warm_start_s": 1.0,
+   "codelens_p95_ms": 100.0,
+   "impact_ms": 300.0,
+   "column_lineage_s": 2.0,
+   "peak_rss_5000_mb": 500.0
+  },
+  "sizes": {
+   "jaffle": {
+    "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+    "manifest_mb": 1.24,
+    "catalog_mb": 0.02,
+    "cold": {
+     "as-is": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.041693000006489456,
+       "p95": 0.05119427486788482,
+       "max": 0.052063708077184856,
+       "min": 0.04047150001861155,
+       "mean": 0.04461515001021325
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1082,
+       "p95": 0.11668,
+       "max": 0.1174,
+       "min": 0.106,
+       "mean": 0.11034
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 42.9,
+       "p95": 43.06,
+       "max": 43.1,
+       "min": 42.7,
+       "mean": 42.88
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.0464490830199793,
+        "parse_s": 0.005556958029046655,
+        "graph_s": 5.766702815890312e-05,
+        "total_s": 0.052063708077184856,
+        "phases_s": {
+         "_load_json": 0.0031,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0002,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 43.1,
+        "rss_after_parse_mb": 43.078125,
+        "wall_s_incl_interpreter": 0.1174
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.0426593329757452,
+        "parse_s": 0.004997459007427096,
+        "graph_s": 5.9750047512352467e-05,
+        "total_s": 0.04771654203068465,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.9,
+        "rss_after_parse_mb": 42.890625,
+        "wall_s_incl_interpreter": 0.1138
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03611099999397993,
+        "parse_s": 0.004959207959473133,
+        "graph_s": 6.079196464270353e-05,
+        "total_s": 0.04113099991809577,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.9,
+        "rss_after_parse_mb": 42.953125,
+        "wall_s_incl_interpreter": 0.106
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.036458708927966654,
+        "parse_s": 0.005170083022676408,
+        "graph_s": 6.420805584639311e-05,
+        "total_s": 0.041693000006489456,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.8,
+        "rss_after_parse_mb": 42.765625,
+        "wall_s_incl_interpreter": 0.1082
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.035404999973252416,
+        "parse_s": 0.00500650005415082,
+        "graph_s": 5.9999991208314896e-05,
+        "total_s": 0.04047150001861155,
+        "phases_s": {
+         "_load_json": 0.0025,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.7,
+        "rss_after_parse_mb": 42.734375,
+        "wall_s_incl_interpreter": 0.1063
+       }
+      ]
+     },
+     "optimised": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.04053129209205508,
+       "p95": 0.04119354118593037,
+       "max": 0.0412931659957394,
+       "min": 0.03674708306789398,
+       "mean": 0.03955389163456857
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1045,
+       "p95": 0.10636,
+       "max": 0.1065,
+       "min": 0.1028,
+       "mean": 0.10469999999999999
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 42.8,
+       "p95": 42.9,
+       "max": 42.9,
+       "min": 42.8,
+       "mean": 42.839999999999996
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03532383299898356,
+        "parse_s": 0.0059096249751746655,
+        "graph_s": 5.970802158117294e-05,
+        "total_s": 0.0412931659957394,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0013,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.9,
+        "rss_after_parse_mb": 42.90625,
+        "wall_s_incl_interpreter": 0.1065
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03196691605262458,
+        "parse_s": 0.004724542028270662,
+        "graph_s": 5.562498699873686e-05,
+        "total_s": 0.03674708306789398,
+        "phases_s": {
+         "_load_json": 0.0024,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0002,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.8,
+        "rss_after_parse_mb": 42.8125,
+        "wall_s_incl_interpreter": 0.1028
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03332279098685831,
+        "parse_s": 0.005020959069952369,
+        "graph_s": 5.9125013649463654e-05,
+        "total_s": 0.03840287507046014,
+        "phases_s": {
+         "_load_json": 0.0025,
+         "_process_models": 0.0013,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.8,
+        "rss_after_parse_mb": 42.828125,
+        "wall_s_incl_interpreter": 0.1039
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.035372958052903414,
+        "parse_s": 0.005098334047943354,
+        "graph_s": 5.9999991208314896e-05,
+        "total_s": 0.04053129209205508,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0013,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.8,
+        "rss_after_parse_mb": 42.828125,
+        "wall_s_incl_interpreter": 0.1045
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.035560416989028454,
+        "parse_s": 0.005175541969947517,
+        "graph_s": 5.908298771828413e-05,
+        "total_s": 0.040795041946694255,
+        "phases_s": {
+         "_load_json": 0.0026,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.9,
+        "rss_after_parse_mb": 42.953125,
+        "wall_s_incl_interpreter": 0.1058
+       }
+      ]
+     },
+     "as-is-no-catalog": {
+      "total_s": {
+       "n": 3,
+       "p50": 0.04080208297818899,
+       "p95": 0.041779445158317684,
+       "max": 0.04188804095610976,
+       "min": 0.03954608307685703,
+       "mean": 0.04074540233705193
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 0.1061,
+       "p95": 0.10934,
+       "max": 0.1097,
+       "min": 0.1048,
+       "mean": 0.10686666666666667
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 42.7,
+       "p95": 42.879999999999995,
+       "max": 42.9,
+       "min": 42.5,
+       "mean": 42.699999999999996
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03595866705290973,
+        "parse_s": 0.003541999962180853,
+        "graph_s": 4.541606176644564e-05,
+        "total_s": 0.03954608307685703,
+        "phases_s": {
+         "_load_json": 0.0024,
+         "_process_models": 0.0005,
+         "_process_sources": 0.0,
+         "_process_seeds": 0.0,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 25,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.9,
+        "rss_after_parse_mb": 42.921875,
+        "wall_s_incl_interpreter": 0.1048
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03724416589830071,
+        "parse_s": 0.0035150840412825346,
+        "graph_s": 4.283303860574961e-05,
+        "total_s": 0.04080208297818899,
+        "phases_s": {
+         "_load_json": 0.0024,
+         "_process_models": 0.0005,
+         "_process_sources": 0.0,
+         "_process_seeds": 0.0,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 25,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.7,
+        "rss_after_parse_mb": 42.71875,
+        "wall_s_incl_interpreter": 0.1061
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03832491603679955,
+        "parse_s": 0.0035222918959334493,
+        "graph_s": 4.083302337676287e-05,
+        "total_s": 0.04188804095610976,
+        "phases_s": {
+         "_load_json": 0.0024,
+         "_process_models": 0.0004,
+         "_process_sources": 0.0,
+         "_process_seeds": 0.0,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 25,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.5,
+        "rss_after_parse_mb": 42.515625,
+        "wall_s_incl_interpreter": 0.1097
+       }
+      ]
+     },
+     "optimised-stdlib-json": {
+      "total_s": {
+       "n": 3,
+       "p50": 0.04062991600949317,
+       "p95": 0.04305781630100682,
+       "max": 0.043327583000063896,
+       "min": 0.03957041690591723,
+       "mean": 0.041175971971824765
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 0.1092,
+       "p95": 0.11109,
+       "max": 0.1113,
+       "min": 0.109,
+       "mean": 0.10983333333333334
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 41.8,
+       "p95": 42.07,
+       "max": 42.1,
+       "min": 41.7,
+       "mean": 41.86666666666667
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.036165791912935674,
+        "parse_s": 0.007097416091710329,
+        "graph_s": 6.437499541789293e-05,
+        "total_s": 0.043327583000063896,
+        "phases_s": {
+         "_load_json": 0.0043,
+         "_process_models": 0.0013,
+         "_process_sources": 0.0003,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 41.7,
+        "rss_after_parse_mb": 41.671875,
+        "wall_s_incl_interpreter": 0.1113
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03314637497533113,
+        "parse_s": 0.006367624970152974,
+        "graph_s": 5.6416960433125496e-05,
+        "total_s": 0.03957041690591723,
+        "phases_s": {
+         "_load_json": 0.0038,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 41.8,
+        "rss_after_parse_mb": 41.859375,
+        "wall_s_incl_interpreter": 0.1092
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.034195790998637676,
+        "parse_s": 0.0063781250501051545,
+        "graph_s": 5.5999960750341415e-05,
+        "total_s": 0.04062991600949317,
+        "phases_s": {
+         "_load_json": 0.0039,
+         "_process_models": 0.0012,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0003,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 42.1,
+        "rss_after_parse_mb": 42.109375,
+        "wall_s_incl_interpreter": 0.109
+       }
+      ]
+     },
+     "as-is-stdlib-json": {
+      "total_s": {
+       "n": 1,
+       "p50": 0.053445416036993265,
+       "p95": 0.053445416036993265,
+       "max": 0.053445416036993265,
+       "min": 0.053445416036993265,
+       "mean": 0.053445416036993265
+      },
+      "wall_s_incl_interpreter": {
+       "n": 1,
+       "p50": 0.1224,
+       "p95": 0.1224,
+       "max": 0.1224,
+       "min": 0.1224,
+       "mean": 0.1224
+      },
+      "peak_rss_mb": {
+       "n": 1,
+       "p50": 41.8,
+       "p95": 41.8,
+       "max": 41.8,
+       "min": 41.8,
+       "mean": 41.8
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": 0.02,
+        "variant": "as-is",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.04645641602110118,
+        "parse_s": 0.0069217500276863575,
+        "graph_s": 6.724998820573092e-05,
+        "total_s": 0.053445416036993265,
+        "phases_s": {
+         "_load_json": 0.0043,
+         "_process_models": 0.0015,
+         "_process_sources": 0.0002,
+         "_process_seeds": 0.0002,
+         "_process_snapshots": 0.0,
+         "_build_column_lineage": 0.0,
+         "_build_lineage": 0.0001,
+         "_extract_domains": 0.0,
+         "_extract_tags": 0.0
+        },
+        "capsules": 25,
+        "columns": 138,
+        "edges": 17,
+        "parse_errors": 0,
+        "graph_edges": 17,
+        "fingerprint": "776739629df9fde3",
+        "forbidden_modules": [],
+        "peak_rss_mb": 41.8,
+        "rss_after_parse_mb": 41.796875,
+        "wall_s_incl_interpreter": 0.1224
+       }
+      ]
+     }
+    },
+    "cold_graph_identical_across_variants": true,
+    "snapshot_write": {
+     "task": "snapshot-write",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+     "manifest_mb": 1.24,
+     "catalog_mb": 0.02,
+     "hash_s": 0.0007283750455826521,
+     "json_write_s": 0.00030104105826467276,
+     "sqlite_write_s": 0.004403375089168549,
+     "json_mb": 0.01,
+     "sqlite_mb": 0.02,
+     "nodes": 25,
+     "edges": 17,
+     "columns": 138,
+     "fingerprint": "776739629df9fde3",
+     "wall_s_incl_interpreter": 0.1425
+    },
+    "warm": {
+     "json-stdlib": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.003966916934587061,
+       "p95": 0.004994083358906209,
+       "max": 0.005064624943770468,
+       "min": 0.002486750017851591,
+       "mean": 0.003767833369784057
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.0639,
+       "p95": 0.08463999999999999,
+       "max": 0.0894,
+       "min": 0.0621,
+       "mean": 0.06882
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.002516041975468397,
+        "read_s": 0.0014074170030653477,
+        "build_s": 4.345795605331659e-05,
+        "total_s": 0.003966916934587061,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.4,
+        "wall_s_incl_interpreter": 0.0656
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.002367416978813708,
+        "read_s": 0.0001854579895734787,
+        "build_s": 5.608296487480402e-05,
+        "total_s": 0.0026089579332619905,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.5,
+        "wall_s_incl_interpreter": 0.0631
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.0043926669750362635,
+        "read_s": 0.0002663329942151904,
+        "build_s": 5.291705019772053e-05,
+        "total_s": 0.004711917019449174,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.7,
+        "wall_s_incl_interpreter": 0.0894
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.0023356250021606684,
+        "read_s": 0.0026858749333769083,
+        "build_s": 4.312500823289156e-05,
+        "total_s": 0.005064624943770468,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.5,
+        "wall_s_incl_interpreter": 0.0639
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.0022122920490801334,
+        "read_s": 0.00022966600954532623,
+        "build_s": 4.479195922613144e-05,
+        "total_s": 0.002486750017851591,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.5,
+        "wall_s_incl_interpreter": 0.0621
+       }
+      ]
+     },
+     "json-orjson": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.0038156660739332438,
+       "p95": 0.005927266459912061,
+       "max": 0.006321583059616387,
+       "min": 0.0035161670530214906,
+       "mean": 0.004332741443067789
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.064,
+       "p95": 0.0687,
+       "max": 0.0696,
+       "min": 0.0628,
+       "mean": 0.06495999999999999
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.002547833020798862,
+        "read_s": 0.003685042029246688,
+        "build_s": 8.870800957083702e-05,
+        "total_s": 0.006321583059616387,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.8,
+        "wall_s_incl_interpreter": 0.0633
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.002176667097955942,
+        "read_s": 0.002042291918769479,
+        "build_s": 0.00013104104436933994,
+        "total_s": 0.004350000061094761,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.6,
+        "wall_s_incl_interpreter": 0.064
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.0022284580627456307,
+        "read_s": 0.001467249938286841,
+        "build_s": 0.0001199580729007721,
+        "total_s": 0.0038156660739332438,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.6,
+        "wall_s_incl_interpreter": 0.0696
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.002184416982345283,
+        "read_s": 0.00125279207713902,
+        "build_s": 7.895799353718758e-05,
+        "total_s": 0.0035161670530214906,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.6,
+        "wall_s_incl_interpreter": 0.0628
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.002171791042201221,
+        "read_s": 0.0014022919349372387,
+        "build_s": 8.62079905346036e-05,
+        "total_s": 0.0036602909676730633,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 29.9,
+        "wall_s_incl_interpreter": 0.0651
+       }
+      ]
+     },
+     "sqlite": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.0038974169874563813,
+       "p95": 0.004161366424523294,
+       "max": 0.0042168330401182175,
+       "min": 0.0025925420923158526,
+       "mean": 0.003507233411073685
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.0628,
+       "p95": 0.06546,
+       "max": 0.0659,
+       "min": 0.0612,
+       "mean": 0.06326000000000001
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.0032204589806497097,
+        "read_s": 0.0006346660666167736,
+        "build_s": 4.2291940189898014e-05,
+        "total_s": 0.0038974169874563813,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 30.4,
+        "wall_s_incl_interpreter": 0.0637
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.0035301659954711795,
+        "read_s": 0.0006441669538617134,
+        "build_s": 4.2500090785324574e-05,
+        "total_s": 0.0042168330401182175,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 30.3,
+        "wall_s_incl_interpreter": 0.0659
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.0022898749448359013,
+        "read_s": 0.0005617080023512244,
+        "build_s": 3.829202614724636e-05,
+        "total_s": 0.002889874973334372,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 30.2,
+        "wall_s_incl_interpreter": 0.0612
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.003327665966935456,
+        "read_s": 0.0005727499956265092,
+        "build_s": 3.9083999581635e-05,
+        "total_s": 0.0039394999621436,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 30.1,
+        "wall_s_incl_interpreter": 0.0628
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+        "manifest_mb": 1.24,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.002043417072854936,
+        "read_s": 0.0005134999519214034,
+        "build_s": 3.562506753951311e-05,
+        "total_s": 0.0025925420923158526,
+        "fingerprint": "776739629df9fde3",
+        "peak_rss_mb": 30.2,
+        "wall_s_incl_interpreter": 0.0627
+       }
+      ]
+     }
+    },
+    "warm_graph_matches_snapshot": true,
+    "queries": {
+     "task": "queries",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+     "manifest_mb": 1.24,
+     "catalog_mb": 0.02,
+     "codelens": {
+      "queries": 1000,
+      "distinct_files": 13,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000458,
+       "p95": 0.000542,
+       "max": 0.005125,
+       "min": 0.000333,
+       "mean": 0.000446206
+      },
+      "sample": [
+       "models/staging/stg_customers.sql",
+       [
+        "\u2193 1 models \u00b7 PII"
+       ]
+      ]
+     },
+     "codelens_transitive": {
+      "queries": 1000,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000375,
+       "p95": 0.000625,
+       "max": 0.006042,
+       "min": 0.00025,
+       "mean": 0.000420099
+      }
+     },
+     "impact": {
+      "high_fanout_source": {
+       "uid": "source.jaffle_shop.ecom.raw_supplies",
+       "closure": 5,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.0012915000000000001,
+        "p95": 0.0016296499999999998,
+        "max": 0.003292,
+        "min": 0.00125,
+        "mean": 0.001393
+       },
+       "by_kind": {
+        "model": 5
+       },
+       "owners": 1
+      },
+      "highest_direct_fanout_source": {
+       "uid": "source.jaffle_shop.ecom.raw_supplies",
+       "closure": 5,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.002208,
+        "p95": 0.009474999999999996,
+        "max": 0.019041,
+        "min": 0.001083,
+        "mean": 0.0029999
+       },
+       "by_kind": {
+        "model": 5
+       },
+       "owners": 1
+      },
+      "median_model": {
+       "uid": "model.jaffle_shop.stg_customers",
+       "closure": 1,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.0004165,
+        "p95": 0.0005650999999999998,
+        "max": 0.000708,
+        "min": 0.000375,
+        "mean": 0.0004373333333333333
+       },
+       "by_kind": {
+        "model": 1
+       },
+       "owners": 1
+      },
+      "worst_node": {
+       "uid": "source.jaffle_shop.ecom.raw_supplies",
+       "closure": 5,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.001125,
+        "p95": 0.0044775999999999835,
+        "max": 0.008417,
+        "min": 0.001083,
+        "mean": 0.0015667333333333332
+       },
+       "by_kind": {
+        "model": 5
+       },
+       "owners": 1
+      }
+     },
+     "expected_edges": {
+      "depends_on_total": 17,
+      "depends_on_to_capsules": 17,
+      "parent_map_to_capsules": 17
+     },
+     "extras": {
+      "exposures": 0,
+      "nodes_with_attached_tests": 9,
+      "attached_tests": 27
+     },
+     "wall_s_incl_interpreter": 0.1124
+    },
+    "column_lineage": {
+     "task": "column-lineage",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+     "manifest_mb": 1.24,
+     "catalog_mb": 0.02,
+     "column_lineage": {
+      "dialect": "duckdb",
+      "models": [
+       {
+        "uid": "model.jaffle_shop.metricflow_time_spine",
+        "sql_chars": 3324,
+        "complexity": 30,
+        "s": 0.002432083012536168,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 0,
+        "documented_columns_found": 0,
+        "output_columns": 1,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0084,
+         "output_columns": 1,
+         "resolved_to_table": 0,
+         "expected_columns": 1,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.order_items",
+        "sql_chars": 962,
+        "complexity": 12,
+        "s": 0.0010309999343007803,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 2,
+        "documented_columns_found": 0,
+        "output_columns": 9,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0127,
+         "output_columns": 9,
+         "resolved_to_table": 9,
+         "expected_columns": 9,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.orders",
+        "sql_chars": 1459,
+        "complexity": 7,
+        "s": 0.001158291008323431,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 7,
+        "documented_columns_found": 0,
+        "output_columns": 18,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0199,
+         "output_columns": 18,
+         "resolved_to_table": 18,
+         "expected_columns": 18,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.customers",
+        "sql_chars": 1283,
+        "complexity": 6,
+        "s": 0.0012114590499550104,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 9,
+        "documented_columns_found": 0,
+        "output_columns": 9,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0096,
+         "output_columns": 9,
+         "resolved_to_table": 9,
+         "expected_columns": 9,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_orders",
+        "sql_chars": 646,
+        "complexity": 2,
+        "s": 0.0008374160388484597,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 1,
+        "documented_columns_found": 0,
+        "output_columns": 10,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0066,
+         "output_columns": 10,
+         "resolved_to_table": 10,
+         "expected_columns": 10,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_supplies",
+        "sql_chars": 600,
+        "complexity": 2,
+        "s": 0.000843290938064456,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 1,
+        "documented_columns_found": 0,
+        "output_columns": 6,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0038,
+         "output_columns": 6,
+         "resolved_to_table": 6,
+         "expected_columns": 6,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_products",
+        "sql_chars": 554,
+        "complexity": 2,
+        "s": 0.0006089169764891267,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 1,
+        "documented_columns_found": 0,
+        "output_columns": 7,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0047,
+         "output_columns": 7,
+         "resolved_to_table": 7,
+         "expected_columns": 7,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_locations",
+        "sql_chars": 375,
+        "complexity": 2,
+        "s": 0.0003865420585498214,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 1,
+        "documented_columns_found": 0,
+        "output_columns": 4,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0023,
+         "output_columns": 4,
+         "resolved_to_table": 4,
+         "expected_columns": 4,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_customers",
+        "sql_chars": 247,
+        "complexity": 2,
+        "s": 0.0003132079727947712,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 1,
+        "documented_columns_found": 0,
+        "output_columns": 2,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0014,
+         "output_columns": 2,
+         "resolved_to_table": 2,
+         "expected_columns": 2,
+         "schema_tables": 19
+        }
+       },
+       {
+        "uid": "model.jaffle_shop.stg_order_items",
+        "sql_chars": 234,
+        "complexity": 2,
+        "s": 0.00029541703406721354,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 2,
+        "documented_columns_found": 0,
+        "output_columns": 3,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0016,
+         "output_columns": 3,
+         "resolved_to_table": 3,
+         "expected_columns": 3,
+         "schema_tables": 19
+        }
+       }
+      ],
+      "s": {
+       "n": 10,
+       "p50": 0.0008403534884564579,
+       "p95": 0.0018828022293746458,
+       "max": 0.002432083012536168,
+       "min": 0.00029541703406721354,
+       "mean": 0.0009117624023929239
+      },
+      "stdout_bytes_from_parser": 0
+     },
+     "wall_s_incl_interpreter": 0.2393
+    },
+    "json": {
+     "task": "json",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+     "manifest_mb": 1.24,
+     "catalog_mb": 0.02,
+     "json_loads_s": {
+      "orjson": {
+       "n": 5,
+       "p50": 0.0019303748849779367,
+       "p95": 0.0021463247248902917,
+       "max": 0.0021867079194635153,
+       "min": 0.0018294579349458218,
+       "mean": 0.0019669749541208147
+      },
+      "stdlib": {
+       "n": 5,
+       "p50": 0.003731749951839447,
+       "p95": 0.004142550239339471,
+       "max": 0.004218667047098279,
+       "min": 0.003364542033523321,
+       "mean": 0.0037132502067834137
+      }
+     },
+     "wall_s_incl_interpreter": 0.1006
+    },
+    "event_loop": {
+     "task": "event-loop",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/jaffle/1.12/docs/manifest.json",
+     "manifest_mb": 1.24,
+     "catalog_mb": 0.02,
+     "event_loop": {
+      "variant": "optimised",
+      "await_in_loop": {
+       "parse_s": 0.005,
+       "max_loop_gap_ms": 7.9,
+       "p95_loop_gap_ms": 7.6
+      },
+      "to_thread": {
+       "parse_s": 0.006,
+       "max_loop_gap_ms": 5.7,
+       "p95_loop_gap_ms": 5.6
+      }
+     },
+     "wall_s_incl_interpreter": 0.1579
+    }
+   },
+   "2000": {
+    "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+    "manifest_mb": 53.22,
+    "catalog_mb": 5.67,
+    "cold": {
+     "as-is": {
+      "total_s": {
+       "n": 5,
+       "p50": 3.057541957939975,
+       "p95": 3.0707957418169824,
+       "max": 3.0738590420223773,
+       "min": 2.9793157500680536,
+       "mean": 3.0314328331965954
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 3.1476,
+       "p95": 3.1661,
+       "max": 3.1694,
+       "min": 3.073,
+       "mean": 3.1246400000000003
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 444.8,
+       "p95": 445.53999999999996,
+       "max": 445.7,
+       "min": 441.6,
+       "mean": 444.26000000000005
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.041155042010359466,
+        "parse_s": 2.9329372079810128,
+        "graph_s": 0.013812624965794384,
+        "total_s": 2.9879048749571666,
+        "phases_s": {
+         "_load_json": 0.19,
+         "_process_models": 0.4792,
+         "_process_sources": 0.1383,
+         "_process_seeds": 0.0038,
+         "_process_snapshots": 0.0015,
+         "_build_column_lineage": 0.0074,
+         "_build_lineage": 2.0947,
+         "_extract_domains": 0.0006,
+         "_extract_tags": 0.0063
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 441.6,
+        "rss_after_parse_mb": 214.1875,
+        "wall_s_incl_interpreter": 3.0803
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.037149042007513344,
+        "parse_s": 3.0060100000118837,
+        "graph_s": 0.014382915920577943,
+        "total_s": 3.057541957939975,
+        "phases_s": {
+         "_load_json": 0.1863,
+         "_process_models": 0.462,
+         "_process_sources": 0.1318,
+         "_process_seeds": 0.0016,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0061,
+         "_build_lineage": 2.1998,
+         "_extract_domains": 0.0005,
+         "_extract_tags": 0.0064
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 444.9,
+        "rss_after_parse_mb": 214.65625,
+        "wall_s_incl_interpreter": 3.1476
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03543920803349465,
+        "parse_s": 2.9287109590368345,
+        "graph_s": 0.015165582997724414,
+        "total_s": 2.9793157500680536,
+        "phases_s": {
+         "_load_json": 0.1836,
+         "_process_models": 0.438,
+         "_process_sources": 0.1277,
+         "_process_seeds": 0.0017,
+         "_process_snapshots": 0.0009,
+         "_build_column_lineage": 0.009,
+         "_build_lineage": 2.1525,
+         "_extract_domains": 0.0008,
+         "_extract_tags": 0.0064
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 444.3,
+        "rss_after_parse_mb": 213.3125,
+        "wall_s_incl_interpreter": 3.073
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03897025005426258,
+        "parse_s": 3.0048191249370575,
+        "graph_s": 0.01475316600408405,
+        "total_s": 3.058542540995404,
+        "phases_s": {
+         "_load_json": 0.1917,
+         "_process_models": 0.4558,
+         "_process_sources": 0.1333,
+         "_process_seeds": 0.0018,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0111,
+         "_build_lineage": 2.1971,
+         "_extract_domains": 0.0007,
+         "_extract_tags": 0.0064
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 444.8,
+        "rss_after_parse_mb": 213.78125,
+        "wall_s_incl_interpreter": 3.1529
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.045614250004291534,
+        "parse_s": 3.0135113750584424,
+        "graph_s": 0.014733416959643364,
+        "total_s": 3.0738590420223773,
+        "phases_s": {
+         "_load_json": 0.1915,
+         "_process_models": 0.4662,
+         "_process_sources": 0.1334,
+         "_process_seeds": 0.0026,
+         "_process_snapshots": 0.0009,
+         "_build_column_lineage": 0.01,
+         "_build_lineage": 2.1934,
+         "_extract_domains": 0.0008,
+         "_extract_tags": 0.0065
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 445.7,
+        "rss_after_parse_mb": 214.84375,
+        "wall_s_incl_interpreter": 3.1694
+       }
+      ]
+     },
+     "optimised": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.8774607090745121,
+       "p95": 0.8897236499702558,
+       "max": 0.891111999982968,
+       "min": 0.8732280409894884,
+       "mean": 0.8805945334024727
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.9712,
+       "p95": 0.98368,
+       "max": 0.9852,
+       "min": 0.9651,
+       "mean": 0.97324
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 446.6,
+       "p95": 446.96,
+       "max": 447.0,
+       "min": 446.2,
+       "mean": 446.58000000000004
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.04144041589461267,
+        "parse_s": 0.8166410840349272,
+        "graph_s": 0.015146541059948504,
+        "total_s": 0.8732280409894884,
+        "phases_s": {
+         "_load_json": 0.193,
+         "_process_models": 0.4501,
+         "_process_sources": 0.1247,
+         "_process_seeds": 0.0019,
+         "_process_snapshots": 0.0008,
+         "_build_column_lineage": 0.006,
+         "_build_lineage": 0.0216,
+         "_extract_domains": 0.0007,
+         "_extract_tags": 0.0065
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 447.0,
+        "rss_after_parse_mb": 214.453125,
+        "wall_s_incl_interpreter": 0.9671
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.0408209590241313,
+        "parse_s": 0.8220277080545202,
+        "graph_s": 0.014612041995860636,
+        "total_s": 0.8774607090745121,
+        "phases_s": {
+         "_load_json": 0.1914,
+         "_process_models": 0.4477,
+         "_process_sources": 0.1266,
+         "_process_seeds": 0.0036,
+         "_process_snapshots": 0.0013,
+         "_build_column_lineage": 0.01,
+         "_build_lineage": 0.0261,
+         "_extract_domains": 0.0006,
+         "_extract_tags": 0.0065
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 446.8,
+        "rss_after_parse_mb": 213.28125,
+        "wall_s_incl_interpreter": 0.9712
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.04423825000412762,
+        "parse_s": 0.8259562919847667,
+        "graph_s": 0.013975707930512726,
+        "total_s": 0.8841702499194071,
+        "phases_s": {
+         "_load_json": 0.1947,
+         "_process_models": 0.4539,
+         "_process_sources": 0.1241,
+         "_process_seeds": 0.0018,
+         "_process_snapshots": 0.0009,
+         "_build_column_lineage": 0.0078,
+         "_build_lineage": 0.0235,
+         "_extract_domains": 0.0005,
+         "_extract_tags": 0.0062
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 446.2,
+        "rss_after_parse_mb": 212.71875,
+        "wall_s_incl_interpreter": 0.9776
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03816200001165271,
+        "parse_s": 0.8387499169912189,
+        "graph_s": 0.01420008298009634,
+        "total_s": 0.891111999982968,
+        "phases_s": {
+         "_load_json": 0.1938,
+         "_process_models": 0.4675,
+         "_process_sources": 0.1266,
+         "_process_seeds": 0.0021,
+         "_process_snapshots": 0.0009,
+         "_build_column_lineage": 0.0087,
+         "_build_lineage": 0.0238,
+         "_extract_domains": 0.0006,
+         "_extract_tags": 0.0065
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 446.3,
+        "rss_after_parse_mb": 213.734375,
+        "wall_s_incl_interpreter": 0.9852
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03724654205143452,
+        "parse_s": 0.825816291035153,
+        "graph_s": 0.013938833959400654,
+        "total_s": 0.8770016670459881,
+        "phases_s": {
+         "_load_json": 0.181,
+         "_process_models": 0.4641,
+         "_process_sources": 0.131,
+         "_process_seeds": 0.0017,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0082,
+         "_build_lineage": 0.0239,
+         "_extract_domains": 0.0004,
+         "_extract_tags": 0.0061
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 446.6,
+        "rss_after_parse_mb": 214.109375,
+        "wall_s_incl_interpreter": 0.9651
+       }
+      ]
+     },
+     "as-is-no-catalog": {
+      "total_s": {
+       "n": 3,
+       "p50": 2.4345414580311626,
+       "p95": 2.446478983282577,
+       "max": 2.447805374977179,
+       "min": 2.3911272910190746,
+       "mean": 2.424491374675805
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 2.5221,
+       "p95": 2.5340700000000003,
+       "max": 2.5354,
+       "min": 2.4767,
+       "mean": 2.5114
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 395.0,
+       "p95": 395.18,
+       "max": 395.2,
+       "min": 394.5,
+       "mean": 394.90000000000003
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03646029205992818,
+        "parse_s": 2.3852903329534456,
+        "graph_s": 0.012790833017788827,
+        "total_s": 2.4345414580311626,
+        "phases_s": {
+         "_load_json": 0.1735,
+         "_process_models": 0.4476,
+         "_process_sources": 0.0633,
+         "_process_seeds": 0.0015,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0098,
+         "_build_lineage": 1.6781,
+         "_extract_domains": 0.0006,
+         "_extract_tags": 0.0057
+        },
+        "capsules": 2603,
+        "columns": 44711,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 394.5,
+        "rss_after_parse_mb": 192.890625,
+        "wall_s_incl_interpreter": 2.5221
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03897866699844599,
+        "parse_s": 2.39605520805344,
+        "graph_s": 0.012771499925293028,
+        "total_s": 2.447805374977179,
+        "phases_s": {
+         "_load_json": 0.1778,
+         "_process_models": 0.4328,
+         "_process_sources": 0.0598,
+         "_process_seeds": 0.0018,
+         "_process_snapshots": 0.001,
+         "_build_column_lineage": 0.0103,
+         "_build_lineage": 1.7001,
+         "_extract_domains": 0.0008,
+         "_extract_tags": 0.006
+        },
+        "capsules": 2603,
+        "columns": 44711,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 395.2,
+        "rss_after_parse_mb": 193.546875,
+        "wall_s_incl_interpreter": 2.5354
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.036120165954343975,
+        "parse_s": 2.342606500023976,
+        "graph_s": 0.012400625040754676,
+        "total_s": 2.3911272910190746,
+        "phases_s": {
+         "_load_json": 0.1684,
+         "_process_models": 0.4122,
+         "_process_sources": 0.0617,
+         "_process_seeds": 0.0022,
+         "_process_snapshots": 0.0009,
+         "_build_column_lineage": 0.0093,
+         "_build_lineage": 1.6758,
+         "_extract_domains": 0.0004,
+         "_extract_tags": 0.0055
+        },
+        "capsules": 2603,
+        "columns": 44711,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 395.0,
+        "rss_after_parse_mb": 193.796875,
+        "wall_s_incl_interpreter": 2.4767
+       }
+      ]
+     },
+     "optimised-stdlib-json": {
+      "total_s": {
+       "n": 3,
+       "p50": 0.9400211659958586,
+       "p95": 0.9460564921959304,
+       "max": 0.9467270839959383,
+       "min": 0.9364715419942513,
+       "mean": 0.9410732639953494
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 1.0255,
+       "p95": 1.03162,
+       "max": 1.0323,
+       "min": 1.0179,
+       "mean": 1.0252333333333334
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 386.2,
+       "p95": 386.29,
+       "max": 386.3,
+       "min": 385.9,
+       "mean": 386.1333333333334
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03211387502960861,
+        "parse_s": 0.8904803750338033,
+        "graph_s": 0.01387729193083942,
+        "total_s": 0.9364715419942513,
+        "phases_s": {
+         "_load_json": 0.2513,
+         "_process_models": 0.456,
+         "_process_sources": 0.133,
+         "_process_seeds": 0.0017,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0083,
+         "_build_lineage": 0.0239,
+         "_extract_domains": 0.0006,
+         "_extract_tags": 0.0061
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 386.3,
+        "rss_after_parse_mb": 203.78125,
+        "wall_s_incl_interpreter": 1.0179
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03556945896707475,
+        "parse_s": 0.8975235410034657,
+        "graph_s": 0.013634084025397897,
+        "total_s": 0.9467270839959383,
+        "phases_s": {
+         "_load_json": 0.2541,
+         "_process_models": 0.4616,
+         "_process_sources": 0.1334,
+         "_process_seeds": 0.0017,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0081,
+         "_build_lineage": 0.0234,
+         "_extract_domains": 0.0004,
+         "_extract_tags": 0.0056
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 386.2,
+        "rss_after_parse_mb": 202.6875,
+        "wall_s_incl_interpreter": 1.0323
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03444175003096461,
+        "parse_s": 0.8918725829571486,
+        "graph_s": 0.013706833007745445,
+        "total_s": 0.9400211659958586,
+        "phases_s": {
+         "_load_json": 0.2514,
+         "_process_models": 0.4592,
+         "_process_sources": 0.1334,
+         "_process_seeds": 0.0019,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0065,
+         "_build_lineage": 0.0219,
+         "_extract_domains": 0.0004,
+         "_extract_tags": 0.006
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 385.9,
+        "rss_after_parse_mb": 203.359375,
+        "wall_s_incl_interpreter": 1.0255
+       }
+      ]
+     },
+     "as-is-stdlib-json": {
+      "total_s": {
+       "n": 1,
+       "p50": 3.1121373339556158,
+       "p95": 3.1121373339556158,
+       "max": 3.1121373339556158,
+       "min": 3.1121373339556158,
+       "mean": 3.1121373339556158
+      },
+      "wall_s_incl_interpreter": {
+       "n": 1,
+       "p50": 3.1988,
+       "p95": 3.1988,
+       "max": 3.1988,
+       "min": 3.1988,
+       "mean": 3.1988
+      },
+      "peak_rss_mb": {
+       "n": 1,
+       "p50": 384.4,
+       "p95": 384.4,
+       "max": 384.4,
+       "min": 384.4,
+       "mean": 384.4
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": 5.67,
+        "variant": "as-is",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.036749167018570006,
+        "parse_s": 3.061431207926944,
+        "graph_s": 0.013956959010101855,
+        "total_s": 3.1121373339556158,
+        "phases_s": {
+         "_load_json": 0.2486,
+         "_process_models": 0.4572,
+         "_process_sources": 0.1329,
+         "_process_seeds": 0.0019,
+         "_process_snapshots": 0.0007,
+         "_build_column_lineage": 0.0082,
+         "_build_lineage": 2.1986,
+         "_extract_domains": 0.0007,
+         "_extract_tags": 0.0058
+        },
+        "capsules": 2603,
+        "columns": 51213,
+        "edges": 3630,
+        "parse_errors": 0,
+        "graph_edges": 3627,
+        "fingerprint": "097f502b4c026f43",
+        "forbidden_modules": [],
+        "peak_rss_mb": 384.4,
+        "rss_after_parse_mb": 203.1875,
+        "wall_s_incl_interpreter": 3.1988
+       }
+      ]
+     }
+    },
+    "cold_graph_identical_across_variants": true,
+    "snapshot_write": {
+     "task": "snapshot-write",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+     "manifest_mb": 53.22,
+     "catalog_mb": 5.67,
+     "hash_s": 0.021786917001008987,
+     "json_write_s": 0.01332537503913045,
+     "sqlite_write_s": 0.05413937498815358,
+     "json_mb": 2.35,
+     "sqlite_mb": 2.11,
+     "nodes": 2623,
+     "edges": 3712,
+     "columns": 51247,
+     "fingerprint": "a69509021960aa39",
+     "wall_s_incl_interpreter": 1.4302
+    },
+    "warm": {
+     "json-stdlib": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.044325332972221076,
+       "p95": 0.04663349138572812,
+       "max": 0.04721008299384266,
+       "min": 0.042080124956555665,
+       "mean": 0.04434835817664862
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1028,
+       "p95": 0.1068,
+       "max": 0.1077,
+       "min": 0.1006,
+       "mean": 0.10322
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.02342420897912234,
+        "read_s": 0.01361662510316819,
+        "build_s": 0.006758290925063193,
+        "total_s": 0.04379912500735372,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 55.6,
+        "wall_s_incl_interpreter": 0.1032
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.023760042036883533,
+        "read_s": 0.014012750005349517,
+        "build_s": 0.006552540929988027,
+        "total_s": 0.044325332972221076,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 55.6,
+        "wall_s_incl_interpreter": 0.1028
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.023895791033282876,
+        "read_s": 0.01368774997536093,
+        "build_s": 0.0067435839446261525,
+        "total_s": 0.04432712495326996,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 55.5,
+        "wall_s_incl_interpreter": 0.1018
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.022350457962602377,
+        "read_s": 0.013352999929338694,
+        "build_s": 0.006376667064614594,
+        "total_s": 0.042080124956555665,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 57.6,
+        "wall_s_incl_interpreter": 0.1006
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.023830082966014743,
+        "read_s": 0.016383333946578205,
+        "build_s": 0.006996666081249714,
+        "total_s": 0.04721008299384266,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 56.1,
+        "wall_s_incl_interpreter": 0.1077
+       }
+      ]
+     },
+     "json-orjson": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.044595165993086994,
+       "p95": 0.04522608346305788,
+       "max": 0.04530762508511543,
+       "min": 0.04286962503101677,
+       "mean": 0.04440278322435916
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1056,
+       "p95": 0.10758,
+       "max": 0.108,
+       "min": 0.1038,
+       "mean": 0.10568
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.022783417021855712,
+        "read_s": 0.014023166033439338,
+        "build_s": 0.006063041975721717,
+        "total_s": 0.04286962503101677,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 62.1,
+        "wall_s_incl_interpreter": 0.1038
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.023626458016224205,
+        "read_s": 0.014067082898691297,
+        "build_s": 0.006901625078171492,
+        "total_s": 0.044595165993086994,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 59.9,
+        "wall_s_incl_interpreter": 0.1051
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.023598416009917855,
+        "read_s": 0.013919209013693035,
+        "build_s": 0.006823958014138043,
+        "total_s": 0.04434158303774893,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 60.0,
+        "wall_s_incl_interpreter": 0.1056
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.023956000106409192,
+        "read_s": 0.014644832932390273,
+        "build_s": 0.006706792046315968,
+        "total_s": 0.04530762508511543,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 62.0,
+        "wall_s_incl_interpreter": 0.108
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.023918000049889088,
+        "read_s": 0.013969541992992163,
+        "build_s": 0.007012374931946397,
+        "total_s": 0.04489991697482765,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 60.0,
+        "wall_s_incl_interpreter": 0.1059
+       }
+      ]
+     },
+     "sqlite": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.06286874995566905,
+       "p95": 0.06351312482729554,
+       "max": 0.06356195802800357,
+       "min": 0.06054604100063443,
+       "mean": 0.06260835819412022
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1228,
+       "p95": 0.12456,
+       "max": 0.1249,
+       "min": 0.121,
+       "mean": 0.12278
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.023442790959961712,
+        "read_s": 0.030189875047653913,
+        "build_s": 0.006913374993018806,
+        "total_s": 0.06054604100063443,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 55.1,
+        "wall_s_incl_interpreter": 0.121
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.022954082931391895,
+        "read_s": 0.032968792016617954,
+        "build_s": 0.006824375013820827,
+        "total_s": 0.06274724996183068,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 55.0,
+        "wall_s_incl_interpreter": 0.1249
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.023739124997518957,
+        "read_s": 0.032245749956928194,
+        "build_s": 0.006883875001221895,
+        "total_s": 0.06286874995566905,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 53.0,
+        "wall_s_incl_interpreter": 0.1232
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.023538167006336153,
+        "read_s": 0.03299983299802989,
+        "build_s": 0.006779792020097375,
+        "total_s": 0.06331779202446342,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 53.1,
+        "wall_s_incl_interpreter": 0.122
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+        "manifest_mb": 53.22,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.023866250063292682,
+        "read_s": 0.032742499955929816,
+        "build_s": 0.0069532080087810755,
+        "total_s": 0.06356195802800357,
+        "fingerprint": "a69509021960aa39",
+        "peak_rss_mb": 53.2,
+        "wall_s_incl_interpreter": 0.1228
+       }
+      ]
+     }
+    },
+    "warm_graph_matches_snapshot": true,
+    "queries": {
+     "task": "queries",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+     "manifest_mb": 53.22,
+     "catalog_mb": 5.67,
+     "codelens": {
+      "queries": 1000,
+      "distinct_files": 2000,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000792,
+       "p95": 0.0015850999999999981,
+       "max": 0.005916,
+       "min": 0.000375,
+       "mean": 0.0008948739999999999
+      },
+      "sample": [
+       "models/marts/billing/fct_billing__fct_invoices_10.sql",
+       [
+        "\u2193 0 models \u00b7 owner platform-data"
+       ]
+      ]
+     },
+     "codelens_transitive": {
+      "queries": 1000,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000417,
+       "p95": 0.004800299999999993,
+       "max": 0.050583,
+       "min": 0.00025,
+       "mean": 0.001160292
+      }
+     },
+     "impact": {
+      "high_fanout_source": {
+       "uid": "source.synthetic.fleet.routes_14",
+       "closure": 394,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.115146,
+        "p95": 0.12007324999999999,
+        "max": 0.157208,
+        "min": 0.11125,
+        "mean": 0.11660966666666667
+       },
+       "by_kind": {
+        "model": 376,
+        "exposure": 18
+       },
+       "owners": 15
+      },
+      "highest_direct_fanout_source": {
+       "uid": "source.synthetic.fleet.routes_14",
+       "closure": 394,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.114396,
+        "p95": 0.12327529999999998,
+        "max": 0.127625,
+        "min": 0.103584,
+        "mean": 0.11392646666666667
+       },
+       "by_kind": {
+        "model": 376,
+        "exposure": 18
+       },
+       "owners": 15
+      },
+      "median_model": {
+       "uid": "model.synthetic.fct_product__fct_sessions_1",
+       "closure": 1,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.0005,
+        "p95": 0.0006790499999999993,
+        "max": 0.001417,
+        "min": 0.000458,
+        "mean": 0.0005222
+       },
+       "by_kind": {
+        "model": 1
+       },
+       "owners": 1
+      },
+      "worst_node": {
+       "uid": "source.synthetic.fleet.routes_14",
+       "closure": 394,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.113312,
+        "p95": 0.11577280000000001,
+        "max": 0.118542,
+        "min": 0.102959,
+        "mean": 0.11160976666666667
+       },
+       "by_kind": {
+        "model": 376,
+        "exposure": 18
+       },
+       "owners": 15
+      }
+     },
+     "expected_edges": {
+      "depends_on_total": 3630,
+      "depends_on_to_capsules": 3630,
+      "parent_map_to_capsules": 3630
+     },
+     "extras": {
+      "exposures": 20,
+      "nodes_with_attached_tests": 1999,
+      "attached_tests": 7199
+     },
+     "wall_s_incl_interpreter": 1.4096
+    },
+    "column_lineage": {
+     "task": "column-lineage",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+     "manifest_mb": 53.22,
+     "catalog_mb": 5.67,
+     "column_lineage": {
+      "dialect": "duckdb",
+      "models": [
+       {
+        "uid": "model.synthetic.dim_billing__dim_returns_6",
+        "sql_chars": 3601,
+        "complexity": 14,
+        "s": 0.0030435839435085654,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 30,
+        "documented_columns_found": 0,
+        "output_columns": 30,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1549,
+         "output_columns": 30,
+         "resolved_to_table": 28,
+         "expected_columns": 30,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_support__fct_budgets_9",
+        "sql_chars": 3367,
+        "complexity": 14,
+        "s": 0.002711000037379563,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 21,
+        "documented_columns_found": 0,
+        "output_columns": 21,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0964,
+         "output_columns": 21,
+         "resolved_to_table": 18,
+         "expected_columns": 21,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_support__fct_routes_9",
+        "sql_chars": 2970,
+        "complexity": 14,
+        "s": 0.002622750005684793,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 18,
+        "documented_columns_found": 0,
+        "output_columns": 18,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1394,
+         "output_columns": 18,
+         "resolved_to_table": 17,
+         "expected_columns": 18,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_logistics__fct_sessions_4",
+        "sql_chars": 2798,
+        "complexity": 14,
+        "s": 0.0024690000573173165,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 16,
+        "documented_columns_found": 0,
+        "output_columns": 16,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0831,
+         "output_columns": 16,
+         "resolved_to_table": 15,
+         "expected_columns": 16,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_people__fct_suppliers_11",
+        "sql_chars": 2681,
+        "complexity": 14,
+        "s": 0.002344125066883862,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 23,
+        "documented_columns_found": 0,
+        "output_columns": 23,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0909,
+         "output_columns": 23,
+         "resolved_to_table": 20,
+         "expected_columns": 23,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_sales__fct_sessions_14",
+        "sql_chars": 2510,
+        "complexity": 14,
+        "s": 0.0021941669983789325,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 13,
+        "documented_columns_found": 0,
+        "output_columns": 13,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.0753,
+         "output_columns": 13,
+         "resolved_to_table": 12,
+         "expected_columns": 13,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.dim_inventory__dim_returns_2",
+        "sql_chars": 3611,
+        "complexity": 13,
+        "s": 0.0027197919553145766,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 30,
+        "documented_columns_found": 0,
+        "output_columns": 30,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1694,
+         "output_columns": 30,
+         "resolved_to_table": 28,
+         "expected_columns": 30,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_support__fct_returns_2",
+        "sql_chars": 3302,
+        "complexity": 13,
+        "s": 0.003000624943524599,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 29,
+        "documented_columns_found": 0,
+        "output_columns": 29,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1117,
+         "output_columns": 29,
+         "resolved_to_table": 27,
+         "expected_columns": 29,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_people__fct_orders_7",
+        "sql_chars": 3300,
+        "complexity": 13,
+        "s": 0.002658833982422948,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 26,
+        "documented_columns_found": 0,
+        "output_columns": 26,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1578,
+         "output_columns": 26,
+         "resolved_to_table": 26,
+         "expected_columns": 26,
+         "schema_tables": 2602
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_finance__fct_products_3",
+        "sql_chars": 3211,
+        "complexity": 13,
+        "s": 0.0021763339173048735,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 26,
+        "documented_columns_found": 0,
+        "output_columns": 26,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1022,
+         "output_columns": 26,
+         "resolved_to_table": 26,
+         "expected_columns": 26,
+         "schema_tables": 2602
+        }
+       }
+      ],
+      "s": {
+       "n": 10,
+       "p50": 0.0026407919940538704,
+       "p95": 0.0030242523935157806,
+       "max": 0.0030435839435085654,
+       "min": 0.0021763339173048735,
+       "mean": 0.002594021090772003
+      },
+      "stdout_bytes_from_parser": 0
+     },
+     "wall_s_incl_interpreter": 1.7388
+    },
+    "json": {
+     "task": "json",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+     "manifest_mb": 53.22,
+     "catalog_mb": 5.67,
+     "json_loads_s": {
+      "orjson": {
+       "n": 5,
+       "p50": 0.20092995802406222,
+       "p95": 0.2100852667586878,
+       "max": 0.21124991693068296,
+       "min": 0.19424129207618535,
+       "mean": 0.20136445821262897
+      },
+      "stdlib": {
+       "n": 5,
+       "p50": 0.2719370829872787,
+       "p95": 0.2784773582359776,
+       "max": 0.2792323330650106,
+       "min": 0.2661973750218749,
+       "mean": 0.2728541167918593
+      }
+     },
+     "wall_s_incl_interpreter": 2.4525
+    },
+    "event_loop": {
+     "task": "event-loop",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-2000/1.12/docs/manifest.json",
+     "manifest_mb": 53.22,
+     "catalog_mb": 5.67,
+     "event_loop": {
+      "variant": "optimised",
+      "await_in_loop": {
+       "parse_s": 0.818,
+       "max_loop_gap_ms": 821.9,
+       "p95_loop_gap_ms": 699.5
+      },
+      "to_thread": {
+       "parse_s": 0.85,
+       "max_loop_gap_ms": 185.5,
+       "p95_loop_gap_ms": 29.7
+      }
+     },
+     "wall_s_incl_interpreter": 1.819
+    }
+   },
+   "5000": {
+    "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+    "manifest_mb": 132.32,
+    "catalog_mb": 14.13,
+    "cold": {
+     "as-is": {
+      "total_s": {
+       "n": 5,
+       "p50": 16.42216987500433,
+       "p95": 16.465398566797376,
+       "max": 16.467586625018157,
+       "min": 16.232220750069246,
+       "mean": 16.390542233595625
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 16.5402,
+       "p95": 16.59758,
+       "max": 16.6027,
+       "min": 16.3496,
+       "mean": 16.51332
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 1032.6,
+       "p95": 1043.8200000000002,
+       "max": 1043.9,
+       "min": 1032.4,
+       "mean": 1036.98
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03594487498048693,
+        "parse_s": 16.3831532089971,
+        "graph_s": 0.037548249936662614,
+        "total_s": 16.45664633391425,
+        "phases_s": {
+         "_load_json": 0.5087,
+         "_process_models": 1.146,
+         "_process_sources": 0.3312,
+         "_process_seeds": 0.0045,
+         "_process_snapshots": 0.0023,
+         "_build_column_lineage": 0.0209,
+         "_build_lineage": 14.3377,
+         "_extract_domains": 0.0017,
+         "_extract_tags": 0.0157
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1032.5,
+        "rss_after_parse_mb": 430.515625,
+        "wall_s_incl_interpreter": 16.5771
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03954320901539177,
+        "parse_s": 16.391490833018906,
+        "graph_s": 0.03655258298385888,
+        "total_s": 16.467586625018157,
+        "phases_s": {
+         "_load_json": 0.5186,
+         "_process_models": 1.1462,
+         "_process_sources": 0.3365,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.0024,
+         "_build_column_lineage": 0.0208,
+         "_build_lineage": 14.3312,
+         "_extract_domains": 0.0017,
+         "_extract_tags": 0.0158
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1032.4,
+        "rss_after_parse_mb": 430.859375,
+        "wall_s_incl_interpreter": 16.6027
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.0348889579763636,
+        "parse_s": 16.350726249977015,
+        "graph_s": 0.03655466705095023,
+        "total_s": 16.42216987500433,
+        "phases_s": {
+         "_load_json": 0.5059,
+         "_process_models": 1.1423,
+         "_process_sources": 0.3322,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.0032,
+         "_build_column_lineage": 0.018,
+         "_build_lineage": 14.3047,
+         "_extract_domains": 0.0016,
+         "_extract_tags": 0.0153
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1043.5,
+        "rss_after_parse_mb": 431.6875,
+        "wall_s_incl_interpreter": 16.5402
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.035512792062945664,
+        "parse_s": 16.160213041002862,
+        "graph_s": 0.03649491700343788,
+        "total_s": 16.232220750069246,
+        "phases_s": {
+         "_load_json": 0.5026,
+         "_process_models": 1.1534,
+         "_process_sources": 0.3351,
+         "_process_seeds": 0.0042,
+         "_process_snapshots": 0.0023,
+         "_build_column_lineage": 0.0206,
+         "_build_lineage": 14.1042,
+         "_extract_domains": 0.0017,
+         "_extract_tags": 0.0158
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1032.6,
+        "rss_after_parse_mb": 431.03125,
+        "wall_s_incl_interpreter": 16.3496
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.036337208934128284,
+        "parse_s": 16.301434333086945,
+        "graph_s": 0.036316041951067746,
+        "total_s": 16.37408758397214,
+        "phases_s": {
+         "_load_json": 0.5183,
+         "_process_models": 1.147,
+         "_process_sources": 0.3161,
+         "_process_seeds": 0.0041,
+         "_process_snapshots": 0.0031,
+         "_build_column_lineage": 0.0205,
+         "_build_lineage": 14.2574,
+         "_extract_domains": 0.0017,
+         "_extract_tags": 0.0153
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1043.9,
+        "rss_after_parse_mb": 430.515625,
+        "wall_s_incl_interpreter": 16.497
+       }
+      ]
+     },
+     "optimised": {
+      "total_s": {
+       "n": 5,
+       "p50": 2.151435541920364,
+       "p95": 2.1588729412062095,
+       "max": 2.1588922910159454,
+       "min": 2.122474709060043,
+       "mean": 2.1479824085719885
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 2.2677,
+       "p95": 2.2744999999999997,
+       "max": 2.2746,
+       "min": 2.2386,
+       "mean": 2.2637
+      },
+      "peak_rss_mb": {
+       "n": 5,
+       "p50": 1058.7,
+       "p95": 1058.94,
+       "max": 1059.0,
+       "min": 1058.3,
+       "mean": 1058.6799999999998
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03493962495122105,
+        "parse_s": 2.0769162500509992,
+        "graph_s": 0.036458083894103765,
+        "total_s": 2.148313958896324,
+        "phases_s": {
+         "_load_json": 0.499,
+         "_process_models": 1.1393,
+         "_process_sources": 0.3249,
+         "_process_seeds": 0.0041,
+         "_process_snapshots": 0.0019,
+         "_build_column_lineage": 0.0158,
+         "_build_lineage": 0.0532,
+         "_extract_domains": 0.0014,
+         "_extract_tags": 0.0153
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1058.7,
+        "rss_after_parse_mb": 430.046875,
+        "wall_s_incl_interpreter": 2.2635
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03595995798241347,
+        "parse_s": 2.0864796249661595,
+        "graph_s": 0.03645270806737244,
+        "total_s": 2.1588922910159454,
+        "phases_s": {
+         "_load_json": 0.4951,
+         "_process_models": 1.1454,
+         "_process_sources": 0.3283,
+         "_process_seeds": 0.0042,
+         "_process_snapshots": 0.0018,
+         "_build_column_lineage": 0.0179,
+         "_build_lineage": 0.0567,
+         "_extract_domains": 0.0014,
+         "_extract_tags": 0.0154
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1058.7,
+        "rss_after_parse_mb": 430.0,
+        "wall_s_incl_interpreter": 2.2741
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03475724998861551,
+        "parse_s": 2.087319124955684,
+        "graph_s": 0.03671916702296585,
+        "total_s": 2.1587955419672653,
+        "phases_s": {
+         "_load_json": 0.4919,
+         "_process_models": 1.1451,
+         "_process_sources": 0.3299,
+         "_process_seeds": 0.0041,
+         "_process_snapshots": 0.0019,
+         "_build_column_lineage": 0.0202,
+         "_build_lineage": 0.0593,
+         "_extract_domains": 0.0014,
+         "_extract_tags": 0.0151
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1058.3,
+        "rss_after_parse_mb": 431.046875,
+        "wall_s_incl_interpreter": 2.2746
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03641804202925414,
+        "parse_s": 2.078182957950048,
+        "graph_s": 0.036834541941061616,
+        "total_s": 2.151435541920364,
+        "phases_s": {
+         "_load_json": 0.4949,
+         "_process_models": 1.1353,
+         "_process_sources": 0.3308,
+         "_process_seeds": 0.0044,
+         "_process_snapshots": 0.002,
+         "_build_column_lineage": 0.0146,
+         "_build_lineage": 0.054,
+         "_extract_domains": 0.0014,
+         "_extract_tags": 0.0151
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1059.0,
+        "rss_after_parse_mb": 430.390625,
+        "wall_s_incl_interpreter": 2.2677
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "orjson",
+        "import_s": 0.03545141709037125,
+        "parse_s": 2.050361582892947,
+        "graph_s": 0.036661709076724946,
+        "total_s": 2.122474709060043,
+        "phases_s": {
+         "_load_json": 0.4915,
+         "_process_models": 1.119,
+         "_process_sources": 0.3263,
+         "_process_seeds": 0.0042,
+         "_process_snapshots": 0.0025,
+         "_build_column_lineage": 0.0142,
+         "_build_lineage": 0.0517,
+         "_extract_domains": 0.0014,
+         "_extract_tags": 0.0153
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 1058.7,
+        "rss_after_parse_mb": 430.671875,
+        "wall_s_incl_interpreter": 2.2386
+       }
+      ]
+     },
+     "as-is-no-catalog": {
+      "total_s": {
+       "n": 3,
+       "p50": 12.891879957984202,
+       "p95": 12.90268333388958,
+       "max": 12.903883708990179,
+       "min": 12.88140683399979,
+       "mean": 12.89239016699139
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 13.0014,
+       "p95": 13.01193,
+       "max": 13.0131,
+       "min": 12.9945,
+       "mean": 13.003
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 914.2,
+       "p95": 919.0600000000001,
+       "max": 919.6,
+       "min": 913.7,
+       "mean": 915.8333333333334
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.03563266701530665,
+        "parse_s": 12.813699332997203,
+        "graph_s": 0.032074833987280726,
+        "total_s": 12.88140683399979,
+        "phases_s": {
+         "_load_json": 0.4652,
+         "_process_models": 1.0901,
+         "_process_sources": 0.1652,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.0022,
+         "_build_column_lineage": 0.0204,
+         "_build_lineage": 11.0407,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0143
+        },
+        "capsules": 6503,
+        "columns": 111781,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 914.2,
+        "rss_after_parse_mb": 376.78125,
+        "wall_s_incl_interpreter": 12.9945
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.0366430829744786,
+        "parse_s": 12.822918749996461,
+        "graph_s": 0.03231812501326203,
+        "total_s": 12.891879957984202,
+        "phases_s": {
+         "_load_json": 0.4621,
+         "_process_models": 1.0893,
+         "_process_sources": 0.1577,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.0019,
+         "_build_column_lineage": 0.0162,
+         "_build_lineage": 11.058,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0142
+        },
+        "capsules": 6503,
+        "columns": 111781,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 919.6,
+        "rss_after_parse_mb": 377.125,
+        "wall_s_incl_interpreter": 13.0014
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "variant": "as-is",
+        "json_backend": "orjson",
+        "import_s": 0.0359742499422282,
+        "parse_s": 12.835392959066667,
+        "graph_s": 0.03251649998128414,
+        "total_s": 12.903883708990179,
+        "phases_s": {
+         "_load_json": 0.4592,
+         "_process_models": 1.0959,
+         "_process_sources": 0.1631,
+         "_process_seeds": 0.0041,
+         "_process_snapshots": 0.0022,
+         "_build_column_lineage": 0.0154,
+         "_build_lineage": 11.0615,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0144
+        },
+        "capsules": 6503,
+        "columns": 111781,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 913.7,
+        "rss_after_parse_mb": 376.0625,
+        "wall_s_incl_interpreter": 13.0131
+       }
+      ]
+     },
+     "optimised-stdlib-json": {
+      "total_s": {
+       "n": 3,
+       "p50": 2.367643165984191,
+       "p95": 2.386895704176277,
+       "max": 2.3890348750865087,
+       "min": 2.3649413749808446,
+       "mean": 2.373873138683848
+      },
+      "wall_s_incl_interpreter": {
+       "n": 3,
+       "p50": 2.4887,
+       "p95": 2.5150699999999997,
+       "max": 2.518,
+       "min": 2.4869,
+       "mean": 2.4978666666666665
+      },
+      "peak_rss_mb": {
+       "n": 3,
+       "p50": 907.2,
+       "p95": 909.9000000000001,
+       "max": 910.2,
+       "min": 873.5,
+       "mean": 896.9666666666667
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03951029200106859,
+        "parse_s": 2.312082458054647,
+        "graph_s": 0.03744212503079325,
+        "total_s": 2.3890348750865087,
+        "phases_s": {
+         "_load_json": 0.6959,
+         "_process_models": 1.1641,
+         "_process_sources": 0.3261,
+         "_process_seeds": 0.0042,
+         "_process_snapshots": 0.003,
+         "_build_column_lineage": 0.0177,
+         "_build_lineage": 0.0574,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0151
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 910.2,
+        "rss_after_parse_mb": 433.5,
+        "wall_s_incl_interpreter": 2.518
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03637437499128282,
+        "parse_s": 2.2913455420639366,
+        "graph_s": 0.037221457925625145,
+        "total_s": 2.3649413749808446,
+        "phases_s": {
+         "_load_json": 0.6898,
+         "_process_models": 1.1549,
+         "_process_sources": 0.3286,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.0022,
+         "_build_column_lineage": 0.0153,
+         "_build_lineage": 0.0565,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0152
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 907.2,
+        "rss_after_parse_mb": 430.375,
+        "wall_s_incl_interpreter": 2.4887
+       },
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "optimised",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03510566602926701,
+        "parse_s": 2.2956679170019925,
+        "graph_s": 0.03686958295293152,
+        "total_s": 2.367643165984191,
+        "phases_s": {
+         "_load_json": 0.6964,
+         "_process_models": 1.1562,
+         "_process_sources": 0.3266,
+         "_process_seeds": 0.0043,
+         "_process_snapshots": 0.002,
+         "_build_column_lineage": 0.0152,
+         "_build_lineage": 0.0543,
+         "_extract_domains": 0.0015,
+         "_extract_tags": 0.0156
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 873.5,
+        "rss_after_parse_mb": 430.59375,
+        "wall_s_incl_interpreter": 2.4869
+       }
+      ]
+     },
+     "as-is-stdlib-json": {
+      "total_s": {
+       "n": 1,
+       "p50": 16.68954137491528,
+       "p95": 16.68954137491528,
+       "max": 16.68954137491528,
+       "min": 16.68954137491528,
+       "mean": 16.68954137491528
+      },
+      "wall_s_incl_interpreter": {
+       "n": 1,
+       "p50": 16.8143,
+       "p95": 16.8143,
+       "max": 16.8143,
+       "min": 16.8143,
+       "mean": 16.8143
+      },
+      "peak_rss_mb": {
+       "n": 1,
+       "p50": 875.3,
+       "p95": 875.3,
+       "max": 875.3,
+       "min": 875.3,
+       "mean": 875.3
+      },
+      "runs": [
+       {
+        "task": "cold",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": 14.13,
+        "variant": "as-is",
+        "json_backend": "stdlib-shim",
+        "import_s": 0.03652137494646013,
+        "parse_s": 16.615172958001494,
+        "graph_s": 0.03784704196732491,
+        "total_s": 16.68954137491528,
+        "phases_s": {
+         "_load_json": 0.7038,
+         "_process_models": 1.1606,
+         "_process_sources": 0.3319,
+         "_process_seeds": 0.0047,
+         "_process_snapshots": 0.0031,
+         "_build_column_lineage": 0.0211,
+         "_build_lineage": 14.353,
+         "_extract_domains": 0.0017,
+         "_extract_tags": 0.0156
+        },
+        "capsules": 6503,
+        "columns": 127417,
+        "edges": 9080,
+        "parse_errors": 0,
+        "graph_edges": 9077,
+        "fingerprint": "541f228edd62808c",
+        "forbidden_modules": [],
+        "peak_rss_mb": 875.3,
+        "rss_after_parse_mb": 431.34375,
+        "wall_s_incl_interpreter": 16.8143
+       }
+      ]
+     }
+    },
+    "cold_graph_identical_across_variants": true,
+    "snapshot_write": {
+     "task": "snapshot-write",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+     "manifest_mb": 132.32,
+     "catalog_mb": 14.13,
+     "hash_s": 0.055157208000309765,
+     "json_write_s": 0.03280266607180238,
+     "sqlite_write_s": 0.13169641594868153,
+     "json_mb": 5.89,
+     "sqlite_mb": 5.26,
+     "nodes": 6553,
+     "edges": 9257,
+     "columns": 127449,
+     "fingerprint": "9e12034023370102",
+     "wall_s_incl_interpreter": 3.7058
+    },
+    "warm": {
+     "json-stdlib": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.10988524998538196,
+       "p95": 0.11112056619022041,
+       "max": 0.11135541601106524,
+       "min": 0.10540429106913507,
+       "mean": 0.10928771658800543
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1759,
+       "p95": 0.17722,
+       "max": 0.1775,
+       "min": 0.1699,
+       "mean": 0.17506
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.05551679199561477,
+        "read_s": 0.02650158293545246,
+        "build_s": 0.027594084036536515,
+        "total_s": 0.10961245896760374,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 96.1,
+        "wall_s_incl_interpreter": 0.1775
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.052814750000834465,
+        "read_s": 0.02603512501809746,
+        "build_s": 0.026554416050203145,
+        "total_s": 0.10540429106913507,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 96.0,
+        "wall_s_incl_interpreter": 0.1699
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.05651462497189641,
+        "read_s": 0.026968583930283785,
+        "build_s": 0.026697958004660904,
+        "total_s": 0.1101811669068411,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 93.5,
+        "wall_s_incl_interpreter": 0.1761
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.05624054104555398,
+        "read_s": 0.02768445899710059,
+        "build_s": 0.02743041596841067,
+        "total_s": 0.11135541601106524,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 93.4,
+        "wall_s_incl_interpreter": 0.1759
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "stdlib",
+        "hash_s": 0.055532332975417376,
+        "read_s": 0.027062083943746984,
+        "build_s": 0.0272908330662176,
+        "total_s": 0.10988524998538196,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 93.5,
+        "wall_s_incl_interpreter": 0.1759
+       }
+      ]
+     },
+     "json-orjson": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.11108779208734632,
+       "p95": 0.11189022555481642,
+       "max": 0.11203758395276964,
+       "min": 0.10842170799151063,
+       "mean": 0.11055969179142267
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.1783,
+       "p95": 0.19285999999999998,
+       "max": 0.1959,
+       "min": 0.1749,
+       "mean": 0.1814
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.05755350005347282,
+        "read_s": 0.026962332893162966,
+        "build_s": 0.026784959016367793,
+        "total_s": 0.11130079196300358,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 104.4,
+        "wall_s_incl_interpreter": 0.1772
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.05609079101122916,
+        "read_s": 0.026081042014993727,
+        "build_s": 0.026249874965287745,
+        "total_s": 0.10842170799151063,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 104.9,
+        "wall_s_incl_interpreter": 0.1807
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.058122375048696995,
+        "read_s": 0.026488833944313228,
+        "build_s": 0.027426374959759414,
+        "total_s": 0.11203758395276964,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 104.5,
+        "wall_s_incl_interpreter": 0.1783
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.056902708020061255,
+        "read_s": 0.026395375025458634,
+        "build_s": 0.02665249991696328,
+        "total_s": 0.10995058296248317,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 104.3,
+        "wall_s_incl_interpreter": 0.1749
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "json",
+        "json_backend": "orjson",
+        "hash_s": 0.05669624998699874,
+        "read_s": 0.02657070802524686,
+        "build_s": 0.02782083407510072,
+        "total_s": 0.11108779208734632,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 104.8,
+        "wall_s_incl_interpreter": 0.1959
+       }
+      ]
+     },
+     "sqlite": {
+      "total_s": {
+       "n": 5,
+       "p50": 0.15782375005073845,
+       "p95": 0.1596550335874781,
+       "max": 0.1596617919858545,
+       "min": 0.14949991693720222,
+       "mean": 0.1566262749955058
+      },
+      "wall_s_incl_interpreter": {
+       "n": 5,
+       "p50": 0.2222,
+       "p95": 0.22442,
+       "max": 0.2245,
+       "min": 0.2124,
+       "mean": 0.22096
+      },
+      "runs": [
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.05824833398219198,
+        "read_s": 0.07723587506916374,
+        "build_s": 0.024177582934498787,
+        "total_s": 0.1596617919858545,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 82.8,
+        "wall_s_incl_interpreter": 0.2245
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.056363207986578345,
+        "read_s": 0.07717762503307313,
+        "build_s": 0.02428291703108698,
+        "total_s": 0.15782375005073845,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 82.9,
+        "wall_s_incl_interpreter": 0.2222
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.056850916938856244,
+        "read_s": 0.07848320796620101,
+        "build_s": 0.02429387508891523,
+        "total_s": 0.15962799999397248,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 82.8,
+        "wall_s_incl_interpreter": 0.2241
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.057920957915484905,
+        "read_s": 0.07388174999505281,
+        "build_s": 0.024715208099223673,
+        "total_s": 0.1565179160097614,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 82.9,
+        "wall_s_incl_interpreter": 0.2216
+       },
+       {
+        "task": "warm",
+        "env": {
+         "python": "3.10.17",
+         "implementation": "CPython",
+         "machine": "arm64",
+         "system": "Darwin",
+         "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+         "cpu": "Apple M4 Max",
+         "sqlglot": "30.27.0",
+         "orjson": "3.13.0"
+        },
+        "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+        "manifest_mb": 132.32,
+        "catalog_mb": null,
+        "store": "sqlite",
+        "json_backend": null,
+        "hash_s": 0.05307045893277973,
+        "read_s": 0.07243233302142471,
+        "build_s": 0.023997124982997775,
+        "total_s": 0.14949991693720222,
+        "fingerprint": "9e12034023370102",
+        "peak_rss_mb": 83.1,
+        "wall_s_incl_interpreter": 0.2124
+       }
+      ]
+     }
+    },
+    "warm_graph_matches_snapshot": true,
+    "queries": {
+     "task": "queries",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+     "manifest_mb": 132.32,
+     "catalog_mb": 14.13,
+     "codelens": {
+      "queries": 1000,
+      "distinct_files": 5000,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000916,
+       "p95": 0.001708,
+       "max": 0.009333,
+       "min": 0.000417,
+       "mean": 0.001042601
+      },
+      "sample": [
+       "models/staging/app/stg_app__returns_40.sql",
+       [
+        "\u2193 1 models \u00b7 PII"
+       ]
+      ]
+     },
+     "codelens_transitive": {
+      "queries": 1000,
+      "ms": {
+       "n": 1000,
+       "p50": 0.000458,
+       "p95": 0.004208,
+       "max": 0.084417,
+       "min": 0.000291,
+       "mean": 0.001500206
+      }
+     },
+     "impact": {
+      "high_fanout_source": {
+       "uid": "source.synthetic.hris.returns_13",
+       "closure": 651,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.1748545,
+        "p95": 0.18307864999999998,
+        "max": 0.362708,
+        "min": 0.173833,
+        "mean": 0.18154436666666665
+       },
+       "by_kind": {
+        "model": 623,
+        "exposure": 28
+       },
+       "owners": 18
+      },
+      "highest_direct_fanout_source": {
+       "uid": "source.synthetic.hris.returns_13",
+       "closure": 651,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.174854,
+        "p95": 0.20466045,
+        "max": 0.232416,
+        "min": 0.17325,
+        "mean": 0.18312913333333333
+       },
+       "by_kind": {
+        "model": 623,
+        "exposure": 28
+       },
+       "owners": 18
+      },
+      "median_model": {
+       "uid": "model.synthetic.dim_finance__dim_payments_1",
+       "closure": 1,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.0005,
+        "p95": 0.0007435999999999992,
+        "max": 0.001416,
+        "min": 0.000417,
+        "mean": 0.0005278
+       },
+       "by_kind": {
+        "exposure": 1
+       },
+       "owners": 1
+      },
+      "worst_node": {
+       "uid": "source.synthetic.hris.returns_13",
+       "closure": 651,
+       "direct_children": 1,
+       "ms": {
+        "n": 30,
+        "p50": 0.174417,
+        "p95": 0.18547269999999996,
+        "max": 0.192459,
+        "min": 0.173417,
+        "mean": 0.1760764
+       },
+       "by_kind": {
+        "model": 623,
+        "exposure": 28
+       },
+       "owners": 18
+      }
+     },
+     "expected_edges": {
+      "depends_on_total": 9080,
+      "depends_on_to_capsules": 9080,
+      "parent_map_to_capsules": 9080
+     },
+     "extras": {
+      "exposures": 50,
+      "nodes_with_attached_tests": 4999,
+      "attached_tests": 17945
+     },
+     "wall_s_incl_interpreter": 3.4951
+    },
+    "column_lineage": {
+     "task": "column-lineage",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+     "manifest_mb": 132.32,
+     "catalog_mb": 14.13,
+     "column_lineage": {
+      "dialect": "duckdb",
+      "models": [
+       {
+        "uid": "model.synthetic.fct_inventory__fct_payments_17",
+        "sql_chars": 3855,
+        "complexity": 14,
+        "s": 0.003045374993234873,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 27,
+        "documented_columns_found": 0,
+        "output_columns": 27,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1888,
+         "output_columns": 27,
+         "resolved_to_table": 25,
+         "expected_columns": 27,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_finance__fct_customers_16",
+        "sql_chars": 3845,
+        "complexity": 14,
+        "s": 0.003089208039455116,
+        "mappings": 22,
+        "star_only": false,
+        "documented_columns": 22,
+        "documented_columns_found": 22,
+        "output_columns": 22,
+        "output_columns_source": "catalog",
+        "output_columns_found": 22,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.2616,
+         "output_columns": 22,
+         "resolved_to_table": 19,
+         "expected_columns": 22,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_risk__fct_leads_13",
+        "sql_chars": 3658,
+        "complexity": 14,
+        "s": 0.0029632910154759884,
+        "mappings": 26,
+        "star_only": false,
+        "documented_columns": 26,
+        "documented_columns_found": 26,
+        "output_columns": 26,
+        "output_columns_source": "catalog",
+        "output_columns_found": 26,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1769,
+         "output_columns": 26,
+         "resolved_to_table": 24,
+         "expected_columns": 26,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_billing__fct_warehouses_24",
+        "sql_chars": 3339,
+        "complexity": 14,
+        "s": 0.002671124995686114,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 22,
+        "documented_columns_found": 0,
+        "output_columns": 22,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1733,
+         "output_columns": 22,
+         "resolved_to_table": 19,
+         "expected_columns": 22,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.dim_finance__dim_events_18",
+        "sql_chars": 2725,
+        "complexity": 14,
+        "s": 0.0024012919748201966,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 17,
+        "documented_columns_found": 0,
+        "output_columns": 17,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1554,
+         "output_columns": 17,
+         "resolved_to_table": 16,
+         "expected_columns": 17,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_billing__fct_events_18",
+        "sql_chars": 2534,
+        "complexity": 14,
+        "s": 0.0019835829734802246,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 13,
+        "documented_columns_found": 0,
+        "output_columns": 13,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.2647,
+         "output_columns": 13,
+         "resolved_to_table": 11,
+         "expected_columns": 13,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_people__fct_refunds_11",
+        "sql_chars": 2492,
+        "complexity": 14,
+        "s": 0.0020902500255033374,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 12,
+        "documented_columns_found": 0,
+        "output_columns": 12,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1472,
+         "output_columns": 12,
+         "resolved_to_table": 9,
+         "expected_columns": 12,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.dim_billing__dim_stores_13",
+        "sql_chars": 2488,
+        "complexity": 14,
+        "s": 0.0022274579387158155,
+        "mappings": 1,
+        "star_only": true,
+        "documented_columns": 11,
+        "documented_columns_found": 0,
+        "output_columns": 11,
+        "output_columns_source": "catalog",
+        "output_columns_found": 0,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1441,
+         "output_columns": 11,
+         "resolved_to_table": 11,
+         "expected_columns": 11,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.fct_growth__fct_leads_19",
+        "sql_chars": 4265,
+        "complexity": 13,
+        "s": 0.003321791999042034,
+        "mappings": 30,
+        "star_only": false,
+        "documented_columns": 30,
+        "documented_columns_found": 30,
+        "output_columns": 30,
+        "output_columns_source": "catalog",
+        "output_columns_found": 30,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.1906,
+         "output_columns": 30,
+         "resolved_to_table": 28,
+         "expected_columns": 30,
+         "schema_tables": 6502
+        }
+       },
+       {
+        "uid": "model.synthetic.dim_growth__dim_contracts_4",
+        "sql_chars": 3839,
+        "complexity": 13,
+        "s": 0.0033356660278514028,
+        "mappings": 30,
+        "star_only": false,
+        "documented_columns": 30,
+        "documented_columns_found": 30,
+        "output_columns": 30,
+        "output_columns_source": "catalog",
+        "output_columns_found": 30,
+        "printed_to_stdout": false,
+        "alt_sqlglot_lineage": {
+         "s": 0.2938,
+         "output_columns": 30,
+         "resolved_to_table": 29,
+         "expected_columns": 30,
+         "schema_tables": 6502
+        }
+       }
+      ],
+      "s": {
+       "n": 10,
+       "p50": 0.002817208005581051,
+       "p95": 0.003329422714887187,
+       "max": 0.0033356660278514028,
+       "min": 0.0019835829734802246,
+       "mean": 0.00271290399832651
+      },
+      "stdout_bytes_from_parser": 0
+     },
+     "wall_s_incl_interpreter": 3.1161
+    },
+    "json": {
+     "task": "json",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+     "manifest_mb": 132.32,
+     "catalog_mb": 14.13,
+     "json_loads_s": {
+      "orjson": {
+       "n": 5,
+       "p50": 0.5034950829576701,
+       "p95": 0.5373810168122872,
+       "max": 0.5413690420100465,
+       "min": 0.4916952080093324,
+       "mean": 0.5121255663922056
+      },
+      "stdlib": {
+       "n": 5,
+       "p50": 0.6799907500389963,
+       "p95": 0.710259283776395,
+       "max": 0.7176815839484334,
+       "min": 0.6702171249780804,
+       "mean": 0.6842663084156811
+      }
+     },
+     "wall_s_incl_interpreter": 6.0797
+    },
+    "event_loop": {
+     "task": "event-loop",
+     "env": {
+      "python": "3.10.17",
+      "implementation": "CPython",
+      "machine": "arm64",
+      "system": "Darwin",
+      "executable": "/Users/rademola/Downloads/data-capsule/lineagepilot/spikes/s2-parse-perf/work/venv-py310/bin/python3",
+      "cpu": "Apple M4 Max",
+      "sqlglot": "30.27.0",
+      "orjson": "3.13.0"
+     },
+     "manifest": "work/manifests/synth-5000/1.12/docs/manifest.json",
+     "manifest_mb": 132.32,
+     "catalog_mb": 14.13,
+     "event_loop": {
+      "variant": "optimised",
+      "await_in_loop": {
+       "parse_s": 2.169,
+       "max_loop_gap_ms": 2172.9,
+       "p95_loop_gap_ms": 1847.8
+      },
+      "to_thread": {
+       "parse_s": 2.212,
+       "max_loop_gap_ms": 524.5,
+       "p95_loop_gap_ms": 21.3
+      }
+     },
+     "wall_s_incl_interpreter": 4.5448
+    }
+   }
+  },
+  "per_version": [
+   {
+    "project": "fusion-jaffle",
+    "dbt_minor": "2.0",
+    "manifest": "work/manifests/fusion-jaffle/2.0/compile/manifest.json",
+    "manifest_mb": 0.89,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.041943375021219254,
+     "parse_s": 0.0037698750384151936,
+     "peak_rss_mb": 41.4,
+     "capsules": 25,
+     "columns": 48,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "776739629df9fde3",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.03938416705932468,
+     "parse_s": 0.0034619170473888516,
+     "peak_rss_mb": 40.7,
+     "capsules": 25,
+     "columns": 48,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "776739629df9fde3",
+     "build_lineage_s": 0.0001
+    },
+    "identical": true
+   },
+   {
+    "project": "fusion-synth-2000",
+    "dbt_minor": "2.0",
+    "manifest": "work/manifests/fusion-synth-2000/2.0/compile/manifest.json",
+    "manifest_mb": 47.64,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 2.50349783396814,
+     "parse_s": 2.4539216669509187,
+     "peak_rss_mb": 357.8,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 1.7422
+    },
+    "optimised": {
+     "total_s": 0.793493542005308,
+     "parse_s": 0.741251082974486,
+     "peak_rss_mb": 359.0,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 0.0181
+    },
+    "identical": true
+   },
+   {
+    "project": "fusion-synth-5000",
+    "dbt_minor": "2.0",
+    "manifest": "work/manifests/fusion-synth-5000/2.0/compile/manifest.json",
+    "manifest_mb": 118.57,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 13.030727167031728,
+     "parse_s": 12.962272750097327,
+     "peak_rss_mb": 821.0,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 11.0916
+    },
+    "optimised": {
+     "total_s": 1.9611987499520183,
+     "parse_s": 1.890621667029336,
+     "peak_rss_mb": 842.1,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 0.0455
+    },
+    "identical": true
+   },
+   {
+    "project": "jaffle",
+    "dbt_minor": "1.10",
+    "manifest": "work/manifests/jaffle/1.10/compile/manifest.json",
+    "manifest_mb": 1.05,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.0389357500243932,
+     "parse_s": 0.003852708963677287,
+     "peak_rss_mb": 41.0,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.039060500101186335,
+     "parse_s": 0.003220333019271493,
+     "peak_rss_mb": 40.9,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "identical": true
+   },
+   {
+    "project": "jaffle",
+    "dbt_minor": "1.11",
+    "manifest": "work/manifests/jaffle/1.11/compile/manifest.json",
+    "manifest_mb": 1.15,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.03968166699633002,
+     "parse_s": 0.00426549999974668,
+     "peak_rss_mb": 41.7,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.039257333031855524,
+     "parse_s": 0.0031733750365674496,
+     "peak_rss_mb": 41.8,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "identical": true
+   },
+   {
+    "project": "jaffle",
+    "dbt_minor": "1.12",
+    "manifest": "work/manifests/jaffle/1.12/compile/manifest.json",
+    "manifest_mb": 1.24,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.03958841599524021,
+     "parse_s": 0.004534458043053746,
+     "peak_rss_mb": 42.6,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.039243583916686475,
+     "parse_s": 0.0036839580861851573,
+     "peak_rss_mb": 42.7,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "identical": true
+   },
+   {
+    "project": "jaffle",
+    "dbt_minor": "1.8",
+    "manifest": "work/manifests/jaffle/1.8/compile/manifest.json",
+    "manifest_mb": 0.96,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.040157082956284285,
+     "parse_s": 0.003907458973117173,
+     "peak_rss_mb": 40.5,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.038007832947187126,
+     "parse_s": 0.0029537499649450183,
+     "peak_rss_mb": 40.5,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "identical": true
+   },
+   {
+    "project": "jaffle",
+    "dbt_minor": "1.9",
+    "manifest": "work/manifests/jaffle/1.9/compile/manifest.json",
+    "manifest_mb": 1.02,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 0.03875416598748416,
+     "parse_s": 0.003449999960139394,
+     "peak_rss_mb": 40.8,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "optimised": {
+     "total_s": 0.04018374998122454,
+     "parse_s": 0.0031287920428439975,
+     "peak_rss_mb": 40.8,
+     "capsules": 19,
+     "columns": 25,
+     "edges": 17,
+     "parse_errors": 0,
+     "fingerprint": "05c983c12944f4ba",
+     "build_lineage_s": 0.0
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-2000",
+    "dbt_minor": "1.10",
+    "manifest": "work/manifests/synth-2000/1.10/compile/manifest.json",
+    "manifest_mb": 50.77,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 2.454006041982211,
+     "parse_s": 2.405384000041522,
+     "peak_rss_mb": 369.9,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 1.7138
+    },
+    "optimised": {
+     "total_s": 0.7637109580682591,
+     "parse_s": 0.7150953750824556,
+     "peak_rss_mb": 370.9,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 0.0192
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-2000",
+    "dbt_minor": "1.12",
+    "manifest": "work/manifests/synth-2000/1.12/compile/manifest.json",
+    "manifest_mb": 53.21,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 2.4557950829621404,
+     "parse_s": 2.4077267079846933,
+     "peak_rss_mb": 395.2,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 1.712
+    },
+    "optimised": {
+     "total_s": 0.7630324169294909,
+     "parse_s": 0.7146144580328837,
+     "peak_rss_mb": 396.1,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 0.0194
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-2000",
+    "dbt_minor": "1.8",
+    "manifest": "work/manifests/synth-2000/1.8/compile/manifest.json",
+    "manifest_mb": 46.45,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 2.4272627910831943,
+     "parse_s": 2.379131583031267,
+     "peak_rss_mb": 329.5,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 1.7286
+    },
+    "optimised": {
+     "total_s": 0.7233596249716356,
+     "parse_s": 0.6748669999651611,
+     "peak_rss_mb": 330.5,
+     "capsules": 2603,
+     "columns": 44711,
+     "edges": 3630,
+     "parse_errors": 0,
+     "fingerprint": "097f502b4c026f43",
+     "build_lineage_s": 0.0177
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-5000",
+    "dbt_minor": "1.10",
+    "manifest": "work/manifests/synth-5000/1.10/compile/manifest.json",
+    "manifest_mb": 126.39,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 12.945585124893114,
+     "parse_s": 12.877086834050715,
+     "peak_rss_mb": 857.6,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 11.1483
+    },
+    "optimised": {
+     "total_s": 1.8873847080394626,
+     "parse_s": 1.8197187499608845,
+     "peak_rss_mb": 871.8,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 0.0464
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-5000",
+    "dbt_minor": "1.12",
+    "manifest": "work/manifests/synth-5000/1.12/compile/manifest.json",
+    "manifest_mb": 132.3,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 12.66647591709625,
+     "parse_s": 12.597782250028104,
+     "peak_rss_mb": 913.6,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 10.8788
+    },
+    "optimised": {
+     "total_s": 1.9014938330510631,
+     "parse_s": 1.8356522920075804,
+     "peak_rss_mb": 934.0,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 0.0488
+    },
+    "identical": true
+   },
+   {
+    "project": "synth-5000",
+    "dbt_minor": "1.8",
+    "manifest": "work/manifests/synth-5000/1.8/compile/manifest.json",
+    "manifest_mb": 115.71,
+    "catalog_mb": null,
+    "as-is": {
+     "total_s": 12.742776166996919,
+     "parse_s": 12.673873499967158,
+     "peak_rss_mb": 751.8,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 11.0013
+    },
+    "optimised": {
+     "total_s": 1.8162682079710066,
+     "parse_s": 1.7471817499026656,
+     "peak_rss_mb": 771.6,
+     "capsules": 6503,
+     "columns": 111781,
+     "edges": 9080,
+     "parse_errors": 0,
+     "fingerprint": "541f228edd62808c",
+     "build_lineage_s": 0.0479
+    },
+    "identical": true
+   }
+  ],
+  "memory_variants": {
+   "2000": {
+    "orjson": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.8710444580065086,
+      "p95": 0.8732706079841591,
+      "max": 0.8735179579816759,
+      "min": 0.869227624963969,
+      "mean": 0.8712633469840512
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 446.6,
+      "p95": 446.69,
+      "max": 446.7,
+      "min": 446.4,
+      "mean": 446.56666666666666
+     },
+     "rss_after_parse_mb": 212.0,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "stdlib": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.949146082974039,
+      "p95": 0.9539716201717965,
+      "max": 0.9545077909715474,
+      "min": 0.9265397499548271,
+      "mean": 0.9433978746334711
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 386.2,
+      "p95": 386.2,
+      "max": 386.2,
+      "min": 386.0,
+      "mean": 386.1333333333334
+     },
+     "rss_after_parse_mb": 204.71875,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "stdlib-trim": {
+     "total_s": {
+      "n": 3,
+      "p50": 0.926285416004248,
+      "p95": 0.9449893284589053,
+      "max": 0.9470675409538671,
+      "min": 0.9040520419366658,
+      "mean": 0.9258016662982603
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 316.1,
+      "p95": 316.46,
+      "max": 316.5,
+      "min": 316.1,
+      "mean": 316.23333333333335
+     },
+     "rss_after_parse_mb": 177.734375,
+     "fingerprints": [
+      "097f502b4c026f43"
+     ],
+     "summary": {
+      "capsules": 2603,
+      "columns": 51213,
+      "edges": 3630
+     }
+    },
+    "identical_graphs": true
+   },
+   "5000": {
+    "orjson": {
+     "total_s": {
+      "n": 3,
+      "p50": 2.123389583081007,
+      "p95": 2.1361915204906836,
+      "max": 2.1376139579806477,
+      "min": 2.0566236670129,
+      "mean": 2.1058757360248515
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 1059.1,
+      "p95": 1059.19,
+      "max": 1059.2,
+      "min": 1058.4,
+      "mean": 1058.8999999999999
+     },
+     "rss_after_parse_mb": 429.15625,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "stdlib": {
+     "total_s": {
+      "n": 3,
+      "p50": 2.2011846670648083,
+      "p95": 2.224256092228461,
+      "max": 2.2268195839133114,
+      "min": 2.191597166005522,
+      "mean": 2.206533805661214
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 881.4,
+      "p95": 882.12,
+      "max": 882.2,
+      "min": 881.4,
+      "mean": 881.6666666666666
+     },
+     "rss_after_parse_mb": 430.859375,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "stdlib-trim": {
+     "total_s": {
+      "n": 3,
+      "p50": 2.1482555840630084,
+      "p95": 2.1668692336883395,
+      "max": 2.168937416980043,
+      "min": 2.120974832912907,
+      "mean": 2.146055944651986
+     },
+     "peak_rss_mb": {
+      "n": 3,
+      "p50": 708.9,
+      "p95": 709.7099999999999,
+      "max": 709.8,
+      "min": 708.4,
+      "mean": 709.0333333333333
+     },
+     "rss_after_parse_mb": 365.78125,
+     "fingerprints": [
+      "541f228edd62808c"
+     ],
+     "summary": {
+      "capsules": 6503,
+      "columns": 127417,
+      "edges": 9080
+     }
+    },
+    "identical_graphs": true
+   }
+  },
+  "column_lineage_quality": {
+   "jaffle": {
+    "models": 13,
+    "star_only": 13,
+    "explicit_select": 0,
+    "no_output": 0,
+    "source_columns": 0,
+    "source_columns_naming_a_relation": 0,
+    "per_model_s": {
+     "n": 13,
+     "p50": 0.0006680419901385903,
+     "p95": 0.00672881703358142,
+     "max": 0.013045166968367994,
+     "min": 0.00017670809756964445,
+     "mean": 0.0016752563040846814
+    }
+   },
+   "2000": {
+    "models": 2000,
+    "star_only": 1711,
+    "explicit_select": 289,
+    "no_output": 0,
+    "source_columns": 5249,
+    "source_columns_naming_a_relation": 1,
+    "per_model_s": {
+     "n": 2000,
+     "p50": 0.00140377099160105,
+     "p95": 0.0023160665645264086,
+     "max": 0.003400083049200475,
+     "min": 0.0002521249698475003,
+     "mean": 0.0014426283747889102
+    }
+   },
+   "5000": {
+    "models": 5000,
+    "star_only": 4314,
+    "explicit_select": 686,
+    "no_output": 0,
+    "source_columns": 12836,
+    "source_columns_naming_a_relation": 1,
+    "per_model_s": {
+     "n": 5000,
+     "p50": 0.0013540625222958624,
+     "p95": 0.0022388006676919764,
+     "max": 0.09134741697926074,
+     "min": 0.00025275000371038914,
+     "mean": 0.0014170757076935844
+    }
+   }
+  }
  }
 }

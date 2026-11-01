@@ -118,10 +118,17 @@ class ModuleLoader:
         self.enabled = enabled
         self.inline_calls = inline_calls
         self.cache: dict[str, "FileScanner | None"] = {}
+        self._find_cache: dict[tuple[str, str, int], str | None] = {}
 
     def find(self, module: str, from_file: str, level: int = 0) -> str | None:
         if not self.enabled or (not module and not level):
             return None
+        key = (module, os.path.dirname(os.path.realpath(from_file)), level)
+        if key not in self._find_cache:
+            self._find_cache[key] = self._find(module, from_file, level)
+        return self._find_cache[key]
+
+    def _find(self, module: str, from_file: str, level: int) -> str | None:
         top = module.split(".", 1)[0] if module else ""
         if level == 0 and top in NO_IMPORT_TOP:
             return None
@@ -561,6 +568,19 @@ class FileScanner:
                 return resolved
         return v
 
+    def _module_attr(self, module: str, attr: str) -> Val | None:
+        """``constants.SHOP_PATH`` where ``constants`` is a workspace module (AST only)."""
+        path = self.loader.find(module, self.path)
+        if path is None:
+            return None
+        fs = self.loader.module(path, self.import_depth + 1)
+        v = fs.scope.vars.get(attr) if fs is not None else None
+        if isinstance(v, (Const, PathV, ListV, DictV, CallV)):
+            v = _clone(v)
+            v.with_meta("inferred", (f"{module}.{attr} resolved via import from {os.path.relpath(path, self.index.workspace)}",))
+            return v
+        return None
+
     def _resolve_import(self, local: str) -> Val | None:
         mod, attr, level = self.imports[local]
         path = self.loader.find(mod, self.path, level)
@@ -594,7 +614,8 @@ class FileScanner:
         base = self.eval(node.value, scope, ctx)
         a = node.attr
         if isinstance(base, Sym):
-            return Sym(f"{base.name}.{a}")
+            resolved = self._module_attr(base.name, a)
+            return resolved if resolved is not None else Sym(f"{base.name}.{a}")
         if isinstance(base, PathV) or (isinstance(base, Const) and isinstance(base.value, str) and a in ("parent", "name", "stem")):
             p = base.path if isinstance(base, PathV) else base.value  # type: ignore[union-attr]
             if a == "parent":
@@ -822,6 +843,9 @@ class FileScanner:
             return left
         if isinstance(right, Unknown):
             return right
+        for side in (left, right):
+            if isinstance(side, CallV):
+                return Unknown(f"result of {side.func or 'a call'}() is not known statically", line=line)
         return Unknown(f"{type(op).__name__} over these values is not evaluated", line=line)
 
     # --- calls ----------------------------------------------------------------------------
@@ -929,9 +953,9 @@ class FileScanner:
             else:
                 for o in others:
                     if meth == "set_downstream":
-                        self._edge(base, o, line, node.col_offset, ctx, meth)
+                        self._edge(base.handle, o, line, node.col_offset, ctx, meth)
                     else:
-                        self._edge(o, base, line, node.col_offset, ctx, meth)
+                        self._edge(o, base.handle, line, node.col_offset, ctx, meth)
             return Const(None)
         if isinstance(base, PartialV) and meth in ("expand", "expand_kwargs"):
             if meth == "expand_kwargs":
@@ -946,11 +970,12 @@ class FileScanner:
                 merged[k] = v
             mctx = replace(ctx, dynamic=ctx.dynamic or dyn)
             return self._create_task(base.func, node, [], merged, False, scope, mctx, mapped=set(kwargs))
-        if isinstance(base, (TaskV, DagV, CallV, FuncV)) or isinstance(base, Unknown):
-            if isinstance(base, Unknown):
-                return base
-            return Unknown(f".{meth}() on a {type(base).__name__}", line=line)
-        return Unknown(f".{meth}() on a {type(base).__name__} value", line=line)
+        if isinstance(base, Unknown):
+            return base
+        for a in list(args) + list(kwargs.values()):
+            if isinstance(a, Unknown):
+                return Unknown(f".{meth}() argument not resolvable: {a.reason}", line=line)
+        return Unknown(f".{meth}() on a {type(base).__name__} value is not evaluated", line=line)
 
     def _call_named(self, fname: str, node: ast.Call, args: list[Val], kwargs: dict[str, Val], has_star: bool,
                     scope: Scope, ctx: Ctx) -> Val:
@@ -1000,7 +1025,10 @@ class FileScanner:
         if last in BUILTIN_CALLS and fname == last and scope.lookup(last) is None:
             if last == "str" and args:
                 s = _to_str(args[0])
-                return Const(s, conf=args[0].conf, notes=args[0].notes) if s is not None else Unknown("str() of a non-literal", line=line)
+                if s is not None:
+                    return Const(s, conf=args[0].conf, notes=args[0].notes)
+                inner = args[0].reason if isinstance(args[0], Unknown) else f"a {type(args[0]).__name__} value"
+                return Unknown(f"str() of a non-literal: {inner}", line=line)
             if last == "dict":
                 return DictV(dict(kwargs)) if not args else Unknown("dict() with positional args", line=line)
             if last in ("list", "tuple") and args and isinstance(args[0], ListV):
@@ -1060,7 +1088,7 @@ class FileScanner:
                              category="wrapper")
             return Unknown(f"call to imported function {fv.name}", line=node.lineno)
         if not self.loader.inline_calls and fv.kind == "plain":
-            return Unknown(f"call to {fv.name}() not followed (call inlining disabled)", line=node.lineno)
+            return self._not_followed(fv, node, ctx, "call inlining disabled")
         self.called.add(id(fv.node))
         gctx = ctx
         handle = None
@@ -1072,10 +1100,20 @@ class FileScanner:
         ret = self._exec_function(fv, node, args, kwargs, has_star, gctx)
         return TaskV(handle) if handle is not None else ret
 
+    def _not_followed(self, fv: FuncV, node: ast.Call, ctx: Ctx, why: str) -> Val:
+        """A call we do not follow; if the function builds operators, say so at the call site."""
+        ops = sorted({n for n in (_call_name(c) for c in ast.walk(fv.node) if isinstance(c, ast.Call))
+                      if _classify(n) not in (None, "generic", "chain")})
+        if ops:
+            self._unresolved(node.lineno, node.col_offset,
+                             f"call to {fv.name}() not followed ({why}); it creates {', '.join(ops)}", ctx,
+                             dag_id=ctx.dag.dag_id if ctx.dag else None, category="call_not_followed")
+        return Unknown(f"call to {fv.name}() not followed ({why})", line=node.lineno)
+
     def _exec_function(self, fv: FuncV, node: ast.Call, args: list[Val], kwargs: dict[str, Val], has_star: bool,
                        ctx: Ctx) -> Val:
         if self._call_depth >= MAX_CALL_DEPTH or fv.name in ctx.funcs:
-            return Unknown(f"call to {fv.name}() not followed (depth/recursion limit)", line=node.lineno)
+            return self._not_followed(fv, node, ctx, "depth/recursion limit")
         fn = fv.node
         inner = Scope(getattr(fv, "defining_scope", self.scope))
         params = fn.args
@@ -1291,6 +1329,11 @@ class FileScanner:
             rec["status"] = "unknown"
             if rec["resolved_models"] is None and not rec["unknown_reasons"]:
                 rec["unknown_reasons"].append("model set not resolvable")
+            # never hand out a model set for an unknown link; keep it only as a diagnostic
+            if rec["resolved_models"] is not None:
+                rec["partial_models"] = rec["resolved_models"]
+            rec["resolved_models"] = None
+            rec["resolved_nodes"] = None
         self.links.append(rec)
         if rec["status"] == "unknown":
             self._unresolved(rec["location"]["line"], rec["location"]["col"],
@@ -1304,7 +1347,8 @@ class FileScanner:
             if base_dir:
                 m = self.index.match(base_dir)
                 if m.path:
-                    rec["notes"].append(f"project taken from `cd {base_dir}`" + (f"; {m.note}" if m.note else ""))
+                    shown = os.path.relpath(base_dir, self.index.workspace) if base_dir.startswith(self.index.workspace) else base_dir
+                    rec["notes"].append(f"project taken from the working directory {shown}" + (f"; {m.note}" if m.note else ""))
                     rec["confidence"] = weakest(rec["confidence"], m.conf)
                     return m.path
             only = self.index.only_project()
@@ -1370,7 +1414,8 @@ class FileScanner:
 
     def _link_from_invocation(self, kind: str, handle: TaskHandle, inv: DbtInvocation, idx: int, total: int,
                               node: ast.AST, ctx: Ctx, base_conf: str, base_notes: tuple[str, ...],
-                              tid_v: Val | None, env: Val | None = None, mapped: bool = False) -> None:
+                              tid_v: Val | None, env: Val | None = None, mapped: bool = False,
+                              task_cwd: Val | None = None) -> None:
         rec = self._base_link(kind, node, ctx, _dag_of(handle, ctx), handle.task_id)
         if handle.task_id is None:
             rec["unknown_reasons"].append("task_id not resolvable" + (f": {tid_v.reason}" if isinstance(tid_v, Unknown) else ""))
@@ -1390,7 +1435,19 @@ class FileScanner:
         if project_raw is None and isinstance(env, DictV) and "DBT_PROJECT_DIR" in env.items:
             project_raw = env.items["DBT_PROJECT_DIR"]
             rec["notes"].append("project dir from env DBT_PROJECT_DIR")
-        proj = self._resolve_project(rec, project_raw, inv.cwd, ctx)
+        base_dir = inv.cwd
+        if task_cwd is not None:
+            cwd_s = as_str(task_cwd)
+            if cwd_s is None:
+                rec["unknown_reasons"].append("BashOperator cwd= is not resolvable")
+            else:
+                rec["confidence"] = weakest(rec["confidence"], task_cwd.conf)
+                rec["notes"].extend(task_cwd.notes)
+                if base_dir is None:
+                    base_dir = cwd_s
+                elif not base_dir.startswith("/"):
+                    base_dir = posixpath.normpath(posixpath.join(cwd_s, base_dir))
+        proj = self._resolve_project(rec, project_raw, base_dir, ctx)
         if proj:
             rec["project_path"] = os.path.relpath(proj, self.index.workspace)
             if "dbt_command" not in inv.unknown_fields:
@@ -1425,7 +1482,7 @@ class FileScanner:
                 continue
             for i, inv in enumerate(invs):
                 self._link_from_invocation(kind, handle, inv, i, len(invs), node, ctx, weakest(c.conf, "declared"), c.notes,
-                                           tid_v, env=kwargs.get("env"), mapped=bool(mapped))
+                                           tid_v, env=kwargs.get("env"), mapped=bool(mapped), task_cwd=kwargs.get("cwd"))
 
     def _argv_task(self, kind: str, handle: TaskHandle, node: ast.AST, ctx: Ctx, kwargs: dict[str, Val], tid_v: Val | None) -> None:
         if not ctx.emit:
@@ -1611,6 +1668,10 @@ class FileScanner:
                     excluded_tests = es.ids or set()
                 pname = as_str(spec.project_name) or (manifest.project_name or os.path.basename(project_dir or "") or "project")
                 rows, extra, why = cz.expand_tasks(manifest, ids, spec, prefix, excluded_tests, pname)
+                if spec.group_nodes_by_folder:
+                    rec["notes"].append("group_nodes_by_folder: task ids assume Cosmos' default non-hierarchical naming "
+                                        "(same-named folders collapse, order-dependent); "
+                                        "enable_hierarchical_naming_for_group_nodes_by_folder changes them")
                 if why:
                     rec["notes"].append(why)
                     rec["tasks"] = None
@@ -1741,6 +1802,11 @@ def _to_str(v: Val | None) -> str | None:
     return None
 
 
+def _call_name(call: ast.Call) -> str:
+    f = call.func
+    return f.attr if isinstance(f, ast.Attribute) else getattr(f, "id", "")
+
+
 def _root_name(func: ast.expr) -> str | None:
     while isinstance(func, ast.Attribute):
         func = func.value
@@ -1823,7 +1889,7 @@ def _operators_defined_in(path: str, name: str) -> set[str]:
                 if isinstance(st, (ast.ClassDef, ast.FunctionDef, ast.AsyncFunctionDef)) and st.name == name:
                     for sub in ast.walk(st):
                         if isinstance(sub, ast.Call):
-                            n = sub.func.attr if isinstance(sub.func, ast.Attribute) else getattr(sub.func, "id", "")
+                            n = _call_name(sub)
                             k = _classify(n)
                             if k and k not in ("generic", "chain"):
                                 found.add(n)

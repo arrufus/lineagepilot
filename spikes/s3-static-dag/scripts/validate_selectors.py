@@ -4,6 +4,7 @@ dbt runs ONLY on ``tests/fixtures/dbt/shop`` (our own project), copied to ``work
 ``target/`` and ``logs/`` stay out of the fixtures. No third-party dbt project is ever run.
 
 Run with:  uv run --group dbt python scripts/validate_selectors.py
+Offline:   uv run python scripts/validate_selectors.py --offline   (reuses the recorded dbt answers)
 
 Outputs:
 - tests/fixtures/dbt/shop/target/manifest.json  (trimmed: macros and docs removed)
@@ -23,8 +24,9 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(HERE / "src"))
 
-from lineagepilot_spike_dag.manifest import manifest_from_dict  # noqa: E402
+from lineagepilot_spike_dag.manifest import load_manifest, manifest_from_dict  # noqa: E402
 from lineagepilot_spike_dag.selector import select  # noqa: E402
+from lineagepilot_spike_dag.standin import build_standin  # noqa: E402
 
 FIXTURE = HERE / "tests" / "fixtures" / "dbt" / "shop"
 WORK = HERE / "work" / "dbt" / "shop"
@@ -99,6 +101,11 @@ def dbt(*args: str) -> subprocess.CompletedProcess[str]:
 
 
 def main() -> int:
+    if "--offline" in sys.argv:
+        recorded = json.loads((FIXTURE.parent / "shop_dbt_ls.json").read_text(encoding="utf-8"))
+        manifest = load_manifest(str(FIXTURE / "target" / "manifest.json"))
+        write_results(manifest, recorded["cases"], {"dbt_version": recorded["dbt_version"]})
+        return 0
     if WORK.exists():
         shutil.rmtree(WORK)
     shutil.copytree(FIXTURE, WORK, ignore=shutil.ignore_patterns("target", "logs"))
@@ -110,7 +117,8 @@ def main() -> int:
     full = json.loads(manifest_path.read_text(encoding="utf-8"))
     trimmed = {k: v for k, v in full.items() if k not in ("macros", "docs")}
     (FIXTURE / "target").mkdir(exist_ok=True)
-    (FIXTURE / "target" / "manifest.json").write_text(json.dumps(trimmed, indent=1, sort_keys=True), encoding="utf-8")
+    text = json.dumps(trimmed, indent=1, sort_keys=True).replace(str(WORK), "<fixture>")  # no machine paths
+    (FIXTURE / "target" / "manifest.json").write_text(text, encoding="utf-8")
     manifest = manifest_from_dict(trimmed)
 
     answers = []
@@ -139,12 +147,21 @@ def main() -> int:
         "cases": answers,
     }, indent=1), encoding="utf-8")
 
+    write_results(manifest, answers, meta)
+    return 0
+
+
+def write_results(manifest, answers: list[dict], meta: dict) -> None:
     rows = compare(manifest, answers)
     summary = summarise(rows, meta)
+    standin_rows = compare(build_standin(str(FIXTURE)), [a for a in answers if not a["selector"]])
+    summary["standin_manifest"] = {
+        "what": "same expressions over the approximate stand-in built from project files (YAML-selector cases excluded: they live in the manifest)",
+        **{k: v for k, v in summarise(standin_rows, meta).items() if k != "dbt_version"},
+    }
     out = HERE / "results" / "selector_agreement.json"
-    out.write_text(json.dumps({"summary": summary, "cases": rows}, indent=1), encoding="utf-8")
+    out.write_text(json.dumps({"summary": summary, "cases": rows, "standin_cases": standin_rows}, indent=1), encoding="utf-8")
     print(json.dumps(summary, indent=1))
-    return 0
 
 
 def compare(manifest, answers: list[dict]) -> list[dict]:

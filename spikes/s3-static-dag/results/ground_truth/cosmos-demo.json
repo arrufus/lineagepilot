@@ -3,7 +3,12 @@
  "url": "https://github.com/astronomer/cosmos-demo",
  "sha": "169707b8b725fb3b852f7eb58dc6edff818c9a57",
  "license": "Apache-2.0",
- "scan": {"paths": ["dags"], "workspace": "."},
+ "scan": {
+  "paths": [
+   "dags"
+  ],
+  "workspace": "."
+ },
  "labelled_by": "hand, from reading dags/**/*.py, include/constants.py and dbt/jaffle_shop as text",
  "conventions": [
   "Every DAG takes its project path from include/constants.py: jaffle_shop_path = Path('/usr/local/airflow/dbt/jaffle_shop').",
@@ -13,25 +18,177 @@
  ],
  "out_of_scope_tasks": [],
  "links": [
-  {"id": "simple_dag", "file": "dags/basic/simple_dag.py", "line": 8, "dag_id": "simple_dag", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "DbtDag, no select: whole project"},
-  {"id": "simple_task_group", "file": "dags/basic/simple_task_group.py", "line": 25, "dag_id": "simple_task_group", "unit": "cosmos_task_group", "group_id": "my_jaffle_shop_project", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"],
-   "task_ids": ["my_jaffle_shop_project.customers.run", "my_jaffle_shop_project.customers.test", "my_jaffle_shop_project.orders.run", "my_jaffle_shop_project.orders.test", "my_jaffle_shop_project.stg_customers.run", "my_jaffle_shop_project.stg_customers.test", "my_jaffle_shop_project.stg_orders.run", "my_jaffle_shop_project.stg_orders.test", "my_jaffle_shop_project.stg_payments.run", "my_jaffle_shop_project.stg_payments.test", "my_jaffle_shop_project.raw_customers_seed", "my_jaffle_shop_project.raw_orders_seed", "my_jaffle_shop_project.raw_payments_seed"],
-   "reason": "@dag function simple_task_group; DbtTaskGroup my_jaffle_shop_project; every model has schema tests"},
-  {"id": "simple_dag_async", "file": "dags/execution_modes/async_mode.py", "line": 11, "dag_id": "simple_dag_async", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "AIRFLOW_ASYNC, TestBehavior.NONE, no select"},
-  {"id": "example_watcher", "file": "dags/execution_modes/watcher_mode.py", "line": 10, "dag_id": "example_watcher", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "watcher mode, no select"},
-  {"id": "customers_tag", "file": "dags/filtering/customers_tag.py", "line": 8, "dag_id": "customers_tag", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "stg_customers", "stg_orders", "stg_payments"], "reason": "tag:customers: four model files set config(tags=['customers']); orders does not"},
-  {"id": "only_models", "file": "dags/filtering/only_models.py", "line": 8, "dag_id": "only_models", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "path:models"},
-  {"id": "only_seeds", "file": "dags/filtering/only_seeds.py", "line": 8, "dag_id": "only_seeds", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": [], "reason": "path:seeds: seeds only"},
-  {"id": "dbt_profile_example", "file": "dags/profiles/dbt_profile.py", "line": 7, "dag_id": "dbt_profile_example", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "profile choice does not change the node set"},
-  {"id": "dbt_profile_overrides", "file": "dags/profiles/overrides.py", "line": 8, "dag_id": "dbt_profile_overrides", "unit": "cosmos_dag", "project_path": "dbt/jaffle_shop", "expect": "resolved", "package": "jaffle_shop",
-   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "profile mapping override only"}
- ]
+  {
+   "id": "simple_dag",
+   "file": "dags/basic/simple_dag.py",
+   "line": 8,
+   "dag_id": "simple_dag",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "DbtDag, no select: whole project"
+  },
+  {
+   "id": "simple_task_group",
+   "file": "dags/basic/simple_task_group.py",
+   "line": 25,
+   "dag_id": "simple_task_group",
+   "unit": "cosmos_task_group",
+   "group_id": "my_jaffle_shop_project",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "task_ids": [
+    "my_jaffle_shop_project.customers.run",
+    "my_jaffle_shop_project.customers.test",
+    "my_jaffle_shop_project.orders.run",
+    "my_jaffle_shop_project.orders.test",
+    "my_jaffle_shop_project.stg_customers.run",
+    "my_jaffle_shop_project.stg_customers.test",
+    "my_jaffle_shop_project.stg_orders.run",
+    "my_jaffle_shop_project.stg_orders.test",
+    "my_jaffle_shop_project.stg_payments.run",
+    "my_jaffle_shop_project.stg_payments.test",
+    "my_jaffle_shop_project.raw_customers_seed",
+    "my_jaffle_shop_project.raw_orders_seed",
+    "my_jaffle_shop_project.raw_payments_seed"
+   ],
+   "reason": "@dag function simple_task_group; DbtTaskGroup my_jaffle_shop_project; every model has schema tests"
+  },
+  {
+   "id": "simple_dag_async",
+   "file": "dags/execution_modes/async_mode.py",
+   "line": 11,
+   "dag_id": "simple_dag_async",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "AIRFLOW_ASYNC, TestBehavior.NONE, no select"
+  },
+  {
+   "id": "example_watcher",
+   "file": "dags/execution_modes/watcher_mode.py",
+   "line": 10,
+   "dag_id": "example_watcher",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "watcher mode, no select"
+  },
+  {
+   "id": "customers_tag",
+   "file": "dags/filtering/customers_tag.py",
+   "line": 8,
+   "dag_id": "customers_tag",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "tag:customers: four model files set config(tags=['customers']); orders does not"
+  },
+  {
+   "id": "only_models",
+   "file": "dags/filtering/only_models.py",
+   "line": 8,
+   "dag_id": "only_models",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "path:models"
+  },
+  {
+   "id": "only_seeds",
+   "file": "dags/filtering/only_seeds.py",
+   "line": 8,
+   "dag_id": "only_seeds",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [],
+   "reason": "path:seeds: seeds only"
+  },
+  {
+   "id": "dbt_profile_example",
+   "file": "dags/profiles/dbt_profile.py",
+   "line": 7,
+   "dag_id": "dbt_profile_example",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "profile choice does not change the node set"
+  },
+  {
+   "id": "dbt_profile_overrides",
+   "file": "dags/profiles/overrides.py",
+   "line": 8,
+   "dag_id": "dbt_profile_overrides",
+   "unit": "cosmos_dag",
+   "project_path": "dbt/jaffle_shop",
+   "expect": "resolved",
+   "package": "jaffle_shop",
+   "models": [
+    "customers",
+    "orders",
+    "stg_customers",
+    "stg_orders",
+    "stg_payments"
+   ],
+   "reason": "profile mapping override only"
+  }
+ ],
+ "unresolved_review": []
 }
