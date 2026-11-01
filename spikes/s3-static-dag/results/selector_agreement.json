@@ -1,0 +1,626 @@
+{
+ "summary": {
+  "dbt_version": "1.12.6",
+  "expressions": 44,
+  "supported_expressions": 42,
+  "agree": 42,
+  "disagree": 0,
+  "engine_unknown_on_supported": 0,
+  "unsupported_expressions": 2,
+  "unsupported_answered_unknown": 2
+ },
+ "cases": [
+  {
+   "label": "bare name",
+   "select": [
+    "stg_customers"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "all parents",
+   "select": [
+    "+customer_ltv"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 9,
+   "engine_count": 9,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "all children",
+   "select": [
+    "fct_orders+"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 6,
+   "engine_count": 6,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "1 parent level",
+   "select": [
+    "1+fct_orders"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 3,
+   "engine_count": 3,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "1 child level",
+   "select": [
+    "fct_orders+1"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 5,
+   "engine_count": 5,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "n+ both sides",
+   "select": [
+    "2+customer_ltv+1"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 7,
+   "engine_count": 7,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "@ childrens parents",
+   "select": [
+    "@stg_payments"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 14,
+   "engine_count": 14,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "@ through relationships test",
+   "select": [
+    "@fct_orders"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 13,
+   "engine_count": 13,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "tag",
+   "select": [
+    "tag:finance"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "intersection",
+   "select": [
+    "tag:staging,config.materialized:view"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "union in one arg",
+   "select": [
+    "tag:daily tag:core"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 8,
+   "engine_count": 8,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "union across args",
+   "select": [
+    "tag:daily",
+    "tag:core"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 8,
+   "engine_count": 8,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "path folder",
+   "select": [
+    "path:models/staging"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "path file",
+   "select": [
+    "path:models/marts/finance/fct_orders.sql"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "path glob",
+   "select": [
+    "path:models/marts/*/dim_*.sql"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 2,
+   "engine_count": 2,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "default path method",
+   "select": [
+    "models/reporting"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 2,
+   "engine_count": 2,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "default file method",
+   "select": [
+    "fct_orders.sql"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "file stem",
+   "select": [
+    "file:py_scores"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "fqn package path",
+   "select": [
+    "fqn:shop.marts.finance"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "unscoped folder fqn",
+   "select": [
+    "marts"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 8,
+   "engine_count": 8,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "full fqn",
+   "select": [
+    "shop.staging.stg_orders"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "wildcard contains",
+   "select": [
+    "*orders*"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 3,
+   "engine_count": 3,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "wildcard prefix",
+   "select": [
+    "stg_*"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "config.materialized",
+   "select": [
+    "config.materialized:incremental"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "config + children",
+   "select": [
+    "config.materialized:ephemeral+"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 10,
+   "engine_count": 10,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "resource_type",
+   "select": [
+    "resource_type:model"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 16,
+   "engine_count": 16,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "source children",
+   "select": [
+    "source:raw+"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 13,
+   "engine_count": 13,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "source table children",
+   "select": [
+    "source:raw.payments+"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 9,
+   "engine_count": 9,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "source tag + depth",
+   "select": [
+    "tag:raw_data+1"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 3,
+   "engine_count": 3,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "versioned all",
+   "select": [
+    "fct_revenue"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 2,
+   "engine_count": 2,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "versioned dot",
+   "select": [
+    "fct_revenue.v1"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "versioned underscore",
+   "select": [
+    "fct_revenue_v2"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "package intersect tag",
+   "select": [
+    "package:shop,tag:pii"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "python model config tag",
+   "select": [
+    "tag:ml"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 1,
+   "engine_count": 1,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "tag wildcard",
+   "select": [
+    "tag:fin*"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "select + exclude",
+   "select": [
+    "+rpt_weekly"
+   ],
+   "exclude": [
+    "tag:staging"
+   ],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 7,
+   "engine_count": 7,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "path + two excludes",
+   "select": [
+    "path:models"
+   ],
+   "exclude": [
+    "tag:deprecated",
+    "config.materialized:ephemeral"
+   ],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 13,
+   "engine_count": 13,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "everything",
+   "select": [],
+   "exclude": [],
+   "selector": null,
+   "verdict": "agree",
+   "dbt_count": 16,
+   "engine_count": 16,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "yaml selector union+exclude",
+   "select": [],
+   "exclude": [],
+   "selector": "nightly",
+   "verdict": "agree",
+   "dbt_count": 5,
+   "engine_count": 5,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "yaml selector children",
+   "select": [],
+   "exclude": [],
+   "selector": "finance_and_children",
+   "verdict": "agree",
+   "dbt_count": 6,
+   "engine_count": 6,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "yaml selector intersection",
+   "select": [],
+   "exclude": [],
+   "selector": "core_not_python",
+   "verdict": "agree",
+   "dbt_count": 4,
+   "engine_count": 4,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "yaml selector parents depth",
+   "select": [],
+   "exclude": [],
+   "selector": "upstream_of_ltv",
+   "verdict": "agree",
+   "dbt_count": 6,
+   "engine_count": 6,
+   "engine_reason": null,
+   "only_dbt": [],
+   "only_engine": []
+  },
+  {
+   "label": "UNSUPPORTED exposure method",
+   "select": [
+    "+exposure:weekly_report"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "engine_unknown",
+   "dbt_count": 11,
+   "engine_count": null,
+   "engine_reason": "selector method 'exposure' is not supported by the static engine ('+exposure:weekly_report')",
+   "only_dbt": null,
+   "only_engine": null
+  },
+  {
+   "label": "UNSUPPORTED test_name method",
+   "select": [
+    "1+test_name:relationships"
+   ],
+   "exclude": [],
+   "selector": null,
+   "verdict": "engine_unknown",
+   "dbt_count": 2,
+   "engine_count": null,
+   "engine_reason": "selector method 'test_name' is not supported by the static engine ('1+test_name:relationships')",
+   "only_dbt": null,
+   "only_engine": null
+  }
+ ]
+}

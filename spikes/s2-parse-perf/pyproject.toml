@@ -1,0 +1,24 @@
+[project]
+name = "s2-parse-perf"
+version = "0.0.0"
+description = "LineagePilot Phase 0 spike S2: parse and performance of the existing dbt parser"
+requires-python = ">=3.10"
+dependencies = [
+    "orjson>=3.10",    # dbt_parser.py imports it unconditionally
+    "sqlglot>=20.0.0", # same floor as backend/pyproject.toml, so the same version Phase 1 would resolve
+    "pyyaml>=6.0",     # synthetic project generator only
+]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.uv]
+package = false
+# Timing must use native arm64 CPython. The Homebrew Pythons on this machine are
+# x86_64 builds under Rosetta, so only uv-managed interpreters are allowed.
+python-preference = "only-managed"
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-q"

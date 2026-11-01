@@ -1,0 +1,177 @@
+{
+ "image": "s2-fusion:latest",
+ "dbt_version_output": "dbt 2.0.9",
+ "container_arch": "aarch64",
+ "jaffle_sha": "5beb145b00f5465ec759cfcdd9745e858818cf95",
+ "runs": [
+  {
+   "project": "jaffle-head",
+   "cmd": "dbt deps --profiles-dir /work/profiles",
+   "rc": 0,
+   "wall_s": 1.5,
+   "tail": [
+    "Installing packages",
+    "Installing dbt-labs/dbt_utils",
+    "Installing https://github.com/dbt-labs/dbt-audit-helper.git",
+    " Installed dbt-labs/dbt_utils: 1.4.1",
+    " Installed audit_helper from 71817f0a7fa3df9f63adb90db0cf28f7423f720b",
+    " Installed 2 packages",
+    "==================== Execution Summary =====================",
+    "Finished 'deps' successfully [638ms]"
+   ]
+  },
+  {
+   "project": "jaffle-head",
+   "cmd": "dbt parse --profiles-dir /work/profiles",
+   "rc": 0,
+   "wall_s": 0.99,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "   Loading packages.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' with 1 warning for target 'dev' [369ms]",
+    "=================== Errors and Warnings ====================",
+    "[warning] [InvalidConfig (dbt1005)]: Skipping semantic manifest validation due to: Missing credentials in dbt_cloud.yml config."
+   ]
+  },
+  {
+   "project": "jaffle-head",
+   "cmd": "dbt parse --profiles-dir /work/profiles --target sf",
+   "rc": 0,
+   "wall_s": 0.79,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "   Loading packages.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' with 1 warning for target 'sf' [210ms]",
+    "=================== Errors and Warnings ====================",
+    "[warning] [InvalidConfig (dbt1005)]: Skipping semantic manifest validation due to: Missing credentials in dbt_cloud.yml config."
+   ]
+  },
+  {
+   "project": "jaffle-head",
+   "cmd": "dbt seed --profiles-dir /work/profiles --vars '{\"load_source_data\": true}'",
+   "rc": 0,
+   "wall_s": 1.41,
+   "tail": [
+    " Succeeded seed  raw.raw_items (table) [5 of 6 in 0.05s]",
+    " Succeeded seed  raw.raw_orders (table) [4 of 6 in 0.07s]",
+    "==================== Execution Summary =====================",
+    "Finished 'seed' with 1 warning for target 'dev' [1.1s]",
+    "Processed: 6 seeds",
+    "Summary: 6 total | 6 success",
+    "=================== Errors and Warnings ====================",
+    "[warning] [InvalidConfig (dbt1005)]: Skipping semantic manifest validation due to: Missing credentials in dbt_cloud.yml config."
+   ]
+  },
+  {
+   "project": "jaffle-head",
+   "cmd": "dbt compile --profiles-dir /work/profiles --vars '{\"load_source_data\": true}'",
+   "rc": 0,
+   "wall_s": 1.14,
+   "tail": [
+    "   Loading ../profiles/profiles.yml",
+    "   Loading packages.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'compile' with 1 warning for target 'dev' [730ms]",
+    "Processed: 13 models | 27 tests | 6 seeds | 23 metrics | 6 semantic models | 3 saved queries",
+    "Summary: 46 total | 46 success",
+    "=================== Errors and Warnings ====================",
+    "[warning] [InvalidConfig (dbt1005)]: Skipping semantic manifest validation due to: Missing credentials in dbt_cloud.yml config."
+   ]
+  },
+  {
+   "project": "synth-2000",
+   "cmd": "dbt parse --profiles-dir /work/profiles",
+   "rc": 0,
+   "wall_s": 5.4,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' successfully for target 'dev' [4.7s]"
+   ]
+  },
+  {
+   "project": "synth-2000",
+   "cmd": "dbt parse --profiles-dir /work/profiles --target sf",
+   "rc": 0,
+   "wall_s": 4.66,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' successfully for target 'sf' [4.2s]"
+   ]
+  },
+  {
+   "project": "synth-2000",
+   "cmd": "dbt compile --profiles-dir /work/profiles --static-analysis off",
+   "rc": 0,
+   "wall_s": 8.32,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "   Started downloading referenced relations (1 items)",
+    "  Finished [  0.40s] downloading referenced relations (1 items)",
+    "==================== Execution Summary =====================",
+    "Finished 'compile' successfully for target 'dev' [7.8s]",
+    "Processed: 2000 models | 7785 tests | 1 snapshot | 2 seeds | 20 exposures",
+    "Summary: 9788 total | 9788 success"
+   ]
+  },
+  {
+   "project": "synth-5000",
+   "cmd": "dbt parse --profiles-dir /work/profiles",
+   "rc": 0,
+   "wall_s": 12.44,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' successfully for target 'dev' [12.0s]"
+   ]
+  },
+  {
+   "project": "synth-5000",
+   "cmd": "dbt parse --profiles-dir /work/profiles --target sf",
+   "rc": 0,
+   "wall_s": 12.07,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "==================== Execution Summary =====================",
+    "Finished 'parse' successfully for target 'sf' [11.6s]"
+   ]
+  },
+  {
+   "project": "synth-5000",
+   "cmd": "dbt compile --profiles-dir /work/profiles --static-analysis off",
+   "rc": 0,
+   "wall_s": 26.21,
+   "tail": [
+    "dbt 2.0.9",
+    "   Loading ../profiles/profiles.yml",
+    "   Started downloading referenced relations (1 items)",
+    "  Finished [  0.40s] downloading referenced relations (1 items)",
+    "==================== Execution Summary =====================",
+    "Finished 'compile' successfully for target 'dev' [25.5s]",
+    "Processed: 5000 models | 19429 tests | 1 snapshot | 2 seeds | 50 exposures",
+    "Summary: 24432 total | 24432 success"
+   ]
+  }
+ ],
+ "dbt_schema_version": {
+  "jaffle parse (duckdb)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "jaffle parse (dummy snowflake creds, no connection)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "jaffle compile (duckdb, seeded)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-2000 parse (duckdb)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-2000 parse (dummy snowflake creds, no connection)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-2000 compile (duckdb, static analysis off)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-5000 parse (duckdb)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-5000 parse (dummy snowflake creds, no connection)": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "synth-5000 compile (duckdb, static analysis off)": "https://schemas.getdbt.com/dbt/manifest/v12.json"
+ }
+}

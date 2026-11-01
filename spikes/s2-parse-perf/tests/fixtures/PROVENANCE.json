@@ -1,0 +1,25 @@
+{
+ "synth-24": {
+  "generator": "scripts/gen_project.py --models 24 --seed 3",
+  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+  "steps": "seed, run, docs generate",
+  "manifest_bytes": 551185,
+  "macros": "emptied"
+ },
+ "jaffle-1.12": {
+  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
+  "sha": "7be2c5838dbdeca8e915d4e46db70e910753d7f6",
+  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+  "steps": "deps, seed, run, docs generate",
+  "manifest_bytes": 194425,
+  "macros": "emptied"
+ },
+ "jaffle-fusion-2.0": {
+  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
+  "sha": "5beb145b00f5465ec759cfcdd9745e858818cf95",
+  "dbt": "2.0.9 (Fusion), in Docker",
+  "steps": "deps, seed, compile",
+  "manifest_bytes": 207867,
+  "macros": "emptied"
+ }
+}

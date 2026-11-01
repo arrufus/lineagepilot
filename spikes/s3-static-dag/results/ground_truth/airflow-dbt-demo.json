@@ -1,0 +1,29 @@
+{
+ "repo": "astronomer/airflow-dbt-demo",
+ "url": "https://github.com/astronomer/airflow-dbt-demo",
+ "sha": "8da816d0c7db1a9bd012c051bbde21a5d0a612f5",
+ "license": "none found in the repository: read as data only, nothing copied into fixtures",
+ "scan": {"paths": ["dags"], "workspace": "."},
+ "labelled_by": "hand, from reading dags/*.py, include/dbt_dag_parser.py and dbt/ (models, schema.yml, the committed dbt 0.19.1 target/manifest.json) as text",
+ "conventions": [
+  "DBT_PROJECT_DIR = '/usr/local/airflow/dbt' is the Astro image path of the repo's dbt/ folder (one project, name jaffle_shop).",
+  "All 5 models have schema tests, so dbt test with no select links to all 5."
+ ],
+ "out_of_scope_tasks": [],
+ "links": [
+  {"id": "dbt_basic_dag.dbt_seed", "file": "dags/dbt_basic.py", "line": 35, "dag_id": "dbt_basic_dag", "unit": "task", "task_id": "dbt_seed", "dbt_command": "seed", "project_path": "dbt", "expect": "resolved", "package": "jaffle_shop",
+   "models": [], "reason": "BashOperator f-string: dbt seed --project-dir /usr/local/airflow/dbt"},
+  {"id": "dbt_basic_dag.dbt_run", "file": "dags/dbt_basic.py", "line": 40, "dag_id": "dbt_basic_dag", "unit": "task", "task_id": "dbt_run", "dbt_command": "run", "project_path": "dbt", "expect": "resolved", "package": "jaffle_shop",
+   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "dbt run with no --select: every model"},
+  {"id": "dbt_basic_dag.dbt_test", "file": "dags/dbt_basic.py", "line": 45, "dag_id": "dbt_basic_dag", "unit": "task", "task_id": "dbt_test", "dbt_command": "test", "project_path": "dbt", "expect": "resolved", "package": "jaffle_shop",
+   "models": ["customers", "orders", "stg_customers", "stg_orders", "stg_payments"], "reason": "dbt test with no --select: tests of all 5 models"},
+  {"id": "dbt_advanced_dag.dbt_seed", "file": "dags/dbt_advanced.py", "line": 67, "dag_id": "dbt_advanced_dag", "unit": "task", "task_id": "dbt_seed", "dbt_command": "seed", "project_path": "dbt", "expect": "resolved", "package": "jaffle_shop",
+   "models": [], "reason": "static seed task"},
+  {"id": "dbt_advanced_dag.per_model_tasks", "file": "dags/dbt_advanced.py", "lines": [45, 55, 76, 79, 80, 82], "dag_id": "dbt_advanced_dag", "unit": "dynamic", "expect": "unknown", "legit": true,
+   "reason": "run/test task per model, built in for-loops over target/manifest.json read with json.load at DAG-parse time"},
+  {"id": "dbt_advanced_dag_utility.dbt_seed", "file": "dags/dbt_advanced_utility.py", "line": 33, "dag_id": "dbt_advanced_dag_utility", "unit": "task", "task_id": "dbt_seed", "dbt_command": "seed", "project_path": "dbt", "expect": "resolved", "package": "jaffle_shop",
+   "models": [], "reason": "dbt --no-write-json seed (global flag before the sub-command)"},
+  {"id": "dbt_advanced_dag_utility.dbt_run_group_and_test_group", "file": "dags/dbt_advanced_utility.py", "lines": [51, 57, 58], "dag_id": "dbt_advanced_dag_utility", "unit": "dynamic", "expect": "unknown", "legit": true,
+   "reason": "include/dbt_dag_parser.DbtDagParser reads the manifest and creates per-model BashOperators in TaskGroups dbt_run/dbt_test"}
+ ]
+}

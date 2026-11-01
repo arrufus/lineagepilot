@@ -1,0 +1,26 @@
+# Fixture project written for spike S3 (not third-party code).
+name: shop
+version: "1.0"
+config-version: 2
+profile: shop
+model-paths: ["models"]
+seed-paths: ["seeds"]
+snapshot-paths: ["snapshots"]
+flags:
+  send_anonymous_usage_stats: false
+models:
+  shop:
+    +materialized: view
+    staging:
+      +tags: ["staging"]
+    intermediate:
+      +materialized: ephemeral
+    marts:
+      +materialized: table
+      finance:
+        +tags: ["finance", "daily"]
+      core:
+        +tags: ["core"]
+    reporting:
+      +materialized: view
+      +tags: ["reporting"]
