@@ -1,0 +1,8 @@
+# Runtime dependencies bundled into the VSIX (design section 4.4).
+# Every one must end up in bundled/libs as pure Python; scripts/bundle_libs.py enforces it.
+# Compile with:
+#   uv pip compile requirements.in --universal --python-version 3.10 --generate-hashes \
+#     --exclude-newer 2026-10-18T00:00:00Z --no-header -o requirements.lock
+pygls>=2.1
+sqlglot>=30
+PyYAML>=6.0.3

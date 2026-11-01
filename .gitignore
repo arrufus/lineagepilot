@@ -1,0 +1,23 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node and the extension build
+node_modules/
+out/
+dist/
+*.vsix
+.vscode-test/
+
+# Bundled Python libraries are built from the lock file, never committed
+**/bundled/libs/
+
+# Spike working data: cloned repositories, generated dbt projects, large manifests
+work/
+
+# The repo root ignores .vscode/, but test fixtures carry hostile workspace settings on purpose
+!**/fixture-workspace/.vscode/

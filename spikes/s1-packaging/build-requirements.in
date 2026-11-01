@@ -1,0 +1,11 @@
+# Build-time only, installed into a throwaway venv by scripts/bundle_libs.py.
+#
+# PyYAML ships no pure-Python wheel, so the bundler builds one from its hash-pinned sdist with
+# PYYAML_FORCE_LIBYAML=0 and no build isolation. This hash-pinned setuptools is the only build
+# dependency that needs. pip is pinned too, so the venv's bundled pip is replaced by a known one.
+#
+# Compile with:
+#   uv pip compile build-requirements.in --universal --python-version 3.10 --generate-hashes \
+#     --exclude-newer 2026-10-18T00:00:00Z --no-header -o build-requirements.lock
+pip>=25
+setuptools>=80

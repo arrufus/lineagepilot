@@ -1,0 +1,79 @@
+{
+  "name": "lineagepilot-spike",
+  "displayName": "LineagePilot (S1 packaging spike)",
+  "description": "Spike S1: a universal VSIX that runs a bundled pure-Python language server.",
+  "version": "0.0.1",
+  "publisher": "lineagepilot",
+  "private": true,
+  "license": "UNLICENSED",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/dbt_project.yml",
+    "onLanguage:sql"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In restricted mode LineagePilot only reads project files, and never runs an interpreter from inside the workspace.",
+      "restrictedConfigurations": [
+        "lineagePilot.python.interpreterPath"
+      ]
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "configuration": {
+      "title": "LineagePilot",
+      "properties": {
+        "lineagePilot.python.interpreterPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Python 3.10+ interpreter for the LineagePilot language server. Machine-scoped, so workspace settings cannot set it. When empty, the Python extension's active interpreter is used, then `python3` on `PATH`."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "lineagePilot.showStatus",
+        "title": "Show Language Server Status",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.restartServer",
+        "title": "Restart Language Server",
+        "category": "LineagePilot"
+      }
+    ]
+  },
+  "scripts": {
+    "bundle-libs": "python3 scripts/bundle_libs.py",
+    "typecheck": "tsc -p . --noEmit",
+    "compile": "npm run typecheck && node esbuild.mjs",
+    "compile-tests": "tsc -p .",
+    "prepackage": "python3 scripts/bundle_libs.py --clean-only && npm run compile",
+    "package": "vsce package --no-dependencies --skip-license --allow-missing-repository -o dist/lineagepilot-spike.vsix",
+    "test:unit": "npm run compile-tests && node --test --experimental-test-coverage --test-coverage-include=out/interpreter.js --test-coverage-lines=90 --test-coverage-branches=80 \"out/test/unit/**/*.test.js\"",
+    "test:integration": "npm run compile-tests && node scripts/run_integration.mjs"
+  },
+  "dependencies": {
+    "@vscode/python-extension": "1.0.6",
+    "vscode-languageclient": "10.1.2"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.93.0",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "esbuild": "0.28.2",
+    "mocha": "12.0.3",
+    "typescript": "5.9.3"
+  }
+}

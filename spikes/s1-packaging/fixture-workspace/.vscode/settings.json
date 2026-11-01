@@ -1,0 +1,5 @@
+{
+  // A cloned repository trying to choose the interpreter. The setting is machine-scoped,
+  // so VS Code must ignore it here and the extension must never run this path.
+  "lineagePilot.python.interpreterPath": "/nonexistent/workspace-chosen-python"
+}

@@ -1,0 +1,27 @@
+[project]
+name = "lineagepilot-spike-s1"
+version = "0.0.0"
+description = "Spike S1: test environment for the bundled pygls server. Runtime deps live in requirements.lock."
+requires-python = ">=3.10"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-lsp>=1.0",
+    "pytest-cov>=6",
+]
+
+[tool.uv]
+package = false
+exclude-newer = "2026-10-18T00:00:00Z"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["bundled/tool/lineagepilot_spike", "scripts"]
+# A measurement tool, not product code; run by hand and recorded in results/.
+omit = ["scripts/measure_startup.py"]

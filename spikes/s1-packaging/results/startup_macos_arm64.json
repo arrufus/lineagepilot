@@ -1,0 +1,34 @@
+[
+  {
+    "python": "3.10.17",
+    "machine": "arm64",
+    "system": "Darwin",
+    "runs": 5,
+    "cold": {
+      "initialize_ms_median": 426,
+      "first_codelens_ms_median": 431,
+      "first_codelens_ms_max": 520
+    },
+    "warm": {
+      "initialize_ms_median": 231,
+      "first_codelens_ms_median": 237,
+      "first_codelens_ms_max": 245
+    }
+  },
+  {
+    "python": "3.13.3",
+    "machine": "arm64",
+    "system": "Darwin",
+    "runs": 5,
+    "cold": {
+      "initialize_ms_median": 473,
+      "first_codelens_ms_median": 478,
+      "first_codelens_ms_max": 487
+    },
+    "warm": {
+      "initialize_ms_median": 223,
+      "first_codelens_ms_median": 228,
+      "first_codelens_ms_max": 235
+    }
+  }
+]

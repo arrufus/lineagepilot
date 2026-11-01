@@ -1,0 +1,37 @@
+{
+  "date": "2026-11-01",
+  "vscode": "1.144.0",
+  "artifact": {
+    "vsix": "dist/lineagepilot-spike.vsix",
+    "built_on": "macOS arm64",
+    "packed_mb": 1.36,
+    "unpacked_mb": 5.93,
+    "files": 384,
+    "native_files": 0,
+    "target_platform": "universal",
+    "bundled_packages": ["attrs 26.1.0", "cattrs 26.2.1", "exceptiongroup 1.3.1", "lsprotocol 2025.0.0",
+                         "pygls 2.1.1", "pyyaml 6.0.3 (built pure from sdist)", "sqlglot 30.23.0",
+                         "typing-extensions 4.16.0"]
+  },
+  "vscode_integration": [
+    {"os": "macOS 27 arm64", "source": "setting", "python": "3.10.17", "tests": "3/3"},
+    {"os": "macOS 27 arm64", "source": "setting", "python": "3.13.3", "tests": "3/3"},
+    {"os": "macOS 27 arm64", "source": "path", "python": "3.11.4 (pyenv, login-shell PATH)", "tests": "3/3", "runs": 2},
+    {"os": "macOS 27 arm64", "source": "python-extension", "python": "3.10.17", "tests": "3/3"},
+    {"os": "macOS 27 arm64", "source": "python-extension", "python": "3.13.3", "tests": "3/3"},
+    {"os": "Linux arm64 (Debian 12, Docker)", "source": "setting", "python": "3.10.17", "tests": "3/3"},
+    {"os": "Linux arm64 (Debian 12, Docker)", "source": "setting", "python": "3.13.3", "tests": "3/3"},
+    {"os": "Linux arm64 (Debian 12, Docker)", "source": "path", "python": "3.11.2 (/usr/bin/python3)", "tests": "3/3", "runs": 2},
+    {"os": "Linux arm64 (Debian 12, Docker)", "source": "python-extension", "python": "3.10.17", "tests": "3/3"},
+    {"os": "Linux arm64 (Debian 12, Docker)", "source": "python-extension", "python": "3.13.3", "tests": "3/3"},
+    {"os": "Windows", "source": "all", "python": "3.10, 3.13", "tests": "not run: needs the CI workflow"}
+  ],
+  "server_stdio": [
+    {"os": "macOS 27 arm64", "python": ["3.10.17", "3.13.3"], "result": "48 passed (incl. network bundle build)"},
+    {"os": "Linux arm64 (Docker)", "python": ["3.10.17", "3.13.3"], "result": "35 passed, 2 skipped"},
+    {"os": "Linux x86_64 (Docker python:3.10-slim)", "python": ["3.10.22"], "result": "28 passed, 2 skipped"},
+    {"os": "Linux x86_64 (Docker python:3.13-slim)", "python": ["3.13.18"], "result": "28 passed, 2 skipped"}
+  ],
+  "extension_unit": {"tests": "15/15", "interpreter_ts_line_coverage": 95.71, "branch_coverage": 87.3},
+  "python_coverage_percent": 90
+}

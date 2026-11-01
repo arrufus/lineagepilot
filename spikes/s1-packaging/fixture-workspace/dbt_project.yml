@@ -1,0 +1,4 @@
+name: spike_shop
+version: "1.0.0"
+profile: spike_shop
+model-paths: ["models"]

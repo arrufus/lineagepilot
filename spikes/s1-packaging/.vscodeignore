@@ -1,0 +1,8 @@
+# Everything is excluded unless listed with ! below. The VSIX carries only the bundled
+# extension, the Python server and its pure-Python libraries.
+**
+!package.json
+!dist/extension.js
+!bundled/tool/**
+!bundled/libs/**
+
