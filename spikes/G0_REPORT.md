@@ -2,7 +2,7 @@
 
 **Date**: 1 November 2026
 **Decision owner**: the product owner
-**Beads**: DCS-1ay.5. Closing it unblocks Phase 1.
+**Beads**: LP-1ay.5. Closing it unblocks Phase 1.
 
 ## Recommendation: proceed to Phase 1
 
@@ -35,7 +35,7 @@ The existing `DbtParser` runs without the database layer, on dbt Core 1.8 to 1.1
 | Warm start, CodeLens, impact | met | met |
 | Column lineage for one model | met on time, but the output is unusable | ≤ 0.35 s with `sqlglot.lineage`, resolving 91–99% of columns |
 
-The parser's `has_tests` is False on every real manifest, which breaks the ported test rules. Its column-lineage parser returns `*` for most models. Both are fixed by Phase 1 task 1.2 (DCS-58r.2) and the new task 1.9 (DCS-58r.8).
+The parser's `has_tests` is False on every real manifest, which breaks the ported test rules. Its column-lineage parser returns `*` for most models. Both are fixed by Phase 1 task 1.2 (LP-58r.2) and the new task 1.9 (LP-58r.8).
 
 ## S3: static DAG analysis ([report](s3-static-dag/README.md))
 
@@ -53,9 +53,9 @@ The 22.6% gap between a literals-only scanner and this one comes from three feat
 | Area | Change | Effect on the estimate |
 |---|---|---|
 | Phase 1 | Task 1.2 now fixes the parser (lineage loop, test derivation, exposures, file paths, identity, version gate). New task 1.9 rebuilds column lineage on `sqlglot.lineage`. | 3 weeks → about 4 weeks |
-| Phase 2 | Indexing runs in a child process, and the dbt refresh is asynchronous with progress (DCS-243.1, DCS-243.5). | No change; this is design, not new scope |
-| Phase 5 | Tasks 5.1–5.4 carry the S3 resolution rules. New task 5.5 builds a held-out corpus of 10+ repos, labelled before tuning; it can start right after G0 (DCS-56q.5). | Unchanged, because the S3 prototype already covers much of 5.1. Add about a week of labelling, which can run in parallel. |
-| Phase 6 | Beta teams are recruited by the product owner, since there are no interviewees (DCS-7er.3). | No change |
+| Phase 2 | Indexing runs in a child process, and the dbt refresh is asynchronous with progress (LP-243.1, LP-243.5). | No change; this is design, not new scope |
+| Phase 5 | Tasks 5.1–5.4 carry the S3 resolution rules. New task 5.5 builds a held-out corpus of 10+ repos, labelled before tuning; it can start right after G0 (LP-56q.5). | Unchanged, because the S3 prototype already covers much of 5.1. Add about a week of labelling, which can run in parallel. |
+| Phase 6 | Beta teams are recruited by the product owner, since there are no interviewees (LP-7er.3). | No change |
 
 The total is about 16–19 weeks for one engineer, up from 15–18.
 
@@ -71,4 +71,4 @@ The total is about 16–19 weeks for one engineer, up from 15–18.
 
 ## Decision requested
 
-Close DCS-1ay.5 to proceed to Phase 1. Alternatively, record a stop or a re-scope there.
+Close LP-1ay.5 to proceed to Phase 1. Alternatively, record a stop or a re-scope there.

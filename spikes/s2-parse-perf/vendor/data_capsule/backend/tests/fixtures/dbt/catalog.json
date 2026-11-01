@@ -1,0 +1,482 @@
+{
+  "metadata": {
+    "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+    "dbt_version": "1.7.0",
+    "generated_at": "2024-01-15T10:30:00.000000Z",
+    "invocation_id": "test-invocation-001",
+    "env": {}
+  },
+  "nodes": {
+    "model.jaffle_shop.stg_customers": {
+      "metadata": {
+        "type": "VIEW",
+        "schema": "STAGING",
+        "name": "stg_customers",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "customer_id": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "customer_id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 100, "label": "Row Count"},
+            "distinct_count": {"value": 100, "label": "Distinct Count"}
+          }
+        },
+        "first_name": {
+          "type": "VARCHAR",
+          "index": 2,
+          "name": "first_name",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "max_length": {"value": 50, "label": "Max Length"}
+          }
+        },
+        "last_name": {
+          "type": "VARCHAR",
+          "index": 3,
+          "name": "last_name",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "max_length": {"value": 50, "label": "Max Length"}
+          }
+        },
+        "email": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "email",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "max_length": {"value": 100, "label": "Max Length"}
+          }
+        },
+        "created_at": {
+          "type": "TIMESTAMP_NTZ",
+          "index": 5,
+          "name": "created_at",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 100, "label": "Row Count"}
+      },
+      "unique_id": "model.jaffle_shop.stg_customers"
+    },
+    "model.jaffle_shop.stg_orders": {
+      "metadata": {
+        "type": "VIEW",
+        "schema": "STAGING",
+        "name": "stg_orders",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "order_id": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "order_id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 500, "label": "Row Count"},
+            "distinct_count": {"value": 500, "label": "Distinct Count"}
+          }
+        },
+        "customer_id": {
+          "type": "NUMBER",
+          "index": 2,
+          "name": "customer_id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "distinct_count": {"value": 98, "label": "Distinct Count"}
+          }
+        },
+        "order_date": {
+          "type": "DATE",
+          "index": 3,
+          "name": "order_date",
+          "comment": null,
+          "stats": {}
+        },
+        "status": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "status",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "distinct_count": {"value": 4, "label": "Distinct Count"}
+          }
+        },
+        "total_amount": {
+          "type": "DECIMAL",
+          "index": 5,
+          "name": "total_amount",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "min": {"value": 10.00, "label": "Min"},
+            "max": {"value": 500.00, "label": "Max"}
+          }
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 500, "label": "Row Count"}
+      },
+      "unique_id": "model.jaffle_shop.stg_orders"
+    },
+    "model.jaffle_shop.int_customer_orders": {
+      "metadata": {
+        "type": "TABLE",
+        "schema": "INTERMEDIATE",
+        "name": "int_customer_orders",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "customer_id": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "customer_id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 100, "label": "Row Count"}
+          }
+        },
+        "first_name": {
+          "type": "VARCHAR",
+          "index": 2,
+          "name": "first_name",
+          "comment": null,
+          "stats": {}
+        },
+        "last_name": {
+          "type": "VARCHAR",
+          "index": 3,
+          "name": "last_name",
+          "comment": null,
+          "stats": {}
+        },
+        "order_count": {
+          "type": "NUMBER",
+          "index": 4,
+          "name": "order_count",
+          "comment": null,
+          "stats": {}
+        },
+        "total_amount": {
+          "type": "DECIMAL",
+          "index": 5,
+          "name": "total_amount",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 100, "label": "Row Count"}
+      },
+      "unique_id": "model.jaffle_shop.int_customer_orders"
+    },
+    "model.jaffle_shop.dim_customers": {
+      "metadata": {
+        "type": "TABLE",
+        "schema": "MARTS",
+        "name": "dim_customers",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "customer_sk": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "customer_sk",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 100, "label": "Row Count"}
+          }
+        },
+        "customer_id": {
+          "type": "NUMBER",
+          "index": 2,
+          "name": "customer_id",
+          "comment": null,
+          "stats": {}
+        },
+        "first_name": {
+          "type": "VARCHAR",
+          "index": 3,
+          "name": "first_name",
+          "comment": null,
+          "stats": {}
+        },
+        "last_name": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "last_name",
+          "comment": null,
+          "stats": {}
+        },
+        "email": {
+          "type": "VARCHAR",
+          "index": 5,
+          "name": "email",
+          "comment": null,
+          "stats": {}
+        },
+        "lifetime_orders": {
+          "type": "NUMBER",
+          "index": 6,
+          "name": "lifetime_orders",
+          "comment": null,
+          "stats": {}
+        },
+        "lifetime_value": {
+          "type": "DECIMAL",
+          "index": 7,
+          "name": "lifetime_value",
+          "comment": null,
+          "stats": {}
+        },
+        "first_order_date": {
+          "type": "DATE",
+          "index": 8,
+          "name": "first_order_date",
+          "comment": null,
+          "stats": {}
+        },
+        "most_recent_order_date": {
+          "type": "DATE",
+          "index": 9,
+          "name": "most_recent_order_date",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 100, "label": "Row Count"}
+      },
+      "unique_id": "model.jaffle_shop.dim_customers"
+    },
+    "model.jaffle_shop.fct_orders": {
+      "metadata": {
+        "type": "TABLE",
+        "schema": "MARTS",
+        "name": "fct_orders",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "order_sk": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "order_sk",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 500, "label": "Row Count"}
+          }
+        },
+        "order_id": {
+          "type": "NUMBER",
+          "index": 2,
+          "name": "order_id",
+          "comment": null,
+          "stats": {}
+        },
+        "customer_fk": {
+          "type": "NUMBER",
+          "index": 3,
+          "name": "customer_fk",
+          "comment": null,
+          "stats": {}
+        },
+        "order_date": {
+          "type": "DATE",
+          "index": 4,
+          "name": "order_date",
+          "comment": null,
+          "stats": {}
+        },
+        "status": {
+          "type": "VARCHAR",
+          "index": 5,
+          "name": "status",
+          "comment": null,
+          "stats": {}
+        },
+        "amount": {
+          "type": "DECIMAL",
+          "index": 6,
+          "name": "amount",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 500, "label": "Row Count"}
+      },
+      "unique_id": "model.jaffle_shop.fct_orders"
+    },
+    "seed.jaffle_shop.country_codes": {
+      "metadata": {
+        "type": "TABLE",
+        "schema": "SEEDS",
+        "name": "country_codes",
+        "database": "ANALYTICS",
+        "comment": null,
+        "owner": "ANALYTICS_ADMIN"
+      },
+      "columns": {
+        "country_code": {
+          "type": "VARCHAR",
+          "index": 1,
+          "name": "country_code",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 200, "label": "Row Count"}
+          }
+        },
+        "country_name": {
+          "type": "VARCHAR",
+          "index": 2,
+          "name": "country_name",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 200, "label": "Row Count"}
+      },
+      "unique_id": "seed.jaffle_shop.country_codes"
+    }
+  },
+  "sources": {
+    "source.jaffle_shop.raw.customers": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "JAFFLE_SHOP",
+        "name": "customers",
+        "database": "RAW_DB",
+        "comment": null,
+        "owner": "RAW_ADMIN"
+      },
+      "columns": {
+        "id": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 100, "label": "Row Count"}
+          }
+        },
+        "first_name": {
+          "type": "VARCHAR",
+          "index": 2,
+          "name": "first_name",
+          "comment": null,
+          "stats": {}
+        },
+        "last_name": {
+          "type": "VARCHAR",
+          "index": 3,
+          "name": "last_name",
+          "comment": null,
+          "stats": {}
+        },
+        "email": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "email",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 100, "label": "Row Count"}
+      },
+      "unique_id": "source.jaffle_shop.raw.customers"
+    },
+    "source.jaffle_shop.raw.orders": {
+      "metadata": {
+        "type": "BASE TABLE",
+        "schema": "JAFFLE_SHOP",
+        "name": "orders",
+        "database": "RAW_DB",
+        "comment": null,
+        "owner": "RAW_ADMIN"
+      },
+      "columns": {
+        "id": {
+          "type": "NUMBER",
+          "index": 1,
+          "name": "id",
+          "comment": null,
+          "stats": {
+            "has_stats": {"value": true},
+            "row_count": {"value": 500, "label": "Row Count"}
+          }
+        },
+        "user_id": {
+          "type": "NUMBER",
+          "index": 2,
+          "name": "user_id",
+          "comment": null,
+          "stats": {}
+        },
+        "order_date": {
+          "type": "DATE",
+          "index": 3,
+          "name": "order_date",
+          "comment": null,
+          "stats": {}
+        },
+        "status": {
+          "type": "VARCHAR",
+          "index": 4,
+          "name": "status",
+          "comment": null,
+          "stats": {}
+        },
+        "amount": {
+          "type": "DECIMAL",
+          "index": 5,
+          "name": "amount",
+          "comment": null,
+          "stats": {}
+        }
+      },
+      "stats": {
+        "has_stats": {"value": true},
+        "row_count": {"value": 500, "label": "Row Count"}
+      },
+      "unique_id": "source.jaffle_shop.raw.orders"
+    }
+  },
+  "errors": null
+}

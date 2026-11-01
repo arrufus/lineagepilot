@@ -1,0 +1,43 @@
+{
+  "source_repository": "arrufus/data-capsule (private)",
+  "source_commit": "5e57fcc31da1dbb6fa0aa34791222f35fc380b7d",
+  "copied_on": "2026-11-01",
+  "why": "Spike S2 measured these data-capsule backend files as-is. They are copied byte for byte so the spike still runs after LineagePilot moved to its own repository. Do not edit them: Phase 1 task 1.2 ports and fixes the parsers in packages/core instead.",
+  "files": [
+    {
+      "path": "backend/src/parsers/base.py",
+      "sha256": "f5367c7a6dcb71b5b7ff1b711668ef10840e7fc46907171eb7f06ae9c520807d",
+      "git_blob": "6d25e490e102e41385af78095c716b31095d9088"
+    },
+    {
+      "path": "backend/src/parsers/dbt_config.py",
+      "sha256": "8e570cf24df3918f920188cb7754184d49eb6974d4bd8267d9f4cf28bc5a54a2",
+      "git_blob": "44a6e48d1ad689f63d9e6b3295bb8ce3c2e88e53"
+    },
+    {
+      "path": "backend/src/parsers/dbt_parser.py",
+      "sha256": "e6b8d2a8706541bf782c3543971066f08ea7ba923651bfc52962c1258c759f4f",
+      "git_blob": "ba191971efd02d25cb677cd0d73aba9e387c7b30"
+    },
+    {
+      "path": "backend/src/parsers/sql_column_parser.py",
+      "sha256": "3050785af2b035082c48bb67ee47891feb669f0ae57fa414c7aedfa0d600c160",
+      "git_blob": "9f6eebf374125782c6af6f7df76857c5d2fbc1c4"
+    },
+    {
+      "path": "backend/src/parsers/sql_parser.py",
+      "sha256": "77e124953fc2ea404bef6e9a7e0f4583fd25f28f514f377c66f2e84ef8bf8605",
+      "git_blob": "26063279285c9ee44ea5c32f04da0cf2bbad94b9"
+    },
+    {
+      "path": "backend/tests/fixtures/dbt/catalog.json",
+      "sha256": "14de4ad85121106791357e98ee933862ddebccffc16cb1a30982dd514387b740",
+      "git_blob": "3c7a2036040a8cb5f8da02b0694c54388767183d"
+    },
+    {
+      "path": "backend/tests/fixtures/dbt/manifest.json",
+      "sha256": "62b614ae2582a570d06415709e70b2a495ad4692c4080e13f1937d65a8cf7b98",
+      "git_blob": "b59f4cecfb1250fcfd88b1bf4a853b0f979b04f0"
+    }
+  ]
+}

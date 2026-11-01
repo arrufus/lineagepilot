@@ -189,7 +189,7 @@ It does synchronous file IO and CPU work with no `await` points. Under `await` i
 
 ## How to reproduce
 
-All commands run from `lineagepilot/spikes/s2-parse-perf/`. Generated data goes to `work/`, which is gitignored.
+All commands run from `spikes/s2-parse-perf/`. Generated data goes to `work/`, which is gitignored.
 
 ```sh
 export UV_PYTHON_PREFERENCE=only-managed     # pyproject.toml also sets python-preference
@@ -244,6 +244,7 @@ uv run python -m spike.report                 # Markdown tables from the results
 | Path | Purpose |
 |---|---|
 | `spike/loader.py` | Loads the five backend modules by file path under their `src.parsers.*` names, without `__init__.py`. Also holds the labelled stdlib and trimming JSON shims |
+| `vendor/data_capsule/` | Byte-for-byte copy of the measured data-capsule files: the five parser modules and the backend's dbt test fixture, from data-capsule commit `5e57fcc`. Commit and sha256 for each file are in `PROVENANCE.json`. Copied when LineagePilot moved to its own repository. Do not edit them. |
 | `spike/graph.py` | Throwaway graph (nodes, file index, forward and reverse adjacency), queries, JSON and SQLite snapshots |
 | `spike/optimised.py` | Labelled variant: overrides `_build_lineage` only |
 | `spike/bench.py` | Benchmark functions, subprocess workers, orchestrator (`run`, `memory`, `quality`) |

@@ -26,7 +26,7 @@ Yes, with one caveat about how much the result proves.
 All commands run from this folder, with uv-managed CPython.
 
 ```sh
-cd lineagepilot/spikes/s3-static-dag
+cd spikes/s3-static-dag
 export UV_PYTHON_PREFERENCE=only-managed
 
 uv sync                                         # dev tools only (pytest, pytest-cov); runtime is stdlib-only

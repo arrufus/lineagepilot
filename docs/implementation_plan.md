@@ -36,7 +36,7 @@ The **legacy wind-down** runs alongside and is not on the critical path. Rotatin
 | S1 | **Packaging spike.** Build a universal VSIX with pure-Python libraries in `bundled/libs`, and launch a minimal pygls server through an interpreter found via `@vscode/python-extension`. | The server starts and returns a CodeLens on macOS, Windows and Linux, with Python 3.10 and 3.13. Every runtime dependency installs with `--implementation py`. |
 | S2 | **Parse and performance spike.** Import the existing `dbt_parser` without the database layer, and index real dbt Core 1.8+ and Fusion manifests into a throwaway in-memory graph. | Design §11 budgets are measured on 2,000- and 5,000-model manifests. The supported manifest versions are pinned. |
 | S3 | **Static DAG spike.** Use the AST to detect Cosmos `DbtDag`/`DbtTaskGroup` and `BashOperator` dbt commands. | Correct task-to-model links on 3 public example DAG repositories. Misses are listed. |
-| S4 | ~~**Customer discovery.** Interview 10 teams running dbt plus Airflow. Show a clickable mock of the Change Impact Review.~~ **Waived** on 1 November 2026 by the product owner, who takes the outcome as given from their experience as a data engineer, data engineering lead and data architect (DCS-1ay.4). | n/a |
+| S4 | ~~**Customer discovery.** Interview 10 teams running dbt plus Airflow. Show a clickable mock of the Change Impact Review.~~ **Waived** on 1 November 2026 by the product owner, who takes the outcome as given from their experience as a data engineer, data engineering lead and data architect (LP-1ay.4). | n/a |
 
 **Gate G0**: proceed only if all of the following hold.
 1. S1 and S2 meet their criteria, or show a credible path to meeting them.
@@ -130,7 +130,7 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 | 5.2 | Load annotation files through the reused `data_flow_annotations.py`, including a container path map. Add suffix matching for `/usr/local/airflow`-style paths. |
 | 5.3 | Feed `orchestrates` edges into CodeLens, the Airflow tree view and the Change Impact Review. Show heuristic links by default, labelled. |
 | 5.4 | Emit `unknown` records for dynamic DAGs and unresolved selectors, using the named categories from S3, at the call site. |
-| 5.5 | Held-out corpus: 10 or more unseen dbt+Airflow repositories, labelled before any Phase 5 tuning. It can start straight after G0 (DCS-56q.5). |
+| 5.5 | Held-out corpus: 10 or more unseen dbt+Airflow repositories, labelled before any Phase 5 tuning. It can start straight after G0 (LP-56q.5). |
 
 **Exit**:
 - The full acceptance scenario passes.
@@ -150,12 +150,14 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 
 ---
 
-## Legacy wind-down (parallel)
+## Legacy wind-down (parallel, in the data-capsule repository)
+
+These tasks change data-capsule, not this repository. They are tracked in data-capsule's beads, under epic DCS-4sz.
 
 1. **Now, independent of every gate**: rotate the leaked Snowflake key and purge it from both remotes (DCS-hov).
 2. **Now**: stop any running deployment of the hosted server. Its critical issues are closed as won't-fix, so a running instance stays exposed. The beads issues were closed or re-targeted on 1 November 2026 (design decision D-1).
-3. Any time: add `backend/LEGACY.md` and `frontend/LEGACY.md`.
-4. After G1: delete or archive `backend/` and `frontend/`.
+3. Any time: add `backend/LEGACY.md` and `frontend/LEGACY.md` in data-capsule.
+4. After G1 (LP-7er.4 here): delete or archive data-capsule's `backend/` and `frontend/` (DCS-4sz.3). Beads cannot link issues across repositories, so DCS-4sz.3 is marked blocked by hand.
 
 ---
 
@@ -179,17 +181,18 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 
 ## Tracking
 
-Filed in beads on 1 November 2026, with the label `lineagepilot`. Each task blocks on the previous phase's epic, so `bd ready` only shows work that can start.
+Filed in beads on 1 November 2026. Later that day it moved to this repository's own beads, under the prefix `LP`. IDs kept their suffixes, so DCS-58r.2 became LP-58r.2. Each task blocks on the previous phase's epic, so `bd ready` only shows work that can start.
 
 | Phase | Epic | Gate |
 |---|---|---|
-| 0 Spikes and discovery | DCS-1ay (tasks .1–.4) | G0 = DCS-1ay.5 |
-| 1 `lineagepilot_core` | DCS-58r. Task 1.7 is DCS-auw, DCS-aml, DCS-l1s | |
-| 2 Language server and shell | DCS-243 | |
-| 3 Lineage webview | DCS-b7z | |
-| 4 Change Impact Review | DCS-zod | |
-| 5 Airflow linkage | DCS-56q | |
-| 6 Beta and release | DCS-7er | G1 = DCS-7er.4 |
-| Legacy wind-down | DCS-4sz (includes DCS-hov, the key rotation) | |
+| 0 Spikes and discovery | LP-1ay (tasks .1–.4) | G0 = LP-1ay.5 |
+| 1 `lineagepilot_core` | LP-58r. Task 1.7 is LP-auw, LP-aml, LP-l1s | |
+| 2 Language server and shell | LP-243 | |
+| 3 Lineage webview | LP-b7z | |
+| 4 Change Impact Review | LP-zod | |
+| 5 Airflow linkage | LP-56q | |
+| 6 Beta and release | LP-7er | G1 = LP-7er.4 |
 
-Find the next task with `bd ready --label lineagepilot`.
+The legacy wind-down stays in data-capsule's beads as DCS-4sz, which includes DCS-hov (the key rotation). Any `DCS-…` ID in these documents refers to a data-capsule issue.
+
+Find the next task with `bd ready`.

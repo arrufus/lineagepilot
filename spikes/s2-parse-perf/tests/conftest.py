@@ -9,8 +9,7 @@ import pytest
 
 SPIKE = Path(__file__).resolve().parent.parent
 FIX = SPIKE / "tests" / "fixtures"
-REPO = SPIKE.parents[2]
-BACKEND_FIXTURE = REPO / "backend" / "tests" / "fixtures" / "dbt"
+BACKEND_FIXTURE = SPIKE / "vendor" / "data_capsule" / "backend" / "tests" / "fixtures" / "dbt"
 
 
 def run_python(code: str) -> subprocess.CompletedProcess:

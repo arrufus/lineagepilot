@@ -9,7 +9,9 @@ The package __init__ imports airflow_parser (httpx) and snowflake_parser
 2. load the five modules we need, in dependency order, under the dotted
    names they use to import each other (``from src.parsers.base import ...``).
 
-The backend files are executed as-is. Nothing here edits or copies them.
+The backend files are executed as-is. They come from data-capsule's backend, copied byte for
+byte into ``vendor/data_capsule/`` when LineagePilot moved to its own repository. Commit and
+hashes are in ``vendor/data_capsule/PROVENANCE.json``. Nothing here edits them.
 """
 
 from __future__ import annotations
@@ -21,8 +23,8 @@ import types
 from pathlib import Path
 from typing import Literal
 
-REPO_ROOT = Path(__file__).resolve().parents[4]
-PARSERS_DIR = REPO_ROOT / "backend" / "src" / "parsers"
+VENDOR_ROOT = Path(__file__).resolve().parents[1] / "vendor" / "data_capsule"
+PARSERS_DIR = VENDOR_ROOT / "backend" / "src" / "parsers"
 
 # Order matters: each module may import only modules loaded before it.
 MODULES: list[tuple[str, str]] = [

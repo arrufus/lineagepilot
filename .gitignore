@@ -21,3 +21,6 @@ work/
 
 # The repo root ignores .vscode/, but test fixtures carry hostile workspace settings on purpose
 !**/fixture-workspace/.vscode/
+
+# macOS
+.DS_Store

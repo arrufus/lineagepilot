@@ -272,7 +272,7 @@ Other rules from S3:
 - **File discovery matches Airflow's.** That means the safe-mode heuristic, `.airflowignore`, and skipping dbt project folders.
 - **Unknowns are named.** The categories: remote manifest (`s3://`, `gs://`, `abfs://`), tasks generated from `manifest.json` at parse time, wrapper class, loop or factory, generated project, unsupported selector, Jinja, and a DAG that cannot load. Each is reported at the call site.
 
-S3's evidence is in-sample: the scanner was built while reading the same repositories. A held-out corpus of 10 or more repositories, labelled before tuning, is the Phase 5 exit test (beads DCS-56q.5).
+S3's evidence is in-sample: the scanner was built while reading the same repositories. A held-out corpus of 10 or more repositories, labelled before tuning, is the Phase 5 exit test (beads LP-56q.5).
 
 **Reused**: `data_flow_annotations.py` (YAML mappings for anything the scanner cannot see) and `dbt_manifest_resolver.py`. **New**: `dag_static.py`.
 
@@ -358,7 +358,7 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 | Code execution | DAG files are analysed with the AST only; user Python is never imported. dbt runs only on an explicit user command in a trusted workspace. |
 | Resource limits | Manifest size cap (configurable). Parsing runs in a worker with a per-statement time budget for sqlglot. Rule-pack regexes have a length cap and are evaluated with a timeout, or with `re2` if available. This closes the ReDoS class (DCS-61r). |
 | Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. |
-| Exporters | Escaping for each format is fixed **before** export ships: Cypher uses parameters or JSON escaping; XML escapes every field; DOT uses quoted, escaped IDs; Mermaid uses generated IDs; CSV neutralises leading formula characters. This closes DCS-auw, DCS-aml and DCS-l1s. |
+| Exporters | Escaping for each format is fixed **before** export ships: Cypher uses parameters or JSON escaping; XML escapes every field; DOT uses quoted, escaped IDs; Mermaid uses generated IDs; CSV neutralises leading formula characters. This closes LP-auw, LP-aml and LP-l1s. |
 | Supply chain | `package-lock.json` and `uv.lock` with hashes; bundled libraries installed with `--require-hashes`; `npm audit`, `pip-audit` and gitleaks in CI; the publisher account protected with 2FA; publishing only from CI. |
 | Carry-over | **The leaked Snowflake key must still be rotated (DCS-hov).** Pivoting does not retract a key that is already public. |
 
@@ -366,7 +366,7 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 
 ## 11. Performance budgets
 
-Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64 CPython. Each "measured" cell shows the worst of Python 3.10 and 3.13. "Fixed" means the parser with its per-column lineage loop replaced by a dictionary lookup (beads DCS-58r.2).
+Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64 CPython. Each "measured" cell shows the worst of Python 3.10 and 3.13. "Fixed" means the parser with its per-column lineage loop replaced by a dictionary lookup (beads LP-58r.2).
 
 | Operation | Budget | Measured, 5,000 models |
 |---|---|---|
@@ -385,12 +385,14 @@ So **indexing runs in a child process**, never on the server's event loop: an `a
 
 ## 12. Reuse map
 
+The modules below live in the data-capsule repository, under `backend/src/` and `frontend/`. Ported code is copied into this repository, never imported from there.
+
 ### Backend
 
 | Current module | Fate |
 |---|---|
-| `parsers/base.py`, `dbt_parser.py`, `dbt_config.py`, `sql_parser.py`, `data_flow_annotations.py`, `dbt_manifest_resolver.py` | **Move** to `lineagepilot_core` and **fix what spike S2 found** (beads DCS-58r.2). Stdlib `json` becomes the fallback for `orjson`. The fixes: <br>• Replace the per-column lineage loop, which costs O(columns × nodes). <br>• Derive `has_tests` from `test.*` nodes; it is always False on real manifests today. <br>• Parse exposures. <br>• Keep source file paths and `patch_path`. <br>• Key nodes by `unique_id`, because versioned models collide today. <br>• Gate on the schema version. <br>• Remove the `print()` that would corrupt the LSP channel. |
-| `parsers/sql_column_parser.py` | **Replace** with `sqlglot.lineage` plus a catalog schema (section 6.1, beads DCS-58r.8). |
+| `parsers/base.py`, `dbt_parser.py`, `dbt_config.py`, `sql_parser.py`, `data_flow_annotations.py`, `dbt_manifest_resolver.py` | **Move** to `lineagepilot_core` and **fix what spike S2 found** (beads LP-58r.2). Stdlib `json` becomes the fallback for `orjson`. The fixes: <br>• Replace the per-column lineage loop, which costs O(columns × nodes). <br>• Derive `has_tests` from `test.*` nodes; it is always False on real manifests today. <br>• Parse exposures. <br>• Keep source file paths and `patch_path`. <br>• Key nodes by `unique_id`, because versioned models collide today. <br>• Gate on the schema version. <br>• Remove the `print()` that would corrupt the LSP channel. |
+| `parsers/sql_column_parser.py` | **Replace** with `sqlglot.lineage` plus a catalog schema (section 6.1, beads LP-58r.8). |
 | `parsers/airflow_parser.py`, `airflow_config.py` (REST) | **Keep** for live mode after the MVP. Their configuration is reworked per section 10. |
 | `parsers/snowflake_*` | **Park** until after the MVP; fix the SQL construction first. |
 | `services/conformance.py` | **Port** the 12 dbt-native rules and remap 6 more (below) onto a graph protocol with five result states. **Drop** the 42 rules that depend on entities which exist only in the server. |
@@ -425,15 +427,17 @@ So **indexing runs in a child process**, never on the server's event loop: an `a
 
 ## 13. Repository layout
 
+LineagePilot has its own repository. It moved out of data-capsule, with its history, on 1 November 2026.
+
 ```
-lineagepilot/spikes/        Phase 0 spikes S1–S3 (throwaway code and their reports)
-lineagepilot/packages/core/ lineagepilot_core   (pyproject.toml, uv.lock)
-lineagepilot/packages/lsp/  lineagepilot_lsp    (pygls server)
-lineagepilot/extension/     VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
-backend/, frontend/         frozen legacy server and dashboard (LEGACY.md explains status)
+spikes/          Phase 0 spikes S1–S3 (throwaway code and their reports)
+packages/core/   lineagepilot_core   (pyproject.toml, uv.lock)
+packages/lsp/    lineagepilot_lsp    (pygls server)
+extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
+docs/            this design and the implementation plan
 ```
 
-The legacy directories stay where they are until the beta, to avoid churn. An `import-linter` contract stops `lineagepilot_core` from importing `sqlalchemy`, `fastapi` or `pydantic`.
+The legacy server and dashboard stay frozen in the data-capsule repository, in `backend/` and `frontend/`. Phase 1 copies the reused parsers from there (section 12). Nothing here depends on that repository at runtime or in CI. An `import-linter` contract stops `lineagepilot_core` from importing `sqlalchemy`, `fastapi` or `pydantic`.
 
 ---
 
@@ -461,7 +465,7 @@ The legacy directories stay where they are until the beta, to avoid churn. An `i
 
 | # | Decision | Consequences |
 |---|---|---|
-| D-1 | **Retire the hosted server.** | Server-only beads issues closed as won't-fix: DCS-bjo, DCS-99m, DCS-cez, DCS-12y, DCS-sv1, DCS-l9p, DCS-9iq. Folded into plan tasks: DCS-ko1 (lockfile → 1.1) and DCS-61r (safe regexes → 1.5). Moved under Phase 1 as the exporter work (task 1.7): DCS-auw, DCS-aml, DCS-l1s. Deferred until a Snowflake connector returns: DCS-x9w. **Still urgent: DCS-hov (rotate the leaked key).** |
+| D-1 | **Retire the hosted server.** | Server-only beads issues closed as won't-fix: DCS-bjo, DCS-99m, DCS-cez, DCS-12y, DCS-sv1, DCS-l9p, DCS-9iq. Folded into plan tasks: DCS-ko1 (lockfile → 1.1) and DCS-61r (safe regexes → 1.5). Moved under Phase 1 as the exporter work (task 1.7): LP-auw, LP-aml, LP-l1s. Deferred until a Snowflake connector returns: DCS-x9w. **Still urgent: DCS-hov (rotate the leaked key).** |
 | D-3 | **Static Airflow analysis plus annotation files in the MVP.** | Section 6.2. This is the wedge. |
 | D-4 | **Name: LineagePilot.** | Python packages `lineagepilot_core` and `lineagepilot_lsp`; CLI `lineagepilot`; settings prefix `lineagePilot.*`. Before the public release: run a trademark search, create the publisher ID, and keep "dbt" out of the name per dbt Labs' trademark guidelines. |
 

@@ -85,7 +85,7 @@ The three VS Code tests check three things:
 Prerequisites: Node 22, uv 0.7.6, Python 3.10 and 3.13 (`uv python install 3.10 3.13`), and Docker for the Linux run.
 
 ```bash
-cd lineagepilot/spikes/s1-packaging
+cd spikes/s1-packaging
 npm ci
 python3 scripts/bundle_libs.py               # pure bundle into bundled/libs, checked
 npm run package                              # dist/lineagepilot-spike.vsix
@@ -126,7 +126,7 @@ To regenerate the lock files, use the commands at the top of `requirements.in` a
 | `tests/` | pytest: the bundler, the VSIX gate, and the server over stdio (pytest-lsp) |
 | `fixture-workspace/` | A tiny dbt project, plus a hostile `.vscode/settings.json` and `yaml.py` |
 | `docker/` | Linux test image and runner |
-| `../../../.github/workflows/lineagepilot-s1.yml` | CI: build once on Linux, then test on 3 operating systems × 2 Pythons |
+| `../../.github/workflows/lineagepilot-s1.yml` | CI: build once on Linux, then test on 3 operating systems × 2 Pythons |
 
 ## Not done
 
