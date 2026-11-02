@@ -378,6 +378,7 @@ class DbtParser(MetadataParser):
                     schema_name=_str(source.get("schema")),
                     relation_name=_str(source.get("relation_name")),
                     layer="bronze",  # sources are always bronze
+                    layer_source="default",
                     domain_name=self._infer_domain(source, meta),
                     description=_str(source.get("description")),
                     owner=_owner(meta),
@@ -447,6 +448,11 @@ class DbtParser(MetadataParser):
         meta = _meta(node)
         resource_type = node["resource_type"]
         test_kinds = tests.for_node(node_id)
+        layer, layer_source = (
+            ("bronze", "default")  # seeds are always bronze
+            if resource_type == "seed"
+            else self._infer_layer(node, meta, config)
+        )
         return RawNode(
             unique_id=node_id,
             resource_type=resource_type,
@@ -457,8 +463,8 @@ class DbtParser(MetadataParser):
             relation_name=_str(node.get("relation_name")),
             alias=_str(node.get("alias")),
             version=_version(node.get("version")),
-            # Seeds are always bronze
-            layer="bronze" if resource_type == "seed" else self._infer_layer(node, meta, config),
+            layer=layer,
+            layer_source=layer_source,
             domain_name=self._infer_domain(node, meta),
             description=_str(node.get("description")),
             materialization=_str(node_config.get("materialized")),
@@ -476,27 +482,29 @@ class DbtParser(MetadataParser):
             language=_str(node.get("language")),
             compiled_code=_str(node.get("compiled_code")),
             compiled_path=_str(node.get("compiled_path")),
+            primary_key=_primary_key(node),
         )
 
     def _infer_layer(
         self, node: dict[str, Any], meta: dict[str, Any], config: DbtParserConfig
-    ) -> str | None:
-        """Architecture layer: meta.layer, then layer tags, then name and path patterns."""
+    ) -> tuple[str | None, str | None]:
+        """Architecture layer and how it was decided: meta.layer, then layer tags, then
+        name and path patterns."""
         explicit = _str(meta.get("layer"))
         if explicit:
-            return explicit.lower()
+            return explicit.lower(), "meta"
 
         for tag in _str_list(node.get("tags")):
             layer = config.layer_tags.get(tag.lower())
             if layer:
-                return layer
+                return layer, "tag"
 
         name = _str(node.get("name")) or ""
         path = (_str(node.get("original_file_path")) or "").replace("\\", "/")
         for pattern in config.layer_patterns:
             if pattern.matches_name(name) or pattern.matches_path(path):
-                return pattern.layer
-        return None
+                return pattern.layer, "pattern"
+        return None, None
 
     def _infer_domain(self, node: dict[str, Any], meta: dict[str, Any]) -> str | None:
         """Business domain: meta.domain, then a ``domain:`` tag, then the folder path."""
@@ -750,6 +758,21 @@ def _deps(node: Any) -> list[str]:
 def _meta(node: dict[str, Any]) -> dict[str, Any]:
     # dbt mirrors meta into config.meta; Fusion keeps both too (spike S2)
     return _dict(_dict(node.get("config")).get("meta")) or _dict(node.get("meta"))
+
+
+def _primary_key(node: dict[str, Any]) -> list[str]:
+    """Columns of a primary-key constraint (dbt model contracts), model or column level."""
+    columns: list[str] = []
+    constraints = node.get("constraints")
+    for constraint in constraints if isinstance(constraints, list) else []:
+        if _dict(constraint).get("type") == "primary_key":
+            columns += _str_list(constraint.get("columns"))
+    for name, info in _dict(node.get("columns")).items():
+        column_constraints = _dict(info).get("constraints")
+        for constraint in column_constraints if isinstance(column_constraints, list) else []:
+            if _dict(constraint).get("type") == "primary_key":
+                columns.append(name)
+    return list(dict.fromkeys(columns))
 
 
 def _owner(meta: dict[str, Any]) -> str | None:

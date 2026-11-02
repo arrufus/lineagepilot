@@ -112,6 +112,7 @@ class Node:
     alias: str | None = None
     version: str | None = None
     layer: str | None = None
+    layer_source: str | None = None  # meta, tag, pattern or default
     domain: str | None = None
     description: str | None = None
     materialization: str | None = None
@@ -127,6 +128,7 @@ class Node:
     language: str | None = None  # sql or python, for models
     compiled_path: str | None = None  # where dbt writes the compiled SQL
     in_catalog: bool = False  # catalog.json has an entry for it
+    primary_key: list[str] = field(default_factory=list)  # contract primary-key columns
 
     @property
     def has_tests(self) -> bool:
@@ -202,6 +204,8 @@ class MetadataGraph:
 
     def __init__(self, adapter_type: str | None = None) -> None:
         self.adapter_type = adapter_type
+        # The manifest the dbt part of the graph was built from, for evidence records
+        self.manifest: ArtifactVersion | None = None
         self.nodes: dict[str, Node] = {}
         self.columns: dict[str, Column] = {}
         self.unresolved: list[Unresolved] = []

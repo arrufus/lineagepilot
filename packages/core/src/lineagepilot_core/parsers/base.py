@@ -60,8 +60,10 @@ class RawNode:
     alias: str | None = None
     version: str | None = None
 
-    # Classification
+    # Classification; layer_source says how the layer was decided:
+    # meta, tag, pattern (a name or path pattern) or default (seeds and sources)
     layer: str | None = None
+    layer_source: str | None = None
     domain_name: str | None = None
 
     # Documentation
@@ -101,6 +103,9 @@ class RawNode:
 
     # True if catalog.json has an entry for this node
     in_catalog: bool = False
+
+    # Columns of a primary-key constraint in a dbt model contract
+    primary_key: list[str] = field(default_factory=list)
 
 
 @dataclass(slots=True)

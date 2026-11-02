@@ -18,6 +18,7 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `graph/column_lineage.py` | Adds `derives` edges per model, with a `resolved` / `partial` / `unknown` status and `Unresolved` records. Run after the model-level index: about 3 ms a model. |
 | `analysis/traversal.py` | Breadth-first upstream and downstream traversal at model or column level, with depth and size caps; steps through physical tables from builders to the sources that read them. |
 | `analysis/impact.py` | Downstream impact of changed nodes or columns: column-precise where column lineage is known, model level (marked `inferred`) where it is not, with exposures, Airflow tasks, confidence and unknowns. |
+| `rules/` | Conformance rules with five results (`pass`, `fail`, `not_applicable`, `unsupported`, `unknown`) and a score that leaves the last two out, with coverage beside it. 18 built-in rules (design section 12). Custom rules come from `.lineagepilot/rules.yml`, a size-capped, validated file whose regexes are checked for ReDoS shapes before use. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
 

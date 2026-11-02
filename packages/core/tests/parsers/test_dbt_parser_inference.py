@@ -267,3 +267,36 @@ class TestLineageAndTags:
         manifest["nodes"]["model.jaffle_shop.orders"]["tags"] = ["domain:finance"]
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert {t.name: t.category for t in result.tags}["domain:finance"] == "domain"
+
+
+class TestRuleInputs:
+    def test_layer_source_says_how_the_layer_was_decided(self, write_json, manifest_of):
+        manifest = manifest_of("jaffle-1.12")
+        nodes = manifest["nodes"]
+        nodes["model.jaffle_shop.orders"]["config"]["meta"] = {"layer": "gold"}
+        nodes["model.jaffle_shop.customers"]["tags"] = ["mart"]
+        nodes["model.jaffle_shop.locations"]["original_file_path"] = "models/misc/locations.sql"
+        result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
+        sources = {n.name: n.layer_source for n in result.nodes if n.resource_type == "model"}
+        assert sources["orders"] == "meta"
+        assert sources["customers"] == "tag"
+        assert sources["stg_orders"] == "pattern"
+        assert sources["locations"] is None
+        assert {n.layer_source for n in result.nodes if n.resource_type != "model"} == {"default"}
+
+    def test_contract_primary_keys(self, write_json, manifest_of):
+        manifest = manifest_of("jaffle-1.12")
+        orders = manifest["nodes"]["model.jaffle_shop.orders"]
+        orders["constraints"] = [
+            {"type": "primary_key", "columns": ["order_id", "location_id"]},
+            {"type": "check", "expression": "order_total >= 0"},
+            "not-a-constraint",
+        ]
+        customers = manifest["nodes"]["model.jaffle_shop.customers"]
+        customers["columns"]["customer_id"]["constraints"] = [{"type": "primary_key"}]
+        customers["constraints"] = "not-a-list"
+        result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
+        by_name = {n.name: n for n in result.nodes}
+        assert by_name["orders"].primary_key == ["order_id", "location_id"]
+        assert by_name["customers"].primary_key == ["customer_id"]
+        assert by_name["stg_orders"].primary_key == []

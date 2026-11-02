@@ -47,6 +47,7 @@ def build_dbt_graph(result: ParseResult, graph: MetadataGraph | None = None) -> 
         generated_at=result.generated_at,
         dbt_version=result.dbt_version,
     )
+    graph.manifest = manifest
 
     def evidence(file_path: str | None) -> Evidence:
         return Evidence(
@@ -143,6 +144,7 @@ def _node(raw: RawNode, relation: str | None) -> Node:
         alias=raw.alias,
         version=raw.version,
         layer=raw.layer,
+        layer_source=raw.layer_source,
         domain=raw.domain_name,
         description=raw.description,
         materialization=raw.materialization,
@@ -158,4 +160,5 @@ def _node(raw: RawNode, relation: str | None) -> Node:
         language=raw.language,
         compiled_path=raw.compiled_path,
         in_catalog=raw.in_catalog,
+        primary_key=raw.primary_key,
     )

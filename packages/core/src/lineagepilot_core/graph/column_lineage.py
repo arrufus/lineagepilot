@@ -172,7 +172,7 @@ def _clear(graph: MetadataGraph, node_id: str) -> None:
 
 def _evidence(graph: MetadataGraph, node_id: str, sql: str | None) -> Evidence:
     node = graph.nodes[node_id]
-    manifest = _manifest_version(graph, node_id)
+    manifest = graph.manifest
     artifact = ArtifactVersion(
         path=node.compiled_path or (manifest.path if manifest else "manifest.json"),
         sha256=hashlib.sha256(sql.encode("utf-8")).hexdigest() if sql else None,
@@ -185,17 +185,6 @@ def _evidence(graph: MetadataGraph, node_id: str, sql: str | None) -> Evidence:
         artifact=artifact,
         location=Location(node.file_path) if node.file_path else None,
     )
-
-
-def _manifest_version(graph: MetadataGraph, node_id: str) -> ArtifactVersion | None:
-    """The manifest version, from the node's materialises edge (any manifest edge would do)."""
-    for edge in graph.out_edges(node_id, (EdgeKind.MATERIALISES,)) + graph.in_edges(
-        node_id, (EdgeKind.DEPENDS_ON,)
-    ):
-        for evidence in edge.evidence:
-            if evidence.origin is Origin.MANIFEST and evidence.artifact:
-                return evidence.artifact
-    return None
 
 
 def _apply(
