@@ -142,9 +142,10 @@ function config(label, { trusted, settings = {}, env = {}, files, extensions, in
     workspaceFolder: ws,
     files: files ?? ['out/test/integration/*.test.js'],
     launchArgs: [
-      '--user-data-dir', ud, '--extensions-dir', path.join(work, label, 'ext'),
-      '--skip-welcome', '--skip-release-notes', '--disable-gpu',
-      ...(extensions ? [] : ['--disable-extensions']),
+      '--user-data-dir', ud, '--skip-welcome', '--skip-release-notes', '--disable-gpu',
+      // test-cli installs `installExtensions` into test-electron's default extensions folder,
+      // so a configuration that needs one keeps that folder; the others get an empty one
+      ...(extensions ? [] : ['--extensions-dir', path.join(work, label, 'ext'), '--disable-extensions']),
       ...(process.env.LP_TRACE ? ['--log', 'trace'] : []),
     ],
     installExtensions: extensions,

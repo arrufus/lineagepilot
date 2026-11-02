@@ -389,6 +389,19 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 
 **The server freezes its heap once the graph is loaded** (`gc.collect(); gc.freeze()`). Without that, Python 3.10's full garbage collections over a 5,000-model graph paused impact queries for 200–285 ms, near the 300 ms budget; with it the worst query took 4.4 ms (task 1.4).
 
+**The language server, end to end** (tasks 2.1–2.3, `packages/lsp/scripts/server_budgets.py`, 5,000 models, Python 3.13, 2 November 2026):
+
+| Measure | Cold (empty cache) | Warm (cached snapshot) |
+|---|---|---|
+| Lineage ready (process start to status "ready") | 3.7 s (model level) | 0.86 s |
+| Column lineage complete | 26.7 s | 0.86 s |
+| Diagnostics published (25,856 in 218 files) | 4.8 s | 1.5 s |
+| CodeLens p95 | 0.64 ms | 0.65 ms |
+| Impact, worst of 20 sources | 0.5 ms | 0.4 ms |
+| Server memory | 576 MB | 482 MB |
+
+To meet the warm-start budget, the server loads a current snapshot itself instead of starting the indexer (which would load it only to find it current), and says "ready" before running the rules, which follow within half a second. The graph being replaced is collected before the next one loads. After a cold index the server still stays about 95 MB above a warm start, because Python keeps memory it has used: 15% over the 500 MB budget at 5,000 models, until the server restarts (beads LP-dtt).
+
 So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
 
 ---

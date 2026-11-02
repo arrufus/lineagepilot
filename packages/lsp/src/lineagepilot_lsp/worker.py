@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 import sys
 import traceback
 from typing import Any, TextIO
@@ -35,6 +36,20 @@ BOOTSTRAP = (
 # A model-level and a full snapshot per artifact version, and the previous version's
 # pair as a baseline.
 CACHE_KEEP = 4
+
+
+def interpreter() -> str:
+    """The interpreter to run the indexer with.
+
+    On Windows a virtual environment's python.exe is a launcher that starts the real
+    interpreter as a child, so killing it (when a re-index cancels a run) would leave the
+    indexer running. The indexer is given its import path explicitly, so it can run on
+    the base interpreter directly.
+    """
+    base = getattr(sys, "_base_executable", None)
+    if sys.platform == "win32" and base and base != sys.executable and os.path.isfile(base):
+        return base
+    return sys.executable
 
 
 def command(python: str, request: dict[str, Any]) -> list[str]:

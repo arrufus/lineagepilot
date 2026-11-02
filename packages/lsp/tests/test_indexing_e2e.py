@@ -8,11 +8,13 @@ import json
 import os
 import shutil
 import time
+from pathlib import Path
 
 import pytest
 from conftest import CORE_FIXTURES, FIXTURE
 from lineagepilot_core.indexer import index_project
 from lsprotocol import types
+from pygls.uris import to_fs_path
 
 EXPECTED = index_project(FIXTURE, column_lineage=False).graph.stats()
 
@@ -90,11 +92,12 @@ async def test_watchers_are_registered(start, workspace):
     await client.ready()
     [registration] = client.registrations
     assert registration.method == types.WORKSPACE_DID_CHANGE_WATCHED_FILES
+    # Compared as paths: on Windows the client's URI may spell the drive letter c: or C:
     patterns = {
-        (w["globPattern"]["baseUri"], w["globPattern"]["pattern"])
+        (Path(to_fs_path(w["globPattern"]["baseUri"])), w["globPattern"]["pattern"])
         for w in registration.register_options["watchers"]
     }
-    root = workspace.as_uri()
+    root = workspace
     assert patterns >= {
         (root, "target/{manifest,catalog}.json"),
         (root, "dbt_project.yml"),
@@ -104,6 +107,7 @@ async def test_watchers_are_registered(start, workspace):
         (root, "dags/**/*.py"),
     }
     assert not any("elsewhere" in p or p.startswith("/abs") for _, p in patterns)
+    assert all(base == workspace for base, _ in patterns)
 
 
 async def test_without_dynamic_registration_the_server_says_so(start):

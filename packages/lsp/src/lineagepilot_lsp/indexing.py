@@ -15,7 +15,6 @@ import gc
 import json
 import logging
 import os
-import sys
 import time
 from collections import Counter, deque
 from collections.abc import Awaitable, Callable, Iterable
@@ -27,7 +26,13 @@ from typing import Any
 
 from lineagepilot_core.graph.model import MetadataGraph
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES
-from lineagepilot_core.snapshot import SnapshotError, load_snapshot
+from lineagepilot_core.snapshot import (
+    SnapshotCache,
+    SnapshotError,
+    file_sha256,
+    load_snapshot,
+    snapshot_key,
+)
 
 from lineagepilot_lsp import worker
 from lineagepilot_lsp.project import DbtProject
@@ -172,18 +177,20 @@ class ProjectIndex:
         column_lineage: bool = True,
         max_artifact_bytes: int = DEFAULT_MAX_ARTIFACT_BYTES,
         debounce_s: float = 1.0,
-        python: str = sys.executable,
+        python: str | None = None,
         on_status: Callable[[], None] = lambda: None,
         on_graph: Callable[[], None] = lambda: None,
+        on_release: Callable[[], None] = lambda: None,
     ) -> None:
         self.project = project
         self.cache_dir = cache_dir
         self.column_lineage = column_lineage
         self.max_artifact_bytes = max_artifact_bytes
         self.debounce_s = debounce_s
-        self.python = python
+        self.python = python or worker.interpreter()
         self.on_status = on_status  # the state, the counts or the staleness changed
         self.on_graph = on_graph  # a different graph is loaded, or none is
+        self.on_release = on_release  # the graph is dropped while the next one loads
 
         self.graph: MetadataGraph | None = None
         self.state = IndexState.STARTING
@@ -251,6 +258,13 @@ class ProjectIndex:
 
     async def _run(self, generation: int) -> None:
         started = time.perf_counter()
+        if await self._from_cache(generation):
+            logger.info(
+                "Index run %d loaded the cached graph in %.2f s",
+                generation,
+                time.perf_counter() - started,
+            )
+            return
         cmd = worker.command(self.python, self.request_body())
         try:
             exit_ = await run_worker(
@@ -270,6 +284,67 @@ class ProjectIndex:
                 generation, f"the indexer stopped without a result{detail}", exit_.stderr_tail
             )
         logger.info("Index run %d took %.2f s", generation, time.perf_counter() - started)
+
+    def _cached_snapshot(self) -> Path | None:
+        """The full graph's snapshot for the current artifacts, if the cache has it."""
+        manifest, catalog = self.project.manifest_path, self.project.catalog_path
+        try:
+            if not manifest.is_file():
+                return None
+            sizes = [p.stat().st_size for p in (manifest, catalog) if p.is_file()]
+            if any(size > self.max_artifact_bytes for size in sizes):
+                return None  # the indexer reports it
+            key = snapshot_key(
+                file_sha256(manifest),
+                file_sha256(catalog) if catalog.is_file() else None,
+                self.column_lineage,
+            )
+        except OSError:
+            return None
+        path = SnapshotCache(self.cache_dir).path(key)
+        return path if path.is_file() else None
+
+    async def _from_cache(self, generation: int) -> bool:
+        """Load the full graph straight from the cache, without starting the indexer.
+
+        The indexer would load the snapshot only to find it is current, and the server
+        would then load it again: at 5,000 models that doubled the warm start.
+        """
+        path = await asyncio.to_thread(self._cached_snapshot)
+        if path is None or generation != self.generation:
+            return False
+        self._release()
+        try:
+            graph = await asyncio.to_thread(load_snapshot, path)
+        except SnapshotError as e:
+            logger.warning("Ignoring the cached snapshot %s: %s", path.name, e)
+            path.unlink(missing_ok=True)
+            return False
+        if generation != self.generation:
+            return True
+        os.utime(path)  # most recently used, as SnapshotCache.get does
+        self._finished = generation
+        self.indexing = False
+        self.columns = ColumnStage.DONE if self.column_lineage else ColumnStage.OFF
+        event = {
+            "status": "ok",
+            "snapshot": str(path),
+            "fromCache": True,
+            "projectName": graph.project_name,
+            "dbtVersion": graph.manifest.dbt_version if graph.manifest else None,
+            "schemaVersion": graph.schema_version,
+        }
+        self._set(graph, IndexState.READY, event, None)
+        return True
+
+    def _release(self) -> None:
+        """Drop the loaded graph before loading the next one. Python keeps the memory a
+        process has used, so holding both would make their sum the server's size for the
+        rest of the session (632 MB instead of 457 MB at 5,000 models). Requests made in
+        the meantime are told the index is being updated."""
+        if self.graph is not None:
+            self.graph = None
+            self.on_release()
 
     async def _on_event(self, generation: int, event: dict[str, Any]) -> None:
         if generation != self.generation:
@@ -298,6 +373,7 @@ class ProjectIndex:
         try:
             if not isinstance(path, str):
                 raise SnapshotError("the indexer reported no snapshot")
+            self._release()
             graph = await asyncio.to_thread(load_snapshot, path)
         except SnapshotError as e:
             self._fail(generation, f"the index could not be loaded: {e}", [])

@@ -104,6 +104,23 @@ async def test_no_code_lens_without_a_graph_or_outside_the_project(start, worksp
     assert not await lenses(other, workspace / "models" / "marts" / "orders.sql")
 
 
+async def test_files_that_cannot_be_read_get_nothing(start, workspace):
+    client, _ = await ready(start)
+    orders = workspace / "models" / "marts" / "orders.sql"
+    orders.unlink()
+    assert not await lenses(client, orders)
+    found = await client.text_document_hover_async(
+        types.HoverParams(
+            text_document=types.TextDocumentIdentifier(uri=orders.as_uri()),
+            position=types.Position(line=0, character=0),
+        )
+    )
+    assert found is None
+    binary = workspace / "models" / "marts" / "customers.sql"
+    binary.write_bytes(b"\xff\xfe\x00 not utf-8")
+    assert not await lenses(client, binary)
+
+
 async def test_code_lenses_are_refreshed_when_a_graph_loads(start):
     client, _ = await ready(start)
     assert client.lens_refreshes >= 1
@@ -218,7 +235,9 @@ async def test_rule_findings_are_published(start, workspace):
 
 
 async def test_a_rule_pack_changes_the_diagnostics(start, workspace):
-    client, status = await ready(start)
+    client, _ = await ready(start)
+    # The rules run just after the index is ready, and the status follows
+    status = await client.wait_for_update(lambda u: u["rules"]["findings"] > 0)
     assert status["rules"] == {
         "pack": None,
         "packLoaded": False,
@@ -255,7 +274,8 @@ async def test_rule_pack_problems_show_on_the_pack(start, workspace):
     pack = workspace / ".lineagepilot" / "rules.yml"
     pack.parent.mkdir()
     pack.write_text("version: 1\nrules:\n  - id: lower_case\n    name: bad id\n")
-    client, status = await ready(start)
+    client, _ = await ready(start)
+    status = await client.wait_for_update(lambda u: u["rules"]["problems"])
     assert status["rules"]["problems"]
     await until(lambda: pack.as_uri() in client.diagnostics)
     [problem] = client.diagnostics[pack.as_uri()]

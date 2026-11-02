@@ -411,3 +411,52 @@ def test_the_project_keeps_the_client_s_spelling_of_its_path(tmp_path):
     assert project.relative(real / "models" / "a.sql") == "models/a.sql"
     assert project.relative(link / "models" / "a.sql") == "models/a.sql"
     assert project.source_paths[0] == "models" and project.problems == ()
+
+
+async def test_a_current_snapshot_is_loaded_without_the_indexer(tmp_path, monkeypatch):
+    index, calls = make_index(tmp_path)
+    index.start()
+    await index.wait()
+    assert index.state is IndexState.READY and not index.result["fromCache"]
+
+    def no_indexer(*args, **kwargs):
+        raise AssertionError("the indexer ran although the cache had the graph")
+
+    monkeypatch.setattr(worker, "command", no_indexer)
+    released = []
+    index.on_release = lambda: released.append(index.graph)
+    index.start()
+    await index.wait()
+    assert index.state is IndexState.READY and index.result["fromCache"]
+    assert index.columns is ColumnStage.DONE and index.result["projectName"] == "jaffle_shop"
+    # The previous graph was let go before the cached one loaded
+    assert released == [None]
+
+
+async def test_a_corrupt_cached_snapshot_is_dropped_and_rebuilt(tmp_path):
+    index, _ = make_index(tmp_path)
+    index.start()
+    await index.wait()
+    snapshot = Path(index.result["snapshot"])
+    snapshot.write_text("{")
+    index.start()
+    await index.wait()
+    assert index.state is IndexState.READY and not index.result["fromCache"]
+    assert snapshot.is_file()  # rebuilt by the indexer
+
+
+def test_no_cached_snapshot_without_a_manifest_or_over_the_limit(tmp_path):
+    index, _ = make_index(tmp_path, max_artifact_bytes=10)
+    assert index._cached_snapshot() is None
+    empty = ProjectIndex(read_project(tmp_path), tmp_path / "cache")
+    assert empty._cached_snapshot() is None
+
+
+def test_the_indexer_skips_a_windows_venv_launcher(monkeypatch, tmp_path):
+    base = tmp_path / "python.exe"
+    base.write_text("")
+    monkeypatch.setattr(sys, "_base_executable", str(base), raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    assert worker.interpreter() == str(base)
+    monkeypatch.setattr(sys, "platform", "linux")
+    assert worker.interpreter() == sys.executable

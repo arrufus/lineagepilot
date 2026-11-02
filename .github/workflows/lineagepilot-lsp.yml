@@ -54,9 +54,12 @@ jobs:
           version: ${{ env.UV_VERSION }}
       - run: uv sync --locked --python ${{ matrix.python }}
       # The end-to-end tests start the server, which starts its indexer; coverage follows both.
-      - run: uv run --locked pytest $PYTEST_ARGS
+      # On Windows the suite hung after the tests when coverage followed the subprocesses
+      # (2 November 2026), so it runs there without coverage; the gate holds on the others.
+      - run: uv run --locked pytest $PYTEST_ARGS $NO_COV
         env:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
+          NO_COV: ${{ runner.os == 'Windows' && '--no-cov' || '' }}
 
   lint-and-audit:
     runs-on: ubuntu-latest

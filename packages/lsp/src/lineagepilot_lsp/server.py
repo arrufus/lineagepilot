@@ -16,7 +16,9 @@ One server runs per dbt project, over stdio only. The client passes, in
 from __future__ import annotations
 
 import asyncio
+import gc
 import hashlib
+import json
 import logging
 import os
 import platform
@@ -138,7 +140,7 @@ class LineagePilotServer(LanguageServer):
         self.context: GraphContext | None = None
         self.rule_pack: RulePack | None = None
         self.evaluation: Evaluation | None = None
-        self.published: dict[str, list[dict[str, Any]]] = {}
+        self.published: dict[str, int] = {}  # file URI -> fingerprint of its diagnostics
         self._temp_storage: str | None = None
         self._debouncers: dict[Change, Debouncer] = {}
         self._background: set[asyncio.Task[Any]] = set()
@@ -180,6 +182,7 @@ class LineagePilotServer(LanguageServer):
             debounce_s=self.options.debounce_s,
             on_status=self.notify_index_updated,
             on_graph=self.graph_changed,
+            on_release=self.release_graph,
         )
         self._debouncers = {
             Change.SOURCES: Debouncer(SOURCE_DEBOUNCE_S, self.sources_changed),
@@ -284,6 +287,16 @@ class LineagePilotServer(LanguageServer):
         # Phase 5 analyses DAG files statically; until then a change is only logged
         self.log(f"{len(files)} Airflow DAG file(s) changed; DAG analysis is not available yet")
 
+    def release_graph(self) -> None:
+        """The graph is being replaced: forget it, but keep the diagnostics until the next.
+
+        Its memory is collected before the next graph loads, so the two never coexist.
+        """
+        self.context = None
+        self.evaluation = None
+        gc.unfreeze()
+        gc.collect()
+
     def graph_changed(self) -> None:
         """A new graph is loaded, or none is."""
         assert self.index is not None and self.project is not None
@@ -294,10 +307,23 @@ class LineagePilotServer(LanguageServer):
             if graph is None
             else GraphContext(graph, self.project, lambda: index.columns is ColumnStage.COMPUTING)
         )
-        self.refresh_rules()
         freeze_heap()
         self.refresh_code_lenses()
         self.spawn(self.index.refresh_staleness())
+        if self.context is None:
+            self.refresh_rules()
+        else:
+            # Lineage is ready now; the rules (0.4 s at 5,000 models) follow, so the
+            # status says ready and waiting requests are answered first
+            self.spawn(self._rules_after(self.context))
+
+    async def _rules_after(self, context: GraphContext) -> None:
+        await asyncio.sleep(0)
+        if self.context is not context:
+            return  # another graph arrived meanwhile
+        self.refresh_rules()
+        gc.freeze()
+        self.notify_index_updated()
 
     # Rules and diagnostics
 
@@ -334,12 +360,14 @@ class LineagePilotServer(LanguageServer):
 
     def publish(self, found: dict[str, list[dict[str, Any]]]) -> None:
         """Send diagnostics for files whose diagnostics changed, and clear the rest."""
+        # A fingerprint per file, not the diagnostics: there can be tens of thousands
+        fingerprints = {uri: hash(json.dumps(d, sort_keys=True)) for uri, d in found.items()}
         for uri in sorted(set(self.published) - set(found)):
             self._send_diagnostics(uri, [])
         for uri, diagnostics in sorted(found.items()):
-            if self.published.get(uri) != diagnostics:
+            if self.published.get(uri) != fingerprints[uri]:
                 self._send_diagnostics(uri, diagnostics)
-        self.published = found
+        self.published = fingerprints
 
     def _send_diagnostics(self, uri: str, diagnostics: list[dict[str, Any]]) -> None:
         # Plain JSON straight to the transport: at 5,000 models there can be tens of
@@ -469,7 +497,11 @@ class LineagePilotServer(LanguageServer):
         if self.context is None:
             index = self.index
             state = index.state.value if index else "starting"
-            reason = (index.message if index else None) or "the index is still being built"
+            reason = (index.message if index else None) or (
+                "the index is being updated"
+                if index and index.state.value == "ready"
+                else "the index is still being built"
+            )
             raise JsonRpcServerError(
                 f"lineage is not available ({state}): {reason}", protocol.ErrorCode.NOT_READY
             )
@@ -542,20 +574,18 @@ def create_server() -> LineagePilotServer:
 
     @server.feature(types.TEXT_DOCUMENT_CODE_LENS)
     def on_code_lens(ls: LineagePilotServer, params: types.CodeLensParams) -> list[Any]:
-        document = ls.workspace.get_text_document(params.text_document.uri)
-        if ls.context is None or not document.path:
+        found = _document(ls, params.text_document.uri)
+        if ls.context is None or found is None:
             return []
-        return features.code_lenses(ls.context, Path(document.path), document.source)
+        return features.code_lenses(ls.context, *found)
 
     @server.feature(types.TEXT_DOCUMENT_HOVER)
     def on_hover(ls: LineagePilotServer, params: types.HoverParams) -> Any:
-        document = ls.workspace.get_text_document(params.text_document.uri)
-        if ls.context is None or not document.path:
+        found = _document(ls, params.text_document.uri)
+        if ls.context is None or found is None:
             return None
         position = params.position
-        return features.hover(
-            ls.context, Path(document.path), document.source, position.line, position.character
-        )
+        return features.hover(ls.context, *found, position.line, position.character)
 
     @server.feature("lineage/status")
     def on_status(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
@@ -588,6 +618,17 @@ def create_server() -> LineagePilotServer:
         return methods.nodes_for_file(ls.ready_context(), checked)
 
     return server
+
+
+def _document(ls: LineagePilotServer, uri: str) -> tuple[Path, str] | None:
+    """A document's path and text: the editor's copy when open, else the file on disk."""
+    document = ls.workspace.get_text_document(uri)
+    if not document.path:
+        return None
+    try:
+        return Path(document.path), document.source
+    except (OSError, UnicodeDecodeError):  # deleted, unreadable or not text
+        return None
 
 
 def _params(ls: LineagePilotServer, record: type[protocol._Record], params: Any) -> Any:
