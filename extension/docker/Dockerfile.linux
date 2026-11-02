@@ -1,0 +1,22 @@
+# Linux test image for the extension (from spike S1): Node 22, Xvfb and VS Code's Electron libraries, plus uv-managed
+# CPython 3.10 and 3.13. Runs the integration tests headless, so no window appears on a
+# developer's desktop (a focused test window can be reloaded by a stray keystroke).
+FROM node:22-bookworm
+
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+      xvfb xauth libnss3 libatk1.0-0 libatk-bridge2.0-0 libgtk-3-0 libgbm1 libasound2 \
+      libxkbfile1 libsecret-1-0 libxss1 libdrm2 libxcomposite1 libxdamage1 libxrandr2 \
+      libxshmfence1 python3 python3-venv ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# VS Code refuses to run as root without --no-sandbox, so tests run as the image's node user.
+USER node
+ENV UV_PYTHON_PREFERENCE=only-managed
+RUN python3 -m venv /home/node/uvenv \
+ && /home/node/uvenv/bin/pip install --no-cache-dir uv==0.7.6 \
+ && /home/node/uvenv/bin/uv python install 3.10 3.13
+ENV PATH=/home/node/uvenv/bin:$PATH
+# A named volume mounted here keeps the VS Code download between runs
+RUN mkdir -p /home/node/cache
+WORKDIR /home/node

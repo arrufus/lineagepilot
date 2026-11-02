@@ -1,0 +1,243 @@
+{
+  "name": "lineagepilot",
+  "displayName": "LineagePilot",
+  "description": "Lineage and change impact for your project's models, exposures and Airflow tasks, from the artifacts already in your workspace. No server, no account.",
+  "version": "0.1.0",
+  "publisher": "lineagepilot",
+  "private": true,
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/arrufus/lineagepilot"
+  },
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Data Science",
+    "Other"
+  ],
+  "keywords": [
+    "lineage",
+    "impact analysis",
+    "data engineering",
+    "airflow",
+    "sql"
+  ],
+  "main": "./dist/extension.js",
+  "activationEvents": [
+    "workspaceContains:**/dbt_project.yml"
+  ],
+  "capabilities": {
+    "untrustedWorkspaces": {
+      "supported": "limited",
+      "description": "In Restricted Mode LineagePilot only reads the project's artifacts: it never runs dbt, never runs an interpreter from inside the workspace, and uses only its built-in rules.",
+      "restrictedConfigurations": [
+        "lineagePilot.python.interpreterPath",
+        "lineagePilot.dbt.executablePath",
+        "lineagePilot.index.maxArtifactMB"
+      ]
+    },
+    "virtualWorkspaces": false
+  },
+  "contributes": {
+    "configuration": {
+      "title": "LineagePilot",
+      "properties": {
+        "lineagePilot.python.interpreterPath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "Python 3.10+ interpreter for the LineagePilot language server. Machine-scoped, so workspace settings cannot set it. When empty, the Python extension's active interpreter is used, then `python3` on `PATH` (`py -3` on Windows), then a Python managed by `uv`."
+        },
+        "lineagePilot.dbt.executablePath": {
+          "type": "string",
+          "default": "",
+          "scope": "machine",
+          "markdownDescription": "The `dbt` executable that **Refresh dbt Artifacts** runs. Machine-scoped, so workspace settings cannot set it. When empty, `dbt` on `PATH` is used. dbt never runs in Restricted Mode."
+        },
+        "lineagePilot.index.maxArtifactMB": {
+          "type": "number",
+          "default": 512,
+          "minimum": 1,
+          "scope": "machine-overridable",
+          "markdownDescription": "Larger `manifest.json` or `catalog.json` files are not indexed. Cannot be raised by an untrusted workspace."
+        },
+        "lineagePilot.index.columnLineage": {
+          "type": "boolean",
+          "default": true,
+          "scope": "resource",
+          "markdownDescription": "Trace lineage column by column, from compiled SQL and `catalog.json`. The model-level graph is ready first; column lineage follows."
+        },
+        "lineagePilot.airflow.dagFolders": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "dags"
+          ],
+          "scope": "resource",
+          "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. DAG files are only ever parsed, never imported or run."
+        },
+        "lineagePilot.trace.server": {
+          "type": "string",
+          "enum": [
+            "off",
+            "messages",
+            "verbose"
+          ],
+          "default": "off",
+          "scope": "window",
+          "description": "Log the messages between VS Code and the LineagePilot language server."
+        }
+      }
+    },
+    "commands": [
+      {
+        "command": "lineagePilot.showImpact",
+        "title": "Analyze Impact of Current Model",
+        "category": "LineagePilot",
+        "icon": "$(target)"
+      },
+      {
+        "command": "lineagePilot.refreshArtifacts",
+        "title": "Refresh dbt Artifacts",
+        "category": "LineagePilot",
+        "enablement": "isWorkspaceTrusted"
+      },
+      {
+        "command": "lineagePilot.reindex",
+        "title": "Re-index Lineage",
+        "category": "LineagePilot",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "lineagePilot.exportGraph",
+        "title": "Export Lineage Graph",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.exportPiiInventory",
+        "title": "Export PII Inventory",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.followEditor",
+        "title": "Follow the Active Editor",
+        "category": "LineagePilot",
+        "icon": "$(pin)"
+      },
+      {
+        "command": "lineagePilot.showStatus",
+        "title": "Show Status",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.restartServer",
+        "title": "Restart Language Server",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.showOutput",
+        "title": "Show Output",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.openNode",
+        "title": "Open",
+        "category": "LineagePilot"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "lineagePilot.refreshArtifacts",
+          "when": "isWorkspaceTrusted"
+        },
+        {
+          "command": "lineagePilot.followEditor",
+          "when": "false"
+        },
+        {
+          "command": "lineagePilot.openNode",
+          "when": "false"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "lineagePilot.followEditor",
+          "when": "view == lineagePilot.lineage && lineagePilot.lineagePinned",
+          "group": "navigation@1"
+        },
+        {
+          "command": "lineagePilot.reindex",
+          "when": "view == lineagePilot.lineage",
+          "group": "navigation@2"
+        }
+      ]
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "lineagePilot",
+          "title": "LineagePilot",
+          "icon": "media/lineage.svg"
+        }
+      ]
+    },
+    "views": {
+      "lineagePilot": [
+        {
+          "id": "lineagePilot.lineage",
+          "name": "Lineage"
+        },
+        {
+          "id": "lineagePilot.airflow",
+          "name": "Airflow"
+        }
+      ]
+    },
+    "viewsWelcome": [
+      {
+        "view": "lineagePilot.lineage",
+        "contents": "Open a model, source or properties file to see what is upstream and downstream of it."
+      },
+      {
+        "view": "lineagePilot.airflow",
+        "contents": "The Airflow DAGs and tasks that run the open model will appear here. Airflow linkage is not available in this version yet."
+      }
+    ]
+  },
+  "scripts": {
+    "generate-protocol": "python3 ../protocol/generate.py",
+    "bundle-libs": "python3 scripts/bundle_libs.py",
+    "typecheck": "tsc -p . --noEmit",
+    "compile": "npm run typecheck && node esbuild.mjs",
+    "compile-tests": "tsc -p .",
+    "prepackage": "python3 scripts/bundle_libs.py --clean-only && npm run typecheck && node esbuild.mjs --production",
+    "package": "vsce package --no-dependencies --skip-license -o dist/lineagepilot.vsix",
+    "check-vsix": "python3 scripts/check_vsix.py dist/lineagepilot.vsix",
+    "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
+    "test:integration": "npm run compile-tests && npm run compile && vscode-test",
+    "test:coverage": "npm run compile-tests && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
+  },
+  "dependencies": {
+    "@vscode/python-extension": "1.0.6",
+    "vscode-languageclient": "10.1.2",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/mocha": "10.0.10",
+    "@types/node": "22.20.5",
+    "@types/vscode": "1.93.0",
+    "@vscode/test-cli": "0.0.15",
+    "@vscode/test-electron": "3.1.0",
+    "@vscode/vsce": "4.0.0",
+    "c8": "12.0.0",
+    "esbuild": "0.28.2",
+    "mocha": "11.8.0",
+    "ovsx": "1.3.0",
+    "typescript": "5.9.3"
+  }
+}

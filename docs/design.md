@@ -177,9 +177,9 @@ S1 measured the result: 8 packages, a 1.36 MB VSIX, and 0 compiled files. Startu
 1. The `lineagePilot.python.interpreterPath` setting. It is machine-scoped, so a workspace cannot set it (section 10). If it is set but unusable, that is an error, not a silent fallback.
 2. The active environment from the Python extension, via `@vscode/python-extension`.
 3. `python3` on `PATH` (on Windows, `py -3` and then `python`). On macOS, VS Code takes `PATH` from the login shell.
-4. A uv-managed interpreter, offered with consent.
+4. A Python that uv has already installed, found with `uv python find --no-project` and no download; then, only if the user agrees, one that uv downloads (`uv python install 3.13`).
 
-In an untrusted workspace, a candidate inside a workspace folder is never run, not even to probe its version (section 10).
+In an untrusted workspace, a candidate inside a workspace folder is never run, not even to probe its version (section 10). Commands found on `PATH` are resolved to absolute paths first, so a workspace directory on `PATH` cannot slip a `python3` past the check (task 2.4); the setting gets the same check, and so does uv itself.
 
 Minimum Python version: 3.10.
 
@@ -462,6 +462,14 @@ The legacy server and dashboard stay frozen in the data-capsule repository, in `
 | Extension | vitest units; `@vscode/test-cli` integration tests on the fixture workspace (CodeLens counts, diagnostics, commands, restricted-mode refusals) | ≥ 75% coverage |
 | Webview | vitest with React Testing Library; message-schema contract tests shared with the extension | ≥ 75% coverage |
 | CI matrix | ubuntu, macOS and Windows × Python 3.10 and 3.13. Package the VSIX and check a size budget. `npm audit`, `pip-audit`, gitleaks | Required for merge |
+
+How the extension is tested (Phase 2):
+- **Unit tests** use mocha in plain Node for the modules that do not import `vscode`: interpreter resolution, PATH lookup, restart backoff, the status bar, project discovery and the zod validators against the shared contract examples.
+- **Integration tests** run with `@vscode/test-cli` in a real VS Code on a copy of `fixtures/jaffle-shop`, in four configurations: trusted with the interpreter from the setting, Restricted Mode, Python from `PATH`, and Python from the Python extension. Every workspace is hostile: its `.vscode/settings.json` points the interpreter and dbt at planted scripts that record if they ever run.
+- **Restricted Mode**: `@vscode/test-electron` always passes `--disable-workspace-trust`, which makes every workspace trusted. The restricted configuration starts VS Code through a small wrapper that drops that argument.
+- **Coverage**: unit and integration tests run together in one VS Code against the source build, so V8 coverage maps back to `src/*.ts`.
+- **Locally**, the integration tests run headless in a Linux container (`extension/docker/`). A test window on a developer's desktop takes focus, and a stray keystroke can reload it, which ends the run.
+- **The packaged server** is also tested directly: CI runs the language server's end-to-end tests against the VSIX's `bundled/tool/lsp_server.py`, on interpreters with nothing installed.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

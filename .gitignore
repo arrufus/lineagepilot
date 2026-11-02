@@ -25,3 +25,6 @@ work/
 
 # macOS
 .DS_Store
+
+# Test output
+coverage/
