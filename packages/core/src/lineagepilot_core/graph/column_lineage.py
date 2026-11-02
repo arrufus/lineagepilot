@@ -78,12 +78,18 @@ def compiled_sql(result: ParseResult, project_root: Path | None = None) -> dict[
     return found
 
 
-def catalog_schema(graph: MetadataGraph) -> MappingSchema:
-    """A sqlglot schema of every relation the catalog describes, with its columns."""
+def catalog_schema(graph: MetadataGraph, node_ids: Iterable[str] | None = None) -> MappingSchema:
+    """A sqlglot schema of the relations the catalog describes, with their columns.
+
+    Every relation by default (1.4 s at 5,000 models), or only those of ``node_ids``:
+    a model's direct upstream nodes are all its SQL can read, so a schema of just
+    those serves one model in milliseconds.
+    """
     dialect = sqlglot_dialect(graph.adapter_type)
     tables = []
     seen: set[str] = set()
-    for node in graph.nodes.values():
+    nodes = graph.nodes.values() if node_ids is None else (graph.node(n) for n in node_ids)
+    for node in nodes:
         if not node.in_catalog or not node.relation_id or node.relation_id in seen:
             continue
         relation = graph.nodes.get(node.relation_id)

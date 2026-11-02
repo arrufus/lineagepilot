@@ -115,7 +115,9 @@ flowchart LR
   Git --> Views
 ```
 
-**Process model**: one language server per workspace folder that contains a `dbt_project.yml`, which supports multi-root workspaces. The transport is **stdio only**: the extension never opens a network port.
+**Process model**: one language server per dbt project, that is per folder with a `dbt_project.yml` in any workspace folder. Usually that is one per workspace folder; a repository with several dbt projects gets one each, so a failure in one never affects another (task 2.1). Multi-root workspaces work the same way. The transport is **stdio only**: the extension never opens a network port.
+
+The server is told at initialise which project it serves, whether the workspace is trusted, and where to cache snapshots (`context.storageUri`). It indexes in a child process (section 11), and the editor watches the files for it: `target/manifest.json` and `catalog.json` (re-index, debounced), `dbt_project.yml` (follow moved paths), the files dbt reads to build the manifest (the staleness warning), `.lineagepilot/rules.yml` at the project root (re-run the rules) and the Airflow DAG folders (Phase 5).
 
 ### 4.1 Components
 
@@ -436,7 +438,8 @@ LineagePilot has its own repository. It moved out of data-capsule, with its hist
 ```
 spikes/          Phase 0 spikes S1–S3 (throwaway code and their reports)
 packages/core/   lineagepilot_core   (pyproject.toml, uv.lock)
-packages/lsp/    lineagepilot_lsp    (pygls server)
+packages/lsp/    lineagepilot_lsp    (pygls server; pyproject.toml, uv.lock)
+fixtures/        dbt project workspaces shared by the server and extension tests
 extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
 docs/            this design and the implementation plan
 ```

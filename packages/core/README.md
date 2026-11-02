@@ -22,7 +22,7 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `rules/` | Conformance rules with five results (`pass`, `fail`, `not_applicable`, `unsupported`, `unknown`) and a score that leaves the last two out, with coverage beside it. 18 built-in rules (design section 12). Custom rules come from `.lineagepilot/rules.yml`, a size-capped, validated file whose regexes are checked for ReDoS shapes before use. |
 | `export/` | Graph exports (JSON, Mermaid, DOT, GraphML, Cypher) and the PII inventory (Markdown, CSV). Every value is escaped for its format; Mermaid and DOT IDs are generated; Cypher labels and relationship types come from fixed lists. Hypothesis property tests re-parse every format. |
 | `snapshot.py` | JSON snapshots of the whole graph, keyed by the artifacts' sha256, the snapshot format and the core version; atomic writes; a bad snapshot is rebuilt, never trusted. |
-| `indexer.py` | One pipeline for the CLI and, in Phase 2, the language server's indexer: snapshot or parse, graph, column lineage, snapshot. |
+| `indexer.py` | One pipeline for the CLI and the language server's indexer: snapshot or parse, graph, column lineage, snapshot. It can hand over the model-level graph before column lineage (`on_model_graph`), and refuses artifacts over a size cap. |
 | `cli.py` | `lineagepilot index` and `lineagepilot impact`. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).

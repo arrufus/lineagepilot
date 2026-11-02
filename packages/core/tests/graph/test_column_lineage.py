@@ -271,6 +271,23 @@ def test_catalog_schema_covers_catalogued_relations_once():
     assert not catalog_schema(graph_of("jaffle-fusion-2.0")[1]).mapping
 
 
+def test_a_schema_of_direct_upstreams_gives_one_model_the_same_lineage(jaffle):
+    _, full, sql = jaffle
+    add_column_lineage(full, sql)
+    _, graph = graph_of("jaffle-1.12")
+    model = f"{JAFFLE}.customers"
+    upstream = [e.upstream for e in graph.in_edges(model, [EdgeKind.DEPENDS_ON])]
+    schema = catalog_schema(graph, upstream)
+    assert sorted(t for s in schema.mapping.values() for ts in s.values() for t in ts) == [
+        "orders",
+        "stg_customers",
+    ]
+    add_column_lineage(graph, sql, [model], schema=schema)
+    for column in full.columns_of(model):
+        assert derived(graph, column.id) == derived(full, column.id)
+    assert graph.column_lineage[model] == full.column_lineage[model]
+
+
 class TestCompiledSql:
     def test_from_the_manifest(self):
         result, _ = graph_of("jaffle-1.12")

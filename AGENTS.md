@@ -14,8 +14,6 @@ bd sync               # Sync with git
 
 ## Landing the Plane (Session Completion)
 
-> **No git remote is configured yet** (repository created 1 November 2026). Until one is added, commit locally and skip the pull and push steps below.
-
 **When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
 
 **MANDATORY WORKFLOW:**

@@ -235,6 +235,53 @@ class TestIndexer:
         assert any("structure check failed" in e.message for e in result.errors)
         assert not (tmp_path / "cache").exists()
 
+    def test_model_graph_first_then_columns(self, project, tmp_path):
+        cache = SnapshotCache(tmp_path / "cache", keep=4)
+        stages = []
+
+        def on_model_graph(stage):
+            stages.append((stage.from_cache, stage.snapshot, dict(stage.graph.column_lineage)))
+
+        full = index_project(project, cache=cache, on_model_graph=on_model_graph)
+        [(from_cache, snapshot, lineage)] = stages
+        assert not from_cache and lineage == {}
+        assert snapshot.is_file() and snapshot != full.snapshot
+        assert len(full.graph.column_lineage) == 13
+
+        # A model-level snapshot alone is served first, then column lineage is computed
+        full.snapshot.unlink()
+        again = index_project(project, cache=cache, on_model_graph=on_model_graph)
+        assert stages[1][:2] == (True, snapshot)
+        assert not again.from_cache and len(again.graph.column_lineage) == 13
+
+        # With the full graph cached there is no model stage
+        index_project(project, cache=cache, on_model_graph=on_model_graph)
+        assert len(stages) == 2
+
+    def test_no_model_stage_without_column_lineage_or_for_unknown(self, project, tmp_path):
+        stages = []
+        index_project(project, column_lineage=False, on_model_graph=stages.append)
+        (project / "target" / "manifest.json").write_text("{")
+        bad = index_project(project, on_model_graph=stages.append)
+        assert bad.status is IndexStatus.UNKNOWN and stages == []
+
+    def test_staged_without_a_cache(self, project):
+        stages = []
+        full = index_project(project, on_model_graph=stages.append)
+        assert stages[0].snapshot is None and stages[0].graph is full.graph
+
+    @pytest.mark.parametrize("name", ["manifest.json", "catalog.json"])
+    def test_oversized_artifacts_are_refused(self, project, name):
+        # The manifest is the larger file, so it is over any limit the catalog is over
+        limit = (project / "target" / name).stat().st_size - 1
+        result = index_project(project, max_artifact_bytes=limit)
+        assert result.status is IndexStatus.UNKNOWN and result.graph is None
+        over = {e.location: e.message for e in result.errors}
+        expected = ["manifest.json", "catalog.json"] if name == "catalog.json" else [name]
+        assert set(over) == {str(project / "target" / n) for n in expected}
+        assert "MB limit for dbt artifacts" in over[str(project / "target" / name)]
+        assert index_project(project, max_artifact_bytes=None).status is IndexStatus.OK
+
     def test_compiled_sql_from_target_compiled(self, project):
         """Without compiled_code, lineage reads target/compiled under the project."""
         manifest_path = project / "target" / "manifest.json"
