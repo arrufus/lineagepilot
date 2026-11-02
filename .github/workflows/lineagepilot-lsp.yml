@@ -54,12 +54,22 @@ jobs:
           version: ${{ env.UV_VERSION }}
       - run: uv sync --locked --python ${{ matrix.python }}
       # The end-to-end tests start the server, which starts its indexer; coverage follows both.
-      # On Windows the suite hung after the tests when coverage followed the subprocesses
-      # (2 November 2026), so it runs there without coverage; the gate holds on the others.
-      - run: uv run --locked pytest $PYTEST_ARGS $NO_COV
+      - if: runner.os != 'Windows'
+        run: uv run --locked pytest $PYTEST_ARGS
         env:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
-          NO_COV: ${{ runner.os == 'Windows' && '--no-cov' || '' }}
+      # On Windows the job hung after or between tests (2 November 2026) and a timed-out job
+      # keeps no log, so the suite runs verbosely under a 5-minute limit, then lists the
+      # Python processes still running. The coverage gate holds on the other systems.
+      - if: runner.os == 'Windows'
+        run: |
+          status=0
+          timeout --kill-after=10 300 uv run --locked pytest --no-cov -v -p no:cacheprovider $PYTEST_ARGS || status=$?
+          echo "pytest exit status: $status"
+          tasklist //FI "IMAGENAME eq python.exe" //V || true
+          exit $status
+        env:
+          PYTEST_ARGS: ${{ inputs.pytest-args }}
 
   lint-and-audit:
     runs-on: ubuntu-latest

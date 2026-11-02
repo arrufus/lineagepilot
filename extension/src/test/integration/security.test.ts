@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import type { RefreshOutcome } from '../../dbt';
+import { PROBE_SCRIPT } from '../../interpreter';
 import { api, codeOf, expectTrusted, label, ran, readyServer, root, until, uri } from './helpers';
 
 const expectedSource = process.env.LP_EXPECT_SOURCE;
@@ -61,7 +62,11 @@ suite(`interpreter (${label})`, () => {
     assert.equal(config.inspect('python.interpreterPath')?.workspaceValue, undefined);
     assert.equal(config.inspect('dbt.executablePath')?.workspaceValue, undefined);
     assert.ok(!inside(server.status.server.executable, root()));
-    assert.equal(ran('planted-python-ran'), undefined, 'the planted interpreter ran');
+    // In a trusted workspace the Python extension runs the workspace's .venv to identify it;
+    // what must never happen is LineagePilot probing it or starting its server with it.
+    const ours = (ran('planted-python-ran') ?? '').split(/\r?\n/)
+      .filter((line) => line.includes(PROBE_SCRIPT) || line.includes('lsp_server.py'));
+    assert.deepEqual(ours, [], 'LineagePilot ran the planted interpreter');
   });
 });
 

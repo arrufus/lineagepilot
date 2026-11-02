@@ -45,11 +45,11 @@ function script(file, body) {
   return file;
 }
 
-// An executable that records that it ran, and with which arguments, and then does `then`
+// An executable that records each time it runs, with its arguments, and then does `then`
 function recorder(file, name, then = '') {
   return windows
-    ? script(`${file}.cmd`, `@echo %* > "${path.join(markers, name)}"\r\n${then}`)
-    : script(file, `#!/bin/sh\necho "$@" > "${path.join(markers, name)}"\n${then}\n`);
+    ? script(`${file}.cmd`, `@echo %* >> "${path.join(markers, name)}"\r\n${then}`)
+    : script(file, `#!/bin/sh\necho "$@" >> "${path.join(markers, name)}"\n${then}\n`);
 }
 
 function workspace(label, hostile = {}) {
