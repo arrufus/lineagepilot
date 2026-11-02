@@ -374,12 +374,14 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 | Cold index, 5,000 models (reference) | none set | 16.5 s as-is (misses even the 2,000-model budget); 2.16 s fixed |
 | Warm start from snapshot | ≤ 1 s | 0.18 s from JSON; SQLite is slower (0.22 s) |
 | CodeLens and hover | ≤ 100 ms p95 | under 0.01 ms (lookup only) |
-| Model-level impact | ≤ 300 ms | 0.38 ms |
+| Model-level impact | ≤ 300 ms | 0.38 ms; 3–5 ms from the source with the largest closure (651 nodes) in `lineagepilot_core`, and 16–25 ms for all 14 columns of that source at column level (task 1.4) |
 | Column lineage for one model | ≤ 2 s | ≤ 0.35 s with `sqlglot.lineage` (section 6.1); 3 ms median in `lineagepilot_core` (task 1.9) |
 | Graph webview | 500 nodes stay interactive | Phase 3 |
 | Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. |
 
 **Column lineage for every model is too slow for the cold index**: 8.2 s at 2,000 models and 20.5 s at 5,000 on Python 3.13, 28.6 s at 5,000 on 3.10 (task 1.9, including adding the edges). So the indexer publishes the model-level graph first and adds column lineage after it, model by model; a query that needs a model's columns before then computes that model on demand.
+
+**The server freezes its heap once the graph is loaded** (`gc.collect(); gc.freeze()`). Without that, Python 3.10's full garbage collections over a 5,000-model graph paused impact queries for 200–285 ms, near the 300 ms budget; with it the worst query took 4.4 ms (task 1.4).
 
 So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
 
