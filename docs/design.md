@@ -3,7 +3,7 @@
 **Status**: Direction approved 1 November 2026 (decisions D-1, D-3 and D-4 in section 15). Engineering details may still change at gate G0.
 **Date**: 1 November 2026
 **Name**: LineagePilot, chosen 1 November 2026. On that date nothing used the name on the VS Code Marketplace or Open VSX, and `lineagepilot`, `lineagepilot-core` and `lineagepilot-lsp` were free on PyPI. A trademark search is still needed before the public release.
-**Companion**: [vscode_extension_implementation_plan.md](vscode_extension_implementation_plan.md)
+**Companion**: [implementation_plan.md](implementation_plan.md)
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Status**: Direction approved 1 November 2026. Tracked in beads (see Tracking).
 **Date**: 1 November 2026
-**Companion**: [vscode_extension_design.md](vscode_extension_design.md)
+**Companion**: [design.md](design.md)
 
 Estimates assume one full-time engineer who knows the codebase. They are ranges, not commitments.
 
@@ -47,7 +47,7 @@ If G0 fails, stop before Phase 1. Little beyond the spikes has been built at tha
 
 ---
 
-## Phase 1: `lineagepilot_core` library (3 weeks)
+## Phase 1: `lineagepilot_core` library (about 4 weeks)
 
 | ID | Task |
 |---|---|
