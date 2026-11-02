@@ -146,3 +146,24 @@ def test_stats(graph):
         "node_kinds": {"model": 3},
         "edge_kinds": {"depends_on": 2, "derives": 1},
     }
+
+
+def test_remove_edge(graph):
+    edge = graph.edge(EdgeKind.DERIVES, "model.p.a#id", "model.p.b#id")
+    graph.remove_edge(edge)
+    assert graph.edge(EdgeKind.DERIVES, "model.p.a#id", "model.p.b#id") is None
+    assert graph.out_edges("model.p.a#id") == [] and graph.in_edges("model.p.b#id") == []
+    with pytest.raises(GraphError, match="no such edge"):
+        graph.remove_edge(edge)
+
+
+def test_remove_unresolved_by_subject_and_origin(graph):
+    from_sql = Unresolved("model.p.b", "x", "r", PARSED)
+    from_manifest = Unresolved("model.p.b", "y", "r", MANIFEST)
+    elsewhere = Unresolved("model.p.c", "z", "r", PARSED)
+    for record in (from_sql, from_manifest, elsewhere):
+        graph.add_unresolved(record)
+    graph.remove_unresolved(["model.p.b"], origin=Origin.COMPILED_SQL)
+    assert graph.unresolved == [from_manifest, elsewhere]
+    graph.remove_unresolved(["model.p.b", "model.p.c"])
+    assert graph.unresolved == []

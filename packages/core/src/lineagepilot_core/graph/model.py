@@ -124,6 +124,9 @@ class Node:
     file_path: str | None = None  # the file that defines it, relative to the project
     patch_path: str | None = None  # the YAML file that documents it
     properties: dict[str, Any] = field(default_factory=dict)
+    language: str | None = None  # sql or python, for models
+    compiled_path: str | None = None  # where dbt writes the compiled SQL
+    in_catalog: bool = False  # catalog.json has an entry for it
 
     @property
     def has_tests(self) -> bool:
@@ -146,6 +149,7 @@ class Column:
     test_count: int = 0
     test_types: list[str] = field(default_factory=list)
     stats: dict[str, Any] = field(default_factory=dict)
+    in_catalog: bool = False  # catalog.json lists it, so it exists in the warehouse
 
     @property
     def has_tests(self) -> bool:
@@ -177,6 +181,18 @@ class Unresolved:
     evidence: Evidence
 
 
+class LineageState(str, Enum):
+    RESOLVED = "resolved"  # every output column was traced
+    PARTIAL = "partial"  # some references could not be resolved; see Unresolved records
+    UNKNOWN = "unknown"  # not analysed, for the reason given; never "no lineage"
+
+
+@dataclass(frozen=True, slots=True)
+class ColumnLineageStatus:
+    state: LineageState
+    reason: str | None = None
+
+
 class GraphError(ValueError):
     """An operation that would make the graph inconsistent."""
 
@@ -194,6 +210,8 @@ class MetadataGraph:
         self._out: defaultdict[str, list[Edge]] = defaultdict(list)
         self._in: defaultdict[str, list[Edge]] = defaultdict(list)
         self._files: defaultdict[str, set[str]] = defaultdict(set)
+        # Column lineage state per model or snapshot; absent means not computed yet
+        self.column_lineage: dict[str, ColumnLineageStatus] = {}
 
     # Building
 
@@ -248,6 +266,24 @@ class MetadataGraph:
 
     def add_unresolved(self, record: Unresolved) -> None:
         self.unresolved.append(record)
+
+    def remove_edge(self, edge: Edge) -> None:
+        key = (edge.kind, edge.upstream, edge.downstream)
+        if self._edges.pop(key, None) is None:
+            raise GraphError(
+                f"no such edge: {edge.kind.value} {edge.upstream} -> {edge.downstream}"
+            )
+        self._out[edge.upstream].remove(edge)
+        self._in[edge.downstream].remove(edge)
+
+    def remove_unresolved(self, subjects: Iterable[str], origin: Origin | None = None) -> None:
+        """Drop the unresolved records of these subjects, optionally only from one origin."""
+        wanted = set(subjects)
+        self.unresolved = [
+            u
+            for u in self.unresolved
+            if u.subject not in wanted or (origin is not None and u.evidence.origin is not origin)
+        ]
 
     # Queries
 

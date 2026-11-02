@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import hashlib
+import json
 
 import pytest
 from support import DBT_FIXTURES, REAL_PROJECTS, project_config, raw_manifest
@@ -172,3 +173,19 @@ def test_stats_on_synth():
     assert stats["node_kinds"]["exposure"] == 1
     assert stats["edge_kinds"]["depends_on"] == 45
     assert stats["edge_kinds"]["materialises"] == 34  # every node except the exposure
+
+
+def test_catalog_presence_is_recorded():
+    graph = build("jaffle-1.12")
+    catalog = json.loads((DBT_FIXTURES / "jaffle-1.12" / "catalog.json").read_bytes())
+    catalogued = set(catalog["nodes"]) | set(catalog["sources"])
+    for node in graph.nodes.values():
+        if node.kind is not NodeKind.RELATION:
+            assert node.in_catalog is (node.id in catalogued), node.id
+    assert all(c.in_catalog for c in graph.columns.values())
+    assert not any(c.in_catalog for c in build("jaffle-1.12", catalog=False).columns.values())
+    customers = graph.node("model.jaffle_shop.customers")
+    assert (customers.language, customers.compiled_path) == (
+        "sql",
+        "target/compiled/jaffle_shop/models/marts/customers.sql",
+    )

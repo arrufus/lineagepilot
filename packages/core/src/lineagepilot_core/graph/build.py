@@ -103,6 +103,7 @@ def build_dbt_graph(result: ParseResult, graph: MetadataGraph | None = None) -> 
                 test_count=raw_column.test_count,
                 test_types=raw_column.test_types,
                 stats=raw_column.stats,
+                in_catalog=raw_column.in_catalog,
             )
         )
 
@@ -154,4 +155,7 @@ def _node(raw: RawNode, relation: str | None) -> Node:
         file_path=raw.original_file_path,
         patch_path=raw.patch_path,
         properties=raw.properties,
+        language=raw.language,
+        compiled_path=raw.compiled_path,
+        in_catalog=raw.in_catalog,
     )

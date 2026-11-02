@@ -344,9 +344,9 @@ class DbtParser(MetadataParser):
                 continue
             try:
                 raw = self._node_to_raw(node_id, node, config, tests)
-                columns = self._extract_columns(
-                    raw, node, _dict(catalog_nodes.get(node_id)), config, tests
-                )
+                catalog_entry = _dict(catalog_nodes.get(node_id))
+                raw.in_catalog = bool(catalog_entry)
+                columns = self._extract_columns(raw, node, catalog_entry, config, tests)
             except Exception as e:  # untrusted input: lose one node, never the index
                 result.add_error(
                     f"Error processing {node.get('resource_type')} {node_id}: {e}",
@@ -395,9 +395,9 @@ class DbtParser(MetadataParser):
                         "loader": _str(source.get("loader")),
                     },
                 )
-                columns = self._extract_columns(
-                    raw, source, _dict(catalog_sources.get(source_id)), config, tests
-                )
+                catalog_entry = _dict(catalog_sources.get(source_id))
+                raw.in_catalog = bool(catalog_entry)
+                columns = self._extract_columns(raw, source, catalog_entry, config, tests)
             except Exception as e:  # untrusted input: lose one source, never the index
                 result.add_error(f"Error processing source {source_id}: {e}", location=source_id)
                 continue
@@ -473,6 +473,9 @@ class DbtParser(MetadataParser):
             test_types=sorted(set(test_kinds)),
             original_file_path=_str(node.get("original_file_path")),
             patch_path=_patch_path(node.get("patch_path")),
+            language=_str(node.get("language")),
+            compiled_code=_str(node.get("compiled_code")),
+            compiled_path=_str(node.get("compiled_path")),
         )
 
     def _infer_layer(
@@ -550,6 +553,7 @@ class DbtParser(MetadataParser):
                 index if isinstance(index, int) and not isinstance(index, bool) else None
             )
             data["stats"] = self._extract_column_stats(info)
+            data["in_catalog"] = True
 
         columns: list[RawColumn] = []
         for ordinal, (key, data) in enumerate(columns_data.items(), start=1):
@@ -576,6 +580,7 @@ class DbtParser(MetadataParser):
                     has_tests=bool(test_kinds),
                     test_count=len(test_kinds),
                     test_types=sorted(set(test_kinds)),
+                    in_catalog=data.get("in_catalog", False),
                 )
             )
         return columns

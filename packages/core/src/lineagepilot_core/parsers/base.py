@@ -93,6 +93,15 @@ class RawNode:
     # type, maturity, url and label for exposures
     properties: dict[str, Any] = field(default_factory=dict)
 
+    # Column lineage inputs: compiled SQL from the manifest (after dbt compile or
+    # docs generate), the file dbt compiles it to, and sql or python
+    language: str | None = None
+    compiled_code: str | None = None
+    compiled_path: str | None = None
+
+    # True if catalog.json has an entry for this node
+    in_catalog: bool = False
+
 
 @dataclass(slots=True)
 class RawColumn:
@@ -124,6 +133,9 @@ class RawColumn:
     has_tests: bool = False
     test_count: int = 0
     test_types: list[str] = field(default_factory=list)
+
+    # True if catalog.json lists this column, so it really exists in the warehouse
+    in_catalog: bool = False
 
 
 @dataclass(slots=True)

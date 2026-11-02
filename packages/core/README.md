@@ -11,9 +11,11 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `parsers/sql_parser.py` | Tables read and written by one SQL statement (sqlglot). |
 | `parsers/data_flow_annotations.py` | Declared data flow for Airflow tasks, from YAML or JSON. |
 | `parsers/dbt_manifest_resolver.py` | dbt selectors to models. Phase 5 replaces its selector rules. |
+| `parsers/sql_lineage.py` | Column lineage of one compiled SQL statement with `sqlglot.lineage` over a `catalog.json` schema; `unknown`, with a reason, whenever a wrong answer is possible. |
 | `graph/ids.py` | Canonical IDs (design section 5.1): dbt `unique_id`, `relation:<db>.<schema>.<name>`, `<node>#<column>` and `airflow:<dag>.<task>`, folded to the adapter's case rules. |
 | `graph/model.py` | `MetadataGraph`: nodes, columns, edges that point upstream to downstream and carry evidence (origin, confidence, artifact version, location), and `Unresolved` records. |
 | `graph/build.py` | Builds the graph from a dbt parse, with explicit `materialises` edges to physical relations. Refuses a parse that has errors. |
+| `graph/column_lineage.py` | Adds `derives` edges per model, with a `resolved` / `partial` / `unknown` status and `Unresolved` records. Run after the model-level index: about 3 ms a model. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
 
