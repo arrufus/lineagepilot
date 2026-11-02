@@ -1,0 +1,62 @@
+# lineagepilot_core (Phase 1): tests with the coverage gate and the import contract on
+# Linux, macOS and Windows with Python 3.10 and 3.13, plus lint and a dependency audit.
+name: lineagepilot-core
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "packages/core/**"
+      - ".github/workflows/lineagepilot-core.yml"
+  pull_request:
+    paths:
+      - "packages/core/**"
+      - ".github/workflows/lineagepilot-core.yml"
+
+permissions:
+  contents: read
+
+env:
+  # The version that wrote uv.lock, so `--locked` compares like with like.
+  UV_VERSION: "0.7.6"
+
+defaults:
+  run:
+    shell: bash
+    working-directory: packages/core
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        python: ["3.10", "3.13"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+      # --locked fails if uv.lock is out of date with pyproject.toml.
+      - run: uv sync --locked --python ${{ matrix.python }}
+      # Includes the import-linter contract and the 80% coverage gate.
+      - run: uv run --locked pytest
+
+  lint-and-audit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+      - run: uv sync --locked
+      - run: uv run --locked ruff check .
+      - run: uv run --locked ruff format --check .
+      # Runtime and dev dependencies, exactly as locked, with their hashes.
+      - run: |
+          mkdir -p work
+          uv export --frozen --no-emit-project --no-group audit --format requirements-txt \
+            -o work/audit-requirements.txt
+          uv run --locked --only-group audit pip-audit --strict --require-hashes --disable-pip \
+            -r work/audit-requirements.txt

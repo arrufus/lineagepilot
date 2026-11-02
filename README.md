@@ -16,7 +16,7 @@ extension/        the VS Code extension (Phase 2)
 docs/             design and implementation plan
 ```
 
-`packages/` and `extension/` do not exist yet. Phase 1 starts after Gate G0.
+`packages/lsp/` and `extension/` do not exist yet; they arrive in Phase 2.
 
 ## Where this came from
 
@@ -28,4 +28,4 @@ Issues here use the prefix `LP`. A `DCS-…` ID in these documents is a data-cap
 
 ## Status
 
-Phase 0 is complete: S1–S3 have been measured and S4 was waived. [spikes/G0_REPORT.md](spikes/G0_REPORT.md) recommends proceeding and sets out the evidence. Phase 1 starts once Gate G0 (LP-1ay.5) is closed.
+Phase 0 is complete: S1–S3 have been measured and S4 was waived. Gate G0 (LP-1ay.5) passed on 2 November 2026, on the evidence in [spikes/G0_REPORT.md](spikes/G0_REPORT.md). Phase 1, the `lineagepilot_core` library ([packages/core](packages/core/README.md)), is under way.

@@ -1,0 +1,68 @@
+[project]
+name = "lineagepilot-core"
+dynamic = ["version"]
+description = "LineagePilot core: dbt and Airflow parsers, the metadata graph, analysis and exporters. Editor-agnostic and headless."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    # S2 finding 9: the lineage API changed between majors, so stay on one.
+    # 30.23 is the floor the S1 bundle shipped; S2 measured 30.27.
+    "sqlglot>=30.23,<31",
+    "pyyaml>=6.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+    "pytest-cov>=5",
+    "import-linter>=2.1",
+    "ruff>=0.6",
+]
+# Kept out of `dev` so the auditor and its dependencies are not part of what it audits.
+audit = ["pip-audit>=2.7"]
+
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+path = "src/lineagepilot_core/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/lineagepilot_core"]
+
+[tool.uv]
+# The Homebrew Pythons on the development machine are x86_64 builds under Rosetta.
+python-preference = "only-managed"
+# Resolve only releases at least two weeks old. Move this date forward deliberately,
+# in its own commit, and re-run the audit job.
+exclude-newer = "2026-10-19T00:00:00Z"
+
+[tool.importlinter]
+root_package = "lineagepilot_core"
+include_external_packages = true
+
+[[tool.importlinter.contracts]]
+name = "lineagepilot_core does not import the retired server stack"
+type = "forbidden"
+source_modules = ["lineagepilot_core"]
+forbidden_modules = ["sqlalchemy", "fastapi", "pydantic"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --cov=lineagepilot_core --cov-report=term-missing"
+
+[tool.coverage.run]
+branch = true
+source = ["lineagepilot_core"]
+
+[tool.coverage.report]
+fail_under = 80
+skip_covered = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "T20"]  # T20: no print(), it would corrupt LSP stdio
