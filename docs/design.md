@@ -372,12 +372,12 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 |---|---|---|
 | Cold index, 2,000-model manifest | ≤ 5 s | 3.07 s as-is; 0.89 s fixed |
 | Cold index, 5,000 models (reference) | none set | 16.5 s as-is (misses even the 2,000-model budget); 2.16 s fixed |
-| Warm start from snapshot | ≤ 1 s | 0.18 s from JSON; SQLite is slower (0.22 s) |
+| Warm start from snapshot | ≤ 1 s | 0.18 s from JSON; SQLite is slower (0.22 s). 0.53–0.56 s in `lineagepilot_core` for the full graph with column lineage, a 64 MB snapshot (task 1.8) |
 | CodeLens and hover | ≤ 100 ms p95 | under 0.01 ms (lookup only) |
 | Model-level impact | ≤ 300 ms | 0.38 ms; 3–5 ms from the source with the largest closure (651 nodes) in `lineagepilot_core`, and 16–25 ms for all 14 columns of that source at column level (task 1.4) |
 | Column lineage for one model | ≤ 2 s | ≤ 0.35 s with `sqlglot.lineage` (section 6.1); 3 ms median in `lineagepilot_core` (task 1.9) |
 | Graph webview | 500 nodes stay interactive | Phase 3 |
-| Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. |
+| Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. With column lineage in the graph (127,000 columns, 97,000 `derives` edges) a warm start peaks at 387–405 MB (task 1.8). |
 
 **Column lineage for every model is too slow for the cold index**: 8.2 s at 2,000 models and 20.5 s at 5,000 on Python 3.13, 28.6 s at 5,000 on 3.10 (task 1.9, including adding the edges). So the indexer publishes the model-level graph first and adds column lineage after it, model by model; a query that needs a model's columns before then computes that model on demand.
 

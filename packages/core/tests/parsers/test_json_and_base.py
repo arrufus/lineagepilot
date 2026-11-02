@@ -84,3 +84,13 @@ def test_a_full_parse_is_identical_on_both_json_paths(monkeypatch):
     assert [asdict(n) for n in with_stdlib.nodes] == [asdict(n) for n in with_orjson.nodes]
     assert [asdict(c) for c in with_stdlib.columns] == [asdict(c) for c in with_orjson.columns]
     assert with_stdlib.edges == with_orjson.edges
+
+
+@pytest.mark.parametrize("value", [{"a": "é"}, {"a": "lone \ud800 surrogate"}, [1, None, True]])
+def test_dumps_round_trips_on_both_paths(loader, value):
+    """orjson refuses lone surrogates both ways; both paths fall back to the stdlib."""
+    assert loader.loads(loader.dumps(value)) == value
+
+
+def test_loads_accepts_what_the_stdlib_accepts(loader):
+    assert loader.loads(b'{"a": "\\ud800"}') == {"a": "\ud800"}

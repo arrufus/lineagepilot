@@ -48,6 +48,8 @@ def build_dbt_graph(result: ParseResult, graph: MetadataGraph | None = None) -> 
         dbt_version=result.dbt_version,
     )
     graph.manifest = manifest
+    graph.project_name = result.project_name or None
+    graph.schema_version = result.schema_version
 
     def evidence(file_path: str | None) -> Evidence:
         return Evidence(

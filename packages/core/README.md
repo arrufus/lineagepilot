@@ -21,6 +21,9 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `analysis/pii.py` | PII indicators: declared (tag), suggested by a column name (pattern), or inherited along every lineage path (lineage), with masking stopping the flow. An exposure report for consumption layers and a per-column trace. Labelled indicators, not verified exposure. |
 | `rules/` | Conformance rules with five results (`pass`, `fail`, `not_applicable`, `unsupported`, `unknown`) and a score that leaves the last two out, with coverage beside it. 18 built-in rules (design section 12). Custom rules come from `.lineagepilot/rules.yml`, a size-capped, validated file whose regexes are checked for ReDoS shapes before use. |
 | `export/` | Graph exports (JSON, Mermaid, DOT, GraphML, Cypher) and the PII inventory (Markdown, CSV). Every value is escaped for its format; Mermaid and DOT IDs are generated; Cypher labels and relationship types come from fixed lists. Hypothesis property tests re-parse every format. |
+| `snapshot.py` | JSON snapshots of the whole graph, keyed by the artifacts' sha256, the snapshot format and the core version; atomic writes; a bad snapshot is rebuilt, never trusted. |
+| `indexer.py` | One pipeline for the CLI and, in Phase 2, the language server's indexer: snapshot or parse, graph, column lineage, snapshot. |
+| `cli.py` | `lineagepilot index` and `lineagepilot impact`. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
 
@@ -43,6 +46,32 @@ UV_PROJECT_ENVIRONMENT=work/venv-py310 uv run --python 3.10 pytest
 ```
 
 CI runs the same commands on Linux, macOS and Windows with Python 3.10 and 3.13 ([workflow](../../.github/workflows/lineagepilot-core.yml)).
+
+## Performance budgets
+
+Design section 11, measured on spike S2's 5,000-model synthetic project (dbt 1.12, with catalog) on an Apple M4 Max, 2 November 2026. Reproduce with `uv run python scripts/budgets.py <dir with manifest.json and catalog.json>`.
+
+| Budget | Python 3.13 | Python 3.10 |
+|---|---|---|
+| Cold index, model level (parse and graph; ≤ 5 s at 2,000 models) | 2.53 s | 2.78 s |
+| Column lineage for every model, after the index | 21.4 s | 29.4 s |
+| Indexer peak memory (a child process) | 768 MB | 861 MB |
+| Warm start from the snapshot (≤ 1 s) | 0.53 s | 0.56 s |
+| Server memory after a warm start (≤ 500 MB) | 387 MB | 405 MB |
+| CodeLens: impact counts, p95 (≤ 100 ms) | 0.08 ms | 0.13 ms |
+| Model-level impact from the source with the largest closure, 651 nodes (≤ 300 ms) | 3.1 ms | 5.0 ms |
+| Column lineage for one model, worst of the 10 longest (≤ 2 s) | 0.008 s | 0.011 s |
+
+The server freezes its heap after loading (`gc.collect(); gc.freeze()`); without that, Python 3.10's garbage collection paused queries for up to 285 ms.
+
+## Command line
+
+```sh
+uv run lineagepilot index --project-dir path/to/dbt/project       # or --json
+uv run lineagepilot impact stg_orders#order_total --project-dir ...  # a model, column, file or unique_id
+```
+
+Snapshots go to `<project>/target/.lineagepilot` unless `--cache-dir` or `--no-cache` says otherwise. Exit codes: 0 success, 1 unknown index or target, 2 usage.
 
 ## Rules this package keeps
 

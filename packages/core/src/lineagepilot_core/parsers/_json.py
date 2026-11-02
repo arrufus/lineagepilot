@@ -17,9 +17,16 @@ except ImportError:  # pragma: no cover - depends on the environment
 
 
 def loads(data: bytes | str) -> Any:
-    """Decode JSON. Raises ``ValueError`` (``json.JSONDecodeError``) on bad input."""
+    """Decode JSON. Raises ``ValueError`` (``json.JSONDecodeError``) on bad input.
+
+    Whatever orjson refuses goes to the standard library, so both paths accept the same
+    documents: orjson rejects lone surrogate escapes (``\\ud800``) that stdlib allows.
+    """
     if orjson is not None:
-        return orjson.loads(data)
+        try:
+            return orjson.loads(data)
+        except ValueError:
+            pass
     return json.loads(data)
 
 
@@ -27,3 +34,18 @@ def load_file(path: str | Path) -> Any:
     """Read and decode a JSON file. Raises ``OSError`` or ``ValueError``."""
     with open(path, "rb") as f:
         return loads(f.read())
+
+
+def dumps(value: Any) -> bytes:
+    """Encode compact JSON as bytes.
+
+    Falls back to ASCII-escaped stdlib output when orjson refuses a value: manifest
+    strings can hold lone surrogates (from ``\\ud800`` escapes), which orjson and UTF-8
+    cannot encode.
+    """
+    if orjson is not None:
+        try:
+            return orjson.dumps(value)
+        except TypeError:  # orjson.JSONEncodeError is a TypeError
+            pass
+    return json.dumps(value, separators=(",", ":")).encode("ascii")

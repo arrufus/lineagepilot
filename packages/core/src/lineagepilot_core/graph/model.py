@@ -206,6 +206,8 @@ class MetadataGraph:
         self.adapter_type = adapter_type
         # The manifest the dbt part of the graph was built from, for evidence records
         self.manifest: ArtifactVersion | None = None
+        self.project_name: str | None = None
+        self.schema_version: int | None = None  # the manifest's dbt_schema_version
         self.nodes: dict[str, Node] = {}
         self.columns: dict[str, Column] = {}
         self.unresolved: list[Unresolved] = []
