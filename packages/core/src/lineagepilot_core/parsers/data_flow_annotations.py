@@ -24,14 +24,10 @@ from typing import Any
 
 import yaml
 
+from lineagepilot_core.graph.ids import airflow_task_id
 from lineagepilot_core.parsers import _json
 
 logger = logging.getLogger(__name__)
-
-
-def task_id_for(dag_id: str, task_id: str) -> str:
-    """The canonical ID of an Airflow task (design section 5.1)."""
-    return f"airflow:{dag_id}.{task_id}"
 
 
 @dataclass
@@ -124,7 +120,7 @@ class DataFlowAnnotationLoader:
                     logger.warning("Task in pipeline %s missing task_id, skipping", dag_id)
                     continue
 
-                annotation = DataFlowAnnotation(task_id=task_id_for(dag_id, task_name))
+                annotation = DataFlowAnnotation(task_id=airflow_task_id(dag_id, task_name))
                 for ref, item in _references(task.get("consumes")):
                     annotation.consumes.append(ref)
                     if isinstance(item.get("access_pattern"), str):

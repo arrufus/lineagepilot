@@ -194,6 +194,11 @@ class ParseResult:
     schema_version: int | None = None
     schema_support: SchemaSupport | None = None
     generated_at: str | None = None
+    # The files read, and their sha256, for evidence records and snapshot keys
+    manifest_path: str | None = None
+    manifest_sha256: str | None = None
+    catalog_path: str | None = None
+    catalog_sha256: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
     @property

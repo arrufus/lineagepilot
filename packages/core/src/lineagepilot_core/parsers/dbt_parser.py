@@ -21,6 +21,7 @@ fixes spike S2 called for (``spikes/s2-parse-perf/README.md``):
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import re
 from collections import defaultdict
@@ -231,7 +232,10 @@ class DbtParser(MetadataParser):
             return result
 
         manifest_path = parser_config.manifest_path
-        manifest = self._load_json(manifest_path, result, ParseErrorSeverity.ERROR)
+        manifest, result.manifest_sha256 = self._load_json(
+            manifest_path, result, ParseErrorSeverity.ERROR
+        )
+        result.manifest_path = str(manifest_path)
         if result.has_errors:
             return result
 
@@ -255,7 +259,10 @@ class DbtParser(MetadataParser):
 
         catalog: dict[str, Any] = {}
         if parser_config.catalog_path:
-            loaded = self._load_json(parser_config.catalog_path, result, ParseErrorSeverity.WARNING)
+            loaded, result.catalog_sha256 = self._load_json(
+                parser_config.catalog_path, result, ParseErrorSeverity.WARNING
+            )
+            result.catalog_path = str(parser_config.catalog_path)
             if isinstance(loaded, dict):
                 catalog = loaded
             elif loaded is not None:
@@ -283,14 +290,21 @@ class DbtParser(MetadataParser):
         logger.info("Parse complete: %s", result.summary())
         return result
 
-    def _load_json(self, path: Path, result: ParseResult, severity: ParseErrorSeverity) -> Any:
+    def _load_json(
+        self, path: Path, result: ParseResult, severity: ParseErrorSeverity
+    ) -> tuple[Any, str | None]:
+        """The decoded file and the sha256 of its bytes; (None, ...) after an error."""
         try:
-            return _json.load_file(path)
-        except ValueError as e:
-            result.add_error(f"Invalid JSON in {path}: {e}", severity, location=str(path))
+            data = path.read_bytes()
         except OSError as e:
             result.add_error(f"Cannot read {path}: {e}", severity, location=str(path))
-        return None
+            return None, None
+        digest = hashlib.sha256(data).hexdigest()
+        try:
+            return _json.loads(data), digest
+        except ValueError as e:
+            result.add_error(f"Invalid JSON in {path}: {e}", severity, location=str(path))
+            return None, digest
 
     def _warn_on_schema_version(self, result: ParseResult, path: Path) -> None:
         version = result.schema_version

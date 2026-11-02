@@ -12,10 +12,8 @@ import json
 import pytest
 import yaml
 
-from lineagepilot_core.parsers.data_flow_annotations import (
-    DataFlowAnnotationLoader,
-    task_id_for,
-)
+from lineagepilot_core.graph.ids import airflow_task_id
+from lineagepilot_core.parsers.data_flow_annotations import DataFlowAnnotationLoader
 
 STG_ACCOUNTS = "model.finance.stg_chart_of_accounts"
 RAW_TRANSACTIONS = "analytics.staging.raw_transactions"
@@ -116,7 +114,7 @@ class TestDataFlowAnnotationLoader:
 
     def test_task_id_follows_the_design(self, yaml_file):
         """Design section 5.1; the server's instance segment is ignored."""
-        assert task_id_for("dag", "task") == "airflow:dag.task"
+        assert airflow_task_id("dag", "task") == "airflow:dag.task"
         assert load(yaml_file).has_annotation(
             "airflow:finance_gl_pipeline.validate_chart_of_accounts"
         )
