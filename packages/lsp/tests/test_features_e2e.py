@@ -69,7 +69,7 @@ async def test_code_lens_on_a_model_file(start, workspace):
     assert lens.range.start == types.Position(line=0, character=0)
     assert lens.command.title == "↓ 1 model"
     assert lens.command.command == "lineagePilot.showImpact"
-    assert list(lens.command.arguments) == [f"{J}.orders"]
+    assert list(lens.command.arguments) == [f"{J}.orders", str(workspace.resolve())]
     [lens] = await lenses(client, workspace / "models" / "marts" / "customers.sql")
     assert lens.command.title == "↓ nothing downstream · PII"
 
@@ -84,7 +84,7 @@ async def test_code_lens_on_yaml_entries(start, workspace):
     assert len(found) == 6
     by_line = {lens.range.start.line: lens.command for lens in found}
     raw_orders = by_line[line_of(sources, "- name: raw_orders")]
-    assert list(raw_orders.arguments) == ["source.jaffle_shop.ecom.raw_orders"]
+    assert list(raw_orders.arguments)[0] == "source.jaffle_shop.ecom.raw_orders"
     assert raw_orders.title == "↓ 4 models"
 
 

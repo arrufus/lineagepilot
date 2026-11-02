@@ -241,9 +241,15 @@
         "version": { "$ref": "#/$defs/Name" },
         "python": { "$ref": "#/$defs/Name" },
         "executable": { "$ref": "#/$defs/Text" },
-        "pid": { "$ref": "#/$defs/Count" }
+        "pid": { "$ref": "#/$defs/Count" },
+        "isolated": { "type": "boolean", "description": "Started with python -I, so nothing from the workspace or the user's site-packages can shadow the bundle." },
+        "modules": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/Text" },
+          "description": "Where the key libraries were imported from, to check that the bundle is what runs."
+        }
       },
-      "required": ["version", "python", "executable", "pid"],
+      "required": ["version", "python", "executable", "pid", "isolated", "modules"],
       "additionalProperties": false
     },
     "ProjectInfo": {

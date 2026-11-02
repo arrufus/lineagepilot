@@ -75,7 +75,10 @@ def relative_to(path: Path, root: Path) -> str | None:
 
 
 def read_project(root: Path) -> DbtProject:
-    root = root.resolve()
+    # Absolute, but spelled as the client gave it: paths the server reports (diagnostics,
+    # navigation) must match the editor's, and on macOS /var is a symlink to /private/var.
+    # Containment checks resolve symlinks on both sides.
+    root = Path(os.path.abspath(root))
     problems: list[str] = []
     data: dict[str, Any] = {}
     path = root / PROJECT_FILE
@@ -137,8 +140,9 @@ def _inside(
     if relative.is_absolute() or (relative.parts and ":" in relative.parts[0]):
         problems.append(f"{key} {value!r} is absolute; ignored")
         return fallback
+    base = root.resolve()
     resolved = (root / relative).resolve()
-    if not resolved.is_relative_to(root):
+    if not resolved.is_relative_to(base):
         problems.append(f"{key} {value!r} leaves the project; ignored")
         return fallback
-    return resolved.relative_to(root).as_posix() or "."
+    return resolved.relative_to(base).as_posix() or "."

@@ -2,7 +2,8 @@
 
 - **CodeLens** on a model's SQL file, and on each entry in a YAML properties file:
   ``↓ 14 models · 3 Airflow tasks · 1 exposure · PII``, counted at model level over
-  everything downstream. Clicking it runs ``lineagePilot.showImpact`` with the node ID.
+  everything downstream. Clicking it runs ``lineagePilot.showImpact`` with the node ID
+  and the project root.
 - **Hover** on ``ref()`` and ``source()`` calls, and on the current model's columns: the
   direct upstream and downstream, each edge with its evidence (confidence and origin).
 - **Diagnostics** from the rules (design section 5.3): failures with the rule's
@@ -116,7 +117,8 @@ def code_lenses(ctx: GraphContext, path: Path, text: str) -> list[dict[str, Any]
                 "command": {
                     "title": lens_title(ctx.downstream_counts(node.id), ctx.has_pii(node.id)),
                     "command": SHOW_IMPACT_COMMAND,
-                    "arguments": [node.id],
+                    # The project root tells the extension which server to ask
+                    "arguments": [node.id, str(ctx.project.root)],
                 },
             }
         )

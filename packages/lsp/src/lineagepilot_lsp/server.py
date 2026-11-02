@@ -390,6 +390,8 @@ class LineagePilotServer(LanguageServer):
                 "python": platform.python_version(),
                 "executable": sys.executable,
                 "pid": os.getpid(),
+                "isolated": bool(sys.flags.isolated),
+                "modules": _module_files(),
             },
             "project": {
                 "root": str(project.root) if project else None,
@@ -479,8 +481,11 @@ class LineagePilotServer(LanguageServer):
     # Helpers
 
     def log(self, message: str, level: types.MessageType = types.MessageType.Info) -> None:
-        logger.log(_LOG_LEVELS[level], "%s", message)
-        self.window_log_message(types.LogMessageParams(type=level, message=message))
+        """Log to the client's output (through ClientLogHandler, when main() set it up)."""
+        if any(isinstance(h, ClientLogHandler) for h in logging.getLogger().handlers):
+            logger.log(_LOG_LEVELS[level], "%s", message)
+        else:
+            self.window_log_message(types.LogMessageParams(type=level, message=message))
 
     def spawn(self, coroutine) -> asyncio.Task[Any]:
         task = asyncio.ensure_future(coroutine)
@@ -495,6 +500,18 @@ _LOG_LEVELS = {
     types.MessageType.Info: logging.INFO,
     types.MessageType.Log: logging.DEBUG,
 }
+
+
+_REPORTED_MODULES = ("lineagepilot_lsp", "lineagepilot_core", "pygls", "sqlglot", "yaml")
+
+
+def _module_files() -> dict[str, str]:
+    """Where the key libraries were imported from (they all are, by the time this runs)."""
+    return {
+        name: str(getattr(sys.modules[name], "__file__", ""))
+        for name in _REPORTED_MODULES
+        if name in sys.modules
+    }
 
 
 def _mtime_iso(path: Path) -> str | None:
@@ -582,10 +599,39 @@ def _params(ls: LineagePilotServer, record: type[protocol._Record], params: Any)
         raise JsonRpcInvalidParams(f"invalid params: {e}") from None
 
 
+class ClientLogHandler(logging.Handler):
+    """Send log records to the client as window/logMessage, with their levels.
+
+    The client shows the server's stderr as errors whatever it says, so stderr carries only
+    warnings and errors, for anything that happens before the connection is up.
+    """
+
+    def __init__(self, server: LineagePilotServer) -> None:
+        super().__init__(logging.INFO)
+        self.server = server
+
+    def emit(self, record: logging.LogRecord) -> None:
+        if self.server.protocol.writer is None or self.server.protocol._shutdown:
+            return
+        level = next(
+            (t for t, n in _LOG_LEVELS.items() if n <= record.levelno), types.MessageType.Log
+        )
+        try:
+            self.server.window_log_message(
+                types.LogMessageParams(type=level, message=self.format(record))
+            )
+        except Exception:  # never let logging break the server
+            self.handleError(record)
+
+
 def main() -> None:
-    logging.basicConfig(
-        stream=sys.stderr, level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
-    )
-    # pygls logs every message at INFO; stderr is the extension's output channel
+    server = create_server()
+    stderr = logging.StreamHandler(sys.stderr)
+    stderr.setLevel(logging.WARNING)
+    client = ClientLogHandler(server)
+    for handler in (stderr, client):
+        handler.setFormatter(logging.Formatter("%(levelname)s %(name)s: %(message)s"))
+    logging.basicConfig(level=logging.INFO, handlers=[stderr, client])
+    # pygls logs every message at INFO
     logging.getLogger("pygls").setLevel(logging.WARNING)
-    create_server().start_io()
+    server.start_io()

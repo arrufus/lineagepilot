@@ -42,7 +42,7 @@ def test_project_defaults(tmp_path):
     assert project.name == "shop" and project.target_path == "target"
     assert project.source_paths == ("models", "seeds", "snapshots", "macros", "analyses", "tests")
     assert project.problems == ()
-    assert project.manifest_path == tmp_path.resolve() / "target" / "manifest.json"
+    assert project.manifest_path == tmp_path / "target" / "manifest.json"
 
 
 def test_project_paths_are_read(tmp_path):
@@ -319,7 +319,8 @@ async def test_staleness_updates(tmp_path):
     index, calls = make_index(tmp_path)
     await index.refresh_staleness()  # no manifest time yet: nothing is stale
     assert index.stale == set()
-    index.manifest_mtime = time.time() - 3600
+    # Older than every fixture file, whenever the repository was checked out
+    index.manifest_mtime = 0
     index.update_staleness(["models/staging/stg_orders.sql"])
     assert index.stale == {"models/staging/stg_orders.sql"}
     index.update_staleness(["models/missing.sql"])
@@ -396,3 +397,17 @@ def test_relative_to_follows_the_platform_case_rules(tmp_path, monkeypatch):
     monkeypatch.setattr(project_module.os.path, "normcase", str.lower)
     spelled = Path(str(root).replace("Proj", "PROJ")) / "models" / "A.sql"
     assert project_module.relative_to(spelled, root) == "models/A.sql"
+
+
+def test_the_project_keeps_the_client_s_spelling_of_its_path(tmp_path):
+    """Diagnostics and navigation must use the editor's path, not the resolved one."""
+    real = tmp_path / "real"
+    write_project(real, 'name: x\nmodel-paths: ["models"]\n')
+    (real / "models").mkdir()
+    link = tmp_path / "link"
+    link.symlink_to(real, target_is_directory=True)
+    project = read_project(link)
+    assert project.root == link and project.manifest_path == link / "target" / "manifest.json"
+    assert project.relative(real / "models" / "a.sql") == "models/a.sql"
+    assert project.relative(link / "models" / "a.sql") == "models/a.sql"
+    assert project.source_paths[0] == "models" and project.problems == ()

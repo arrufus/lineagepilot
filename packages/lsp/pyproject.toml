@@ -49,8 +49,10 @@ pythonpath = ["tests"]
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 addopts = "-q --cov=lineagepilot_lsp --cov-report=term-missing"
-# Dump every thread's stack if a test runs this long, so a hang in CI is diagnosable
+# Dump every thread's stack and exit if a test runs this long: a hang then fails the job
+# with evidence, instead of reaching the job's time limit, which discards the log
 faulthandler_timeout = 120
+faulthandler_exit_on_timeout = true
 
 [tool.coverage.run]
 branch = true

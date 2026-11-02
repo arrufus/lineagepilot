@@ -5,7 +5,9 @@ copy of the fixture workspace, with the source files older than the manifest, so
 can change files freely and staleness is deterministic.
 
 Set LP_TEST_PYTHONS to several interpreters separated by os.pathsep to run the
-end-to-end tests on each; by default they run on this interpreter only.
+end-to-end tests on each; by default they run on this interpreter only. Set
+LP_TEST_SERVER to the VSIX's bundled/tool/lsp_server.py to test the packaged server
+instead: then the interpreters need nothing installed, as for a user.
 """
 
 from __future__ import annotations
@@ -32,6 +34,7 @@ REPO = Path(__file__).resolve().parents[3]
 FIXTURE = REPO / "fixtures" / "jaffle-shop"
 CORE_FIXTURES = REPO / "packages" / "core" / "tests" / "fixtures" / "dbt"
 WAIT_S = 60.0
+BUNDLED_SERVER = os.environ.get("LP_TEST_SERVER")
 
 
 def interpreters() -> list[str]:
@@ -40,11 +43,12 @@ def interpreters() -> list[str]:
 
 
 def age_sources(root: Path, seconds: float = 3600) -> None:
-    """Make every file except the artifacts older than the manifest."""
-    past = time.time() - seconds
+    """The artifacts as just written, and every other file ``seconds`` older."""
+    now = time.time()
     for path in root.rglob("*"):
-        if path.is_file() and "target" not in path.relative_to(root).parts:
-            os.utime(path, (past, past))
+        if path.is_file():
+            stamp = now if "target" in path.relative_to(root).parts else now - seconds
+            os.utime(path, (stamp, stamp))
 
 
 @pytest.fixture
@@ -155,7 +159,10 @@ async def start(server_python, workspace, tmp_path):
     ) -> tuple[Client, types.InitializeResult]:
         root = root or workspace
         client = Client()
-        await client.start_io(server_python, "-I", "-m", "lineagepilot_lsp")
+        if BUNDLED_SERVER:
+            await client.start_io(server_python, "-I", BUNDLED_SERVER)
+        else:
+            await client.start_io(server_python, "-I", "-m", "lineagepilot_lsp")
         clients.append(client)
         init = {
             "protocolVersions": [1],

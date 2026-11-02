@@ -206,6 +206,8 @@ export const ServerInfo = z.strictObject({
   python: Name,
   executable: Text,
   pid: Count,
+  isolated: z.boolean(),
+  modules: z.record(z.string(), Text),
 });
 export type ServerInfo = z.infer<typeof ServerInfo>;
 
