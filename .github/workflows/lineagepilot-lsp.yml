@@ -58,18 +58,26 @@ jobs:
         run: uv run --locked pytest $PYTEST_ARGS
         env:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
-      # On Windows the job hung after or between tests (2 November 2026) and a timed-out job
-      # keeps no log, so the suite runs verbosely under a 5-minute limit, then lists the
-      # Python processes still running. The coverage gate holds on the other systems.
+      # On Windows the job hung (2 November 2026), and a job that reaches its time limit keeps
+      # no log. The suite runs there in two steps with their own limits, which keep the log,
+      # then lists the Python processes still running. The coverage gate holds elsewhere.
+      # The extension workflow also runs the end-to-end tests on Windows, against the
+      # VSIX's bundled server on a plain interpreter, and they pass there.
       - if: runner.os == 'Windows'
-        run: |
-          status=0
-          timeout --kill-after=10 300 uv run --locked pytest --no-cov -v -p no:cacheprovider $PYTEST_ARGS || status=$?
-          echo "pytest exit status: $status"
-          tasklist //FI "IMAGENAME eq python.exe" //V || true
-          exit $status
-        env:
-          PYTEST_ARGS: ${{ inputs.pytest-args }}
+        name: Unit tests (Windows)
+        timeout-minutes: 6
+        run: >-
+          uv run --locked pytest --no-cov -v -p no:cacheprovider tests/test_indexing_units.py
+          tests/test_context_locate.py tests/test_features_units.py tests/test_protocol.py
+      - if: runner.os == 'Windows'
+        name: End-to-end tests (Windows)
+        timeout-minutes: 8
+        run: >-
+          uv run --locked pytest --no-cov -v -p no:cacheprovider tests/test_indexing_e2e.py
+          tests/test_methods_e2e.py tests/test_features_e2e.py
+      - if: always() && runner.os == 'Windows'
+        name: Python processes still running
+        run: tasklist //FI "IMAGENAME eq python.exe" //V || true
 
   lint-and-audit:
     runs-on: ubuntu-latest
