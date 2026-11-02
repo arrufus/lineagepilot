@@ -324,21 +324,24 @@ The output is deterministic: the same inputs always give the same review, with s
 
 ### Language server ↔ extension
 
-Standard LSP, plus versioned custom requests (`protocolVersion` is negotiated at initialise):
+Standard LSP, plus versioned custom requests. The client lists the `lineage/*` protocol versions it speaks in `initializationOptions.protocolVersions`; the server picks the newest it also speaks and returns it in `capabilities.experimental.lineagePilot.protocolVersion`, or null, in which case every `lineage/*` request fails with `ProtocolMismatch` while the standard features keep working (task 2.3).
 
 | Method | Parameters | Returns |
 |---|---|---|
-| `lineage/status` | none | Node and edge counts, artifact ages, unresolved count |
-| `lineage/graph` | `root`, `direction`, `depth` (capped), `granularity` | Nodes, edges, evidence |
-| `lineage/impact` | `targets[]` | Grouped impact with unknowns |
-| `lineage/reviewChanges` | `changedFiles[]`, `baseline` | A review result (section 8) |
-| `lineage/export` | `format`, `scope` | Text content |
+| `lineage/status` | none | State, node and edge counts, artifact versions and ages, staleness, unresolved count |
+| `lineage/graph` | `root` (node or column), `direction` (`upstream`, `downstream` or `both`), `depth` (1–10), `granularity`, optional `maxNodes` (at most 5,000) | Nodes with navigation targets, edges with evidence, unknowns, `truncated` |
+| `lineage/impact` | `targets[]` (1–200), optional `maxDepth` | Impacted nodes with confidence and columns, counts, unknowns, the column-lineage stage |
+| `lineage/export` | `format`, optional `root`, `direction`, `depth` | File name and text content |
+| `lineage/nodesForFile` | `uri` | The nodes a file defines or documents (tree view, "Analyze impact of current model") |
 | `lineage/refresh` | none | Status |
 | `lineage/indexUpdated` (notification) | Status | none |
+| `lineage/reviewChanges` | `changedFiles[]`, `baseline` | A review result (section 8). Added in Phase 4 |
 
-Both sides validate every message against one shared JSON Schema: zod in TypeScript, and dataclass validators in Python.
+Errors carry the protocol's codes: `NotReady` (-32001, no graph is loaded, with the reason), `UnknownNode` (-32002, the graph has no such ID, perhaps after a re-index) and `ProtocolMismatch` (-32003); malformed params get the standard `InvalidParams`.
 
-Every request carries a `params` object, even an empty one. Spike S1 found that vscode-languageclient omits `params` when none are given. pygls 2.1 then fails to decode the request and never replies, so the call hangs.
+`protocol/lineage-protocol.schema.json` is the single source. `protocol/generate.py` writes zod schemas for the extension and dataclass validators for the server from it, and CI fails if either is out of date. Each side validates everything it receives, and both are tested against the same contract examples (`protocol/examples.json`). Free text from the workspace is cut to 4,000 characters by the server.
+
+Every request carries a `params` object, even an empty one. Spike S1 found that vscode-languageclient omits `params` when none are given, and pygls 2.1 then fails to decode the request and never replies, so the call hangs. The server's decoder now treats a missing `params` as null, so such a request is answered with `InvalidParams` instead of hanging.
 
 ### Webview ↔ extension
 
@@ -441,6 +444,7 @@ packages/core/   lineagepilot_core   (pyproject.toml, uv.lock)
 packages/lsp/    lineagepilot_lsp    (pygls server; pyproject.toml, uv.lock)
 fixtures/        dbt project workspaces shared by the server and extension tests
 extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
+protocol/        the lineage/* JSON Schema, its generator and contract examples
 docs/            this design and the implementation plan
 ```
 

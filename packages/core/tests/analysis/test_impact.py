@@ -193,6 +193,26 @@ def test_jaffle_column_impact_is_precise(jaffle):
     assert result.unknowns == []
 
 
+def test_jaffle_lineage_computed_on_demand_is_followed(jaffle):
+    """The language server computes models on demand while the indexer is still busy:
+    the derives edges a callback adds must be followed in the same query."""
+    result = DbtParser().parse(project_config("jaffle-1.12"))
+    graph = build_dbt_graph(result)
+    sql = compiled_sql(result)
+
+    def on_demand(node_id: str):
+        if node_id not in graph.column_lineage:
+            add_column_lineage(graph, sql, [node_id])
+        return graph.column_lineage[node_id]
+
+    target = f"{JAFFLE}.stg_orders#order_total"
+    found = impact(graph, [target], column_lineage=on_demand)
+    expected = impact(jaffle, [target])
+    assert {n.id: (n.columns, n.granularity) for n in found.nodes.values()} == {
+        n.id: (n.columns, n.granularity) for n in expected.nodes.values()
+    }
+
+
 def test_jaffle_model_impact(jaffle):
     result = impact(jaffle, [f"{JAFFLE}.stg_orders"])
     assert set(result.nodes) == {f"{JAFFLE}.orders", f"{JAFFLE}.order_items", f"{JAFFLE}.customers"}

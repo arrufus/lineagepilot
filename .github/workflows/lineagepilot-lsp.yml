@@ -10,12 +10,14 @@ on:
       - "packages/lsp/**"
       - "packages/core/**"
       - "fixtures/**"
+      - "protocol/**"
       - ".github/workflows/lineagepilot-lsp.yml"
   pull_request:
     paths:
       - "packages/lsp/**"
       - "packages/core/**"
       - "fixtures/**"
+      - "protocol/**"
       - ".github/workflows/lineagepilot-lsp.yml"
 
 permissions:
@@ -55,6 +57,8 @@ jobs:
         with:
           version: ${{ env.UV_VERSION }}
       - run: uv sync --locked
+      # The zod and Python validators must match protocol/lineage-protocol.schema.json
+      - run: uv run --locked python ../../protocol/generate.py --check
       - run: uv run --locked ruff check .
       - run: uv run --locked ruff format --check .
       # Runtime and dev dependencies, exactly as locked, with their hashes. The core is a

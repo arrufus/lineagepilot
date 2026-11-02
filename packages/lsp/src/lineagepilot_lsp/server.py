@@ -28,27 +28,26 @@ from pathlib import Path
 from typing import Any
 
 from lsprotocol import types
+from pygls.exceptions import JsonRpcInvalidParams, JsonRpcServerError
 from pygls.lsp.server import LanguageServer
 from pygls.protocol import LanguageServerProtocol, default_converter, lsp_method
 from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 from pygls.uris import to_fs_path
 
-from lineagepilot_lsp import __version__
-from lineagepilot_lsp.indexing import ProjectIndex, freeze_heap, iso_time
+from lineagepilot_lsp import __version__, methods, protocol
+from lineagepilot_lsp.context import GraphContext, clip
+from lineagepilot_lsp.indexing import ColumnStage, ProjectIndex, freeze_heap, iso_time
 from lineagepilot_lsp.project import DbtProject, read_project
 from lineagepilot_lsp.watch import Change, Debouncer, classify, watchers
 
 logger = logging.getLogger(__name__)
 
 # The lineage/* protocol versions this server speaks (design section 9)
-PROTOCOL_VERSIONS = (1,)
+PROTOCOL_VERSIONS = (protocol.PROTOCOL_VERSION,)
+MAX_STATUS_ERRORS = 50
 DEFAULT_MAX_ARTIFACT_MB = 512
 SOURCE_DEBOUNCE_S = 0.5
 NOTIFY_INDEX_UPDATED = "lineage/indexUpdated"
-
-
-class ProtocolMismatch(Exception):
-    """A lineage/* request on a connection with no protocol version in common."""
 
 
 def converter():
@@ -129,6 +128,7 @@ class LineagePilotServer(LanguageServer):
         self.project: DbtProject | None = None
         self.workspace_root: Path | None = None
         self.index: ProjectIndex | None = None
+        self.context: GraphContext | None = None
         self._temp_storage: str | None = None
         self._debouncers: dict[Change, Debouncer] = {}
         self._background: set[asyncio.Task[Any]] = set()
@@ -262,8 +262,15 @@ class LineagePilotServer(LanguageServer):
 
     def graph_changed(self) -> None:
         """A new graph is loaded, or none is."""
+        assert self.index is not None and self.project is not None
+        index = self.index
+        graph = index.graph
+        self.context = (
+            None
+            if graph is None
+            else GraphContext(graph, self.project, lambda: index.columns is ColumnStage.COMPUTING)
+        )
         freeze_heap()
-        assert self.index is not None
         self.spawn(self.index.refresh_staleness())
 
     def notify_index_updated(self) -> None:
@@ -288,15 +295,19 @@ class LineagePilotServer(LanguageServer):
                 "root": str(project.root) if project else None,
                 "name": (graph.project_name if graph else None)
                 or (project.name if project else None),
-                "problems": list(project.problems) if project else [],
+                "problems": [clip(p) for p in project.problems[:100]] if project else [],
             },
             "trusted": self.options.trusted,
             "state": index.state.value if index else "starting",
             "indexing": bool(index and index.indexing),
             "generation": index.generation if index else 0,
             "columnLineage": index.columns.value if index else "pending",
-            "message": index.message if index else None,
-            "errors": index.errors if index else [],
+            "message": clip(index.message) if index else None,
+            "errors": [
+                {**e, "message": clip(e.get("message")), "location": clip(e.get("location"))}
+                for e in (index.errors[:MAX_STATUS_ERRORS] if index else [])
+            ],
+            "errorCount": len(index.errors) if index else 0,
             "artifacts": self._artifacts(),
             "counts": None
             if stats is None
@@ -344,10 +355,25 @@ class LineagePilotServer(LanguageServer):
 
     def check_protocol(self) -> None:
         if self.protocol_version is None:
-            raise ProtocolMismatch(
+            raise JsonRpcServerError(
                 f"no lineage protocol version in common: the client speaks "
-                f"{self.options.protocol_versions or 'none'}, the server {list(PROTOCOL_VERSIONS)}"
+                f"{self.options.protocol_versions or 'none'}, the server {list(PROTOCOL_VERSIONS)}",
+                protocol.ErrorCode.PROTOCOL_MISMATCH,
             )
+
+    def ready_context(self) -> GraphContext:
+        """The loaded graph's context, or a NotReady error saying why there is none."""
+        if self.context is None:
+            index = self.index
+            state = index.state.value if index else "starting"
+            reason = (index.message if index else None) or "the index is still being built"
+            raise JsonRpcServerError(
+                f"lineage is not available ({state}): {reason}", protocol.ErrorCode.NOT_READY
+            )
+        return self.context
+
+    def column_stage(self) -> str:
+        return self.index.columns.value if self.index else ColumnStage.PENDING.value
 
     # Helpers
 
@@ -398,15 +424,44 @@ def create_server() -> LineagePilotServer:
 
     @server.feature("lineage/status")
     def on_status(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        ls.check_protocol()
+        _params(ls, protocol.EmptyParams, params)
         return ls.status()
 
     @server.feature("lineage/refresh")
     def on_refresh(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        ls.check_protocol()
+        _params(ls, protocol.EmptyParams, params)
         return ls.refresh()
 
+    @server.feature("lineage/graph")
+    def on_graph(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.GraphParams, params)
+        return methods.graph(ls.ready_context(), checked)
+
+    @server.feature("lineage/impact")
+    def on_impact(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.ImpactParams, params)
+        return methods.impact(ls.ready_context(), checked, ls.column_stage())
+
+    @server.feature("lineage/export")
+    def on_export(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.ExportParams, params)
+        return methods.export(ls.ready_context(), checked)
+
+    @server.feature("lineage/nodesForFile")
+    def on_nodes_for_file(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.NodesForFileParams, params)
+        return methods.nodes_for_file(ls.ready_context(), checked)
+
     return server
+
+
+def _params(ls: LineagePilotServer, record: type[protocol._Record], params: Any) -> Any:
+    """Check the protocol version, then validate the params against the shared schema."""
+    ls.check_protocol()
+    try:
+        return record.from_json(params)
+    except protocol.ValidationError as e:
+        raise JsonRpcInvalidParams(f"invalid params: {e}") from None
 
 
 def main() -> None:

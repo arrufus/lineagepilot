@@ -125,18 +125,26 @@ def impact(
         depth = hits[ref].depth + 1
         if ref in graph.columns:
             node_id, _ = split_column_id(ref)
+            model_steps = sorted(
+                steps(graph, node_id, Direction.DOWNSTREAM, Granularity.MODEL), key=_order
+            )
+            # Ask first: a status callable may compute a model's column lineage on demand,
+            # adding the derives edges that the column steps below follow
+            statuses = {
+                s.ref: status_of(s.ref)
+                for s in model_steps
+                if graph.nodes[s.ref].kind in _SQL_KINDS
+            }
             column_steps = sorted(
                 steps(graph, ref, Direction.DOWNSTREAM, Granularity.COLUMN), key=_order
             )
             for step in column_steps:
                 visit(ref, step, depth)
             reached_by_column = {split_column_id(s.ref)[0] for s in column_steps}
-            for step in sorted(
-                steps(graph, node_id, Direction.DOWNSTREAM, Granularity.MODEL), key=_order
-            ):
+            for step in model_steps:
                 downstream = graph.nodes[step.ref]
                 if downstream.kind in _SQL_KINDS:
-                    status = status_of(step.ref)
+                    status = statuses[step.ref]
                     if status and status.state is not LineageState.UNKNOWN:
                         continue  # its derives edges say exactly which columns are hit
                     reason = (

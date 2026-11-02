@@ -63,6 +63,8 @@ skip_covered = true
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+# Generated from protocol/lineage-protocol.schema.json; protocol/generate.py --check guards it
+extend-exclude = ["src/lineagepilot_lsp/protocol.py"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "T20"]

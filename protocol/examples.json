@@ -1,0 +1,44 @@
+{
+  "about": "Contract examples for the lineage/* schema. The server's tests (packages/lsp/tests/test_protocol.py) and the extension's tests (extension/src/test/unit/protocol.test.ts) both check that their validators accept every 'valid' message and reject every 'invalid' one, so the two generated validators cannot drift apart. Real server responses are also validated end to end.",
+  "valid": [
+    { "type": "EmptyParams", "value": {} },
+    { "type": "GraphParams", "value": { "root": "model.shop.orders", "direction": "downstream", "depth": 1, "granularity": "model" } },
+    { "type": "GraphParams", "value": { "root": "model.shop.orders#id", "direction": "both", "depth": 10, "granularity": "column", "maxNodes": 5000 } },
+    { "type": "ImpactParams", "value": { "targets": ["model.shop.orders"] } },
+    { "type": "ImpactParams", "value": { "targets": ["model.shop.orders#id", "model.shop.customers"], "maxDepth": 3 } },
+    { "type": "ExportParams", "value": { "format": "pii-csv" } },
+    { "type": "ExportParams", "value": { "format": "mermaid", "root": "model.shop.orders", "direction": "upstream", "depth": 2 } },
+    { "type": "NodesForFileParams", "value": { "uri": "file:///w/models/orders.sql" } },
+    { "type": "Location", "value": { "uri": "file:///w/models/orders.yml", "range": { "start": { "line": 1, "character": 10 }, "end": { "line": 1, "character": 16 } } } },
+    { "type": "Location", "value": { "uri": "file:///w/models/orders.sql", "range": null } },
+    { "type": "Unknown", "value": { "subject": "model.shop.orders", "reference": "column lineage", "reason": "no catalog.json; run dbt docs generate" } },
+    { "type": "ImpactResult", "value": { "targets": ["model.shop.orders"], "truncated": false, "counts": { "model": 1 }, "nodes": [
+      { "id": "model.shop.customers", "kind": "model", "name": "customers", "depth": 1, "granularity": "model", "confidence": "declared", "columns": [], "reason": null, "location": null, "owner": null }
+    ], "unknowns": [], "columnLineage": "done" } },
+    { "type": "ExportResult", "value": { "format": "json", "filename": "shop-lineage.json", "content": "{}", "nodes": 0, "edges": 0 } }
+  ],
+  "invalid": [
+    { "type": "EmptyParams", "value": null, "why": "a request must carry a params object (S1 finding 4)" },
+    { "type": "EmptyParams", "value": { "extra": 1 }, "why": "unknown key" },
+    { "type": "GraphParams", "value": { "direction": "downstream", "depth": 1, "granularity": "model" }, "why": "root is required" },
+    { "type": "GraphParams", "value": { "root": "", "direction": "downstream", "depth": 1, "granularity": "model" }, "why": "an empty ID" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "sideways", "depth": 1, "granularity": "model" }, "why": "not a direction" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": 11, "granularity": "model" }, "why": "depth is capped at 10" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": 0, "granularity": "model" }, "why": "depth is at least 1" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": 1.5, "granularity": "model" }, "why": "depth is an integer" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": true, "granularity": "model" }, "why": "a boolean is not an integer" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": 1, "granularity": "model", "maxNodes": 5001 }, "why": "maxNodes is capped" },
+    { "type": "GraphParams", "value": { "root": "m", "direction": "upstream", "depth": 1, "granularity": "model", "extra": null }, "why": "unknown key" },
+    { "type": "ImpactParams", "value": { "targets": [] }, "why": "at least one target" },
+    { "type": "ImpactParams", "value": { "targets": "model.shop.orders" }, "why": "targets is a list" },
+    { "type": "ImpactParams", "value": { "targets": ["m"], "maxDepth": 101 }, "why": "maxDepth is capped" },
+    { "type": "ExportParams", "value": { "format": "xml" }, "why": "not an export format" },
+    { "type": "ExportParams", "value": {}, "why": "format is required" },
+    { "type": "NodesForFileParams", "value": { "uri": "" }, "why": "an empty URI" },
+    { "type": "NodesForFileParams", "value": { "uri": 7 }, "why": "the URI is a string" },
+    { "type": "Location", "value": { "uri": "file:///w/a.sql" }, "why": "range is required, even if null" },
+    { "type": "Location", "value": { "uri": "file:///w/a.sql", "range": { "start": { "line": -1, "character": 0 }, "end": { "line": 0, "character": 0 } } }, "why": "a negative line" },
+    { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": { "model": -1 }, "nodes": [], "unknowns": [], "columnLineage": "done" }, "why": "a negative count" },
+    { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": {}, "nodes": [], "unknowns": [], "columnLineage": "later" }, "why": "not a column stage" }
+  ]
+}

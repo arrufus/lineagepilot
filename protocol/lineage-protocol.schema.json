@@ -1,0 +1,352 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:lineagepilot:protocol",
+  "title": "LineagePilot lineage/* protocol",
+  "description": "The custom requests and notifications between the LineagePilot extension and its language server (design section 9). This file is the single source: protocol/generate.py writes the zod schemas for the extension and the dataclass validators for the server from it. Each side validates what it receives. Every request carries a params object, even an empty one (spike S1, finding 4). Free text from the workspace is truncated by the server to fit the length limits here.",
+  "x-protocol-version": 1,
+  "x-requests": {
+    "lineage/status": { "params": "EmptyParams", "result": "Status" },
+    "lineage/refresh": { "params": "EmptyParams", "result": "Status" },
+    "lineage/graph": { "params": "GraphParams", "result": "GraphResult" },
+    "lineage/impact": { "params": "ImpactParams", "result": "ImpactResult" },
+    "lineage/export": { "params": "ExportParams", "result": "ExportResult" },
+    "lineage/nodesForFile": { "params": "NodesForFileParams", "result": "NodesForFileResult" }
+  },
+  "x-notifications": {
+    "lineage/indexUpdated": "Status"
+  },
+  "x-error-codes": {
+    "NotReady": -32001,
+    "UnknownNode": -32002,
+    "ProtocolMismatch": -32003
+  },
+  "$defs": {
+    "Id": { "type": "string", "minLength": 1, "maxLength": 4096 },
+    "Name": { "type": "string", "maxLength": 4096 },
+    "Text": { "type": "string", "maxLength": 65536 },
+    "Uri": { "type": "string", "minLength": 1, "maxLength": 8192 },
+    "Count": { "type": "integer", "minimum": 0 },
+
+    "NodeKind": {
+      "enum": ["model", "seed", "snapshot", "source", "exposure", "relation", "airflow_dag", "airflow_task", "column"]
+    },
+    "EdgeKind": { "enum": ["depends_on", "derives", "materialises", "orchestrates", "task_depends_on"] },
+    "Confidence": { "enum": ["declared", "inferred", "heuristic"] },
+    "Origin": { "enum": ["manifest", "compiled_sql", "catalog", "dag_static", "annotation"] },
+    "Direction": { "enum": ["upstream", "downstream", "both"] },
+    "Side": { "enum": ["root", "upstream", "downstream"] },
+    "Granularity": { "enum": ["model", "column"] },
+    "LineageState": { "enum": ["resolved", "partial", "unknown"] },
+    "IndexState": { "enum": ["starting", "ready", "unknown", "failed"] },
+    "ColumnStage": { "enum": ["pending", "computing", "done", "off"] },
+    "ExportFormat": { "enum": ["json", "mermaid", "dot", "graphml", "cypher", "pii-markdown", "pii-csv"] },
+
+    "Position": {
+      "type": "object",
+      "properties": { "line": { "$ref": "#/$defs/Count" }, "character": { "$ref": "#/$defs/Count" } },
+      "required": ["line", "character"],
+      "additionalProperties": false
+    },
+    "Range": {
+      "type": "object",
+      "properties": { "start": { "$ref": "#/$defs/Position" }, "end": { "$ref": "#/$defs/Position" } },
+      "required": ["start", "end"],
+      "additionalProperties": false
+    },
+    "Location": {
+      "description": "A file to open, and where in it when known.",
+      "type": "object",
+      "properties": {
+        "uri": { "$ref": "#/$defs/Uri" },
+        "range": { "anyOf": [{ "$ref": "#/$defs/Range" }, { "type": "null" }] }
+      },
+      "required": ["uri", "range"],
+      "additionalProperties": false
+    },
+    "Unknown": {
+      "description": "A reference that could not be resolved, or a model whose column lineage is unknown. Shown, never dropped.",
+      "type": "object",
+      "properties": {
+        "subject": { "$ref": "#/$defs/Id" },
+        "reference": { "$ref": "#/$defs/Text" },
+        "reason": { "$ref": "#/$defs/Text" }
+      },
+      "required": ["subject", "reference", "reason"],
+      "additionalProperties": false
+    },
+
+    "EmptyParams": { "type": "object", "properties": {}, "additionalProperties": false },
+
+    "GraphParams": {
+      "type": "object",
+      "properties": {
+        "root": { "$ref": "#/$defs/Id", "description": "A node ID, or a column ID at column granularity." },
+        "direction": { "$ref": "#/$defs/Direction" },
+        "depth": { "type": "integer", "minimum": 1, "maximum": 10 },
+        "granularity": { "$ref": "#/$defs/Granularity" },
+        "maxNodes": { "type": "integer", "minimum": 1, "maximum": 5000 }
+      },
+      "required": ["root", "direction", "depth", "granularity"],
+      "additionalProperties": false
+    },
+    "GraphNode": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "$ref": "#/$defs/Name" },
+        "side": { "$ref": "#/$defs/Side" },
+        "depth": { "$ref": "#/$defs/Count" },
+        "parent": { "anyOf": [{ "$ref": "#/$defs/Id" }, { "type": "null" }], "description": "The node a column belongs to." },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
+        "layer": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "materialization": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "description": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "columnLineage": { "anyOf": [{ "$ref": "#/$defs/LineageState" }, { "type": "null" }] },
+        "columnLineageReason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "pii": { "type": "boolean" }
+      },
+      "required": [
+        "id", "kind", "name", "side", "depth", "parent", "location", "layer", "materialization",
+        "owner", "description", "columnLineage", "columnLineageReason", "pii"
+      ],
+      "additionalProperties": false
+    },
+    "GraphEdge": {
+      "type": "object",
+      "properties": {
+        "kind": { "$ref": "#/$defs/EdgeKind" },
+        "upstream": { "$ref": "#/$defs/Id" },
+        "downstream": { "$ref": "#/$defs/Id" },
+        "relation": {
+          "anyOf": [{ "$ref": "#/$defs/Id" }, { "type": "null" }],
+          "description": "The physical table between a source and the seed, model or snapshot that builds it."
+        },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 },
+        "transformation": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["kind", "upstream", "downstream", "relation", "confidence", "origins", "transformation"],
+      "additionalProperties": false
+    },
+    "GraphResult": {
+      "type": "object",
+      "properties": {
+        "root": { "$ref": "#/$defs/Id" },
+        "direction": { "$ref": "#/$defs/Direction" },
+        "granularity": { "$ref": "#/$defs/Granularity" },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/GraphNode" } },
+        "edges": { "type": "array", "items": { "$ref": "#/$defs/GraphEdge" } },
+        "truncated": { "type": "boolean" },
+        "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } }
+      },
+      "required": ["root", "direction", "granularity", "nodes", "edges", "truncated", "unknowns"],
+      "additionalProperties": false
+    },
+
+    "ImpactParams": {
+      "type": "object",
+      "properties": {
+        "targets": { "type": "array", "items": { "$ref": "#/$defs/Id" }, "minItems": 1, "maxItems": 200 },
+        "maxDepth": { "type": "integer", "minimum": 1, "maximum": 100 }
+      },
+      "required": ["targets"],
+      "additionalProperties": false
+    },
+    "ImpactedNode": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "$ref": "#/$defs/Name" },
+        "depth": { "$ref": "#/$defs/Count" },
+        "granularity": { "$ref": "#/$defs/Granularity" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
+        "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["id", "kind", "name", "depth", "granularity", "confidence", "columns", "reason", "location", "owner"],
+      "additionalProperties": false
+    },
+    "ImpactResult": {
+      "type": "object",
+      "properties": {
+        "targets": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
+        "truncated": { "type": "boolean" },
+        "counts": { "type": "object", "additionalProperties": { "$ref": "#/$defs/Count" } },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/ImpactedNode" } },
+        "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } },
+        "columnLineage": {
+          "$ref": "#/$defs/ColumnStage",
+          "description": "While computing, models not yet analysed are impacted at model level."
+        }
+      },
+      "required": ["targets", "truncated", "counts", "nodes", "unknowns", "columnLineage"],
+      "additionalProperties": false
+    },
+
+    "ExportParams": {
+      "type": "object",
+      "properties": {
+        "format": { "$ref": "#/$defs/ExportFormat" },
+        "root": { "$ref": "#/$defs/Id", "description": "Export the neighbourhood of this node; the whole graph when absent." },
+        "direction": { "$ref": "#/$defs/Direction" },
+        "depth": { "type": "integer", "minimum": 1, "maximum": 10 }
+      },
+      "required": ["format"],
+      "additionalProperties": false
+    },
+    "ExportResult": {
+      "type": "object",
+      "properties": {
+        "format": { "$ref": "#/$defs/ExportFormat" },
+        "filename": { "$ref": "#/$defs/Name" },
+        "content": { "type": "string" },
+        "nodes": { "$ref": "#/$defs/Count" },
+        "edges": { "$ref": "#/$defs/Count" }
+      },
+      "required": ["format", "filename", "content", "nodes", "edges"],
+      "additionalProperties": false
+    },
+
+    "NodesForFileParams": {
+      "type": "object",
+      "properties": { "uri": { "$ref": "#/$defs/Uri" } },
+      "required": ["uri"],
+      "additionalProperties": false
+    },
+    "NodesForFileResult": {
+      "type": "object",
+      "properties": { "nodes": { "type": "array", "items": { "$ref": "#/$defs/GraphNode" } } },
+      "required": ["nodes"],
+      "additionalProperties": false
+    },
+
+    "IndexError": {
+      "type": "object",
+      "properties": {
+        "severity": { "enum": ["error", "warning"] },
+        "message": { "$ref": "#/$defs/Text" },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] }
+      },
+      "required": ["severity", "message", "location"],
+      "additionalProperties": false
+    },
+    "ServerInfo": {
+      "type": "object",
+      "properties": {
+        "version": { "$ref": "#/$defs/Name" },
+        "python": { "$ref": "#/$defs/Name" },
+        "executable": { "$ref": "#/$defs/Text" },
+        "pid": { "$ref": "#/$defs/Count" }
+      },
+      "required": ["version", "python", "executable", "pid"],
+      "additionalProperties": false
+    },
+    "ProjectInfo": {
+      "type": "object",
+      "properties": {
+        "root": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "name": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "problems": { "type": "array", "items": { "$ref": "#/$defs/Text" }, "maxItems": 100 }
+      },
+      "required": ["root", "name", "problems"],
+      "additionalProperties": false
+    },
+    "ManifestInfo": {
+      "type": "object",
+      "properties": {
+        "path": { "$ref": "#/$defs/Text" },
+        "exists": { "type": "boolean" },
+        "generatedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "dbtVersion": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "schemaVersion": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
+        "modifiedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["path", "exists", "generatedAt", "dbtVersion", "schemaVersion", "modifiedAt"],
+      "additionalProperties": false
+    },
+    "CatalogInfo": {
+      "type": "object",
+      "properties": {
+        "path": { "$ref": "#/$defs/Text" },
+        "exists": { "type": "boolean" },
+        "modifiedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["path", "exists", "modifiedAt"],
+      "additionalProperties": false
+    },
+    "Artifacts": {
+      "type": "object",
+      "properties": {
+        "manifest": { "anyOf": [{ "$ref": "#/$defs/ManifestInfo" }, { "type": "null" }] },
+        "catalog": { "anyOf": [{ "$ref": "#/$defs/CatalogInfo" }, { "type": "null" }] }
+      },
+      "required": ["manifest", "catalog"],
+      "additionalProperties": false
+    },
+    "Counts": {
+      "type": "object",
+      "properties": {
+        "nodes": { "$ref": "#/$defs/Count" },
+        "columns": { "$ref": "#/$defs/Count" },
+        "edges": { "$ref": "#/$defs/Count" },
+        "unresolved": { "$ref": "#/$defs/Count" },
+        "nodeKinds": { "type": "object", "additionalProperties": { "$ref": "#/$defs/Count" } }
+      },
+      "required": ["nodes", "columns", "edges", "unresolved", "nodeKinds"],
+      "additionalProperties": false
+    },
+    "ColumnStates": {
+      "type": "object",
+      "properties": {
+        "resolved": { "$ref": "#/$defs/Count" },
+        "partial": { "$ref": "#/$defs/Count" },
+        "unknown": { "$ref": "#/$defs/Count" }
+      },
+      "required": ["resolved", "partial", "unknown"],
+      "additionalProperties": false
+    },
+    "Stale": {
+      "description": "Source files changed after the manifest was written.",
+      "type": "object",
+      "properties": {
+        "count": { "$ref": "#/$defs/Count" },
+        "examples": { "type": "array", "items": { "$ref": "#/$defs/Text" }, "maxItems": 5 }
+      },
+      "required": ["count", "examples"],
+      "additionalProperties": false
+    },
+    "Status": {
+      "type": "object",
+      "properties": {
+        "protocolVersion": { "anyOf": [{ "type": "integer" }, { "type": "null" }] },
+        "server": { "$ref": "#/$defs/ServerInfo" },
+        "project": { "$ref": "#/$defs/ProjectInfo" },
+        "trusted": { "type": "boolean" },
+        "state": { "$ref": "#/$defs/IndexState" },
+        "indexing": { "type": "boolean" },
+        "generation": { "$ref": "#/$defs/Count" },
+        "columnLineage": { "$ref": "#/$defs/ColumnStage" },
+        "message": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "errors": { "type": "array", "items": { "$ref": "#/$defs/IndexError" }, "maxItems": 50 },
+        "errorCount": { "$ref": "#/$defs/Count" },
+        "artifacts": { "$ref": "#/$defs/Artifacts" },
+        "counts": { "anyOf": [{ "$ref": "#/$defs/Counts" }, { "type": "null" }] },
+        "columnStates": { "anyOf": [{ "$ref": "#/$defs/ColumnStates" }, { "type": "null" }] },
+        "stale": { "$ref": "#/$defs/Stale" },
+        "fromCache": { "type": "boolean" },
+        "indexedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": [
+        "protocolVersion", "server", "project", "trusted", "state", "indexing", "generation",
+        "columnLineage", "message", "errors", "errorCount", "artifacts", "counts", "columnStates",
+        "stale", "fromCache", "indexedAt"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

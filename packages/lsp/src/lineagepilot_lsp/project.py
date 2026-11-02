@@ -28,6 +28,7 @@ SOURCE_PATH_KEYS = {
     "test-paths": ["tests"],
 }
 DEFAULT_TARGET_PATH = "target"
+DEFAULT_PACKAGES_PATH = "dbt_packages"
 
 
 @dataclass(frozen=True)
@@ -37,6 +38,7 @@ class DbtProject:
     target_path: str  # relative to the root, with forward slashes
     source_paths: tuple[str, ...]  # likewise
     problems: tuple[str, ...] = ()
+    packages_path: str = DEFAULT_PACKAGES_PATH  # where dbt deps installs packages
 
     @property
     def manifest_path(self) -> Path:
@@ -103,7 +105,21 @@ def read_project(root: Path) -> DbtProject:
             relative = _inside(root, item, key, problems, fallback=None)
             if relative is not None and relative not in sources:
                 sources.append(relative)
-    return DbtProject(root, name, target or DEFAULT_TARGET_PATH, tuple(sources), tuple(problems))
+    packages = _inside(
+        root,
+        data.get("packages-install-path", DEFAULT_PACKAGES_PATH),
+        "packages-install-path",
+        problems,
+        fallback=DEFAULT_PACKAGES_PATH,
+    )
+    return DbtProject(
+        root,
+        name,
+        target or DEFAULT_TARGET_PATH,
+        tuple(sources),
+        tuple(problems),
+        packages or DEFAULT_PACKAGES_PATH,
+    )
 
 
 def _inside(
