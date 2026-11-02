@@ -145,3 +145,22 @@ class TestLayerPattern:
         assert pattern.matches_path("models/marts/core/dim_customers.sql")
         assert pattern.matches_path("/gold/analytics/report.sql")
         assert not pattern.matches_path("models/staging/stg_customers.sql")
+
+
+class TestPIIPatternChanges:
+    """Task 1.6: ip_address is no longer claimed by address; geography is location."""
+
+    def detect(self, name: str) -> str | None:
+        return next((p.pii_type for p in DEFAULT_PII_PATTERNS if p.matches(name)), None)
+
+    def test_ip_address(self):
+        assert self.detect("ip_address") == "ip_address"
+        assert self.detect("client_ip") == "ip_address"
+
+    def test_geography_is_location(self):
+        for name in ("city", "billing_state", "country", "zip_code", "postal"):
+            assert self.detect(name) == "location", name
+
+    def test_addresses_stay_addresses(self):
+        assert self.detect("street") == "address"
+        assert self.detect("shipping_address") == "address"

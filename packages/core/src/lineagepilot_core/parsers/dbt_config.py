@@ -1,9 +1,13 @@
 """Configuration for the dbt parser: PII patterns and layer inference.
 
-Ported from data-capsule ``backend/src/parsers/dbt_config.py`` (commit 5e57fcc). The
-patterns are unchanged. ``DbtParserConfig`` lost the server's URN prefix and the
-``include_*`` switches, which nothing in LineagePilot sets (``include_tests`` was never
-read at all).
+Ported from data-capsule ``backend/src/parsers/dbt_config.py`` (commit 5e57fcc). Two
+pattern changes (task 1.6): ``ip_address`` is checked before ``address``, which used to
+claim it; and city, state, country, zip and postal code are ``location``, not
+``address``. They are quasi-identifiers, and spike S2 found they made up 14% of all
+columns in a synthetic project, so as HIGH-severity addresses they drowned real PII.
+
+``DbtParserConfig`` lost the server's URN prefix and the ``include_*`` switches, which
+nothing in LineagePilot sets (``include_tests`` was never read at all).
 """
 
 from __future__ import annotations
@@ -84,10 +88,24 @@ DEFAULT_PII_PATTERNS: list[PIIPattern] = [
         ],
     ),
     PIIPattern(
+        pii_type="ip_address",
+        patterns=[
+            r"(?:^|_)ip_addr(?:ess)?(?:_|$)",
+            r"(?:^|_)client_ip(?:_|$)",
+            r"(?:^|_)user_ip(?:_|$)",
+            r"(?:^|_)source_ip(?:_|$)",
+        ],
+    ),
+    PIIPattern(
         pii_type="address",
         patterns=[
             r"(?:^|_)address(?:_|$)",
             r"(?:^|_)street(?:_|$)",
+        ],
+    ),
+    PIIPattern(
+        pii_type="location",
+        patterns=[
             r"(?:^|_)city(?:_|$)",
             r"(?:^|_)zip(?:_|$)",
             r"(?:^|_)zip_code(?:_|$)",
@@ -138,15 +156,6 @@ DEFAULT_PII_PATTERNS: list[PIIPattern] = [
             r"(?:^|_)routing_number(?:_|$)",
             r"(?:^|_)iban(?:_|$)",
             r"(?:^|_)swift(?:_|$)",
-        ],
-    ),
-    PIIPattern(
-        pii_type="ip_address",
-        patterns=[
-            r"(?:^|_)ip_addr(?:ess)?(?:_|$)",
-            r"(?:^|_)client_ip(?:_|$)",
-            r"(?:^|_)user_ip(?:_|$)",
-            r"(?:^|_)source_ip(?:_|$)",
         ],
     ),
     PIIPattern(
