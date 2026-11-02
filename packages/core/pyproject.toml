@@ -19,6 +19,9 @@ dev = [
     "ruff>=0.6",
     # Tests both JSON paths; never a runtime dependency (design section 4.4)
     "orjson>=3.10",
+    # Property tests for the exporters; pydot re-parses DOT output
+    "hypothesis>=6.100",
+    "pydot>=3.0",
 ]
 # Kept out of `dev` so the auditor and its dependencies are not part of what it audits.
 audit = ["pip-audit>=2.7"]
@@ -54,6 +57,10 @@ forbidden_modules = ["sqlalchemy", "fastapi", "pydantic"]
 testpaths = ["tests"]
 pythonpath = ["tests"]
 addopts = "-q --cov=lineagepilot_core --cov-report=term-missing"
+filterwarnings = [
+    # pydot (a test dependency) still calls pyparsing's camelCase API
+    "ignore:.*deprecated - use:DeprecationWarning:pydot",
+]
 
 [tool.coverage.run]
 branch = true
