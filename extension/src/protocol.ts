@@ -262,6 +262,18 @@ export const Stale = z.strictObject({
 });
 export type Stale = z.infer<typeof Stale>;
 
+/** The conformance rules behind the diagnostics. In Restricted Mode only the built-in rules run. */
+export const RulesStatus = z.strictObject({
+  pack: Text.nullable(),
+  packLoaded: z.boolean(),
+  restricted: z.boolean(),
+  problems: z.array(Text).max(50),
+  findings: Count,
+  score: z.number().min(0).max(100).nullable(),
+  coverage: z.number().min(0).max(100).nullable(),
+});
+export type RulesStatus = z.infer<typeof RulesStatus>;
+
 export const Status = z.strictObject({
   protocolVersion: z.int().nullable(),
   server: ServerInfo,
@@ -280,6 +292,7 @@ export const Status = z.strictObject({
   stale: Stale,
   fromCache: z.boolean(),
   indexedAt: Name.nullable(),
+  rules: RulesStatus,
 });
 export type Status = z.infer<typeof Status>;
 

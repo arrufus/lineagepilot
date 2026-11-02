@@ -27,6 +27,13 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from lineagepilot_core.rules import (
+    Evaluation,
+    RulePack,
+    builtin_rules,
+    evaluate,
+    load_rule_pack,
+)
 from lsprotocol import types
 from pygls.exceptions import JsonRpcInvalidParams, JsonRpcServerError
 from pygls.lsp.server import LanguageServer
@@ -34,11 +41,11 @@ from pygls.protocol import LanguageServerProtocol, default_converter, lsp_method
 from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 from pygls.uris import to_fs_path
 
-from lineagepilot_lsp import __version__, methods, protocol
+from lineagepilot_lsp import __version__, features, methods, protocol
 from lineagepilot_lsp.context import GraphContext, clip
 from lineagepilot_lsp.indexing import ColumnStage, ProjectIndex, freeze_heap, iso_time
 from lineagepilot_lsp.project import DbtProject, read_project
-from lineagepilot_lsp.watch import Change, Debouncer, classify, watchers
+from lineagepilot_lsp.watch import RULES_FILE, Change, Debouncer, classify, watchers
 
 logger = logging.getLogger(__name__)
 
@@ -129,6 +136,9 @@ class LineagePilotServer(LanguageServer):
         self.workspace_root: Path | None = None
         self.index: ProjectIndex | None = None
         self.context: GraphContext | None = None
+        self.rule_pack: RulePack | None = None
+        self.evaluation: Evaluation | None = None
+        self.published: dict[str, list[dict[str, Any]]] = {}
         self._temp_storage: str | None = None
         self._debouncers: dict[Change, Debouncer] = {}
         self._background: set[asyncio.Task[Any]] = set()
@@ -172,10 +182,12 @@ class LineagePilotServer(LanguageServer):
             on_graph=self.graph_changed,
         )
         self._debouncers = {
-            Change.SOURCES: Debouncer(SOURCE_DEBOUNCE_S, self.index.update_staleness),
+            Change.SOURCES: Debouncer(SOURCE_DEBOUNCE_S, self.sources_changed),
             Change.PROJECT: Debouncer(self.options.debounce_s, lambda _: self.reload_project()),
+            Change.RULES: Debouncer(self.options.debounce_s, lambda _: self.rules_changed()),
             Change.DAGS: Debouncer(self.options.debounce_s, self.dags_changed),
         }
+        self.load_rules()
         self.index.start()
 
     async def stop_indexing(self) -> None:
@@ -256,6 +268,18 @@ class LineagePilotServer(LanguageServer):
             self.spawn(self.register_watchers())
             self.index.request()
 
+    def sources_changed(self, files: set[str]) -> None:
+        assert self.index is not None and self.project is not None
+        if self.context is not None:
+            for relative in files:
+                self.context.locator.forget(self.project.root / relative)
+        self.index.update_staleness(files)
+
+    def rules_changed(self) -> None:
+        self.load_rules()
+        self.refresh_rules()
+        self.notify_index_updated()
+
     def dags_changed(self, files: set[str]) -> None:
         # Phase 5 analyses DAG files statically; until then a change is only logged
         self.log(f"{len(files)} Airflow DAG file(s) changed; DAG analysis is not available yet")
@@ -270,8 +294,84 @@ class LineagePilotServer(LanguageServer):
             if graph is None
             else GraphContext(graph, self.project, lambda: index.columns is ColumnStage.COMPUTING)
         )
+        self.refresh_rules()
         freeze_heap()
+        self.refresh_code_lenses()
         self.spawn(self.index.refresh_staleness())
+
+    # Rules and diagnostics
+
+    def rules_path(self) -> Path:
+        assert self.project is not None
+        return self.project.root / RULES_FILE
+
+    def load_rules(self) -> None:
+        """The workspace's rule pack, in a trusted workspace only (design section 10)."""
+        path = self.rules_path()
+        if not self.options.trusted or not path.is_file():
+            self.rule_pack = None
+            return
+        self.rule_pack = load_rule_pack(path, {rule.id for rule in builtin_rules()})
+        for problem in self.rule_pack.problems:
+            self.log(f"Rule pack: {problem}", types.MessageType.Warning)
+
+    def refresh_rules(self) -> None:
+        """Evaluate the rules on the loaded graph and publish what changed."""
+        if self.context is None:
+            self.evaluation = None
+            self.publish({})
+            return
+        self.evaluation = evaluate(self.context.graph, self.rule_pack)
+        self.publish(
+            features.diagnostics(
+                self.context,
+                self.evaluation,
+                self.rule_pack,
+                self.rules_path(),
+                restricted=not self.options.trusted,
+            )
+        )
+
+    def publish(self, found: dict[str, list[dict[str, Any]]]) -> None:
+        """Send diagnostics for files whose diagnostics changed, and clear the rest."""
+        for uri in sorted(set(self.published) - set(found)):
+            self._send_diagnostics(uri, [])
+        for uri, diagnostics in sorted(found.items()):
+            if self.published.get(uri) != diagnostics:
+                self._send_diagnostics(uri, diagnostics)
+        self.published = found
+
+    def _send_diagnostics(self, uri: str, diagnostics: list[dict[str, Any]]) -> None:
+        # Plain JSON straight to the transport: at 5,000 models there can be tens of
+        # thousands of diagnostics, and notify() would have cattrs convert typed objects.
+        # pygls is pinned below 2.2 for this private call; the end-to-end tests cover it.
+        self.protocol._send_data(
+            {
+                "jsonrpc": "2.0",
+                "method": types.TEXT_DOCUMENT_PUBLISH_DIAGNOSTICS,
+                "params": {"uri": uri, "diagnostics": diagnostics},
+            }
+        )
+
+    def refresh_code_lenses(self) -> None:
+        workspace = self.client_capabilities.workspace
+        lens = workspace.code_lens if workspace else None
+        if lens and lens.refresh_support:
+            self.workspace_code_lens_refresh(None)
+
+    def rules_status(self) -> dict[str, Any]:
+        path = self.rules_path() if self.project else None
+        score = self.evaluation.score() if self.evaluation else None
+        pack = self.rule_pack
+        return {
+            "pack": str(path) if path is not None and path.is_file() else None,
+            "packLoaded": pack is not None,
+            "restricted": not self.options.trusted,
+            "problems": [clip(p) for p in (pack.problems[:MAX_STATUS_ERRORS] if pack else [])],
+            "findings": len(self.evaluation.findings) if self.evaluation else 0,
+            "score": score.score if score else None,
+            "coverage": score.coverage if score else None,
+        }
 
     def notify_index_updated(self) -> None:
         self.protocol.notify(NOTIFY_INDEX_UPDATED, self.status())
@@ -324,6 +424,7 @@ class LineagePilotServer(LanguageServer):
             else {"count": 0, "examples": []},
             "fromCache": bool(index and index.result.get("fromCache")),
             "indexedAt": index.indexed_at if index else None,
+            "rules": self.rules_status(),
         }
 
     def _artifacts(self) -> dict[str, Any]:
@@ -421,6 +522,23 @@ def create_server() -> LineagePilotServer:
     @server.feature(types.WORKSPACE_DID_CHANGE_WATCHED_FILES)
     def on_files_changed(ls: LineagePilotServer, params: types.DidChangeWatchedFilesParams) -> None:
         ls.files_changed(params)
+
+    @server.feature(types.TEXT_DOCUMENT_CODE_LENS)
+    def on_code_lens(ls: LineagePilotServer, params: types.CodeLensParams) -> list[Any]:
+        document = ls.workspace.get_text_document(params.text_document.uri)
+        if ls.context is None or not document.path:
+            return []
+        return features.code_lenses(ls.context, Path(document.path), document.source)
+
+    @server.feature(types.TEXT_DOCUMENT_HOVER)
+    def on_hover(ls: LineagePilotServer, params: types.HoverParams) -> Any:
+        document = ls.workspace.get_text_document(params.text_document.uri)
+        if ls.context is None or not document.path:
+            return None
+        position = params.position
+        return features.hover(
+            ls.context, Path(document.path), document.source, position.line, position.character
+        )
 
     @server.feature("lineage/status")
     def on_status(ls: LineagePilotServer, params: Any) -> dict[str, Any]:

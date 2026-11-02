@@ -5,6 +5,11 @@ name: lineagepilot-lsp
 
 on:
   workflow_dispatch:
+    inputs:
+      pytest-args:
+        description: "Extra pytest arguments, for example -v -x -k test_name"
+        required: false
+        default: ""
   push:
     paths:
       - "packages/lsp/**"
@@ -40,6 +45,8 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         python: ["3.10", "3.13"]
     runs-on: ${{ matrix.os }}
+    # A hung test must not hold a runner for the default six hours
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
@@ -47,7 +54,9 @@ jobs:
           version: ${{ env.UV_VERSION }}
       - run: uv sync --locked --python ${{ matrix.python }}
       # The end-to-end tests start the server, which starts its indexer; coverage follows both.
-      - run: uv run --locked pytest
+      - run: uv run --locked pytest $PYTEST_ARGS
+        env:
+          PYTEST_ARGS: ${{ inputs.pytest-args }}
 
   lint-and-audit:
     runs-on: ubuntu-latest

@@ -291,3 +291,17 @@ def test_jaffle_shop_results():
     assert failing == {"model.jaffle_shop.customers", "model.jaffle_shop.orders"}
     score = evaluation.score()
     assert (score.passed, score.failed, score.coverage) == (84, 126, 100.0)
+
+
+def test_the_rules_documentation_is_up_to_date():
+    """Diagnostics link to docs/rules.md#<rule id>; scripts/rules_doc.py writes it."""
+    import importlib.util
+    from pathlib import Path
+
+    script = Path(__file__).resolve().parents[2] / "scripts" / "rules_doc.py"
+    spec = importlib.util.spec_from_file_location("rules_doc", script)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    assert module.main(["--check"]) == 0
+    text = module.DOC.read_text()
+    assert all(f"### {rule.id}\n" in text for rule in builtin_rules())

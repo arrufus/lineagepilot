@@ -116,6 +116,10 @@ class GraphContext:
         self._pii_nodes: set[str] | None = None
         self._downstream: dict[str, dict[str, int]] = {}
 
+    def columns_computing(self) -> bool:
+        """Whether the indexer is still adding column lineage to this graph."""
+        return self._columns_computing()
+
     # Derived data, computed on first use
 
     @property
@@ -131,7 +135,7 @@ class GraphContext:
 
     def impact(self, targets: list[str], max_depth: int | None = None) -> Impact:
         """Impact, computing column lineage on demand while the indexer still is."""
-        if not self._columns_computing():
+        if not self.columns_computing():
             return impact(self.graph, targets, max_depth=max_depth)
         self.on_demand.start_request()
         return impact(

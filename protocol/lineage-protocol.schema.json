@@ -320,6 +320,21 @@
       "required": ["count", "examples"],
       "additionalProperties": false
     },
+    "RulesStatus": {
+      "description": "The conformance rules behind the diagnostics. In Restricted Mode only the built-in rules run.",
+      "type": "object",
+      "properties": {
+        "pack": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }], "description": "The rule pack file, if the project has one." },
+        "packLoaded": { "type": "boolean" },
+        "restricted": { "type": "boolean" },
+        "problems": { "type": "array", "items": { "$ref": "#/$defs/Text" }, "maxItems": 50 },
+        "findings": { "$ref": "#/$defs/Count" },
+        "score": { "anyOf": [{ "type": "number", "minimum": 0, "maximum": 100 }, { "type": "null" }] },
+        "coverage": { "anyOf": [{ "type": "number", "minimum": 0, "maximum": 100 }, { "type": "null" }] }
+      },
+      "required": ["pack", "packLoaded", "restricted", "problems", "findings", "score", "coverage"],
+      "additionalProperties": false
+    },
     "Status": {
       "type": "object",
       "properties": {
@@ -339,12 +354,13 @@
         "columnStates": { "anyOf": [{ "$ref": "#/$defs/ColumnStates" }, { "type": "null" }] },
         "stale": { "$ref": "#/$defs/Stale" },
         "fromCache": { "type": "boolean" },
-        "indexedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+        "indexedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "rules": { "$ref": "#/$defs/RulesStatus" }
       },
       "required": [
         "protocolVersion", "server", "project", "trusted", "state", "indexing", "generation",
         "columnLineage", "message", "errors", "errorCount", "artifacts", "counts", "columnStates",
-        "stale", "fromCache", "indexedAt"
+        "stale", "fromCache", "indexedAt", "rules"
       ],
       "additionalProperties": false
     }

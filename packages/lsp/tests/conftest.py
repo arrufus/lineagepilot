@@ -115,7 +115,9 @@ class Client(LanguageClient):
         )
 
     async def request(self, method: str, params: Any = None) -> Any:
-        return await self.protocol.send_request_async(method, {} if params is None else params)
+        return await asyncio.wait_for(
+            self.protocol.send_request_async(method, {} if params is None else params), WAIT_S
+        )
 
     def file_changed(self, path: Path, kind: types.FileChangeType = types.FileChangeType.Changed):
         self.workspace_did_change_watched_files(
@@ -163,18 +165,30 @@ async def start(server_python, workspace, tmp_path):
             "debounceMs": 100,
             **(options or {}),
         }
-        result = await client.initialize_session(
-            types.InitializeParams(
-                capabilities=caps or capabilities(),
-                root_uri=root.as_uri(),
-                workspace_folders=[types.WorkspaceFolder(uri=root.as_uri(), name=root.name)],
-                initialization_options=init,
-            )
+        # A server that never answers must fail the test, not hang the run
+        result = await asyncio.wait_for(
+            client.initialize_session(
+                types.InitializeParams(
+                    capabilities=caps or capabilities(),
+                    root_uri=root.as_uri(),
+                    workspace_folders=[types.WorkspaceFolder(uri=root.as_uri(), name=root.name)],
+                    initialization_options=init,
+                )
+            ),
+            WAIT_S,
         )
         return client, result
 
     yield start_server
     for client in clients:
-        if not client.stopped:
-            await client.shutdown_session()
+        if client.stopped:
+            continue
+        try:
+            await asyncio.wait_for(client.shutdown_session(), WAIT_S)
+        except asyncio.TimeoutError:
+            # Fail loudly rather than hang: the server did not exit after shutdown/exit
+            if client._server is not None:
+                client._server.kill()
+            raise AssertionError("the server did not exit after shutdown") from None
+        finally:
             await client.stop()

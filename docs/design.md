@@ -227,6 +227,7 @@ Every rule produces one of five results: `pass`, `fail`, `not_applicable`, `unsu
 
 - The score denominator **excludes** `unsupported` and `unknown`.
 - Coverage is always shown next to the score.
+- In the Problems panel, failures show with the rule's severity, `unknown` results as information ("Not checked") and `unsupported` ones as hints, each linking to its rule in [rules.md](rules.md) (task 2.2).
 
 This fixes the review's F11 (unsupported checks counted as passes). Rule packs live in a workspace file, `.lineagepilot/rules.yml`, so custom rules persist by construction. That fixes F10 (custom rules lost after the request that created them).
 
