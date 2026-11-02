@@ -2,6 +2,20 @@
 
 The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis (lineage, impact, rules, PII) and exporters. The language server (`packages/lsp`) and the headless CLI both run on it. See [design section 4.1](../../docs/design.md#41-components).
 
+## Modules
+
+| Module | What it does |
+|---|---|
+| `parsers/dbt_parser.py` | Reads `manifest.json` and `catalog.json` into nodes (models, seeds, snapshots, sources, exposures), columns, edges and unresolved references, all keyed by dbt `unique_id`. Gates on manifest schema v12. |
+| `parsers/dbt_config.py` | PII name patterns and layer inference rules. |
+| `parsers/sql_parser.py` | Tables read and written by one SQL statement (sqlglot). |
+| `parsers/data_flow_annotations.py` | Declared data flow for Airflow tasks, from YAML or JSON. |
+| `parsers/dbt_manifest_resolver.py` | dbt selectors to models. Phase 5 replaces its selector rules. |
+
+The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
+
+Test fixtures under `tests/fixtures/dbt/` are real dbt artifacts. [PROVENANCE.json](tests/fixtures/dbt/PROVENANCE.json) records where each came from and its hash.
+
 ## Develop
 
 ```sh

@@ -1,0 +1,49 @@
+{
+ "about": "Real dbt artifacts for lineagepilot_core tests, copied on 2026-11-02. The first three come from spike S2 (spikes/s2-parse-perf/tests/fixtures, where scripts/make_fixtures.py regenerates them). legacy-v11 is data-capsule's hand-written backend fixture, kept only as an older-schema input. Do not edit these files: tests mutate copies in memory.",
+ "jaffle-1.12": {
+  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
+  "sha": "7be2c5838dbdeca8e915d4e46db70e910753d7f6",
+  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+  "steps": "deps, seed, run, docs generate",
+  "manifest_bytes": 194425,
+  "macros": "emptied",
+  "copied_from": "spikes/s2-parse-perf/tests/fixtures/jaffle-1.12",
+  "sha256": {
+   "catalog.json": "23eb068ef1aeba450c852adc15e79f0b663ce98960df91f158e5dd6617f29c41",
+   "manifest.json": "949ca7ee4b954744073f7ea9e7b7ce0b5fc082acf9c13893dbf7b52b781b71d0"
+  }
+ },
+ "jaffle-fusion-2.0": {
+  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
+  "sha": "5beb145b00f5465ec759cfcdd9745e858818cf95",
+  "dbt": "2.0.9 (Fusion), in Docker",
+  "steps": "deps, seed, compile",
+  "manifest_bytes": 207867,
+  "macros": "emptied",
+  "copied_from": "spikes/s2-parse-perf/tests/fixtures/jaffle-fusion-2.0",
+  "sha256": {
+   "manifest.json": "d857106d4c1cc8063883d96eaca1ac7af6070cc4c1b758f79ef4b720489cda31"
+  }
+ },
+ "synth-24": {
+  "generator": "scripts/gen_project.py --models 24 --seed 3",
+  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+  "steps": "seed, run, docs generate",
+  "manifest_bytes": 551185,
+  "macros": "emptied",
+  "copied_from": "spikes/s2-parse-perf/tests/fixtures/synth-24",
+  "sha256": {
+   "catalog.json": "59560a8d38f4b23f64c28daf0ce7ca73337f2e5615143b39dc45e5d0e80e3ae8",
+   "manifest.json": "a19b258fa9232541e1084edeaac78b36e193127332f99d22ea5042442c1dc3d9"
+  }
+ },
+ "legacy-v11": {
+  "source": "arrufus/data-capsule backend/tests/fixtures/dbt @ 5e57fcc31da1dbb6fa0aa34791222f35fc380b7d",
+  "dbt": "hand-written, claims dbt 1.7.0 and manifest schema v11",
+  "note": "Not a real dbt artifact: it puts data_tests lists on columns, which real manifests never have (spike S2 suspicion 2).",
+  "sha256": {
+   "catalog.json": "14de4ad85121106791357e98ee933862ddebccffc16cb1a30982dd514387b740",
+   "manifest.json": "62b614ae2582a570d06415709e70b2a495ad4692c4080e13f1937d65a8cf7b98"
+  }
+ }
+}

@@ -17,6 +17,8 @@ dev = [
     "pytest-cov>=5",
     "import-linter>=2.1",
     "ruff>=0.6",
+    # Tests both JSON paths; never a runtime dependency (design section 4.4)
+    "orjson>=3.10",
 ]
 # Kept out of `dev` so the auditor and its dependencies are not part of what it audits.
 audit = ["pip-audit>=2.7"]
@@ -50,6 +52,7 @@ forbidden_modules = ["sqlalchemy", "fastapi", "pydantic"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["tests"]
 addopts = "-q --cov=lineagepilot_core --cov-report=term-missing"
 
 [tool.coverage.run]
