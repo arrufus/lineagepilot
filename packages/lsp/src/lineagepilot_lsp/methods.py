@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Any
 
 from lineagepilot_core.analysis.impact import weakest
-from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, traverse
+from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, steps, traverse
 from lineagepilot_core.export import (
     ExportFormat,
     export_graph,
@@ -175,3 +175,36 @@ def nodes_for_file(ctx: GraphContext, params: protocol.NodesForFileParams) -> di
         return {"nodes": []}
     nodes = [n for n in ctx.nodes_for_file(Path(path)) if n.kind is not NodeKind.RELATION]
     return {"nodes": [ctx.node_json(n.id, "root", 0) for n in nodes]}
+
+
+def node(ctx: GraphContext, params: protocol.NodeParams) -> dict[str, Any]:
+    """One node or column, its columns, and its direct neighbour counts (the graph view's
+    detail panel and column picker)."""
+    ref = params.id
+    if ref in ctx.graph.columns:
+        granularity, columns = Granularity.COLUMN, []
+    elif ref in ctx.graph.nodes:
+        granularity = Granularity.MODEL
+        ordered = sorted(
+            ctx.graph.columns_of(ref), key=lambda c: (c.ordinal is None, c.ordinal or 0, c.name)
+        )
+        indicators = ctx.pii.indicators
+        columns = [
+            {
+                "id": c.id,
+                "name": clip(c.name),
+                "dataType": clip(c.data_type),
+                "description": clip(c.description),
+                "pii": bool(c.pii_type) or (c.id in indicators and not indicators[c.id].masked),
+                "tests": c.test_count,
+            }
+            for c in ordered
+        ]
+    else:
+        raise unknown_node(ref)
+    return {
+        "node": ctx.node_json(ref, "root", 0),
+        "columns": columns,
+        "upstream": sum(1 for _ in steps(ctx.graph, ref, Direction.UPSTREAM, granularity)),
+        "downstream": sum(1 for _ in steps(ctx.graph, ref, Direction.DOWNSTREAM, granularity)),
+    }

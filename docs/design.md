@@ -295,7 +295,7 @@ Post-MVP. If the Snowflake parser returns, its SQL construction must be fixed fi
 | CodeLens (model SQL, `schema.yml`) | `↓ 14 models · 3 Airflow tasks · 1 exposure · PII`. Clicking opens the impact view for that node. |
 | Hover on `ref()` / `source()` and on select-list columns | Upstream and downstream summary, with the evidence class for each edge. |
 | Sidebar tree views | **Lineage** (upstream and downstream of the active file) and **Airflow** (the DAGs and tasks touching it). |
-| Lineage graph webview | Model and column modes, a depth control and filters. Clicking a node opens its file. |
+| Lineage graph webview | **Show Lineage Graph** (command palette, or a node in the Lineage view). Model and column modes, a depth and direction control, filters by node kind, a highlighting search, auto-layout and lazy expansion (+). Clicking a node shows its details and previews its file at the node's range beside the graph; double-click, O or **Open** opens it. Arrow keys follow the edges. Follows the VS Code theme. |
 | Problems panel | Conformance and PII diagnostics on model and `schema.yml` files, each with its rule ID, mapped severity and a docs link. |
 | **Change Impact Review** panel | Base ref picker, defaulting to the merge-base with the default branch. Shows changed nodes and columns, then downstream impact grouped by dbt models, exposures, Airflow tasks and owners, then an **Unknowns** section. Has a "Copy as Markdown" action for the pull request. |
 | Status bar | `Lineage: 1,204 nodes · manifest 3 min old`, or a stale-artifact warning. |
@@ -334,6 +334,7 @@ Standard LSP, plus versioned custom requests. The client lists the `lineage/*` p
 | `lineage/impact` | `targets[]` (1–200), optional `maxDepth` | Impacted nodes with confidence and columns, counts, unknowns, the column-lineage stage |
 | `lineage/export` | `format`, optional `root`, `direction`, `depth` | File name and text content |
 | `lineage/nodesForFile` | `uri` | The nodes a file defines or documents (tree view, "Analyze impact of current model") |
+| `lineage/node` | `id` (node or column) | The node, its columns (type, description, PII, test count) and its direct upstream and downstream counts (the graph's details panel and column picker; Phase 3) |
 | `lineage/refresh` | none | Status |
 | `lineage/indexUpdated` (notification) | Status | none |
 | `lineage/reviewChanges` | `changedFiles[]`, `baseline` | A review result (section 8). Added in Phase 4 |
@@ -346,7 +347,18 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 
 ### Webview ↔ extension
 
-`postMessage` with a typed, zod-validated message union. The webview never talks to the language server directly, and file navigation goes through an `openFile` message that the extension handles.
+`postMessage` with a typed, zod-validated message union (`extension/src/webviewMessages.ts`); each side validates everything it receives and drops what does not match. The webview never talks to the language server directly:
+
+| From the webview | The extension |
+|---|---|
+| `ready` | Answers `init`: the project, the focus asked for (if any), the saved view settings and the index generation |
+| `graph`, `impact`, `node` (with a request ID) | Forwards `lineage/graph`, `lineage/impact` or `lineage/node` and answers `graphResult`, `impactResult` or `nodeResult`, or `error` with the protocol's code |
+| `openFile` (`location`, `preserveFocus`) | Opens the file at the location's range, in an editor group other than the graph's. A click sends `preserveFocus`: the file is previewed and the keyboard stays in the graph. Only `file:` URIs inside the project root |
+| `saveSettings` | Keeps the view settings (global state) |
+
+The extension also sends `focus` (show another node; one panel per project) and `indexUpdated` (re-indexed: the view reloads).
+
+Unless a panel retains its context, which costs memory, VS Code destroys a hidden webview's page and builds it again when it is shown. So the webview keeps its focus, depth and direction in VS Code's webview state (`setState`) and restores them, validated, when its page is rebuilt; and the panel treats a hidden page as not ready, holding a focus asked for meanwhile until the new page's `init`.
 
 ---
 
@@ -363,7 +375,7 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 | Network | No listener, stdio only. No outbound network in the MVP. Telemetry is off; if it is ever added, it must respect `vscode.env.isTelemetryEnabled`. |
 | Code execution | DAG files are analysed with the AST only; user Python is never imported. dbt runs only on an explicit user command in a trusted workspace. |
 | Resource limits | Manifest size cap (configurable). Parsing runs in a worker with a per-statement time budget for sqlglot. Rule-pack regexes have a length cap and are evaluated with a timeout, or with `re2` if available. This closes the ReDoS class (DCS-61r). |
-| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. |
+| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`, with a fresh nonce for each page. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. zod runs `jitless` in the webview: otherwise it probes for `eval` with `new Function`, which the CSP reports as a violation. Every message is validated both ways; `openFile` opens only `file:` URIs inside the project root. |
 | Exporters | Escaping for each format is fixed **before** export ships: Cypher uses parameters or JSON escaping; XML escapes every field; DOT uses quoted, escaped IDs; Mermaid uses generated IDs; CSV neutralises leading formula characters. This closes LP-auw, LP-aml and LP-l1s. |
 | Supply chain | `package-lock.json` and `uv.lock` with hashes; bundled libraries installed with `--require-hashes`; `npm audit`, `pip-audit` and gitleaks in CI; the publisher account protected with 2FA; publishing only from CI. |
 | Carry-over | **The leaked Snowflake key must still be rotated (DCS-hov).** Pivoting does not retract a key that is already public. |
@@ -382,7 +394,7 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 | CodeLens and hover | ≤ 100 ms p95 | under 0.01 ms (lookup only) |
 | Model-level impact | ≤ 300 ms | 0.38 ms; 3–5 ms from the source with the largest closure (651 nodes) in `lineagepilot_core`, and 16–25 ms for all 14 columns of that source at column level (task 1.4) |
 | Column lineage for one model | ≤ 2 s | ≤ 0.35 s with `sqlglot.lineage` (section 6.1); 3 ms median in `lineagepilot_core` (task 1.9) |
-| Graph webview | 500 nodes stay interactive | Phase 3 |
+| Graph webview | 500 nodes stay interactive | Layout (dagre) 85 ms for 500 nodes and 960 edges. Search, selection and the arrow keys do not lay the graph out again. In a browser: pending (`extension/webview/perf/`) |
 | Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. With column lineage in the graph (127,000 columns, 97,000 `derives` edges) a warm start peaks at 387–405 MB (task 1.8). |
 
 **Column lineage for every model is too slow for the cold index**: 8.2 s at 2,000 models and 20.5 s at 5,000 on Python 3.13, 28.6 s at 5,000 on 3.10 (task 1.9, including adding the edges). So the indexer publishes the model-level graph first and adds column lineage after it, model by model; a query that needs a model's columns before then computes that model on demand.
@@ -443,7 +455,7 @@ The modules below live in the data-capsule repository, under `backend/src/` and 
 
 | Current component | Fate |
 |---|---|
-| `CapsuleNode`, `ColumnNode`, `LineageGraph`, `ColumnLineageGraph`, `ColumnDetailPanel`, `ImpactAnalysis`, `SettingsPanel`, `TaskImpactGraph`, `TaskImpactList`, `TaskImpactSummary` (about 2,300 lines) | **Port** to the webview. The `@/lib/api/*` hooks are replaced by a message transport, and `next/navigation` by `openFile` messages. |
+| `CapsuleNode`, `ColumnNode`, `LineageGraph`, `ColumnLineageGraph`, `ColumnDetailPanel`, `ImpactAnalysis`, `SettingsPanel`, `TaskImpactGraph`, `TaskImpactList`, `TaskImpactSummary` (about 2,300 lines) | **Port** to the webview. The `@/lib/api/*` hooks are replaced by a message transport, and `next/navigation` by `openFile` messages. Phase 3 ported the first seven: `LineageGraph` and `ColumnLineageGraph` became one graph with two modes, and `ImpactAnalysis` lost its risk levels and recommendations, which rested on unmeasured heuristics (review finding F13). The `TaskImpact*` components wait for the Airflow linkage. |
 | Every other Next.js page and component | **Retire.** |
 
 ---
@@ -472,8 +484,8 @@ The legacy server and dashboard stay frozen in the data-capsule repository, in `
 |---|---|---|
 | Core | pytest; golden fixtures (a small shop-style dbt project, a project with Cosmos DAGs, a synthetic 5,000-model manifest); hypothesis property tests on every exporter, checking that output re-parses and is injection-free | ≥ 80% coverage |
 | Language server | pytest-lsp, end to end over stdio | All features covered |
-| Extension | vitest units; `@vscode/test-cli` integration tests on the fixture workspace (CodeLens counts, diagnostics, commands, restricted-mode refusals) | ≥ 75% coverage |
-| Webview | vitest with React Testing Library; message-schema contract tests shared with the extension | ≥ 75% coverage |
+| Extension | mocha units; `@vscode/test-cli` integration tests on the fixture workspace (CodeLens counts, diagnostics, commands, the graph panel, restricted-mode refusals) | ≥ 75% coverage |
+| Webview | mocha with jsdom and React Testing Library; message-schema contract tests shared with the extension | ≥ 75% coverage |
 | CI matrix | ubuntu, macOS and Windows × Python 3.10 and 3.13. Package the VSIX and check a size budget. `npm audit`, `pip-audit`, gitleaks | Required for merge |
 
 How the extension is tested (Phase 2):
@@ -483,6 +495,13 @@ How the extension is tested (Phase 2):
 - **Coverage**: unit and integration tests run together in one VS Code against the source build, so V8 coverage maps back to `src/*.ts`.
 - **Locally**, the integration tests run headless in a Linux container (`extension/docker/`). A test window on a developer's desktop takes focus, and a stray keystroke can reload it, which ends the run.
 - **The packaged server** is also tested directly: CI runs the language server's end-to-end tests against the VSIX's `bundled/tool/lsp_server.py`, on interpreters with nothing installed. On Windows this is the only run of the server's tests: in the server's own workflow its unit tests hang on Windows CI, in a way GitHub cannot stop, so that workflow covers Linux and macOS until beads LP-7t7 is fixed.
+
+How the lineage view is tested (Phase 3):
+- **React Testing Library** tests run in mocha on jsdom (`npm run test:webview-coverage`), not vitest: vitest 5 could not be installed with npm 10.9 (npm crashes resolving its dependencies). esbuild compiles each source file to CommonJS for them, unbundled, so c8 filters coverage by compiled path: with one bundle it would have to filter after remapping, and c8 12 then drops every branch and function count.
+- jsdom lays nothing out, so the setup gives elements a size and reports it through a stand-in `ResizeObserver`. React Flow then measures and shows its nodes as in a browser, and the tests find them by role and accessible name, as a screen reader would.
+- The tests drive the whole view through the real transport against a fake extension, which validates every message with the extension's own schemas.
+- **In VS Code**, the integration tests open the panel and wait for the webview's own bundle to say it is ready and ask for its graph, which only happens if it loads under the CSP. They then check forwarding, opening the right file and range beside the graph, the refusals, and a page rebuilt after being hidden.
+- **In a browser**, `extension/webview/perf/` runs the production bundle under the same CSP with a stand-in for VS Code and a 500-node graph, and measures the first draw, zooming, selection, search and the arrow keys.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

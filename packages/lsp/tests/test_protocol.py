@@ -14,6 +14,14 @@ from lineagepilot_lsp import protocol
 EXAMPLES = json.loads((REPO / "protocol" / "examples.json").read_text())
 
 
+def example(kind: str, match: str) -> dict:
+    """The value of the example of a type whose description or JSON contains ``match``."""
+    for item in EXAMPLES[kind]:
+        if match in item.get("why", "") or match in json.dumps(item["value"]):
+            return item["value"]
+    raise KeyError(match)
+
+
 def load_generator():
     spec = importlib.util.spec_from_file_location("generate", REPO / "protocol" / "generate.py")
     module = importlib.util.module_from_spec(spec)
@@ -41,21 +49,23 @@ def test_invalid_examples_are_rejected(example):
 
 
 def test_records_build_nested_dataclasses():
-    result = protocol.ImpactResult.from_json(EXAMPLES["valid"][11]["value"])
+    result = protocol.ImpactResult.from_json(example("valid", '"columnLineage": "done"'))
     assert isinstance(result.nodes[0], protocol.ImpactedNode)
     assert result.nodes[0].granularity == "model" and result.counts == {"model": 1}
-    location = protocol.Location.from_json(EXAMPLES["valid"][8]["value"])
+    location = protocol.Location.from_json(example("valid", '"character": 10'))
     assert isinstance(location.range, protocol.Range) and location.range.start.character == 10
-    params = protocol.GraphParams.from_json(EXAMPLES["valid"][2]["value"])
+    params = protocol.GraphParams.from_json(example("valid", '"maxNodes": 5000'))
     assert params.max_nodes == 5000 and params.granularity == "column"
 
 
 def test_errors_name_the_path():
     with pytest.raises(protocol.ValidationError) as e:
-        protocol.validate("ImpactResult", EXAMPLES["invalid"][-2]["value"])
+        protocol.validate("ImpactResult", example("invalid", "a negative count"))
     assert e.value.path == "ImpactResult.counts.model"
     with pytest.raises(protocol.ValidationError, match="unexpected 'extra'"):
-        protocol.GraphParams.from_json({**EXAMPLES["valid"][1]["value"], "extra": 1})
+        protocol.GraphParams.from_json(
+            {**example("valid", '"depth": 1, "granularity": "model"'), "extra": 1}
+        )
     with pytest.raises(protocol.ValidationError, match="must be number"):
         protocol._check({"type": "number"}, float("nan"), "x")
     protocol._check({"type": "number", "maximum": 2}, 1.5, "x")
@@ -167,6 +177,7 @@ def test_zod_for_general_unions():
 
 
 def test_every_method_names_a_record():
+    assert "lineage/node" in protocol.REQUESTS
     for method, (params, result) in protocol.REQUESTS.items():
         assert method.startswith("lineage/")
         assert params in protocol.RECORDS and result in protocol.RECORDS

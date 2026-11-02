@@ -612,6 +612,11 @@ def create_server() -> LineagePilotServer:
         checked = _params(ls, protocol.ExportParams, params)
         return methods.export(ls.ready_context(), checked)
 
+    @server.feature("lineage/node")
+    def on_node(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.NodeParams, params)
+        return methods.node(ls.ready_context(), checked)
+
     @server.feature("lineage/nodesForFile")
     def on_nodes_for_file(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
         checked = _params(ls, protocol.NodesForFileParams, params)

@@ -15,7 +15,9 @@
     { "type": "ImpactResult", "value": { "targets": ["model.shop.orders"], "truncated": false, "counts": { "model": 1 }, "nodes": [
       { "id": "model.shop.customers", "kind": "model", "name": "customers", "depth": 1, "granularity": "model", "confidence": "declared", "columns": [], "reason": null, "location": null, "owner": null }
     ], "unknowns": [], "columnLineage": "done" } },
-    { "type": "ExportResult", "value": { "format": "json", "filename": "shop-lineage.json", "content": "{}", "nodes": 0, "edges": 0 } }
+    { "type": "ExportResult", "value": { "format": "json", "filename": "shop-lineage.json", "content": "{}", "nodes": 0, "edges": 0 } },
+    { "type": "NodeParams", "value": { "id": "model.shop.orders#order_id" } },
+    { "type": "ColumnInfo", "value": { "id": "model.shop.orders#id", "name": "id", "dataType": null, "description": null, "pii": false, "tests": 2 } }
   ],
   "invalid": [
     { "type": "EmptyParams", "value": null, "why": "a request must carry a params object (S1 finding 4)" },
@@ -39,6 +41,8 @@
     { "type": "Location", "value": { "uri": "file:///w/a.sql" }, "why": "range is required, even if null" },
     { "type": "Location", "value": { "uri": "file:///w/a.sql", "range": { "start": { "line": -1, "character": 0 }, "end": { "line": 0, "character": 0 } } }, "why": "a negative line" },
     { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": { "model": -1 }, "nodes": [], "unknowns": [], "columnLineage": "done" }, "why": "a negative count" },
-    { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": {}, "nodes": [], "unknowns": [], "columnLineage": "later" }, "why": "not a column stage" }
+    { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": {}, "nodes": [], "unknowns": [], "columnLineage": "later" }, "why": "not a column stage" },
+    { "type": "NodeParams", "value": { "id": "" }, "why": "an empty node ID" },
+    { "type": "ColumnInfo", "value": { "id": "m#c", "name": "c", "dataType": null, "description": null, "pii": "no", "tests": 0 }, "why": "pii is a boolean" }
   ]
 }

@@ -6,11 +6,12 @@ import * as vscode from 'vscode';
 
 import { pickSubcommand, refreshArtifacts, type RefreshOutcome, type Subcommand, SUBCOMMANDS } from './dbt';
 import { ServerManager } from './manager';
+import { LineagePanel, openLocation } from './panel';
 import { PROJECT_GLOB } from './projects';
-import type { ExportFormat, Location } from './protocol';
+import type { ExportFormat, GraphNode, Location } from './protocol';
 import type { ProjectServer } from './server';
 import { statusBar } from './status';
-import { AirflowTree, LineageTree, type NodeItem } from './views/lineageTree';
+import { AirflowTree, LineageTree, NodeItem } from './views/lineageTree';
 
 const GRAPH_FORMATS: { format: ExportFormat; label: string }[] = [
   { format: 'json', label: 'JSON' },
@@ -30,6 +31,8 @@ export interface LineagePilotApi {
   manager: ServerManager;
   lineageTree: LineageTree;
   statusBarText(): string;
+  /** The project's open lineage graph panel. */
+  lineagePanel(root: string): LineagePanel | undefined;
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<LineagePilotApi> {
@@ -87,21 +90,30 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     return picked?.server;
   };
 
+  // The first node the active editor's file defines, and its project's server
+  const editorNode = async (): Promise<{ server: ProjectServer; node: GraphNode } | undefined> => {
+    const uri = vscode.window.activeTextEditor?.document.uri;
+    const server = uri?.scheme === 'file' ? manager.serverFor(uri.fsPath) : undefined;
+    if (!uri || !server) {
+      void vscode.window.showInformationMessage('Open a model or properties file of a dbt project first.');
+      return undefined;
+    }
+    const { nodes } = await server.request('lineage/nodesForFile', { uri: uri.toString() });
+    if (!nodes[0]) {
+      void vscode.window.showInformationMessage('This file defines no node in the lineage graph.');
+      return undefined;
+    }
+    return { server, node: nodes[0] };
+  };
+
   const showImpact = async (nodeId?: string, projectRoot?: string): Promise<NodeItem | undefined> => {
     let server = projectRoot ? manager.serverForRoot(projectRoot) : undefined;
     if (!nodeId) {
-      const uri = vscode.window.activeTextEditor?.document.uri;
-      server = uri?.scheme === 'file' ? manager.serverFor(uri.fsPath) : undefined;
-      if (!uri || !server) {
-        void vscode.window.showInformationMessage('Open a model or properties file of a dbt project first.');
+      const found = await editorNode();
+      if (!found) {
         return undefined;
       }
-      const { nodes } = await server.request('lineage/nodesForFile', { uri: uri.toString() });
-      nodeId = nodes[0]?.id;
-      if (!nodeId) {
-        void vscode.window.showInformationMessage('This file defines no node in the lineage graph.');
-        return undefined;
-      }
+      ({ server, node: { id: nodeId } } = found);
     }
     server ??= await activeServer();
     if (!server) {
@@ -112,6 +124,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       await lineageView.reveal(item, { select: true, focus: true, expand: 2 });
     }
     return item;
+  };
+
+  // From a Lineage tree item, a node ID (with its project, for tests), or the active editor
+  const showLineage = async (target?: NodeItem | string, projectRoot?: string): Promise<LineagePanel | undefined> => {
+    let server: ProjectServer | undefined;
+    let node: Pick<GraphNode, 'id' | 'kind'> | undefined;
+    if (target instanceof NodeItem) {
+      ({ server, node } = target);
+    } else if (typeof target === 'string') {
+      server = projectRoot ? manager.serverForRoot(projectRoot) : await activeServer();
+      node = { id: target, kind: target.includes('#') ? 'column' : 'model' };
+    } else {
+      ({ server, node } = (await editorNode()) ?? {});
+    }
+    if (!server || !node) {
+      return undefined;
+    }
+    return LineagePanel.show(context, server, output, { id: node.id, granularity: node.kind === 'column' ? 'column' : 'model' });
   };
 
   const exportTo = async (formats: { format: ExportFormat; label: string }[], title: string, target?: vscode.Uri, format?: ExportFormat) => {
@@ -138,17 +168,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   context.subscriptions.push(
     output, statusItem, lineageView, airflowView, manager, { dispose: () => clearInterval(timer) },
     vscode.commands.registerCommand('lineagePilot.showImpact', showImpact),
+    vscode.commands.registerCommand('lineagePilot.showLineage', showLineage),
     vscode.commands.registerCommand('lineagePilot.followEditor', () => {
       lineageTree.unpin();
       void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
     }),
     vscode.commands.registerCommand('lineagePilot.openNode', async (location: Location) => {
-      const document = await vscode.workspace.openTextDocument(vscode.Uri.parse(location.uri));
-      const range = location.range
-        ? new vscode.Range(location.range.start.line, location.range.start.character,
-          location.range.end.line, location.range.end.character)
-        : undefined;
-      await vscode.window.showTextDocument(document, { selection: range, preview: true });
+      await openLocation(location);
     }),
     vscode.commands.registerCommand('lineagePilot.refreshArtifacts',
       async (subcommand?: Subcommand, projectRoot?: string): Promise<RefreshOutcome> => {
@@ -209,7 +235,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   await manager.start(true);
   updateStatus();
   void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
-  return { manager, lineageTree, statusBarText: () => statusItem.text };
+  return {
+    manager, lineageTree, statusBarText: () => statusItem.text, lineagePanel: (root) => LineagePanel.forProject(root),
+  };
 }
 
 export function deactivate(): void {

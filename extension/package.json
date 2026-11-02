@@ -101,6 +101,12 @@
         "icon": "$(target)"
       },
       {
+        "command": "lineagePilot.showLineage",
+        "title": "Show Lineage Graph",
+        "category": "LineagePilot",
+        "icon": "$(type-hierarchy)"
+      },
+      {
         "command": "lineagePilot.refreshArtifacts",
         "title": "Refresh dbt Artifacts",
         "category": "LineagePilot",
@@ -175,6 +181,18 @@
           "when": "view == lineagePilot.lineage",
           "group": "navigation@2"
         }
+      ],
+      "view/item/context": [
+        {
+          "command": "lineagePilot.showLineage",
+          "when": "view == lineagePilot.lineage && viewItem == lineageNode",
+          "group": "inline"
+        },
+        {
+          "command": "lineagePilot.showLineage",
+          "when": "view == lineagePilot.lineage && viewItem == lineageNode",
+          "group": "navigation@1"
+        }
       ]
     },
     "viewsContainers": {
@@ -212,30 +230,44 @@
   "scripts": {
     "generate-protocol": "python3 ../protocol/generate.py",
     "bundle-libs": "python3 scripts/bundle_libs.py",
-    "typecheck": "tsc -p . --noEmit",
+    "typecheck": "tsc -p . --noEmit && tsc -p webview",
     "compile": "npm run typecheck && node esbuild.mjs",
     "compile-tests": "tsc -p .",
     "prepackage": "python3 scripts/bundle_libs.py --clean-only && npm run typecheck && node esbuild.mjs --production",
     "package": "vsce package --no-dependencies --skip-license -o dist/lineagepilot.vsix",
     "check-vsix": "python3 scripts/check_vsix.py dist/lineagepilot.vsix",
     "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
+    "test:webview": "node scripts/build_webview_tests.mjs && mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\"",
+    "test:webview-coverage": "node scripts/build_webview_tests.mjs && c8 --all --src out/webview-test --include \"out/webview-test/webview/src/**\" --include out/webview-test/src/webviewMessages.js --exclude out/webview-test/webview/src/main.js --reporter text-summary --reporter json-summary --reporter html --report-dir coverage-webview mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\" && node scripts/check_coverage.mjs coverage-webview/coverage-summary.json 75",
     "test:integration": "npm run compile-tests && npm run compile && vscode-test",
-    "test:coverage": "npm run compile-tests && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
+    "test:coverage": "npm run compile-tests && node esbuild.mjs && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
   },
   "dependencies": {
+    "@dagrejs/dagre": "3.1.1",
     "@vscode/python-extension": "1.0.6",
+    "@xyflow/react": "12.12.0",
+    "lucide-react": "1.59.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
     "vscode-languageclient": "10.1.2",
     "zod": "4.6.7"
   },
   "devDependencies": {
+    "@testing-library/dom": "10.4.2",
+    "@testing-library/react": "16.3.3",
+    "@testing-library/user-event": "14.6.8",
+    "@types/jsdom": "30.0.0",
     "@types/mocha": "10.0.10",
     "@types/node": "22.20.5",
+    "@types/react": "19.3.0",
+    "@types/react-dom": "19.3.0",
     "@types/vscode": "1.93.0",
     "@vscode/test-cli": "0.0.15",
     "@vscode/test-electron": "3.1.0",
     "@vscode/vsce": "4.0.0",
     "c8": "12.0.0",
     "esbuild": "0.28.2",
+    "jsdom": "30.1.3",
     "mocha": "11.8.0",
     "ovsx": "1.3.0",
     "typescript": "5.9.3"

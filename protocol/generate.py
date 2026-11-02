@@ -204,7 +204,7 @@ def typescript(schema: dict[str, Any]) -> str:
     lines = [
         f"// {HEADER}",
         "// Validates everything the language server sends to the extension (design section 9).",
-        "import { z } from 'zod';",
+        "import * as z from 'zod';",
         "",
         f"export const PROTOCOL_VERSION = {schema['x-protocol-version']};",
         "",

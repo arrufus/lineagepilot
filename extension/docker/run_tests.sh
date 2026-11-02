@@ -18,6 +18,7 @@ npm ci --no-audit --no-fund --loglevel=error
 npm run compile-tests >/dev/null
 npm run compile >/dev/null
 npm run test:unit
+npm run test:webview-coverage
 
 status=0
 for version in ${LP_PYTHONS:-3.13}; do

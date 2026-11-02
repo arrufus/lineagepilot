@@ -1,6 +1,6 @@
 // Generated from protocol/lineage-protocol.schema.json by protocol/generate.py. Do not edit.
 // Validates everything the language server sends to the extension (design section 9).
-import { z } from 'zod';
+import * as z from 'zod';
 
 export const PROTOCOL_VERSION = 1;
 
@@ -194,6 +194,30 @@ export const NodesForFileResult = z.strictObject({
 });
 export type NodesForFileResult = z.infer<typeof NodesForFileResult>;
 
+export const NodeParams = z.strictObject({
+  id: Id,
+});
+export type NodeParams = z.infer<typeof NodeParams>;
+
+export const ColumnInfo = z.strictObject({
+  id: Id,
+  name: Name,
+  dataType: Name.nullable(),
+  description: Text.nullable(),
+  pii: z.boolean(),
+  tests: Count,
+});
+export type ColumnInfo = z.infer<typeof ColumnInfo>;
+
+/** One node or column: its details, its columns (for a node), and how many direct neighbours it has at its granularity. */
+export const NodeResult = z.strictObject({
+  node: GraphNode,
+  columns: z.array(ColumnInfo),
+  upstream: Count,
+  downstream: Count,
+});
+export type NodeResult = z.infer<typeof NodeResult>;
+
 export const IndexError = z.strictObject({
   severity: z.enum(["error", "warning"]),
   message: Text,
@@ -305,6 +329,7 @@ export const requests = {
   'lineage/impact': { params: ImpactParams, result: ImpactResult },
   'lineage/export': { params: ExportParams, result: ExportResult },
   'lineage/nodesForFile': { params: NodesForFileParams, result: NodesForFileResult },
+  'lineage/node': { params: NodeParams, result: NodeResult },
 } as const;
 export type RequestMethod = keyof typeof requests;
 

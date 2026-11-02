@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<!-- The production lineage view with a stand-in for VS Code, to measure a large graph in a real
+     browser (Phase 3 exit). The CSP is the webview's: only nonce scripts, no eval. See perf.js. -->
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'nonce-lp-perf'; style-src 'self' 'unsafe-inline'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LineagePilot graph performance</title>
+<link rel="stylesheet" href="../../dist/webview/webview.css">
+<style>
+  /* A few of VS Code's dark theme variables, so the page looks as it does in the editor */
+  :root {
+    --vscode-font-family: system-ui, sans-serif; --vscode-font-size: 13px; --vscode-editor-font-family: ui-monospace, monospace;
+    --vscode-foreground: #cccccc; --vscode-descriptionForeground: #9d9d9d; --vscode-editor-background: #1f1f1f;
+    --vscode-editorWidget-background: #202020; --vscode-editorWidget-border: #454545; --vscode-sideBar-background: #181818;
+    --vscode-focusBorder: #0078d4; --vscode-button-background: #0078d4; --vscode-button-foreground: #ffffff;
+    --vscode-button-secondaryBackground: #313131; --vscode-button-secondaryForeground: #cccccc;
+    --vscode-button-secondaryHoverBackground: #3c3c3c; --vscode-input-background: #313131; --vscode-input-foreground: #cccccc;
+    --vscode-badge-background: #616161; --vscode-badge-foreground: #f8f8f8; --vscode-errorForeground: #f85149;
+    --vscode-editorWarning-foreground: #cca700; --vscode-textLink-foreground: #4daafc; --vscode-charts-blue: #3794ff;
+    --vscode-charts-green: #89d185; --vscode-charts-purple: #b180d7; --vscode-charts-orange: #d18616;
+    --vscode-charts-yellow: #cca700; --vscode-charts-red: #f14c4c; --vscode-editorLineNumber-foreground: #6e7681;
+  }
+  #lp-perf { position: fixed; left: 8px; bottom: 8px; z-index: 100; margin: 0; padding: 8px 10px; font: 12px ui-monospace, monospace;
+    background: rgba(0, 0, 0, 0.8); color: #9fef9f; border: 1px solid #454545; max-width: 520px; white-space: pre-wrap; }
+</style>
+</head>
+<body class="vscode-dark">
+<div id="root"></div>
+<pre id="lp-perf">measuring…</pre>
+<script nonce="lp-perf" src="perf.js"></script>
+<script nonce="lp-perf" src="../../dist/webview/webview.js"></script>
+</body>
+</html>

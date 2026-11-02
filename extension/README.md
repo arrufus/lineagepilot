@@ -2,7 +2,7 @@
 
 See what is upstream and downstream of the model you are editing, and what a change to it would reach, from the dbt artifacts already in your workspace. LineagePilot runs locally: no server, no account, no warehouse connection.
 
-> **Preview.** This is the Phase 2 build: lineage, CodeLens, hovers, diagnostics and the Lineage view. The graph view, the change-impact review of your branch and Airflow linkage come in later versions.
+> **Preview.** This is the Phase 3 build: lineage, CodeLens, hovers, diagnostics, the Lineage view and the lineage graph. The change-impact review of your branch and Airflow linkage come in later versions.
 
 ## What you get
 
@@ -10,8 +10,9 @@ See what is upstream and downstream of the model you are editing, and what a cha
 - **Hovers** on `ref()` and `source()` calls, and on the columns of the model you are editing: the direct upstream and downstream, with how each link is known (declared in the manifest, inferred from compiled SQL) and the column-lineage state.
 - **Problems**: conformance and PII rules, each linked to its documentation. Results LineagePilot could not check are shown as "Not checked", never as passes. PII findings are *indicators*, from tags, names and lineage, not verified exposure.
 - **Lineage view** in the activity bar: the upstream and downstream of the open file, one level at a time. Click a node to open it.
+- **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges, Enter for details, O to open.
 - **Status bar**: node count and manifest age, or a warning when model files are newer than the manifest.
-- **Commands** (LineagePilot: …): Analyze Impact of Current Model, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output.
+- **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output.
 
 ## Requirements
 

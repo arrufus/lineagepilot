@@ -252,3 +252,22 @@ async def test_nodes_for_file(start, workspace):
     assert await ids(workspace / "README.md") == []
     assert await ids(workspace.parent / "elsewhere.sql") == []
     assert await ids("untitled:Untitled-1") == []
+
+
+async def test_node_details(start):
+    client = await ready(start)
+    orders = await call(client, "lineage/node", {"id": f"{J}.orders"})
+    assert orders["node"]["name"] == "orders" and orders["node"]["side"] == "root"
+    assert (orders["upstream"], orders["downstream"]) == (
+        2,
+        1,
+    )  # stg_orders, order_items; customers
+    columns = {c["name"]: c for c in orders["columns"]}
+    assert "order_total" in columns and columns["order_id"]["tests"] >= 2
+    customers = await call(client, "lineage/node", {"id": f"{J}.customers"})
+    assert any(c["pii"] for c in customers["columns"])
+    column = await call(client, "lineage/node", {"id": f"{J}.customers#lifetime_spend"})
+    assert column["node"]["kind"] == "column" and column["columns"] == []
+    assert (column["upstream"], column["downstream"]) == (1, 0)
+    error = await error_of(client, "lineage/node", {"id": f"{J}.nowhere"})
+    assert error.code == protocol.ErrorCode.UNKNOWN_NODE

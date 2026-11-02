@@ -1,0 +1,180 @@
+/* The lineage view's styles (task 3.4). Every colour is a VS Code theme variable, so the view
+   follows light, dark and high-contrast themes; React Flow's own variables are mapped onto them. */
+
+@import '@xyflow/react/dist/style.css';
+
+:root {
+  --lp-border: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+  --lp-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  --lp-muted: var(--vscode-descriptionForeground);
+  --lp-focus: var(--vscode-focusBorder);
+  --lp-model: var(--vscode-charts-blue);
+  --lp-source: var(--vscode-charts-green);
+  --lp-seed: var(--vscode-charts-purple);
+  --lp-snapshot: var(--vscode-charts-orange);
+  --lp-exposure: var(--vscode-charts-yellow);
+  --lp-airflow: var(--vscode-charts-red);
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+.react-flow {
+  --xy-background-color: var(--vscode-editor-background);
+  --xy-background-pattern-color: var(--lp-border);
+  --xy-edge-stroke-default: var(--vscode-editorLineNumber-foreground, var(--lp-muted));
+  --xy-edge-stroke-selected-default: var(--lp-focus);
+  --xy-edge-label-background-color-default: var(--vscode-editor-background);
+  --xy-edge-label-color-default: var(--lp-muted);
+  --xy-node-background-color-default: var(--lp-surface);
+  --xy-node-border-default: 1px solid var(--lp-border);
+  --xy-controls-button-background-color-default: var(--vscode-button-secondaryBackground);
+  --xy-controls-button-color-default: var(--vscode-button-secondaryForeground);
+  --xy-controls-button-background-color-hover-default: var(--vscode-button-secondaryHoverBackground);
+  --xy-controls-button-border-color-default: var(--lp-border);
+  --xy-minimap-background-color-default: var(--lp-surface);
+  --xy-minimap-mask-background-color-default: var(--vscode-editor-background);
+  --xy-minimap-node-background-color-default: var(--lp-border);
+}
+
+.lp-app { display: flex; flex-direction: column; height: 100%; }
+.lp-main { position: relative; flex: 1; min-height: 0; display: flex; }
+.lp-graph { flex: 1; min-width: 0; height: 100%; }
+
+/* Toolbar */
+.lp-toolbar {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 6px 10px;
+  border-bottom: 1px solid var(--lp-border); background: var(--vscode-sideBar-background, var(--lp-surface));
+}
+.lp-field, .lp-search { display: inline-flex; align-items: center; gap: 6px; }
+.lp-spacer { flex: 1; }
+.lp-kinds { display: inline-flex; gap: 8px; border: none; margin: 0; padding: 0; align-items: center; }
+.lp-kinds legend { float: left; margin-right: 6px; color: var(--lp-muted); }
+.lp-kinds label { display: inline-flex; align-items: center; gap: 3px; }
+.lp-segmented { display: inline-flex; border: 1px solid var(--lp-border); border-radius: 3px; overflow: hidden; }
+.lp-segmented button { border: none; border-radius: 0; }
+.lp-segmented button[aria-pressed='true'] { background: var(--vscode-button-background); color: var(--vscode-button-foreground); }
+
+button {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font: inherit; cursor: pointer;
+  color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground);
+  border: 1px solid var(--vscode-button-border, transparent); border-radius: 2px;
+}
+button:hover:not(:disabled) { background: var(--vscode-button-secondaryHoverBackground); }
+button:disabled { opacity: 0.5; cursor: default; }
+select, input[type='search'] {
+  font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--lp-border)); padding: 2px 4px;
+}
+input[type='checkbox'], input[type='range'] { accent-color: var(--vscode-button-background); }
+:focus-visible { outline: 1px solid var(--lp-focus); outline-offset: 1px; }
+.lp-icon-button { padding: 3px; background: transparent; color: var(--vscode-icon-foreground, var(--vscode-foreground)); }
+.lp-icon-button:hover:not(:disabled) { background: var(--vscode-toolbar-hoverBackground); }
+.lp-inline { vertical-align: middle; margin: 0 2px; }
+.lp-link { background: none; border: none; padding: 0; color: var(--vscode-textLink-foreground); text-align: left; }
+.lp-link:hover:not(:disabled) { background: none; text-decoration: underline; color: var(--vscode-textLink-activeForeground); }
+
+/* Nodes */
+.react-flow__node { border-radius: 4px; }
+.react-flow__node:focus-visible { outline: 2px solid var(--lp-focus); outline-offset: 2px; }
+.lp-node {
+  --lp-accent: var(--lp-model);
+  width: 240px; box-sizing: border-box; padding: 8px 10px; border-radius: 4px; cursor: pointer;
+  background: var(--lp-surface); border: 1px solid var(--lp-border); border-left: 4px solid var(--lp-accent);
+}
+.lp-node-column { width: 220px; --lp-accent: var(--vscode-charts-foreground, var(--lp-model)); }
+.lp-kind-source { --lp-accent: var(--lp-source); }
+.lp-kind-seed { --lp-accent: var(--lp-seed); }
+.lp-kind-snapshot { --lp-accent: var(--lp-snapshot); }
+.lp-kind-exposure { --lp-accent: var(--lp-exposure); }
+.lp-kind-airflow_task, .lp-kind-airflow_dag { --lp-accent: var(--lp-airflow); }
+.lp-node-root { box-shadow: 0 0 0 2px var(--lp-accent); }
+.lp-node-selected { border-color: var(--lp-focus); box-shadow: 0 0 0 2px var(--lp-focus); }
+.lp-node-dimmed { opacity: 0.35; }
+.lp-node-body { display: flex; align-items: flex-start; gap: 8px; }
+.lp-node-icon { color: var(--lp-accent); padding-top: 1px; }
+.lp-node-text { flex: 1; min-width: 0; }
+.lp-node-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lp-node-parent { font-size: 11px; color: var(--lp-muted); display: flex; gap: 4px; align-items: center; }
+.lp-node-badges { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.lp-badge {
+  display: inline-flex; align-items: center; gap: 2px; padding: 0 5px; border-radius: 8px; font-size: 11px; line-height: 16px;
+  background: var(--vscode-badge-background); color: var(--vscode-badge-foreground);
+}
+.lp-badge-kind { background: transparent; color: var(--lp-accent); border: 1px solid var(--lp-accent); }
+.lp-badge-quiet { background: transparent; color: var(--lp-muted); border: 1px solid var(--lp-border); }
+.lp-badge-pii { background: transparent; color: var(--vscode-errorForeground); border: 1px solid var(--vscode-errorForeground); }
+.lp-badge-warn { background: transparent; color: var(--vscode-editorWarning-foreground); border: 1px solid var(--vscode-editorWarning-foreground); }
+.lp-transform { background: var(--vscode-textCodeBlock-background, var(--vscode-badge-background)); color: var(--vscode-foreground); }
+.lp-expand { padding: 1px; background: transparent; border: 1px solid var(--lp-border); }
+.react-flow__handle { background: var(--lp-muted); border: none; width: 6px; height: 6px; }
+
+/* Edges: solid when the artifact declares it, dashed when parsing inferred it, dotted when a
+   pattern suggested it. The style carries the meaning, not only the colour. */
+.lp-edge-inferred .react-flow__edge-path { stroke-dasharray: 6 4; }
+.lp-edge-heuristic .react-flow__edge-path { stroke-dasharray: 2 3; }
+.lp-legend-line { display: inline-block; width: 28px; height: 0; border-top: 2px solid var(--xy-edge-stroke-default); vertical-align: middle; }
+.lp-legend-line.lp-edge-inferred { border-top-style: dashed; }
+.lp-legend-line.lp-edge-heuristic { border-top-style: dotted; }
+
+/* Panels over and beside the graph */
+.lp-panel-info, .lp-panel-legend {
+  background: var(--lp-surface); border: 1px solid var(--lp-border); border-radius: 4px; padding: 6px 10px; font-size: 12px;
+}
+.lp-legend-title { font-weight: 600; margin-bottom: 2px; }
+.lp-legend-row { display: flex; gap: 6px; align-items: center; }
+.lp-side, .lp-picker {
+  width: 340px; flex-shrink: 0; overflow-y: auto; box-sizing: border-box; padding: 10px 14px;
+  background: var(--vscode-sideBar-background, var(--lp-surface)); border-left: 1px solid var(--lp-border);
+}
+.lp-picker { position: absolute; right: 0; top: 0; bottom: 0; z-index: 5; }
+.lp-side header, .lp-picker header { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+.lp-side h2, .lp-picker h2 { font-size: 14px; margin: 0 0 2px; display: flex; gap: 6px; align-items: center; }
+.lp-side h3 { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; margin: 14px 0 6px; display: flex; gap: 6px; align-items: center; color: var(--lp-muted); }
+.lp-side section { margin-top: 6px; }
+.lp-actions { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0; }
+.lp-facts { display: grid; grid-template-columns: auto 1fr; gap: 2px 10px; margin: 0; }
+.lp-facts dt { color: var(--lp-muted); }
+.lp-facts dd { margin: 0; }
+.lp-list { list-style: none; margin: 0; padding: 0; }
+.lp-list li { padding: 4px 0; border-bottom: 1px solid var(--lp-border); }
+.lp-list .lp-muted { display: block; font-size: 12px; }
+.lp-columns { font-family: var(--vscode-editor-font-family); font-size: 12px; }
+.lp-cards { display: flex; flex-wrap: wrap; gap: 8px; }
+.lp-card { border: 1px solid var(--lp-border); border-radius: 4px; padding: 6px 10px; min-width: 70px; }
+.lp-card-value { font-size: 20px; font-weight: 600; }
+.lp-toggle { display: flex; gap: 8px; align-items: flex-start; margin: 6px 0; }
+.lp-toggle > span { display: flex; flex-direction: column; }
+.lp-slider { display: flex; flex-direction: column; gap: 4px; margin: 8px 0; }
+.lp-muted { color: var(--lp-muted); }
+.lp-mono { font-family: var(--vscode-editor-font-family); font-size: 12px; overflow-wrap: anywhere; }
+.lp-description { white-space: pre-wrap; }
+.lp-pii { color: var(--vscode-errorForeground); display: flex; gap: 4px; align-items: center; }
+.lp-warn { color: var(--vscode-editorWarning-foreground); }
+.lp-error { color: var(--vscode-errorForeground); }
+.lp-banner {
+  position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 6; padding: 6px 12px;
+  background: var(--vscode-inputValidation-errorBackground); border: 1px solid var(--vscode-inputValidation-errorBorder);
+}
+.lp-empty { margin: auto; text-align: center; }
+.lp-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lp-spin { animation: lp-spin 1s linear infinite; }
+@keyframes lp-spin { to { transform: rotate(360deg); } }
+
+/* High contrast: borders everywhere, from the theme */
+body.vscode-high-contrast .lp-node, body.vscode-high-contrast-light .lp-node { border-color: var(--vscode-contrastBorder); }
+body.vscode-high-contrast .lp-node-selected, body.vscode-high-contrast-light .lp-node-selected { outline: 2px dashed var(--vscode-contrastActiveBorder); }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-spin, .react-flow__edge.animated path { animation: none; }
+}

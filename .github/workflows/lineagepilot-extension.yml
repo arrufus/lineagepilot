@@ -1,7 +1,8 @@
-# The VS Code extension (Phase 2): build one universal VSIX on Linux, then on Linux, macOS and
-# Windows with Python 3.10 and 3.13 run the language server's end-to-end tests against the
+# The VS Code extension (Phases 2 and 3): build one universal VSIX on Linux, then on Linux, macOS
+# and Windows with Python 3.10 and 3.13 run the language server's end-to-end tests against the
 # VSIX's bundled server and the @vscode/test-cli integration tests against the packaged
-# extension, trusted and in Restricted Mode. A coverage job enforces the 75% gate.
+# extension, trusted and in Restricted Mode. The build job runs the lineage view's React
+# Testing Library tests with their 75% gate; a coverage job enforces the extension's.
 name: lineagepilot-extension
 
 on:
@@ -61,6 +62,8 @@ jobs:
       - run: npm audit --omit=dev --audit-level=high
       - run: python scripts/bundle_libs.py
       - run: npm run test:unit
+      - name: Lineage view tests (React Testing Library, gate 75%)
+        run: npm run test:webview-coverage
       - run: npm run package
       - run: python scripts/check_vsix.py dist/lineagepilot.vsix
       - name: Build script tests, including the real bundle and VSIX

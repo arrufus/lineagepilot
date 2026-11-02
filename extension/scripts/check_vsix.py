@@ -29,6 +29,8 @@ REQUIRED = [
     "extension/readme.md",  # vsce lower-cases it
     "extension/media/lineage.svg",
     "extension/dist/extension.js",
+    "extension/dist/webview/webview.js",
+    "extension/dist/webview/webview.css",
     "extension/bundled/tool/lsp_server.py",
     "extension/bundled/libs/BUNDLE.json",
     "extension/bundled/libs/pygls/__init__.py",

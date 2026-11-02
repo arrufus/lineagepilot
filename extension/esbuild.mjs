@@ -1,5 +1,9 @@
-// Bundles the extension and its npm dependencies into one file, so the VSIX ships no node_modules.
+// Bundles the extension and its npm dependencies into one file, so the VSIX ships no node_modules,
+// and the lineage view (Phase 3) into one script and one stylesheet for the webview.
+import fs from 'node:fs';
 import { build } from 'esbuild';
+
+const production = process.argv.includes('--production');
 
 await build({
   entryPoints: ['src/extension.ts'],
@@ -11,6 +15,32 @@ await build({
   target: 'node20',
   sourcemap: true,
   // The VSIX build is minified; development builds keep names for debugging and coverage
-  minify: process.argv.includes('--production'),
+  minify: production,
+  logLevel: 'info',
+});
+
+// A development build's source map must not outlive it
+fs.rmSync('dist/webview', { recursive: true, force: true });
+
+// The webview runs in VS Code's Chromium, under a CSP that allows only this script (by nonce)
+// and stylesheets from the extension: no eval, no inline scripts, nothing fetched at run time.
+await build({
+  entryPoints: { webview: 'webview/src/main.tsx' },
+  bundle: true,
+  outdir: 'dist/webview',
+  format: 'iife',
+  platform: 'browser',
+  target: 'chrome120',
+  jsx: 'automatic',
+  define: { 'process.env.NODE_ENV': JSON.stringify(production ? 'production' : 'development') },
+  sourcemap: !production,
+  minify: production,
+  logLevel: 'info',
+});
+await build({
+  entryPoints: { webview: 'webview/src/styles.css' },
+  bundle: true,
+  outdir: 'dist/webview',
+  minify: production,
   logLevel: 'info',
 });
