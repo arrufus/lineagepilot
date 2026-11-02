@@ -482,7 +482,7 @@ How the extension is tested (Phase 2):
 - **Restricted Mode**: `@vscode/test-electron` always passes `--disable-workspace-trust`, which makes every workspace trusted. The restricted configuration starts VS Code through a small wrapper that drops that argument.
 - **Coverage**: unit and integration tests run together in one VS Code against the source build, so V8 coverage maps back to `src/*.ts`.
 - **Locally**, the integration tests run headless in a Linux container (`extension/docker/`). A test window on a developer's desktop takes focus, and a stray keystroke can reload it, which ends the run.
-- **The packaged server** is also tested directly: CI runs the language server's end-to-end tests against the VSIX's `bundled/tool/lsp_server.py`, on interpreters with nothing installed.
+- **The packaged server** is also tested directly: CI runs the language server's end-to-end tests against the VSIX's `bundled/tool/lsp_server.py`, on interpreters with nothing installed. On Windows this is the only run of the server's tests: in the server's own workflow its unit tests hang on Windows CI, in a way GitHub cannot stop, so that workflow covers Linux and macOS until beads LP-7t7 is fixed.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

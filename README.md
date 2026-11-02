@@ -11,12 +11,12 @@ A VS Code extension that shows, inside the editor, what a dbt change will break:
 ```
 spikes/           Phase 0 spikes (S1–S3): throwaway code that answers Gate G0
 packages/core/    lineagepilot_core (Phase 1)
-packages/lsp/     lineagepilot_lsp, the pygls server (Phase 2)
+packages/lsp/     lineagepilot_lsp, the pygls language server (Phase 2)
 extension/        the VS Code extension (Phase 2)
-docs/             design and implementation plan
+protocol/         the lineage/* JSON Schema, its generator and contract examples
+fixtures/         dbt project workspaces for the server and extension tests
+docs/             design, implementation plan and the rules reference
 ```
-
-`packages/lsp/` and `extension/` do not exist yet; they arrive in Phase 2.
 
 ## Where this came from
 
@@ -28,4 +28,11 @@ Issues here use the prefix `LP`. A `DCS-…` ID in these documents is a data-cap
 
 ## Status
 
-Phase 0 is complete: S1–S3 have been measured and S4 was waived. Gate G0 (LP-1ay.5) passed on 2 November 2026, on the evidence in [spikes/G0_REPORT.md](spikes/G0_REPORT.md). Phase 1, the `lineagepilot_core` library ([packages/core](packages/core/README.md)), was completed on 2 November 2026: every exit criterion is met, with the evidence in the package README. Phase 2, the language server and extension shell, is next.
+Phase 0 is complete: S1–S3 have been measured and S4 was waived. Gate G0 (LP-1ay.5) passed on 2 November 2026, on the evidence in [spikes/G0_REPORT.md](spikes/G0_REPORT.md). Phase 1, the `lineagepilot_core` library ([packages/core](packages/core/README.md)), was completed on 2 November 2026: every exit criterion is met, with the evidence in the package README.
+
+Phase 2, the language server ([packages/lsp](packages/lsp/README.md)) and the extension shell ([extension](extension/README.md)), was completed on 2 November 2026. Its exit criteria are met:
+- the `@vscode/test-cli` integration tests pass on Linux, macOS and Windows with Python 3.10 and 3.13, in four configurations: trusted, Restricted Mode, Python from `PATH`, and Python from the Python extension (CI run 41468735984);
+- the Restricted Mode tests prove that dbt cannot run and that workspace settings cannot change the interpreter, the dbt executable or the artifact size limit;
+- extension coverage is 84.8% of lines (gate 75%).
+
+Open items from Phase 2: the server stays 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt); the server's own unit tests hang on Windows CI, though the server is tested on Windows through the extension workflow (LP-7t7); Open VSX accepts only licensed extensions, so publishing waits for decision D-5; the jaffle-shop fixtures need replacing before the repository goes public (LP-0tf). Phase 3, the lineage graph webview, is next.
