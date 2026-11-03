@@ -4,6 +4,7 @@ A VS Code extension that shows, inside the editor, what a dbt change will break:
 
 - Design: [docs/design.md](docs/design.md)
 - Plan: [docs/implementation_plan.md](docs/implementation_plan.md)
+- Demo script: [docs/demo.md](docs/demo.md)
 - Work items: `bd ready` (beads, prefix `LP`)
 
 ## Layout
