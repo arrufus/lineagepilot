@@ -2,6 +2,9 @@
 // Required first (mocha --require), before React and Testing Library load: Testing Library's
 // screen binds to the document when it loads.
 
+// As in the webview: zod builds its schemas without eval
+import '../src/jitless';
+
 import { JSDOM } from 'jsdom';
 // React touches no DOM when it loads (react-dom does), so it may come first
 import { act } from 'react';

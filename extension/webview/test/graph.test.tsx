@@ -1,11 +1,11 @@
 // The graph (tasks 3.2-3.4): nodes with accessible labels, selection, opening and expansion by
 // mouse and keyboard, arrow keys along the edges, filters, edge styles, and the theme.
 import { strict as assert } from 'assert';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 import type { GraphNode, GraphResult } from '../../src/protocol';
 import { DEFAULT_SETTINGS, type ViewSettings } from '../../src/webviewMessages';
-import LineageGraph from '../src/components/LineageGraph';
+import LineageGraph, { focusWhenDrawn } from '../src/components/LineageGraph';
 import { handleNodeKey, type NodeActions } from '../src/components/ModelNode';
 import { type Filters, fromResult, NO_FILTERS } from '../src/graph/model';
 import { edge, graph, largeGraph, node, ordersGraph } from './fixtures';
@@ -257,5 +257,31 @@ suite('lineage graph', () => {
     fireEvent.click(first);
     assert.equal(calls.select.length, 1);
     assert.ok(performance.now() - clicked < 1000);
+  });
+
+  test('500 nodes: an arrow key to a node off screen brings it into view and focuses it', async () => {
+    const big = largeGraph(500);
+    const { container } = draw(graph('model.big.m0', big.nodes, big.edges), { depth: 20 });
+    await nodeNamed('model m0');
+    await act(() => new Promise((resolve) => setTimeout(resolve, 0)));
+    const drawn = (id: string) => container.querySelector<HTMLElement>(`.react-flow__node[data-id="${id}"]`);
+    const downstreamOf = (id: string) => big.edges.filter((e) => e.upstream === id).map((e) => e.downstream);
+    // A node on screen whose downstream neighbours are all off screen, so not drawn
+    const from = big.nodes.map((n) => n.id).find((id) => drawn(id) && downstreamOf(id).length > 0 && downstreamOf(id).every((d) => !drawn(d)));
+    assert.ok(from, 'a drawn node has its downstream off screen');
+    fireEvent.keyDown(drawn(from)!, { key: 'ArrowRight' });
+    await waitFor(() => assert.ok(downstreamOf(from).includes(document.activeElement?.getAttribute('data-id') ?? ''),
+      `focus is on ${document.activeElement?.getAttribute('data-id')}`));
+  });
+
+  test('focus waits for a node that is drawn a frame late', async () => {
+    const container = document.createElement('div');
+    document.body.append(container);
+    focusWhenDrawn(container, 'model.late');
+    const late = Object.assign(document.createElement('div'), { className: 'react-flow__node', tabIndex: 0 });
+    late.dataset.id = 'model.late';
+    container.append(late);
+    await waitFor(() => assert.equal(document.activeElement, late));
+    container.remove();
   });
 });

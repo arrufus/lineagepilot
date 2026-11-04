@@ -96,7 +96,7 @@
       `zoom, 2 s           ${r.zoom ? `${r.zoom.fps} fps, p95 frame ${r.zoom.p95FrameMs} ms, worst ${r.zoom.worstFrameMs} ms` : '…'}`,
       `select a node       ${r.selectMs ?? '…'} ms to the details panel`,
       `search highlight    ${r.searchMs ?? '…'} ms`,
-      `arrow key           ${r.arrowMs ?? '…'} ms to the next node`,
+      `arrow key           ${r.arrowMs ?? '…'} ms to the next node${r.arrowRevealed ? ', brought into view' : ''}`,
       `long tasks > 50 ms  ${perf.longTasks.length ? perf.longTasks.join(', ') : 'none'}`,
       `CSP violations      ${perf.cspViolations.length ? perf.cspViolations.join('; ') : 'none'}`,
     ];
@@ -151,14 +151,21 @@
     perf.results.searchMs = ms(performance.now() - t);
     show();
 
-    // An arrow key on the focused node: until focus moves downstream
-    const first = document.querySelector(`.react-flow__node[data-id="${ROOT}"]`);
-    first.focus();
+    // An arrow key on the selected node, which is on screen (the root may not be, once zoomed in):
+    // until focus moves along an edge. The view brings a node that is off screen into view first.
+    const fromId = target.getAttribute('data-id');
+    const from = document.querySelector(`.react-flow__node[data-id="${fromId}"]`);
+    const key = edges.some((edge) => edge.upstream === fromId) ? 'ArrowRight' : 'ArrowLeft';
+    const drawnBefore = new Set([...document.querySelectorAll('.react-flow__node')].map((n) => n.getAttribute('data-id')));
+    from.focus();
     t = performance.now();
-    first.dispatchEvent(new KeyboardEvent('keydown', { key: 'ArrowRight', bubbles: true }));
-    await until(() => document.activeElement !== first && document.activeElement?.classList.contains('react-flow__node'));
+    from.dispatchEvent(new KeyboardEvent('keydown', { key, bubbles: true }));
+    await until(() => document.activeElement !== from && document.activeElement?.classList.contains('react-flow__node'));
     perf.results.arrowMs = ms(performance.now() - t);
+    perf.results.arrowKey = key;
+    perf.results.arrowFrom = fromId;
     perf.results.arrowTo = document.activeElement.getAttribute('data-id');
+    perf.results.arrowRevealed = !drawnBefore.has(perf.results.arrowTo);
     perf.done = true;
     show();
   }

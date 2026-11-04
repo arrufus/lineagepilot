@@ -394,7 +394,7 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 | CodeLens and hover | ≤ 100 ms p95 | under 0.01 ms (lookup only) |
 | Model-level impact | ≤ 300 ms | 0.38 ms; 3–5 ms from the source with the largest closure (651 nodes) in `lineagepilot_core`, and 16–25 ms for all 14 columns of that source at column level (task 1.4) |
 | Column lineage for one model | ≤ 2 s | ≤ 0.35 s with `sqlglot.lineage` (section 6.1); 3 ms median in `lineagepilot_core` (task 1.9) |
-| Graph webview | 500 nodes stay interactive | Layout (dagre) 85 ms for 500 nodes and 960 edges. Search, selection and the arrow keys do not lay the graph out again. In a browser: pending (`extension/webview/perf/`) |
+| Graph webview | 500 nodes stay interactive | Layout (dagre) 85 ms for 500 nodes and 960 edges. Search, selection and the arrow keys do not lay the graph out again. In Chrome: every interaction answers within 86 ms, and zooming holds 57–59 fps on a 60 Hz display (below) |
 | Language server memory, 5,000 models | ≤ 500 MB RSS | 106 MB for a server that loads the snapshot. The indexer peaks at 0.66–1.06 GB in a separate child process. With column lineage in the graph (127,000 columns, 97,000 `derives` edges) a warm start peaks at 387–405 MB (task 1.8). |
 
 **Column lineage for every model is too slow for the cold index**: 8.2 s at 2,000 models and 20.5 s at 5,000 on Python 3.13, 28.6 s at 5,000 on 3.10 (task 1.9, including adding the edges). So the indexer publishes the model-level graph first and adds column lineage after it, model by model; a query that needs a model's columns before then computes that model on demand.
@@ -415,6 +415,22 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 To meet the warm-start budget, the server loads a current snapshot itself instead of starting the indexer (which would load it only to find it current), and says "ready" before running the rules, which follow within half a second. The graph being replaced is collected before the next one loads. After a cold index the server still stays about 95 MB above a warm start, because Python keeps memory it has used: 15% over the 500 MB budget at 5,000 models, until the server restarts (beads LP-dtt).
 
 So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
+
+**The graph webview in a browser** (Phase 3 exit, beads LP-08j, `extension/webview/perf/`, 4 November 2026): the production bundle under the webview's CSP, in Chrome 156 on an Apple M4 with a 60 Hz display, in a 1600×913 page, on a layered graph of 500 models and 931 edges. Chrome is not VS Code's own Chromium, and this machine is slower than the M4 Max above, so the figures indicate rather than reproduce what the editor does.
+
+| Measure | 500 nodes (8 runs) | 1,000 nodes (1 run) |
+|---|---|---|
+| First draw (graph received to nodes on screen) | 254–362 ms; the first run in a fresh browser profile is the slowest | 515 ms |
+| Zooming in and out, every frame for 2 s | 57–59 fps; p95 frame 20–26 ms; worst frame 45–93 ms | 49 fps; p95 frame 41 ms |
+| Select a node, until its details panel shows | 67–86 ms | 159 ms |
+| Highlight by search, until the rest dim | 56–73 ms | 127 ms |
+| Arrow key to the next node | 1–15 ms; 6–16 ms when that node is off screen and is brought into view | 15 ms |
+| Long tasks over 50 ms | 2–3 per run, 55–79 ms: the select and the search | 5, up to 144 ms |
+| CSP violations, console errors | none | none |
+
+So 500 nodes stay interactive: every response is under 100 ms, and zooming keeps up with the display. Selection and search each re-render every node in one long task, so they grow with the graph and pass 100 ms somewhere between 500 and 1,000 nodes.
+
+**The measurement found two faults, both fixed.** zod probes for eval with `new Function` when it builds an object schema; the CSP blocks it and zod catches the error, but the page still reported a CSP violation. The webview did set zod's jitless mode, which skips the probe, but only after its schemas were built, because imported modules run first: `webview/src/jitless.ts` now sets it, imported before anything else, and a unit test runs the bundle and fails if it asks for eval. And a graph over 200 nodes draws only what is on screen, so an arrow key towards a node off screen did nothing: the view now brings that node into view at the same zoom and focuses it.
 
 ---
 
@@ -501,7 +517,7 @@ How the lineage view is tested (Phase 3):
 - jsdom lays nothing out, so the setup gives elements a size and reports it through a stand-in `ResizeObserver`. React Flow then measures and shows its nodes as in a browser, and the tests find them by role and accessible name, as a screen reader would.
 - The tests drive the whole view through the real transport against a fake extension, which validates every message with the extension's own schemas.
 - **In VS Code**, the integration tests open the panel and wait for the webview's own bundle to say it is ready and ask for its graph, which only happens if it loads under the CSP. They then check forwarding, opening the right file and range beside the graph, the refusals, and a page rebuilt after being hidden.
-- **In a browser**, `extension/webview/perf/` runs the production bundle under the same CSP with a stand-in for VS Code and a 500-node graph, and measures the first draw, zooming, selection, search and the arrow keys.
+- **In a browser**, `extension/webview/perf/` runs the production bundle under the same CSP with a stand-in for VS Code and a 500-node graph, and measures the first draw, zooming, selection, search and the arrow keys (results in section 11).
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

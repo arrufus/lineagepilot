@@ -1,6 +1,10 @@
 // The lineage view's page (task 3.1): a strict CSP with a fresh nonce, only the extension's own
 // script and stylesheet, and nothing from the caller unescaped.
 import { strict as assert } from 'assert';
+import * as vm from 'vm';
+
+import { build } from 'esbuild';
+import { JSDOM, VirtualConsole } from 'jsdom';
 
 import { contentSecurityPolicy, nonce, webviewHtml } from '../../webviewHtml';
 
@@ -47,5 +51,37 @@ suite('webview page', () => {
     const html = webviewHtml({ ...PAGE, title: 'Lineage: "x"><script>alert(1)</script>', nonce: 'n' });
     assert.equal(html.match(/<script\b/g)?.length, 1);
     assert.ok(html.includes('<title>Lineage: &quot;x&quot;&gt;&lt;script&gt;alert(1)&lt;/script&gt;</title>'));
+  });
+
+  // zod probes for eval with `new Function` when it builds an object schema. The CSP blocks that and
+  // zod catches the error, but the browser still reports a CSP violation (Phase 3 exit, LP-08j).
+  test('the view\'s script never asks for eval, which the CSP forbids', async function () {
+    this.timeout(20000);
+    // As esbuild.mjs builds it for the VSIX
+    const bundle = await build({
+      entryPoints: ['webview/src/main.tsx'], bundle: true, write: false, format: 'iife', platform: 'browser',
+      target: 'chrome120', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"production"' }, logLevel: 'silent',
+    });
+    const dom = new JSDOM('<!doctype html><div id="root"></div>', { runScripts: 'outside-only', virtualConsole: new VirtualConsole() });
+    const asked: string[] = [];
+    // What the CSP does to eval and the Function constructor, recorded
+    const forbid = <T extends object>(name: string, real: T): T => {
+      const refuse = (): never => {
+        asked.push(name);
+        throw new dom.window.EvalError(`${name} is not allowed by the CSP`);
+      };
+      return new Proxy(real, { apply: refuse, construct: refuse });
+    };
+    Object.assign(dom.window, {
+      Function: forbid('Function', dom.window.Function),
+      eval: forbid('eval', dom.window.eval),
+      acquireVsCodeApi: () => ({ postMessage() {}, getState: () => undefined, setState() {} }),
+    });
+    try {
+      new vm.Script(bundle.outputFiles[0].text).runInContext(dom.getInternalVMContext());
+    } finally {
+      dom.window.close();
+    }
+    assert.deepEqual(asked, []);
   });
 });

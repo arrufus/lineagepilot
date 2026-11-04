@@ -11,7 +11,7 @@ import {
 import type { GraphNode } from '../../../src/protocol';
 import type { ViewSettings } from '../../../src/webviewMessages';
 import { edgeLabel, nodeLabel, plural } from '../labels';
-import { layout } from '../graph/layout';
+import { layout, sizeOf } from '../graph/layout';
 import { canExpand, type Filters, matches, neighbours, type ViewGraph, visible } from '../graph/model';
 import ColumnNode from './ColumnNode';
 import ModelNode, { handleNodeKey, type LineageFlowNode, type NodeActions } from './ModelNode';
@@ -57,10 +57,19 @@ function prefersReducedMotion(): boolean {
   return typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 }
 
-/** Move keyboard focus to a node's element in the graph. */
-export function focusNode(container: HTMLElement | null, id: string): void {
+/** Move keyboard focus to a node's element in the graph; false if the node is not drawn. */
+export function focusNode(container: HTMLElement | null, id: string): boolean {
   const escaped = id.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-  container?.querySelector<HTMLElement>(`.react-flow__node[data-id="${escaped}"]`)?.focus();
+  const element = container?.querySelector<HTMLElement>(`.react-flow__node[data-id="${escaped}"]`);
+  element?.focus();
+  return Boolean(element);
+}
+
+/** Focus a node as soon as it is drawn, waiting up to ten frames. */
+export function focusWhenDrawn(container: HTMLElement | null, id: string, frames = 10): void {
+  if (!focusNode(container, id) && frames > 0) {
+    requestAnimationFrame(() => focusWhenDrawn(container, id, frames - 1));
+  }
 }
 
 export default function LineageGraph({ view, filters, settings, selectedId, onSelect, onOpen, onExpand }: LineageGraphProps) {
@@ -98,8 +107,13 @@ export default function LineageGraph({ view, filters, settings, selectedId, onSe
         .map((other) => other.id);
     }
     const target = candidates.find((id) => positions.has(id));
-    if (target) {
-      focusNode(container.current, target);
+    if (target && !focusNode(container.current, target)) {
+      // A large graph draws only what is on screen: centre the node at the same zoom, then focus it
+      const at = positions.get(target)!;
+      const size = sizeOf(view.nodes.get(target)!);
+      const flow = instance.current;
+      void flow?.setCenter(at.x + size.width / 2, at.y + size.height / 2, { zoom: flow.getZoom(), duration: 0 })
+        .then(() => focusWhenDrawn(container.current, target));
     }
   }, [view, positions, shown, horizontal]);
 

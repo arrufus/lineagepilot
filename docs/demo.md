@@ -2,7 +2,7 @@
 
 How to demonstrate LineagePilot from a checkout of this repository: what to prepare, what to click, what the audience should see, and what to say.
 
-**What the build contains.** Phases 0–2 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2). Phase 3, the lineage graph, is built on `main`, with one exit criterion still open (the 500-node browser measurement). Part 4 below covers the graph; skip it to show only what Phase 2 delivered. The change-impact review of a branch (Phase 4) and Airflow linkage (Phase 5) are not built yet, and the empty **Airflow** view says so.
+**What the build contains.** Phases 0–3 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), and the lineage graph (Phase 3). Part 4 below covers the graph; skip it to show only what Phase 2 delivered. The change-impact review of a branch (Phase 4) and Airflow linkage (Phase 5) are not built yet, and the empty **Airflow** view says so.
 
 **The project you demo on** is `fixtures/jaffle-shop`: dbt Labs' sample project with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 13 models, 6 sources and 6 seeds, column lineage for every model, and no exposures. dbt does not need to be installed.
 
@@ -289,13 +289,13 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 6. **Theme and keyboard.** Switch the colour theme (⌘K ⌘T, or Ctrl+K Ctrl+T) between light and dark; the graph follows it. Then click the graph and press Tab to reach a node. The arrow keys follow its edges, Enter shows details, **O** opens the file, and **+** loads more.
 
-7. **Optional: scale.** The open exit criterion is a 500-node graph staying interactive. A harness runs the production view in a browser against a synthetic 500-node graph. In a second terminal, with the variables set:
+7. **Optional: scale.** One of Phase 3's exit criteria is a 500-node graph staying interactive. A harness runs the production view in a browser against a synthetic 500-node graph. In a second terminal, with the variables set:
 
    ```bash
    cd "$REPO/extension" && npx esbuild --servedir=. --serve=127.0.0.1:8123
    ```
 
-   Then open <http://127.0.0.1:8123/webview/perf/?nodes=500>. The page draws the graph, zooms, selects, searches and presses an arrow key, then shows its timings in the bottom-left corner. Present the result as a measurement in progress, not a pass: it has not been recorded yet. Press Ctrl+C in that terminal afterwards.
+   Then open <http://127.0.0.1:8123/webview/perf/?nodes=500>. The page draws the graph, zooms, selects, searches and presses an arrow key, then shows its timings in the bottom-left corner. Compare them with the figures recorded on 4 November 2026 in [design §11](design.md#11-performance-budgets): selection, search and the arrow keys within 86 ms, zooming at 57–59 fps on a 60 Hz display, and no CSP violations. Other machines give other numbers. Press Ctrl+C in that terminal afterwards.
 
 ### Part 5: a cloned repository that is not trusted (Phase 2)
 
