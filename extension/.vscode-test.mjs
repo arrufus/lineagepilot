@@ -5,6 +5,7 @@
 //   restricted        an untrusted workspace (Restricted Mode)
 //   path              no setting: Python is found on PATH
 //   python-extension  no setting: the Python extension's selected interpreter
+//   review            trusted, on fixtures/impact-shop: the Change Impact Review's acceptance scenario
 //   coverage          trusted, plus the unit tests, against the source build (--coverage)
 //
 // LP_TEST_PYTHON must name a Python 3.10+ interpreter with nothing installed. LP_EXTENSION_DIR
@@ -52,9 +53,9 @@ function recorder(file, name, then = '') {
     : script(file, `#!/bin/sh\necho "$@" >> "${path.join(markers, name)}"\n${then}\n`);
 }
 
-function workspace(label, hostile = {}) {
-  const dir = path.join(work, label, 'jaffle-shop');
-  fs.cpSync(path.join(repo, 'fixtures', 'jaffle-shop'), dir, { recursive: true });
+function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
+  const dir = path.join(work, label, fixture);
+  fs.cpSync(path.join(repo, 'fixtures', fixture), dir, { recursive: true });
   // Source files older than the manifest, so nothing is stale until a test makes it so
   const past = new Date(Date.now() - 3_600_000);
   for (const entry of fs.readdirSync(dir, { recursive: true, withFileTypes: true })) {
@@ -124,10 +125,10 @@ async function withWorkspaceTrust() {
   return { useInstallation: { fromPath: shim } };
 }
 
-function config(label, { trusted, settings = {}, env = {}, files, extensions, install = vscode }) {
+function config(label, { trusted, settings = {}, env = {}, files, extensions, install = vscode, fixture }) {
   // A restricted configuration: VS Code must ignore the workspace's value in Restricted Mode,
   // or nothing would be indexed. (A trusted workspace may set it, so only this one does.)
-  const ws = workspace(label, trusted ? {} : { 'lineagePilot.index.maxArtifactMB': 0.001 });
+  const ws = workspace(label, trusted ? {} : { 'lineagePilot.index.maxArtifactMB': 0.001 }, fixture);
   const ud = userData(label, {
     'security.workspace.trust.enabled': !trusted,
     'security.workspace.trust.startupPrompt': 'never',
@@ -183,6 +184,13 @@ export default defineConfig({
       settings: { 'python.defaultInterpreterPath': python },
       env: { LP_EXPECT_SOURCE: 'python-extension' },
       extensions: ['ms-python.python'],
+    }),
+    config('review', {
+      trusted: true,
+      settings: withSetting,
+      env: { LP_EXPECT_SOURCE: 'setting' },
+      fixture: 'impact-shop',
+      files: ['out/test/review/*.test.js'],
     }),
     config('coverage', {
       trusted: true,

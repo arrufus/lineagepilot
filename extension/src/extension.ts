@@ -9,6 +9,7 @@ import { ServerManager } from './manager';
 import { LineagePanel, openLocation } from './panel';
 import { PROJECT_GLOB } from './projects';
 import type { ExportFormat, GraphNode, Location } from './protocol';
+import { ReviewPanel } from './reviewPanel';
 import type { ProjectServer } from './server';
 import { statusBar } from './status';
 import { AirflowTree, LineageTree, NodeItem } from './views/lineageTree';
@@ -33,6 +34,8 @@ export interface LineagePilotApi {
   statusBarText(): string;
   /** The project's open lineage graph panel. */
   lineagePanel(root: string): LineagePanel | undefined;
+  /** The project's open Change Impact Review. */
+  reviewPanel(root: string): ReviewPanel | undefined;
 }
 
 export async function activate(context: vscode.ExtensionContext): Promise<LineagePilotApi> {
@@ -169,6 +172,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     output, statusItem, lineageView, airflowView, manager, { dispose: () => clearInterval(timer) },
     vscode.commands.registerCommand('lineagePilot.showImpact', showImpact),
     vscode.commands.registerCommand('lineagePilot.showLineage', showLineage),
+    vscode.commands.registerCommand('lineagePilot.reviewChanges', async (projectRoot?: string) => {
+      const server = typeof projectRoot === 'string' ? manager.serverForRoot(projectRoot) : await activeServer();
+      if (!server) {
+        void vscode.window.showInformationMessage('Open a workspace with a dbt project to review its changes.');
+        return undefined;
+      }
+      return ReviewPanel.show(context, server, output);
+    }),
     vscode.commands.registerCommand('lineagePilot.followEditor', () => {
       lineageTree.unpin();
       void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
@@ -236,7 +247,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   updateStatus();
   void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
   return {
-    manager, lineageTree, statusBarText: () => statusItem.text, lineagePanel: (root) => LineagePanel.forProject(root),
+    manager,
+    lineageTree,
+    statusBarText: () => statusItem.text,
+    lineagePanel: (root) => LineagePanel.forProject(root),
+    reviewPanel: (root) => ReviewPanel.forProject(root),
   };
 }
 

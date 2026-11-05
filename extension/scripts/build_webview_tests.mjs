@@ -17,7 +17,7 @@ const sources = (dir) => fs.readdirSync(dir, { recursive: true })
   .filter((file) => /\.tsx?$/.test(file) && !file.endsWith('.d.ts'))
   .map((file) => path.join(dir, file));
 
-const entryPoints = [...sources('webview/src'), ...sources('webview/test'), 'src/protocol.ts', 'src/webviewMessages.ts'];
+const entryPoints = [...sources('webview/src'), ...sources('webview/test'), 'src/protocol.ts', 'src/webviewMessages.ts', 'src/reviewMessages.ts'];
 fs.rmSync('out/webview-test', { recursive: true, force: true });
 await build({
   entryPoints,

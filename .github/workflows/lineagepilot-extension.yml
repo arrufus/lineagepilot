@@ -115,7 +115,7 @@ jobs:
           LP_TEST_SERVER="$LP_EXTENSION_DIR/bundled/tool/lsp_server.py" \
           LP_TEST_PYTHONS='${{ steps.py.outputs.python-path }}' \
             uv run --locked pytest --no-cov -p no:cacheprovider tests/test_indexing_e2e.py \
-            tests/test_methods_e2e.py tests/test_features_e2e.py
+            tests/test_methods_e2e.py tests/test_features_e2e.py tests/test_review_e2e.py
       - run: npm ci
       - run: npm run compile-tests
       # Network only, so it may retry; the tests themselves never do.
@@ -133,7 +133,7 @@ jobs:
         run: |
           run() { if [ "$RUNNER_OS" = "Linux" ]; then xvfb-run -a "$@"; else "$@"; fi; }
           status=0
-          for label in trusted restricted path python-extension; do
+          for label in trusted restricted path python-extension review; do
             echo "::group::$label"
             if ! LP_TEST_LOG="$RUNNER_TEMP/$label.log" run npx vscode-test --label "$label"; then
               echo "::error::integration tests failed: $label"

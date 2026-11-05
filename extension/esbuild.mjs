@@ -1,5 +1,6 @@
 // Bundles the extension and its npm dependencies into one file, so the VSIX ships no node_modules,
-// and the lineage view (Phase 3) into one script and one stylesheet for the webview.
+// and each webview into one script and one stylesheet: the lineage graph (Phase 3), and the Change
+// Impact Review (Phase 4), which has no graph to pay for.
 import fs from 'node:fs';
 import { build } from 'esbuild';
 
@@ -25,7 +26,7 @@ fs.rmSync('dist/webview', { recursive: true, force: true });
 // The webview runs in VS Code's Chromium, under a CSP that allows only this script (by nonce)
 // and stylesheets from the extension: no eval, no inline scripts, nothing fetched at run time.
 await build({
-  entryPoints: { webview: 'webview/src/main.tsx' },
+  entryPoints: { webview: 'webview/src/main.tsx', review: 'webview/src/review/main.tsx' },
   bundle: true,
   outdir: 'dist/webview',
   format: 'iife',
@@ -38,7 +39,7 @@ await build({
   logLevel: 'info',
 });
 await build({
-  entryPoints: { webview: 'webview/src/styles.css' },
+  entryPoints: { webview: 'webview/src/styles.css', review: 'webview/src/review/review.css' },
   bundle: true,
   outdir: 'dist/webview',
   minify: production,

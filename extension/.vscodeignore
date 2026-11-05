@@ -1,5 +1,5 @@
 # Everything is excluded unless listed with ! below. The VSIX carries only the bundled
-# extension and lineage view, the Python server and its pure-Python libraries, the icon and the
+# extension and its views, the Python server and its pure-Python libraries, the icon and the
 # README.
 **
 !package.json
@@ -8,5 +8,7 @@
 !dist/extension.js
 !dist/webview/webview.js
 !dist/webview/webview.css
+!dist/webview/review.js
+!dist/webview/review.css
 !bundled/tool/**
 !bundled/libs/**

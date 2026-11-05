@@ -2,7 +2,7 @@
 
 See what is upstream and downstream of the model you are editing, and what a change to it would reach, from the dbt artifacts already in your workspace. LineagePilot runs locally: no server, no account, no warehouse connection.
 
-> **Preview.** This is the Phase 3 build: lineage, CodeLens, hovers, diagnostics, the Lineage view and the lineage graph. The change-impact review of your branch and Airflow linkage come in later versions.
+> **Preview.** This is the Phase 4 build: lineage, CodeLens, hovers, diagnostics, the Lineage view, the lineage graph and the Change Impact Review. Airflow linkage comes in a later version, and until then the review says that no DAG was looked at.
 
 ## What you get
 
@@ -11,8 +11,9 @@ See what is upstream and downstream of the model you are editing, and what a cha
 - **Problems**: conformance and PII rules, each linked to its documentation. Results LineagePilot could not check are shown as "Not checked", never as passes. PII findings are *indicators*, from tags, names and lineage, not verified exposure.
 - **Lineage view** in the activity bar: the upstream and downstream of the open file, one level at a time. Click a node to open it.
 - **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges (the view moves along with them), Enter for details, O to open.
+- **Change Impact Review** (**Review Changes**, or the compare icon on the Lineage view): what your branch and working tree change, against the merge-base with the default branch or a base you choose. It shows each changed model and its columns as a diff, then what that reaches, grouped by models, exposures and owners, each with how sure it is and what says so, then an **Unknowns** section for everything that could not be checked. **Copy as Markdown** puts it on the clipboard for your pull request; `lineagepilot review` prints the same text for the same inputs. See [Reviewing a change](#reviewing-a-change).
 - **Status bar**: node count and manifest age, or a warning when model files are newer than the manifest.
-- **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output.
+- **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Review Changes, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output.
 
 ## Requirements
 
@@ -22,15 +23,34 @@ See what is upstream and downstream of the model you are editing, and what a cha
 
 Large projects index in the background: the model-level lineage is ready in seconds, and column lineage follows. The index is cached, so reopening a project is fast.
 
+## Reviewing a change
+
+A review compares what a changed model's compiled SQL selects with a baseline, so **run `dbt compile` after your edit**. Until you do, the review says the file is newer than the manifest, marks its columns unknown and lists everything below it at model level. **Run dbt compile** on the review does it for you.
+
+The baseline is, in order:
+
+1. the manifest in `lineagePilot.baseline.manifestPath`, typically the production one you use for dbt's `--state`. This is the one to set if you can: it knows what is deployed, and works with no `catalog.json`.
+2. `target/catalog.json`, which lists what the warehouse held when `dbt docs generate` last ran. If you built the changed model before that, a rename no longer shows as a change.
+3. nothing: the model's columns are marked unknown.
+
+What the rows mean:
+
+- **Column** rows are traced from a changed column through compiled SQL.
+- **Model level** rows depend on a changed model, but no changed column is traced to them. They are listed because comparing column names cannot rule out a change in how an unchanged column is computed.
+- **Confidence** uses the graph's line styles: solid when an artifact declares the link, dashed when parsing inferred it, dotted when a pattern suggested it.
+
+What goes under **Unknowns**, rather than being left out: a changed macro or `dbt_project.yml` (which models they affect is not worked out), a new file the manifest has not seen, a downstream model whose SQL cannot be parsed, and a change to a properties file, which is listed but not followed downstream because it documents the data rather than changing it.
+
 ## Workspace Trust
 
 A cloned repository can contain anything, so in **Restricted Mode** LineagePilot only reads the project's artifacts:
 
 - it never runs dbt (**Refresh dbt Artifacts** is unavailable);
 - it never runs a Python interpreter from inside the workspace, not even to check its version;
-- it uses only its built-in rules, not `.lineagepilot/rules.yml`.
+- it uses only its built-in rules, not `.lineagepilot/rules.yml`;
+- it cannot review changes, because VS Code turns its Git extension off, and the review says so rather than reporting that nothing changed.
 
-The interpreter and dbt executable settings are machine-scoped: a workspace's `.vscode/settings.json` cannot set them.
+The interpreter and dbt executable settings are machine-scoped: a workspace's `.vscode/settings.json` cannot set them. VS Code also ignores a workspace's artifact size limit and baseline manifest in Restricted Mode.
 
 ## Settings
 
@@ -40,6 +60,7 @@ The interpreter and dbt executable settings are machine-scoped: a workspace's `.
 | `lineagePilot.dbt.executablePath` | empty (`dbt` on `PATH`) | The dbt that **Refresh dbt Artifacts** runs. Machine-scoped. |
 | `lineagePilot.index.columnLineage` | `true` | Trace lineage column by column. |
 | `lineagePilot.index.maxArtifactMB` | `512` | Larger artifacts are not indexed. |
+| `lineagePilot.baseline.manifestPath` | empty | The manifest **Review Changes** compares columns with. Absolute, or relative to the dbt project. |
 | `lineagePilot.airflow.dagFolders` | `["dags"]` | Where Airflow DAG files live (used from the Airflow release). |
 | `lineagePilot.trace.server` | `off` | Log the messages to and from the language server. |
 
@@ -52,3 +73,5 @@ Put a rule pack in `.lineagepilot/rules.yml` at the root of the dbt project to a
 - **Lineage: no Python**: install Python 3.10+, or set `lineagePilot.python.interpreterPath`. **LineagePilot: Show Output** lists every interpreter it tried and why each was skipped.
 - **Lineage unknown**: the manifest is missing, too large or not a dbt manifest. Run `dbt parse`.
 - **Files newer than the manifest**: run **Refresh dbt Artifacts** (or `dbt parse`) so the lineage matches your edits.
+- **Review: columns unknown**: the review says why. Most often the model changed after the manifest was written (run `dbt compile`), or nothing can say what it selected before (set `lineagePilot.baseline.manifestPath`, or run `dbt docs generate`).
+- **Review: no default branch**: it tries `origin/HEAD`, `origin/main`, `origin/master`, `main` and `master`. Use **Change base** to pick another; a shallow clone needs fetching first.

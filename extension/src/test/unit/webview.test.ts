@@ -55,11 +55,11 @@ suite('webview page', () => {
 
   // zod probes for eval with `new Function` when it builds an object schema. The CSP blocks that and
   // zod catches the error, but the browser still reports a CSP violation (Phase 3 exit, LP-08j).
-  test('the view\'s script never asks for eval, which the CSP forbids', async function () {
+  for (const entry of ['webview/src/main.tsx', 'webview/src/review/main.tsx']) test(`${entry} never asks for eval, which the CSP forbids`, async function () {
     this.timeout(20000);
     // As esbuild.mjs builds it for the VSIX
     const bundle = await build({
-      entryPoints: ['webview/src/main.tsx'], bundle: true, write: false, format: 'iife', platform: 'browser',
+      entryPoints: [entry], bundle: true, write: false, format: 'iife', platform: 'browser',
       target: 'chrome120', jsx: 'automatic', define: { 'process.env.NODE_ENV': '"production"' }, logLevel: 'silent',
     });
     const dom = new JSDOM('<!doctype html><div id="root"></div>', { runScripts: 'outside-only', virtualConsole: new VirtualConsole() });

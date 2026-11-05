@@ -26,6 +26,20 @@ export async function openLocation(
   return vscode.window.showTextDocument(document, { ...options, selection: range, preview: true });
 }
 
+/** Open a file a webview asked for: only file URIs inside the project. Never in the panel's own
+ * group, where the file would hide the panel (and VS Code would destroy its page). */
+export async function openOutsidePanel(
+  panel: vscode.WebviewPanel, location: Location, root: string, output: vscode.LogOutputChannel, preserveFocus = false,
+): Promise<void> {
+  const uri = vscode.Uri.parse(location.uri);
+  if (uri.scheme !== 'file' || !isInside(uri.fsPath, root, process.platform)) {
+    output.warn(`A LineagePilot view asked to open ${location.uri}, which is outside the project; refused`);
+    return;
+  }
+  const viewColumn = panel.viewColumn === vscode.ViewColumn.One ? vscode.ViewColumn.Two : vscode.ViewColumn.One;
+  await openLocation(location, { viewColumn, preserveFocus });
+}
+
 export class LineagePanel implements vscode.Disposable {
   private static readonly panels = new Map<string, LineagePanel>();
   private readonly disposables: vscode.Disposable[] = [];
@@ -137,7 +151,7 @@ export class LineagePanel implements vscode.Disposable {
         return this.forward(message.id, () => this.server.request('lineage/node', message.params),
           (result) => ({ type: 'nodeResult', id: message.id, result }));
       case 'openFile':
-        await this.open(message.location, message.preserveFocus);
+        await openOutsidePanel(this.panel, message.location, this.server.project.root, this.output, message.preserveFocus);
         return;
       case 'saveSettings':
         await this.context.globalState.update(SETTINGS_KEY, message.settings);
@@ -157,18 +171,6 @@ export class LineagePanel implements vscode.Disposable {
         code: typeof code === 'number' && Number.isInteger(code) ? code : null,
       });
     }
-  }
-
-  /** Open a file the webview asked for: only file URIs inside the project. Never in the panel's
-   * own group, where the file would hide the graph (and VS Code would destroy its page). */
-  private async open(location: Location, preserveFocus: boolean): Promise<void> {
-    const uri = vscode.Uri.parse(location.uri);
-    if (uri.scheme !== 'file' || !isInside(uri.fsPath, this.server.project.root, process.platform)) {
-      this.output.warn(`The lineage view asked to open ${location.uri}, which is outside the project; refused`);
-      return;
-    }
-    const viewColumn = this.panel.viewColumn === vscode.ViewColumn.One ? vscode.ViewColumn.Two : vscode.ViewColumn.One;
-    await openLocation(location, { viewColumn, preserveFocus });
   }
 
   private indexChanged(): void {

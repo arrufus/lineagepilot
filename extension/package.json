@@ -35,7 +35,8 @@
       "restrictedConfigurations": [
         "lineagePilot.python.interpreterPath",
         "lineagePilot.dbt.executablePath",
-        "lineagePilot.index.maxArtifactMB"
+        "lineagePilot.index.maxArtifactMB",
+        "lineagePilot.baseline.manifestPath"
       ]
     },
     "virtualWorkspaces": false
@@ -68,6 +69,12 @@
           "default": true,
           "scope": "resource",
           "markdownDescription": "Trace lineage column by column, from compiled SQL and `catalog.json`. The model-level graph is ready first; column lineage follows."
+        },
+        "lineagePilot.baseline.manifestPath": {
+          "type": "string",
+          "default": "",
+          "scope": "resource",
+          "markdownDescription": "The manifest **Review Changes** compares columns with, typically the production one you use for dbt's `--state`. Absolute, or relative to the dbt project. When empty, columns are compared with `target/catalog.json`."
         },
         "lineagePilot.airflow.dagFolders": {
           "type": "array",
@@ -105,6 +112,12 @@
         "title": "Show Lineage Graph",
         "category": "LineagePilot",
         "icon": "$(type-hierarchy)"
+      },
+      {
+        "command": "lineagePilot.reviewChanges",
+        "title": "Review Changes",
+        "category": "LineagePilot",
+        "icon": "$(git-compare)"
       },
       {
         "command": "lineagePilot.refreshArtifacts",
@@ -177,9 +190,14 @@
           "group": "navigation@1"
         },
         {
-          "command": "lineagePilot.reindex",
+          "command": "lineagePilot.reviewChanges",
           "when": "view == lineagePilot.lineage",
           "group": "navigation@2"
+        },
+        {
+          "command": "lineagePilot.reindex",
+          "when": "view == lineagePilot.lineage",
+          "group": "navigation@3"
         }
       ],
       "view/item/context": [
@@ -238,7 +256,7 @@
     "check-vsix": "python3 scripts/check_vsix.py dist/lineagepilot.vsix",
     "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
     "test:webview": "node scripts/build_webview_tests.mjs && mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\"",
-    "test:webview-coverage": "node scripts/build_webview_tests.mjs && c8 --all --src out/webview-test --include \"out/webview-test/webview/src/**\" --include out/webview-test/src/webviewMessages.js --exclude out/webview-test/webview/src/main.js --reporter text-summary --reporter json-summary --reporter html --report-dir coverage-webview mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\" && node scripts/check_coverage.mjs coverage-webview/coverage-summary.json 75",
+    "test:webview-coverage": "node scripts/build_webview_tests.mjs && c8 --all --src out/webview-test --include \"out/webview-test/webview/src/**\" --include out/webview-test/src/webviewMessages.js --include out/webview-test/src/reviewMessages.js --exclude out/webview-test/webview/src/main.js --exclude out/webview-test/webview/src/review/main.js --reporter text-summary --reporter json-summary --reporter html --report-dir coverage-webview mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\" && node scripts/check_coverage.mjs coverage-webview/coverage-summary.json 75",
     "test:integration": "npm run compile-tests && npm run compile && vscode-test",
     "test:coverage": "npm run compile-tests && node esbuild.mjs && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
   },

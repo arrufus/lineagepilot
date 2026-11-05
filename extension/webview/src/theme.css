@@ -1,0 +1,65 @@
+/* What every LineagePilot view shares (tasks 3.4 and 4.4). Every colour is a VS Code theme
+   variable, so the views follow light, dark and high-contrast themes. */
+
+:root {
+  --lp-border: var(--vscode-editorWidget-border, var(--vscode-panel-border));
+  --lp-surface: var(--vscode-editorWidget-background, var(--vscode-editor-background));
+  --lp-muted: var(--vscode-descriptionForeground);
+  --lp-focus: var(--vscode-focusBorder);
+  --lp-model: var(--vscode-charts-blue);
+  --lp-source: var(--vscode-charts-green);
+  --lp-seed: var(--vscode-charts-purple);
+  --lp-snapshot: var(--vscode-charts-orange);
+  --lp-exposure: var(--vscode-charts-yellow);
+  --lp-airflow: var(--vscode-charts-red);
+  --lp-edge: var(--vscode-editorLineNumber-foreground, var(--lp-muted));
+}
+
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--vscode-editor-background);
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-font-family);
+  font-size: var(--vscode-font-size);
+}
+
+button {
+  display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; font: inherit; cursor: pointer;
+  color: var(--vscode-button-secondaryForeground); background: var(--vscode-button-secondaryBackground);
+  border: 1px solid var(--vscode-button-border, transparent); border-radius: 2px;
+}
+button:hover:not(:disabled) { background: var(--vscode-button-secondaryHoverBackground); }
+button:disabled { opacity: 0.5; cursor: default; }
+select, input[type='search'] {
+  font: inherit; color: var(--vscode-input-foreground); background: var(--vscode-input-background);
+  border: 1px solid var(--vscode-input-border, var(--lp-border)); padding: 2px 4px;
+}
+input[type='checkbox'], input[type='range'] { accent-color: var(--vscode-button-background); }
+:focus-visible { outline: 1px solid var(--lp-focus); outline-offset: 1px; }
+.lp-icon-button { padding: 3px; background: transparent; color: var(--vscode-icon-foreground, var(--vscode-foreground)); }
+.lp-icon-button:hover:not(:disabled) { background: var(--vscode-toolbar-hoverBackground); }
+.lp-inline { vertical-align: middle; margin: 0 2px; }
+.lp-link { background: none; border: none; padding: 0; color: var(--vscode-textLink-foreground); text-align: left; }
+.lp-link:hover:not(:disabled) { background: none; text-decoration: underline; color: var(--vscode-textLink-activeForeground); }
+
+.lp-muted { color: var(--lp-muted); }
+.lp-mono { font-family: var(--vscode-editor-font-family); font-size: 12px; overflow-wrap: anywhere; }
+.lp-error { color: var(--vscode-errorForeground); }
+.lp-visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.lp-spin { animation: lp-spin 1s linear infinite; }
+@keyframes lp-spin { to { transform: rotate(360deg); } }
+
+/* How sure a link is: the same line in the graph's edges and the review's rows. Solid when the
+   artifact declares it, dashed when parsing inferred it, dotted when a pattern suggested it. */
+.lp-legend-line { display: inline-block; width: 28px; height: 0; border-top: 2px solid var(--lp-edge); vertical-align: middle; }
+.lp-legend-line.lp-edge-inferred { border-top-style: dashed; }
+.lp-legend-line.lp-edge-heuristic { border-top-style: dotted; }
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-spin { animation: none; }
+}

@@ -31,6 +31,8 @@ REQUIRED = [
     "extension/dist/extension.js",
     "extension/dist/webview/webview.js",
     "extension/dist/webview/webview.css",
+    "extension/dist/webview/review.js",
+    "extension/dist/webview/review.css",
     "extension/bundled/tool/lsp_server.py",
     "extension/bundled/libs/BUNDLE.json",
     "extension/bundled/libs/pygls/__init__.py",

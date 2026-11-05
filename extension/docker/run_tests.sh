@@ -2,7 +2,7 @@
 # Runs inside the Linux test image. /src is the repository, mounted read-only, with
 # extension/bundled/libs already built (it is pure Python, so any OS can build it).
 #
-#   LP_LABELS    integration configurations to run (default: trusted restricted path)
+#   LP_LABELS    integration configurations to run (default: trusted restricted path review)
 #   LP_PYTHONS   interpreters, by version (default: 3.13)
 #   LP_COVERAGE  1 to also run the coverage configuration and its 75% gate
 set -euo pipefail
@@ -23,7 +23,7 @@ npm run test:webview-coverage
 status=0
 for version in ${LP_PYTHONS:-3.13}; do
   python=$(uv python find "$version")
-  for label in ${LP_LABELS:-trusted restricted path}; do
+  for label in ${LP_LABELS:-trusted restricted path review}; do
     echo "[linux] $label, Python $version"
     if ! LP_TEST_PYTHON="$python" LP_TEST_LOG="$HOME/$label-$version.log" xvfb-run -a npx vscode-test --label "$label"; then
       echo "[linux] FAILED: $label, Python $version"
