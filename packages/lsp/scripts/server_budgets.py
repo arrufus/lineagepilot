@@ -6,8 +6,10 @@ Usage, from packages/lsp:
 
 A throwaway dbt project points at the artifacts. The server is started cold (empty cache)
 and then warm, and timed from initialize to each index stage; CodeLens and impact requests
-are timed on the warm server, and its peak memory is read from the OS. The 5,000-model
-synthetic manifest comes from spike S2 (spikes/s2-parse-perf, scripts/build_manifests.py).
+are timed on the warm server, and its peak memory is read from the OS. Change Impact Reviews
+of 1, 10 and 100 changed models are timed too, and one against a baseline manifest, the same
+manifest here, which costs a read in a child process the first time. The 5,000-model synthetic
+manifest comes from spike S2 (spikes/s2-parse-perf, scripts/build_manifests.py).
 """
 
 from __future__ import annotations
@@ -109,6 +111,31 @@ async def run(project: Path, storage: Path) -> dict:
     models = [n for n in nodes if n["kind"] == "model" and n.get("file_path")]
     sources = [n["id"] for n in nodes if n["kind"] == "source"]
 
+    # Before the CodeLens loop below rewrites files, so the manifest still matches them
+    async def review_ms(picked: list[dict], manifest: str | None = None) -> float:
+        files = [
+            {"uri": (project / n["file_path"]).as_uri(), "status": "modified", "previousUri": None}
+            for n in picked
+        ]
+        t = time.perf_counter()
+        await client.protocol.send_request_async(
+            "lineage/reviewChanges",
+            {
+                "changedFiles": files,
+                "baseline": {"ref": "main", "commit": "0" * 40, "manifestPath": manifest},
+            },
+        )
+        return round((time.perf_counter() - t) * 1000, 1)
+
+    # Staging models first: they have the most downstream
+    ordered = sorted(models, key=lambda n: ("stg_" not in n["id"], n["id"]))
+    result["review_1_model_ms"] = await review_ms(ordered[:1])
+    result["review_10_models_ms"] = await review_ms(ordered[:10])
+    result["review_100_models_ms"] = await review_ms(ordered[:100])
+    state = str(project / "target" / "manifest.json")
+    result["review_baseline_first_ms"] = await review_ms(ordered[:10], state)
+    result["review_baseline_again_ms"] = await review_ms(ordered[:10], state)
+
     lens_times = []
     for node in models[::50]:
         path = project / node["file_path"]
@@ -157,7 +184,8 @@ def main() -> None:
                     path = project / relative
                     path.parent.mkdir(parents=True, exist_ok=True)
                     if not path.exists():
-                        path.write_text("select 1\n")
+                        # A model's own text, so a review finds the manifest has seen the file
+                        path.write_text(node.get("raw_code") or "select 1\n")
         storage = Path(tmp) / "storage"
         results = {"python": sys.version.split()[0]}
         results["cold"] = asyncio.run(run(project, storage))

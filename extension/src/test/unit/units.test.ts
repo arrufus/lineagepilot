@@ -169,7 +169,7 @@ suite('protocol', () => {
 
   test('every method names its params and result', () => {
     assert.deepEqual(Object.keys(protocol.requests).sort(), [
-      'lineage/export', 'lineage/graph', 'lineage/impact', 'lineage/node', 'lineage/nodesForFile', 'lineage/refresh', 'lineage/status',
+      'lineage/export', 'lineage/graph', 'lineage/impact', 'lineage/node', 'lineage/nodesForFile', 'lineage/refresh', 'lineage/reviewChanges', 'lineage/status',
     ]);
   });
 });

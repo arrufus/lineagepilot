@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from lineagepilot_core.analysis.baseline import ManifestBaseline
+from lineagepilot_core.analysis.review import baseline_inputs
 from lineagepilot_core.rules import (
     Evaluation,
     RulePack,
@@ -43,9 +45,15 @@ from pygls.protocol import LanguageServerProtocol, default_converter, lsp_method
 from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 from pygls.uris import to_fs_path
 
-from lineagepilot_lsp import __version__, features, methods, protocol
+from lineagepilot_lsp import __version__, features, methods, protocol, worker
 from lineagepilot_lsp.context import GraphContext, clip
-from lineagepilot_lsp.indexing import ColumnStage, ProjectIndex, freeze_heap, iso_time
+from lineagepilot_lsp.indexing import (
+    ColumnStage,
+    ProjectIndex,
+    freeze_heap,
+    iso_time,
+    run_worker,
+)
 from lineagepilot_lsp.project import DbtProject, read_project
 from lineagepilot_lsp.watch import RULES_FILE, Change, Debouncer, classify, watchers
 
@@ -57,6 +65,8 @@ MAX_STATUS_ERRORS = 50
 DEFAULT_MAX_ARTIFACT_MB = 512
 SOURCE_DEBOUNCE_S = 0.5
 NOTIFY_INDEX_UPDATED = "lineage/indexUpdated"
+# A baseline manifest takes as long to read as a cold index without column lineage
+BASELINE_TIMEOUT_S = 120.0
 
 
 def converter():
@@ -144,6 +154,8 @@ class LineagePilotServer(LanguageServer):
         self._temp_storage: str | None = None
         self._debouncers: dict[Change, Debouncer] = {}
         self._background: set[asyncio.Task[Any]] = set()
+        # The last baseline manifest read, by what it was read for
+        self._baseline: tuple[Any, ManifestBaseline] | None = None
 
     # Lifecycle
 
@@ -510,6 +522,66 @@ class LineagePilotServer(LanguageServer):
     def column_stage(self) -> str:
         return self.index.columns.value if self.index else ColumnStage.PENDING.value
 
+    # The Change Impact Review
+
+    async def review_changes(self, params: protocol.ReviewParams) -> dict[str, Any]:
+        context = self.ready_context()
+        files, outside = methods.changed_files(context.project, params)
+        baseline = None
+        if params.baseline.manifest_path:
+            nodes, paths = baseline_inputs(context.graph, files, context.project)
+            baseline = await self.read_baseline(params.baseline.manifest_path, nodes, paths)
+            # A re-index may have replaced the graph during that wait
+            context = self.ready_context()
+        return methods.review(context, params, files, outside, baseline, self.column_stage())
+
+    async def read_baseline(
+        self, manifest: str, nodes: list[str], files: list[str]
+    ) -> ManifestBaseline:
+        """A baseline manifest's facts, read in a child process like the project's own, and
+        kept while the file and what is asked of it stay the same: the panel re-runs a review
+        whenever the index or the working tree changes."""
+        assert self.project is not None
+        path = self.project.root / Path(manifest).expanduser()
+        try:
+            stat = path.stat()
+            stamp: tuple[int, int] | None = (stat.st_mtime_ns, stat.st_size)
+        except OSError:
+            stamp = None
+        key = (str(path), stamp, tuple(nodes), tuple(files))
+        if self._baseline is not None and self._baseline[0] == key:
+            return self._baseline[1]
+        request = {
+            "task": "baseline",
+            "manifest": str(path),
+            "nodes": nodes,
+            "files": files,
+            "maxArtifactBytes": int(self.options.max_artifact_mb * 2**20),
+        }
+        found: dict[str, Any] = {}
+
+        async def on_event(event: dict[str, Any]) -> None:
+            found.update(event)
+
+        problem = None
+        try:
+            exit_ = await asyncio.wait_for(
+                run_worker(worker.command(worker.interpreter(), request), on_event),
+                BASELINE_TIMEOUT_S,
+            )
+        except asyncio.TimeoutError:
+            problem = f"reading it took longer than {BASELINE_TIMEOUT_S:.0f} s"
+        except OSError as e:
+            problem = f"it could not be read: {e}"
+        else:
+            if found.get("event") != "baseline":
+                problem = str(found.get("message") or f"the reader stopped ({exit_.returncode})")
+        if problem is not None:
+            return ManifestBaseline(name=path.name, error=problem)
+        baseline = ManifestBaseline.from_json(found["baseline"])
+        self._baseline = (key, baseline)
+        return baseline
+
     # Helpers
 
     def log(self, message: str, level: types.MessageType = types.MessageType.Info) -> None:
@@ -616,6 +688,11 @@ def create_server() -> LineagePilotServer:
     def on_node(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
         checked = _params(ls, protocol.NodeParams, params)
         return methods.node(ls.ready_context(), checked)
+
+    @server.feature("lineage/reviewChanges")
+    async def on_review(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.ReviewParams, params)
+        return await ls.review_changes(checked)
 
     @server.feature("lineage/nodesForFile")
     def on_nodes_for_file(ls: LineagePilotServer, params: Any) -> dict[str, Any]:

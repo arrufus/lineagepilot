@@ -41,6 +41,10 @@ REQUESTS = {
     "lineage/node": [
         "NodeParams",
         "NodeResult"
+    ],
+    "lineage/reviewChanges": [
+        "ReviewParams",
+        "ReviewResult"
     ]
 }
 
@@ -57,7 +61,7 @@ class ErrorCode:
 
 
 # The schema's definitions, as data for the validator
-DEFS: dict[str, Any] = {'Id': {'type': 'string', 'minLength': 1, 'maxLength': 4096}, 'Name': {'type': 'string', 'maxLength': 4096}, 'Text': {'type': 'string', 'maxLength': 65536}, 'Uri': {'type': 'string', 'minLength': 1, 'maxLength': 8192}, 'Count': {'type': 'integer', 'minimum': 0}, 'NodeKind': {'enum': ['model', 'seed', 'snapshot', 'source', 'exposure', 'relation', 'airflow_dag', 'airflow_task', 'column']}, 'EdgeKind': {'enum': ['depends_on', 'derives', 'materialises', 'orchestrates', 'task_depends_on']}, 'Confidence': {'enum': ['declared', 'inferred', 'heuristic']}, 'Origin': {'enum': ['manifest', 'compiled_sql', 'catalog', 'dag_static', 'annotation']}, 'Direction': {'enum': ['upstream', 'downstream', 'both']}, 'Side': {'enum': ['root', 'upstream', 'downstream']}, 'Granularity': {'enum': ['model', 'column']}, 'LineageState': {'enum': ['resolved', 'partial', 'unknown']}, 'IndexState': {'enum': ['starting', 'ready', 'unknown', 'failed']}, 'ColumnStage': {'enum': ['pending', 'computing', 'done', 'off']}, 'ExportFormat': {'enum': ['json', 'mermaid', 'dot', 'graphml', 'cypher', 'pii-markdown', 'pii-csv']}, 'Position': {'type': 'object', 'properties': {'line': {'$ref': '#/$defs/Count'}, 'character': {'$ref': '#/$defs/Count'}}, 'required': ['line', 'character'], 'additionalProperties': False}, 'Range': {'type': 'object', 'properties': {'start': {'$ref': '#/$defs/Position'}, 'end': {'$ref': '#/$defs/Position'}}, 'required': ['start', 'end'], 'additionalProperties': False}, 'Location': {'description': 'A file to open, and where in it when known.', 'type': 'object', 'properties': {'uri': {'$ref': '#/$defs/Uri'}, 'range': {'anyOf': [{'$ref': '#/$defs/Range'}, {'type': 'null'}]}}, 'required': ['uri', 'range'], 'additionalProperties': False}, 'Unknown': {'description': 'A reference that could not be resolved, or a model whose column lineage is unknown. Shown, never dropped.', 'type': 'object', 'properties': {'subject': {'$ref': '#/$defs/Id'}, 'reference': {'$ref': '#/$defs/Text'}, 'reason': {'$ref': '#/$defs/Text'}}, 'required': ['subject', 'reference', 'reason'], 'additionalProperties': False}, 'EmptyParams': {'type': 'object', 'properties': {}, 'additionalProperties': False}, 'GraphParams': {'type': 'object', 'properties': {'root': {'$ref': '#/$defs/Id', 'description': 'A node ID, or a column ID at column granularity.'}, 'direction': {'$ref': '#/$defs/Direction'}, 'depth': {'type': 'integer', 'minimum': 1, 'maximum': 10}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'maxNodes': {'type': 'integer', 'minimum': 1, 'maximum': 5000}}, 'required': ['root', 'direction', 'depth', 'granularity'], 'additionalProperties': False}, 'GraphNode': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'side': {'$ref': '#/$defs/Side'}, 'depth': {'$ref': '#/$defs/Count'}, 'parent': {'anyOf': [{'$ref': '#/$defs/Id'}, {'type': 'null'}], 'description': 'The node a column belongs to.'}, 'location': {'anyOf': [{'$ref': '#/$defs/Location'}, {'type': 'null'}]}, 'layer': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'materialization': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'description': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'columnLineage': {'anyOf': [{'$ref': '#/$defs/LineageState'}, {'type': 'null'}]}, 'columnLineageReason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'pii': {'type': 'boolean'}}, 'required': ['id', 'kind', 'name', 'side', 'depth', 'parent', 'location', 'layer', 'materialization', 'owner', 'description', 'columnLineage', 'columnLineageReason', 'pii'], 'additionalProperties': False}, 'GraphEdge': {'type': 'object', 'properties': {'kind': {'$ref': '#/$defs/EdgeKind'}, 'upstream': {'$ref': '#/$defs/Id'}, 'downstream': {'$ref': '#/$defs/Id'}, 'relation': {'anyOf': [{'$ref': '#/$defs/Id'}, {'type': 'null'}], 'description': 'The physical table between a source and the seed, model or snapshot that builds it.'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'origins': {'type': 'array', 'items': {'$ref': '#/$defs/Origin'}, 'maxItems': 5}, 'transformation': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['kind', 'upstream', 'downstream', 'relation', 'confidence', 'origins', 'transformation'], 'additionalProperties': False}, 'GraphResult': {'type': 'object', 'properties': {'root': {'$ref': '#/$defs/Id'}, 'direction': {'$ref': '#/$defs/Direction'}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/GraphNode'}}, 'edges': {'type': 'array', 'items': {'$ref': '#/$defs/GraphEdge'}}, 'truncated': {'type': 'boolean'}, 'unknowns': {'type': 'array', 'items': {'$ref': '#/$defs/Unknown'}}}, 'required': ['root', 'direction', 'granularity', 'nodes', 'edges', 'truncated', 'unknowns'], 'additionalProperties': False}, 'ImpactParams': {'type': 'object', 'properties': {'targets': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}, 'minItems': 1, 'maxItems': 200}, 'maxDepth': {'type': 'integer', 'minimum': 1, 'maximum': 100}}, 'required': ['targets'], 'additionalProperties': False}, 'ImpactedNode': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'depth': {'$ref': '#/$defs/Count'}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'columns': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}}, 'reason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'location': {'anyOf': [{'$ref': '#/$defs/Location'}, {'type': 'null'}]}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['id', 'kind', 'name', 'depth', 'granularity', 'confidence', 'columns', 'reason', 'location', 'owner'], 'additionalProperties': False}, 'ImpactResult': {'type': 'object', 'properties': {'targets': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}}, 'truncated': {'type': 'boolean'}, 'counts': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Count'}}, 'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/ImpactedNode'}}, 'unknowns': {'type': 'array', 'items': {'$ref': '#/$defs/Unknown'}}, 'columnLineage': {'$ref': '#/$defs/ColumnStage', 'description': 'While computing, models not yet analysed are impacted at model level.'}}, 'required': ['targets', 'truncated', 'counts', 'nodes', 'unknowns', 'columnLineage'], 'additionalProperties': False}, 'ExportParams': {'type': 'object', 'properties': {'format': {'$ref': '#/$defs/ExportFormat'}, 'root': {'$ref': '#/$defs/Id', 'description': 'Export the neighbourhood of this node; the whole graph when absent.'}, 'direction': {'$ref': '#/$defs/Direction'}, 'depth': {'type': 'integer', 'minimum': 1, 'maximum': 10}}, 'required': ['format'], 'additionalProperties': False}, 'ExportResult': {'type': 'object', 'properties': {'format': {'$ref': '#/$defs/ExportFormat'}, 'filename': {'$ref': '#/$defs/Name'}, 'content': {'type': 'string'}, 'nodes': {'$ref': '#/$defs/Count'}, 'edges': {'$ref': '#/$defs/Count'}}, 'required': ['format', 'filename', 'content', 'nodes', 'edges'], 'additionalProperties': False}, 'NodesForFileParams': {'type': 'object', 'properties': {'uri': {'$ref': '#/$defs/Uri'}}, 'required': ['uri'], 'additionalProperties': False}, 'NodesForFileResult': {'type': 'object', 'properties': {'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/GraphNode'}}}, 'required': ['nodes'], 'additionalProperties': False}, 'NodeParams': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id', 'description': 'A node ID or a column ID.'}}, 'required': ['id'], 'additionalProperties': False}, 'ColumnInfo': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'name': {'$ref': '#/$defs/Name'}, 'dataType': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'description': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'pii': {'type': 'boolean'}, 'tests': {'$ref': '#/$defs/Count'}}, 'required': ['id', 'name', 'dataType', 'description', 'pii', 'tests'], 'additionalProperties': False}, 'NodeResult': {'description': 'One node or column: its details, its columns (for a node), and how many direct neighbours it has at its granularity.', 'type': 'object', 'properties': {'node': {'$ref': '#/$defs/GraphNode'}, 'columns': {'type': 'array', 'items': {'$ref': '#/$defs/ColumnInfo'}}, 'upstream': {'$ref': '#/$defs/Count'}, 'downstream': {'$ref': '#/$defs/Count'}}, 'required': ['node', 'columns', 'upstream', 'downstream'], 'additionalProperties': False}, 'IndexError': {'type': 'object', 'properties': {'severity': {'enum': ['error', 'warning']}, 'message': {'$ref': '#/$defs/Text'}, 'location': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}}, 'required': ['severity', 'message', 'location'], 'additionalProperties': False}, 'ServerInfo': {'type': 'object', 'properties': {'version': {'$ref': '#/$defs/Name'}, 'python': {'$ref': '#/$defs/Name'}, 'executable': {'$ref': '#/$defs/Text'}, 'pid': {'$ref': '#/$defs/Count'}, 'isolated': {'type': 'boolean', 'description': "Started with python -I, so nothing from the workspace or the user's site-packages can shadow the bundle."}, 'modules': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Text'}, 'description': 'Where the key libraries were imported from, to check that the bundle is what runs.'}}, 'required': ['version', 'python', 'executable', 'pid', 'isolated', 'modules'], 'additionalProperties': False}, 'ProjectInfo': {'type': 'object', 'properties': {'root': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'name': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'problems': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 100}}, 'required': ['root', 'name', 'problems'], 'additionalProperties': False}, 'ManifestInfo': {'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'exists': {'type': 'boolean'}, 'generatedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'dbtVersion': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'schemaVersion': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 'modifiedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['path', 'exists', 'generatedAt', 'dbtVersion', 'schemaVersion', 'modifiedAt'], 'additionalProperties': False}, 'CatalogInfo': {'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'exists': {'type': 'boolean'}, 'modifiedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['path', 'exists', 'modifiedAt'], 'additionalProperties': False}, 'Artifacts': {'type': 'object', 'properties': {'manifest': {'anyOf': [{'$ref': '#/$defs/ManifestInfo'}, {'type': 'null'}]}, 'catalog': {'anyOf': [{'$ref': '#/$defs/CatalogInfo'}, {'type': 'null'}]}}, 'required': ['manifest', 'catalog'], 'additionalProperties': False}, 'Counts': {'type': 'object', 'properties': {'nodes': {'$ref': '#/$defs/Count'}, 'columns': {'$ref': '#/$defs/Count'}, 'edges': {'$ref': '#/$defs/Count'}, 'unresolved': {'$ref': '#/$defs/Count'}, 'nodeKinds': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Count'}}}, 'required': ['nodes', 'columns', 'edges', 'unresolved', 'nodeKinds'], 'additionalProperties': False}, 'ColumnStates': {'type': 'object', 'properties': {'resolved': {'$ref': '#/$defs/Count'}, 'partial': {'$ref': '#/$defs/Count'}, 'unknown': {'$ref': '#/$defs/Count'}}, 'required': ['resolved', 'partial', 'unknown'], 'additionalProperties': False}, 'Stale': {'description': 'Source files changed after the manifest was written.', 'type': 'object', 'properties': {'count': {'$ref': '#/$defs/Count'}, 'examples': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 5}}, 'required': ['count', 'examples'], 'additionalProperties': False}, 'RulesStatus': {'description': 'The conformance rules behind the diagnostics. In Restricted Mode only the built-in rules run.', 'type': 'object', 'properties': {'pack': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}], 'description': 'The rule pack file, if the project has one.'}, 'packLoaded': {'type': 'boolean'}, 'restricted': {'type': 'boolean'}, 'problems': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 50}, 'findings': {'$ref': '#/$defs/Count'}, 'score': {'anyOf': [{'type': 'number', 'minimum': 0, 'maximum': 100}, {'type': 'null'}]}, 'coverage': {'anyOf': [{'type': 'number', 'minimum': 0, 'maximum': 100}, {'type': 'null'}]}}, 'required': ['pack', 'packLoaded', 'restricted', 'problems', 'findings', 'score', 'coverage'], 'additionalProperties': False}, 'Status': {'type': 'object', 'properties': {'protocolVersion': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 'server': {'$ref': '#/$defs/ServerInfo'}, 'project': {'$ref': '#/$defs/ProjectInfo'}, 'trusted': {'type': 'boolean'}, 'state': {'$ref': '#/$defs/IndexState'}, 'indexing': {'type': 'boolean'}, 'generation': {'$ref': '#/$defs/Count'}, 'columnLineage': {'$ref': '#/$defs/ColumnStage'}, 'message': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'errors': {'type': 'array', 'items': {'$ref': '#/$defs/IndexError'}, 'maxItems': 50}, 'errorCount': {'$ref': '#/$defs/Count'}, 'artifacts': {'$ref': '#/$defs/Artifacts'}, 'counts': {'anyOf': [{'$ref': '#/$defs/Counts'}, {'type': 'null'}]}, 'columnStates': {'anyOf': [{'$ref': '#/$defs/ColumnStates'}, {'type': 'null'}]}, 'stale': {'$ref': '#/$defs/Stale'}, 'fromCache': {'type': 'boolean'}, 'indexedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'rules': {'$ref': '#/$defs/RulesStatus'}}, 'required': ['protocolVersion', 'server', 'project', 'trusted', 'state', 'indexing', 'generation', 'columnLineage', 'message', 'errors', 'errorCount', 'artifacts', 'counts', 'columnStates', 'stale', 'fromCache', 'indexedAt', 'rules'], 'additionalProperties': False}}
+DEFS: dict[str, Any] = {'Id': {'type': 'string', 'minLength': 1, 'maxLength': 4096}, 'Name': {'type': 'string', 'maxLength': 4096}, 'Text': {'type': 'string', 'maxLength': 65536}, 'Uri': {'type': 'string', 'minLength': 1, 'maxLength': 8192}, 'Count': {'type': 'integer', 'minimum': 0}, 'NodeKind': {'enum': ['model', 'seed', 'snapshot', 'source', 'exposure', 'relation', 'airflow_dag', 'airflow_task', 'column']}, 'EdgeKind': {'enum': ['depends_on', 'derives', 'materialises', 'orchestrates', 'task_depends_on']}, 'Confidence': {'enum': ['declared', 'inferred', 'heuristic']}, 'Origin': {'enum': ['manifest', 'compiled_sql', 'catalog', 'dag_static', 'annotation']}, 'Direction': {'enum': ['upstream', 'downstream', 'both']}, 'Side': {'enum': ['root', 'upstream', 'downstream']}, 'Granularity': {'enum': ['model', 'column']}, 'LineageState': {'enum': ['resolved', 'partial', 'unknown']}, 'IndexState': {'enum': ['starting', 'ready', 'unknown', 'failed']}, 'ColumnStage': {'enum': ['pending', 'computing', 'done', 'off']}, 'ExportFormat': {'enum': ['json', 'mermaid', 'dot', 'graphml', 'cypher', 'pii-markdown', 'pii-csv']}, 'Position': {'type': 'object', 'properties': {'line': {'$ref': '#/$defs/Count'}, 'character': {'$ref': '#/$defs/Count'}}, 'required': ['line', 'character'], 'additionalProperties': False}, 'Range': {'type': 'object', 'properties': {'start': {'$ref': '#/$defs/Position'}, 'end': {'$ref': '#/$defs/Position'}}, 'required': ['start', 'end'], 'additionalProperties': False}, 'Location': {'description': 'A file to open, and where in it when known.', 'type': 'object', 'properties': {'uri': {'$ref': '#/$defs/Uri'}, 'range': {'anyOf': [{'$ref': '#/$defs/Range'}, {'type': 'null'}]}}, 'required': ['uri', 'range'], 'additionalProperties': False}, 'Unknown': {'description': 'A reference that could not be resolved, or a model whose column lineage is unknown. Shown, never dropped.', 'type': 'object', 'properties': {'subject': {'$ref': '#/$defs/Id'}, 'reference': {'$ref': '#/$defs/Text'}, 'reason': {'$ref': '#/$defs/Text'}}, 'required': ['subject', 'reference', 'reason'], 'additionalProperties': False}, 'EmptyParams': {'type': 'object', 'properties': {}, 'additionalProperties': False}, 'GraphParams': {'type': 'object', 'properties': {'root': {'$ref': '#/$defs/Id', 'description': 'A node ID, or a column ID at column granularity.'}, 'direction': {'$ref': '#/$defs/Direction'}, 'depth': {'type': 'integer', 'minimum': 1, 'maximum': 10}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'maxNodes': {'type': 'integer', 'minimum': 1, 'maximum': 5000}}, 'required': ['root', 'direction', 'depth', 'granularity'], 'additionalProperties': False}, 'GraphNode': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'side': {'$ref': '#/$defs/Side'}, 'depth': {'$ref': '#/$defs/Count'}, 'parent': {'anyOf': [{'$ref': '#/$defs/Id'}, {'type': 'null'}], 'description': 'The node a column belongs to.'}, 'location': {'anyOf': [{'$ref': '#/$defs/Location'}, {'type': 'null'}]}, 'layer': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'materialization': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'description': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'columnLineage': {'anyOf': [{'$ref': '#/$defs/LineageState'}, {'type': 'null'}]}, 'columnLineageReason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'pii': {'type': 'boolean'}}, 'required': ['id', 'kind', 'name', 'side', 'depth', 'parent', 'location', 'layer', 'materialization', 'owner', 'description', 'columnLineage', 'columnLineageReason', 'pii'], 'additionalProperties': False}, 'GraphEdge': {'type': 'object', 'properties': {'kind': {'$ref': '#/$defs/EdgeKind'}, 'upstream': {'$ref': '#/$defs/Id'}, 'downstream': {'$ref': '#/$defs/Id'}, 'relation': {'anyOf': [{'$ref': '#/$defs/Id'}, {'type': 'null'}], 'description': 'The physical table between a source and the seed, model or snapshot that builds it.'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'origins': {'type': 'array', 'items': {'$ref': '#/$defs/Origin'}, 'maxItems': 5}, 'transformation': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['kind', 'upstream', 'downstream', 'relation', 'confidence', 'origins', 'transformation'], 'additionalProperties': False}, 'GraphResult': {'type': 'object', 'properties': {'root': {'$ref': '#/$defs/Id'}, 'direction': {'$ref': '#/$defs/Direction'}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/GraphNode'}}, 'edges': {'type': 'array', 'items': {'$ref': '#/$defs/GraphEdge'}}, 'truncated': {'type': 'boolean'}, 'unknowns': {'type': 'array', 'items': {'$ref': '#/$defs/Unknown'}}}, 'required': ['root', 'direction', 'granularity', 'nodes', 'edges', 'truncated', 'unknowns'], 'additionalProperties': False}, 'ImpactParams': {'type': 'object', 'properties': {'targets': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}, 'minItems': 1, 'maxItems': 200}, 'maxDepth': {'type': 'integer', 'minimum': 1, 'maximum': 100}}, 'required': ['targets'], 'additionalProperties': False}, 'ImpactedNode': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'depth': {'$ref': '#/$defs/Count'}, 'granularity': {'$ref': '#/$defs/Granularity'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'columns': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}}, 'reason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'location': {'anyOf': [{'$ref': '#/$defs/Location'}, {'type': 'null'}]}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['id', 'kind', 'name', 'depth', 'granularity', 'confidence', 'columns', 'reason', 'location', 'owner'], 'additionalProperties': False}, 'ImpactResult': {'type': 'object', 'properties': {'targets': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}}, 'truncated': {'type': 'boolean'}, 'counts': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Count'}}, 'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/ImpactedNode'}}, 'unknowns': {'type': 'array', 'items': {'$ref': '#/$defs/Unknown'}}, 'columnLineage': {'$ref': '#/$defs/ColumnStage', 'description': 'While computing, models not yet analysed are impacted at model level.'}}, 'required': ['targets', 'truncated', 'counts', 'nodes', 'unknowns', 'columnLineage'], 'additionalProperties': False}, 'ExportParams': {'type': 'object', 'properties': {'format': {'$ref': '#/$defs/ExportFormat'}, 'root': {'$ref': '#/$defs/Id', 'description': 'Export the neighbourhood of this node; the whole graph when absent.'}, 'direction': {'$ref': '#/$defs/Direction'}, 'depth': {'type': 'integer', 'minimum': 1, 'maximum': 10}}, 'required': ['format'], 'additionalProperties': False}, 'ExportResult': {'type': 'object', 'properties': {'format': {'$ref': '#/$defs/ExportFormat'}, 'filename': {'$ref': '#/$defs/Name'}, 'content': {'type': 'string'}, 'nodes': {'$ref': '#/$defs/Count'}, 'edges': {'$ref': '#/$defs/Count'}}, 'required': ['format', 'filename', 'content', 'nodes', 'edges'], 'additionalProperties': False}, 'NodesForFileParams': {'type': 'object', 'properties': {'uri': {'$ref': '#/$defs/Uri'}}, 'required': ['uri'], 'additionalProperties': False}, 'NodesForFileResult': {'type': 'object', 'properties': {'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/GraphNode'}}}, 'required': ['nodes'], 'additionalProperties': False}, 'NodeParams': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id', 'description': 'A node ID or a column ID.'}}, 'required': ['id'], 'additionalProperties': False}, 'ColumnInfo': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'name': {'$ref': '#/$defs/Name'}, 'dataType': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'description': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'pii': {'type': 'boolean'}, 'tests': {'$ref': '#/$defs/Count'}}, 'required': ['id', 'name', 'dataType', 'description', 'pii', 'tests'], 'additionalProperties': False}, 'NodeResult': {'description': 'One node or column: its details, its columns (for a node), and how many direct neighbours it has at its granularity.', 'type': 'object', 'properties': {'node': {'$ref': '#/$defs/GraphNode'}, 'columns': {'type': 'array', 'items': {'$ref': '#/$defs/ColumnInfo'}}, 'upstream': {'$ref': '#/$defs/Count'}, 'downstream': {'$ref': '#/$defs/Count'}}, 'required': ['node', 'columns', 'upstream', 'downstream'], 'additionalProperties': False}, 'FileStatus': {'enum': ['added', 'modified', 'deleted', 'renamed', 'untracked']}, 'ChangedFile': {'description': 'A file that differs from the base. Files outside the project are counted and otherwise ignored.', 'type': 'object', 'properties': {'uri': {'$ref': '#/$defs/Uri'}, 'status': {'$ref': '#/$defs/FileStatus'}, 'previousUri': {'anyOf': [{'$ref': '#/$defs/Uri'}, {'type': 'null'}], 'description': 'Where a renamed file was.'}}, 'required': ['uri', 'status', 'previousUri'], 'additionalProperties': False}, 'ReviewBaseline': {'description': 'What the changes are compared with: the ref asked for and the commit it came to, for the record, and a baseline manifest to compare columns with.', 'type': 'object', 'properties': {'ref': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'commit': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'manifestPath': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}], 'description': 'Absolute, or relative to the project. Null compares columns with catalog.json.'}}, 'required': ['ref', 'commit', 'manifestPath'], 'additionalProperties': False}, 'ReviewParams': {'type': 'object', 'properties': {'changedFiles': {'type': 'array', 'items': {'$ref': '#/$defs/ChangedFile'}, 'maxItems': 20000}, 'baseline': {'$ref': '#/$defs/ReviewBaseline'}}, 'required': ['changedFiles', 'baseline'], 'additionalProperties': False}, 'ColumnDiffState': {'enum': ['known', 'unknown', 'not_compared']}, 'BaselineKind': {'enum': ['baseline_manifest', 'catalog', 'none']}, 'ColumnTypeChange': {'type': 'object', 'properties': {'name': {'$ref': '#/$defs/Name'}, 'before': {'$ref': '#/$defs/Name'}, 'after': {'$ref': '#/$defs/Name'}}, 'required': ['name', 'before', 'after'], 'additionalProperties': False}, 'ColumnDiff': {'description': "A changed node's columns against a baseline, by name and declared type. known with nothing added or removed does not rule out a change in how a column is computed.", 'type': 'object', 'properties': {'state': {'$ref': '#/$defs/ColumnDiffState'}, 'baseline': {'$ref': '#/$defs/BaselineKind'}, 'added': {'type': 'array', 'items': {'$ref': '#/$defs/Name'}}, 'removed': {'type': 'array', 'items': {'$ref': '#/$defs/Name'}}, 'typeChanged': {'type': 'array', 'items': {'$ref': '#/$defs/ColumnTypeChange'}}, 'stale': {'type': 'boolean', 'description': 'The file changed after the manifest was written, so the comparison waits for dbt compile.'}, 'reason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}}, 'required': ['state', 'baseline', 'added', 'removed', 'typeChanged', 'stale', 'reason'], 'additionalProperties': False}, 'ReviewFile': {'description': 'A changed file, and whether it defines the node or only describes it.', 'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'status': {'$ref': '#/$defs/FileStatus'}, 'role': {'enum': ['definition', 'properties']}}, 'required': ['path', 'status', 'role'], 'additionalProperties': False}, 'ChangedNode': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'status': {'enum': ['added', 'modified', 'deleted', 'renamed', 'untracked', 'properties']}, 'files': {'type': 'array', 'items': {'$ref': '#/$defs/ReviewFile'}}, 'columns': {'$ref': '#/$defs/ColumnDiff'}}, 'required': ['id', 'kind', 'name', 'owner', 'status', 'files', 'columns'], 'additionalProperties': False}, 'ImpactEvidence': {'description': 'One step that reached an impacted node or column, and what says so.', 'type': 'object', 'properties': {'source': {'$ref': '#/$defs/Id'}, 'target': {'$ref': '#/$defs/Id'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'origins': {'type': 'array', 'items': {'$ref': '#/$defs/Origin'}, 'maxItems': 5}}, 'required': ['source', 'target', 'confidence', 'origins'], 'additionalProperties': False}, 'ReviewImpacted': {'type': 'object', 'properties': {'id': {'$ref': '#/$defs/Id'}, 'kind': {'$ref': '#/$defs/NodeKind'}, 'name': {'$ref': '#/$defs/Name'}, 'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'file': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'depth': {'$ref': '#/$defs/Count'}, 'reach': {'$ref': '#/$defs/Granularity', 'description': 'column: traced from a changed column. model: only known to depend on a changed node.'}, 'confidence': {'$ref': '#/$defs/Confidence'}, 'origins': {'type': 'array', 'items': {'$ref': '#/$defs/Origin'}, 'maxItems': 5}, 'columns': {'type': 'array', 'items': {'$ref': '#/$defs/Name'}}, 'reason': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'via': {'type': 'array', 'items': {'$ref': '#/$defs/ImpactEvidence'}, 'maxItems': 5}, 'viaMore': {'$ref': '#/$defs/Count'}}, 'required': ['id', 'kind', 'name', 'owner', 'file', 'depth', 'reach', 'confidence', 'origins', 'columns', 'reason', 'via', 'viaMore'], 'additionalProperties': False}, 'OwnerGroup': {'description': 'Impacted nodes by owner: meta.owner or group. A null owner holds the nodes nobody owns.', 'type': 'object', 'properties': {'owner': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'nodes': {'type': 'array', 'items': {'$ref': '#/$defs/Id'}}}, 'required': ['owner', 'nodes'], 'additionalProperties': False}, 'ReviewAirflow': {'type': 'object', 'properties': {'analysed': {'type': 'boolean', 'description': 'False until the graph has Airflow DAGs: the review then says no DAG was looked at, rather than that no task is impacted.'}}, 'required': ['analysed'], 'additionalProperties': False}, 'OtherFile': {'description': 'A changed file no node maps to, that cannot change one.', 'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'status': {'$ref': '#/$defs/FileStatus'}}, 'required': ['path', 'status'], 'additionalProperties': False}, 'BaselineInfo': {'type': 'object', 'properties': {'name': {'$ref': '#/$defs/Name'}, 'sha256': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'generatedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'dbtVersion': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['name', 'sha256', 'generatedAt', 'dbtVersion'], 'additionalProperties': False}, 'ReviewArtifacts': {'type': 'object', 'properties': {'manifestGeneratedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'dbtVersion': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'baselineManifest': {'anyOf': [{'$ref': '#/$defs/BaselineInfo'}, {'type': 'null'}]}}, 'required': ['manifestGeneratedAt', 'dbtVersion', 'baselineManifest'], 'additionalProperties': False}, 'ReviewBase': {'type': 'object', 'properties': {'ref': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'commit': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['ref', 'commit'], 'additionalProperties': False}, 'ReviewSummary': {'type': 'object', 'properties': {'changedFiles': {'$ref': '#/$defs/Count'}, 'changedNodes': {'$ref': '#/$defs/Count'}, 'changedColumns': {'$ref': '#/$defs/Count'}, 'staleNodes': {'$ref': '#/$defs/Count'}, 'impacted': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Count'}}, 'impactedByColumn': {'$ref': '#/$defs/Count'}, 'unknowns': {'$ref': '#/$defs/Count'}}, 'required': ['changedFiles', 'changedNodes', 'changedColumns', 'staleNodes', 'impacted', 'impactedByColumn', 'unknowns'], 'additionalProperties': False}, 'ReviewResult': {'description': 'A Change Impact Review (design section 8). The same inputs give the same result; locations aside, it is what lineagepilot review --json prints, and markdown is what it prints without --json.', 'type': 'object', 'properties': {'project': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'base': {'anyOf': [{'$ref': '#/$defs/ReviewBase'}, {'type': 'null'}]}, 'artifacts': {'$ref': '#/$defs/ReviewArtifacts'}, 'columnLineage': {'$ref': '#/$defs/ColumnStage'}, 'summary': {'$ref': '#/$defs/ReviewSummary'}, 'changedNodes': {'type': 'array', 'items': {'$ref': '#/$defs/ChangedNode'}}, 'impacted': {'type': 'array', 'items': {'$ref': '#/$defs/ReviewImpacted'}}, 'owners': {'type': 'array', 'items': {'$ref': '#/$defs/OwnerGroup'}}, 'airflow': {'$ref': '#/$defs/ReviewAirflow'}, 'unknowns': {'type': 'array', 'items': {'$ref': '#/$defs/Unknown'}}, 'otherFiles': {'type': 'array', 'items': {'$ref': '#/$defs/OtherFile'}}, 'outsideProject': {'$ref': '#/$defs/Count'}, 'notes': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}}, 'markdown': {'$ref': '#/$defs/Text'}, 'locations': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Location'}, 'description': 'Where to open each node, by ID. Only the language server adds this: it differs per machine.'}}, 'required': ['project', 'base', 'artifacts', 'columnLineage', 'summary', 'changedNodes', 'impacted', 'owners', 'airflow', 'unknowns', 'otherFiles', 'outsideProject', 'notes', 'markdown', 'locations'], 'additionalProperties': False}, 'IndexError': {'type': 'object', 'properties': {'severity': {'enum': ['error', 'warning']}, 'message': {'$ref': '#/$defs/Text'}, 'location': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}}, 'required': ['severity', 'message', 'location'], 'additionalProperties': False}, 'ServerInfo': {'type': 'object', 'properties': {'version': {'$ref': '#/$defs/Name'}, 'python': {'$ref': '#/$defs/Name'}, 'executable': {'$ref': '#/$defs/Text'}, 'pid': {'$ref': '#/$defs/Count'}, 'isolated': {'type': 'boolean', 'description': "Started with python -I, so nothing from the workspace or the user's site-packages can shadow the bundle."}, 'modules': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Text'}, 'description': 'Where the key libraries were imported from, to check that the bundle is what runs.'}}, 'required': ['version', 'python', 'executable', 'pid', 'isolated', 'modules'], 'additionalProperties': False}, 'ProjectInfo': {'type': 'object', 'properties': {'root': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'name': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'problems': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 100}}, 'required': ['root', 'name', 'problems'], 'additionalProperties': False}, 'ManifestInfo': {'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'exists': {'type': 'boolean'}, 'generatedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'dbtVersion': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'schemaVersion': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 'modifiedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['path', 'exists', 'generatedAt', 'dbtVersion', 'schemaVersion', 'modifiedAt'], 'additionalProperties': False}, 'CatalogInfo': {'type': 'object', 'properties': {'path': {'$ref': '#/$defs/Text'}, 'exists': {'type': 'boolean'}, 'modifiedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}}, 'required': ['path', 'exists', 'modifiedAt'], 'additionalProperties': False}, 'Artifacts': {'type': 'object', 'properties': {'manifest': {'anyOf': [{'$ref': '#/$defs/ManifestInfo'}, {'type': 'null'}]}, 'catalog': {'anyOf': [{'$ref': '#/$defs/CatalogInfo'}, {'type': 'null'}]}}, 'required': ['manifest', 'catalog'], 'additionalProperties': False}, 'Counts': {'type': 'object', 'properties': {'nodes': {'$ref': '#/$defs/Count'}, 'columns': {'$ref': '#/$defs/Count'}, 'edges': {'$ref': '#/$defs/Count'}, 'unresolved': {'$ref': '#/$defs/Count'}, 'nodeKinds': {'type': 'object', 'additionalProperties': {'$ref': '#/$defs/Count'}}}, 'required': ['nodes', 'columns', 'edges', 'unresolved', 'nodeKinds'], 'additionalProperties': False}, 'ColumnStates': {'type': 'object', 'properties': {'resolved': {'$ref': '#/$defs/Count'}, 'partial': {'$ref': '#/$defs/Count'}, 'unknown': {'$ref': '#/$defs/Count'}}, 'required': ['resolved', 'partial', 'unknown'], 'additionalProperties': False}, 'Stale': {'description': 'Source files changed after the manifest was written.', 'type': 'object', 'properties': {'count': {'$ref': '#/$defs/Count'}, 'examples': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 5}}, 'required': ['count', 'examples'], 'additionalProperties': False}, 'RulesStatus': {'description': 'The conformance rules behind the diagnostics. In Restricted Mode only the built-in rules run.', 'type': 'object', 'properties': {'pack': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}], 'description': 'The rule pack file, if the project has one.'}, 'packLoaded': {'type': 'boolean'}, 'restricted': {'type': 'boolean'}, 'problems': {'type': 'array', 'items': {'$ref': '#/$defs/Text'}, 'maxItems': 50}, 'findings': {'$ref': '#/$defs/Count'}, 'score': {'anyOf': [{'type': 'number', 'minimum': 0, 'maximum': 100}, {'type': 'null'}]}, 'coverage': {'anyOf': [{'type': 'number', 'minimum': 0, 'maximum': 100}, {'type': 'null'}]}}, 'required': ['pack', 'packLoaded', 'restricted', 'problems', 'findings', 'score', 'coverage'], 'additionalProperties': False}, 'Status': {'type': 'object', 'properties': {'protocolVersion': {'anyOf': [{'type': 'integer'}, {'type': 'null'}]}, 'server': {'$ref': '#/$defs/ServerInfo'}, 'project': {'$ref': '#/$defs/ProjectInfo'}, 'trusted': {'type': 'boolean'}, 'state': {'$ref': '#/$defs/IndexState'}, 'indexing': {'type': 'boolean'}, 'generation': {'$ref': '#/$defs/Count'}, 'columnLineage': {'$ref': '#/$defs/ColumnStage'}, 'message': {'anyOf': [{'$ref': '#/$defs/Text'}, {'type': 'null'}]}, 'errors': {'type': 'array', 'items': {'$ref': '#/$defs/IndexError'}, 'maxItems': 50}, 'errorCount': {'$ref': '#/$defs/Count'}, 'artifacts': {'$ref': '#/$defs/Artifacts'}, 'counts': {'anyOf': [{'$ref': '#/$defs/Counts'}, {'type': 'null'}]}, 'columnStates': {'anyOf': [{'$ref': '#/$defs/ColumnStates'}, {'type': 'null'}]}, 'stale': {'$ref': '#/$defs/Stale'}, 'fromCache': {'type': 'boolean'}, 'indexedAt': {'anyOf': [{'$ref': '#/$defs/Name'}, {'type': 'null'}]}, 'rules': {'$ref': '#/$defs/RulesStatus'}}, 'required': ['protocolVersion', 'server', 'project', 'trusted', 'state', 'indexing', 'generation', 'columnLineage', 'message', 'errors', 'errorCount', 'artifacts', 'counts', 'columnStates', 'stale', 'fromCache', 'indexedAt', 'rules'], 'additionalProperties': False}}
 
 class ValidationError(ValueError):
     """A message that does not match the protocol schema."""
@@ -233,6 +237,12 @@ IndexState = Literal["starting", "ready", "unknown", "failed"]
 ColumnStage = Literal["pending", "computing", "done", "off"]
 
 ExportFormat = Literal["json", "mermaid", "dot", "graphml", "cypher", "pii-markdown", "pii-csv"]
+
+FileStatus = Literal["added", "modified", "deleted", "renamed", "untracked"]
+
+ColumnDiffState = Literal["known", "unknown", "not_compared"]
+
+BaselineKind = Literal["baseline_manifest", "catalog", "none"]
 
 
 @dataclass(frozen=True)
@@ -456,6 +466,222 @@ class NodeResult(_Record):
 
 
 @dataclass(frozen=True)
+class ChangedFile(_Record):
+    """A file that differs from the base. Files outside the project are counted and otherwise ignored."""
+
+    _NAME: ClassVar[str] = "ChangedFile"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('uri', 'uri', True), ('status', 'status', True), ('previous_uri', 'previousUri', True))
+
+    uri: Uri
+    status: FileStatus
+    previous_uri: Uri | None
+
+
+@dataclass(frozen=True)
+class ReviewBaseline(_Record):
+    """What the changes are compared with: the ref asked for and the commit it came to, for the record, and a baseline manifest to compare columns with."""
+
+    _NAME: ClassVar[str] = "ReviewBaseline"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('ref', 'ref', True), ('commit', 'commit', True), ('manifest_path', 'manifestPath', True))
+
+    ref: Name | None
+    commit: Name | None
+    manifest_path: Text | None
+
+
+@dataclass(frozen=True)
+class ReviewParams(_Record):
+    _NAME: ClassVar[str] = "ReviewParams"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('changed_files', 'changedFiles', True), ('baseline', 'baseline', True))
+
+    changed_files: list[ChangedFile]
+    baseline: ReviewBaseline
+
+
+@dataclass(frozen=True)
+class ColumnTypeChange(_Record):
+    _NAME: ClassVar[str] = "ColumnTypeChange"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('name', 'name', True), ('before', 'before', True), ('after', 'after', True))
+
+    name: Name
+    before: Name
+    after: Name
+
+
+@dataclass(frozen=True)
+class ColumnDiff(_Record):
+    """A changed node's columns against a baseline, by name and declared type. known with nothing added or removed does not rule out a change in how a column is computed."""
+
+    _NAME: ClassVar[str] = "ColumnDiff"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('state', 'state', True), ('baseline', 'baseline', True), ('added', 'added', True), ('removed', 'removed', True), ('type_changed', 'typeChanged', True), ('stale', 'stale', True), ('reason', 'reason', True))
+
+    state: ColumnDiffState
+    baseline: BaselineKind
+    added: list[Name]
+    removed: list[Name]
+    type_changed: list[ColumnTypeChange]
+    stale: bool
+    reason: Text | None
+
+
+@dataclass(frozen=True)
+class ReviewFile(_Record):
+    """A changed file, and whether it defines the node or only describes it."""
+
+    _NAME: ClassVar[str] = "ReviewFile"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('path', 'path', True), ('status', 'status', True), ('role', 'role', True))
+
+    path: Text
+    status: FileStatus
+    role: Literal["definition", "properties"]
+
+
+@dataclass(frozen=True)
+class ChangedNode(_Record):
+    _NAME: ClassVar[str] = "ChangedNode"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('id', 'id', True), ('kind', 'kind', True), ('name', 'name', True), ('owner', 'owner', True), ('status', 'status', True), ('files', 'files', True), ('columns', 'columns', True))
+
+    id: Id
+    kind: NodeKind
+    name: Name
+    owner: Name | None
+    status: Literal["added", "modified", "deleted", "renamed", "untracked", "properties"]
+    files: list[ReviewFile]
+    columns: ColumnDiff
+
+
+@dataclass(frozen=True)
+class ImpactEvidence(_Record):
+    """One step that reached an impacted node or column, and what says so."""
+
+    _NAME: ClassVar[str] = "ImpactEvidence"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('source', 'source', True), ('target', 'target', True), ('confidence', 'confidence', True), ('origins', 'origins', True))
+
+    source: Id
+    target: Id
+    confidence: Confidence
+    origins: list[Origin]
+
+
+@dataclass(frozen=True)
+class ReviewImpacted(_Record):
+    _NAME: ClassVar[str] = "ReviewImpacted"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('id', 'id', True), ('kind', 'kind', True), ('name', 'name', True), ('owner', 'owner', True), ('file', 'file', True), ('depth', 'depth', True), ('reach', 'reach', True), ('confidence', 'confidence', True), ('origins', 'origins', True), ('columns', 'columns', True), ('reason', 'reason', True), ('via', 'via', True), ('via_more', 'viaMore', True))
+
+    id: Id
+    kind: NodeKind
+    name: Name
+    owner: Name | None
+    file: Text | None
+    depth: Count
+    reach: Granularity
+    confidence: Confidence
+    origins: list[Origin]
+    columns: list[Name]
+    reason: Text | None
+    via: list[ImpactEvidence]
+    via_more: Count
+
+
+@dataclass(frozen=True)
+class OwnerGroup(_Record):
+    """Impacted nodes by owner: meta.owner or group. A null owner holds the nodes nobody owns."""
+
+    _NAME: ClassVar[str] = "OwnerGroup"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('owner', 'owner', True), ('nodes', 'nodes', True))
+
+    owner: Name | None
+    nodes: list[Id]
+
+
+@dataclass(frozen=True)
+class ReviewAirflow(_Record):
+    _NAME: ClassVar[str] = "ReviewAirflow"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('analysed', 'analysed', True),)
+
+    analysed: bool
+
+
+@dataclass(frozen=True)
+class OtherFile(_Record):
+    """A changed file no node maps to, that cannot change one."""
+
+    _NAME: ClassVar[str] = "OtherFile"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('path', 'path', True), ('status', 'status', True))
+
+    path: Text
+    status: FileStatus
+
+
+@dataclass(frozen=True)
+class BaselineInfo(_Record):
+    _NAME: ClassVar[str] = "BaselineInfo"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('name', 'name', True), ('sha256', 'sha256', True), ('generated_at', 'generatedAt', True), ('dbt_version', 'dbtVersion', True))
+
+    name: Name
+    sha256: Name | None
+    generated_at: Name | None
+    dbt_version: Name | None
+
+
+@dataclass(frozen=True)
+class ReviewArtifacts(_Record):
+    _NAME: ClassVar[str] = "ReviewArtifacts"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('manifest_generated_at', 'manifestGeneratedAt', True), ('dbt_version', 'dbtVersion', True), ('baseline_manifest', 'baselineManifest', True))
+
+    manifest_generated_at: Name | None
+    dbt_version: Name | None
+    baseline_manifest: BaselineInfo | None
+
+
+@dataclass(frozen=True)
+class ReviewBase(_Record):
+    _NAME: ClassVar[str] = "ReviewBase"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('ref', 'ref', True), ('commit', 'commit', True))
+
+    ref: Name | None
+    commit: Name | None
+
+
+@dataclass(frozen=True)
+class ReviewSummary(_Record):
+    _NAME: ClassVar[str] = "ReviewSummary"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('changed_files', 'changedFiles', True), ('changed_nodes', 'changedNodes', True), ('changed_columns', 'changedColumns', True), ('stale_nodes', 'staleNodes', True), ('impacted', 'impacted', True), ('impacted_by_column', 'impactedByColumn', True), ('unknowns', 'unknowns', True))
+
+    changed_files: Count
+    changed_nodes: Count
+    changed_columns: Count
+    stale_nodes: Count
+    impacted: dict[str, Count]
+    impacted_by_column: Count
+    unknowns: Count
+
+
+@dataclass(frozen=True)
+class ReviewResult(_Record):
+    """A Change Impact Review (design section 8). The same inputs give the same result; locations aside, it is what lineagepilot review --json prints, and markdown is what it prints without --json."""
+
+    _NAME: ClassVar[str] = "ReviewResult"
+    _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('project', 'project', True), ('base', 'base', True), ('artifacts', 'artifacts', True), ('column_lineage', 'columnLineage', True), ('summary', 'summary', True), ('changed_nodes', 'changedNodes', True), ('impacted', 'impacted', True), ('owners', 'owners', True), ('airflow', 'airflow', True), ('unknowns', 'unknowns', True), ('other_files', 'otherFiles', True), ('outside_project', 'outsideProject', True), ('notes', 'notes', True), ('markdown', 'markdown', True), ('locations', 'locations', True))
+
+    project: Name | None
+    base: ReviewBase | None
+    artifacts: ReviewArtifacts
+    column_lineage: ColumnStage
+    summary: ReviewSummary
+    changed_nodes: list[ChangedNode]
+    impacted: list[ReviewImpacted]
+    owners: list[OwnerGroup]
+    airflow: ReviewAirflow
+    unknowns: list[Unknown]
+    other_files: list[OtherFile]
+    outside_project: Count
+    notes: list[Text]
+    markdown: Text
+    locations: dict[str, Location]
+
+
+@dataclass(frozen=True)
 class IndexError(_Record):
     _NAME: ClassVar[str] = "IndexError"
     _FIELDS: ClassVar[tuple[tuple[str, str, bool], ...]] = (('severity', 'severity', True), ('message', 'message', True), ('location', 'location', True))
@@ -614,6 +840,23 @@ RECORDS: dict[str, type[_Record]] = {
     "NodeParams": NodeParams,
     "ColumnInfo": ColumnInfo,
     "NodeResult": NodeResult,
+    "ChangedFile": ChangedFile,
+    "ReviewBaseline": ReviewBaseline,
+    "ReviewParams": ReviewParams,
+    "ColumnTypeChange": ColumnTypeChange,
+    "ColumnDiff": ColumnDiff,
+    "ReviewFile": ReviewFile,
+    "ChangedNode": ChangedNode,
+    "ImpactEvidence": ImpactEvidence,
+    "ReviewImpacted": ReviewImpacted,
+    "OwnerGroup": OwnerGroup,
+    "ReviewAirflow": ReviewAirflow,
+    "OtherFile": OtherFile,
+    "BaselineInfo": BaselineInfo,
+    "ReviewArtifacts": ReviewArtifacts,
+    "ReviewBase": ReviewBase,
+    "ReviewSummary": ReviewSummary,
+    "ReviewResult": ReviewResult,
     "IndexError": IndexError,
     "ServerInfo": ServerInfo,
     "ProjectInfo": ProjectInfo,

@@ -10,7 +10,9 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import weakest
+from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, steps, traverse
 from lineagepilot_core.export import (
     ExportFormat,
@@ -26,6 +28,7 @@ from pygls.uris import to_fs_path
 
 from lineagepilot_lsp import protocol
 from lineagepilot_lsp.context import GraphContext, clip
+from lineagepilot_lsp.project import DbtProject, relative_to
 
 DEFAULT_MAX_NODES = 2000
 
@@ -208,3 +211,55 @@ def node(ctx: GraphContext, params: protocol.NodeParams) -> dict[str, Any]:
         "upstream": sum(1 for _ in steps(ctx.graph, ref, Direction.UPSTREAM, granularity)),
         "downstream": sum(1 for _ in steps(ctx.graph, ref, Direction.DOWNSTREAM, granularity)),
     }
+
+
+def changed_files(
+    project: DbtProject, params: protocol.ReviewParams
+) -> tuple[list[ChangedFile], int]:
+    """The review's files relative to the project, and how many are outside it."""
+    files: list[ChangedFile] = []
+    outside = 0
+    for file in params.changed_files:
+        relative = _relative(project, file.uri)
+        if relative is None:
+            outside += 1
+            continue
+        previous = _relative(project, file.previous_uri) if file.previous_uri else None
+        files.append(ChangedFile(relative, FileStatus(file.status), previous))
+    return files, outside
+
+
+def _relative(project: DbtProject, uri: str) -> str | None:
+    path = to_fs_path(uri)  # None for anything that is not a file
+    return relative_to(Path(path), project.root) if path else None
+
+
+def review(
+    ctx: GraphContext,
+    params: protocol.ReviewParams,
+    files: list[ChangedFile],
+    outside: int,
+    baseline: ManifestBaseline | None,
+    column_stage: str,
+) -> dict[str, Any]:
+    """The Change Impact Review (design section 8): the core's, plus where to open each node."""
+    computing = ctx.columns_computing()
+    if computing:
+        ctx.on_demand.start_request()
+    result = review_changes(
+        ctx.graph,
+        files,
+        ctx.project,
+        baseline=baseline,
+        base=BaseRef(params.baseline.ref, params.baseline.commit),
+        outside_project=outside,
+        column_lineage=ctx.on_demand.status if computing else None,
+        column_stage=column_stage,
+    )
+    locations = {}
+    for entry in (*result["changedNodes"], *result["impacted"]):
+        if entry["id"] in ctx.graph.nodes:  # a node only the baseline has is nowhere to open
+            location = ctx.location(entry["id"])
+            if location is not None:
+                locations[entry["id"]] = location
+    return {**result, "locations": locations}

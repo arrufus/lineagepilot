@@ -17,7 +17,28 @@
     ], "unknowns": [], "columnLineage": "done" } },
     { "type": "ExportResult", "value": { "format": "json", "filename": "shop-lineage.json", "content": "{}", "nodes": 0, "edges": 0 } },
     { "type": "NodeParams", "value": { "id": "model.shop.orders#order_id" } },
-    { "type": "ColumnInfo", "value": { "id": "model.shop.orders#id", "name": "id", "dataType": null, "description": null, "pii": false, "tests": 2 } }
+    { "type": "ColumnInfo", "value": { "id": "model.shop.orders#id", "name": "id", "dataType": null, "description": null, "pii": false, "tests": 2 } },
+    { "type": "ReviewParams", "value": { "changedFiles": [], "baseline": { "ref": null, "commit": null, "manifestPath": null } } },
+    { "type": "ReviewParams", "value": { "changedFiles": [
+      { "uri": "file:///w/models/orders.sql", "status": "modified", "previousUri": null },
+      { "uri": "file:///w/models/mart.sql", "status": "renamed", "previousUri": "file:///w/models/old.sql" }
+    ], "baseline": { "ref": "origin/main", "commit": "0123456789abcdef", "manifestPath": "state/manifest.json" } } },
+    { "type": "ColumnDiff", "value": { "state": "known", "baseline": "catalog", "added": ["total_usd"], "removed": ["order_total"], "typeChanged": [{ "name": "id", "before": "int", "after": "text" }], "stale": false, "reason": null } },
+    { "type": "ColumnDiff", "value": { "state": "unknown", "baseline": "none", "added": [], "removed": [], "typeChanged": [], "stale": true, "reason": "run dbt compile" } },
+    { "type": "ReviewResult", "value": {
+      "project": "shop", "base": { "ref": "main", "commit": "abc" },
+      "artifacts": { "manifestGeneratedAt": null, "dbtVersion": "1.12.6", "baselineManifest": null },
+      "columnLineage": "done",
+      "summary": { "changedFiles": 1, "changedNodes": 1, "changedColumns": 1, "staleNodes": 0, "impacted": { "model": 1 }, "impactedByColumn": 1, "unknowns": 0 },
+      "changedNodes": [{ "id": "model.shop.orders", "kind": "model", "name": "orders", "owner": null, "status": "modified",
+        "files": [{ "path": "models/orders.sql", "status": "modified", "role": "definition" }],
+        "columns": { "state": "known", "baseline": "catalog", "added": [], "removed": ["x"], "typeChanged": [], "stale": false, "reason": null } }],
+      "impacted": [{ "id": "model.shop.customers", "kind": "model", "name": "customers", "owner": "team", "file": "models/customers.sql", "depth": 1, "reach": "column", "confidence": "inferred", "origins": ["compiled_sql"], "columns": ["y"], "reason": null,
+        "via": [{ "source": "model.shop.orders#x", "target": "model.shop.customers#y", "confidence": "inferred", "origins": ["compiled_sql"] }], "viaMore": 0 }],
+      "owners": [{ "owner": "team", "nodes": ["model.shop.customers"] }, { "owner": null, "nodes": [] }],
+      "airflow": { "analysed": false }, "unknowns": [], "otherFiles": [{ "path": "README.md", "status": "added" }], "outsideProject": 0, "notes": [], "markdown": "## Review",
+      "locations": { "model.shop.customers": { "uri": "file:///w/models/customers.sql", "range": null } }
+    } }
   ],
   "invalid": [
     { "type": "EmptyParams", "value": null, "why": "a request must carry a params object (S1 finding 4)" },
@@ -43,6 +64,12 @@
     { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": { "model": -1 }, "nodes": [], "unknowns": [], "columnLineage": "done" }, "why": "a negative count" },
     { "type": "ImpactResult", "value": { "targets": [], "truncated": false, "counts": {}, "nodes": [], "unknowns": [], "columnLineage": "later" }, "why": "not a column stage" },
     { "type": "NodeParams", "value": { "id": "" }, "why": "an empty node ID" },
-    { "type": "ColumnInfo", "value": { "id": "m#c", "name": "c", "dataType": null, "description": null, "pii": "no", "tests": 0 }, "why": "pii is a boolean" }
+    { "type": "ColumnInfo", "value": { "id": "m#c", "name": "c", "dataType": null, "description": null, "pii": "no", "tests": 0 }, "why": "pii is a boolean" },
+    { "type": "ReviewParams", "value": { "changedFiles": [] }, "why": "baseline is required, even if empty" },
+    { "type": "ReviewParams", "value": { "changedFiles": [{ "uri": "file:///w/a.sql", "status": "gone", "previousUri": null }], "baseline": { "ref": null, "commit": null, "manifestPath": null } }, "why": "not a file status" },
+    { "type": "ReviewParams", "value": { "changedFiles": [{ "uri": "file:///w/a.sql", "status": "modified" }], "baseline": { "ref": null, "commit": null, "manifestPath": null } }, "why": "previousUri is required, even if null" },
+    { "type": "ColumnDiff", "value": { "state": "maybe", "baseline": "catalog", "added": [], "removed": [], "typeChanged": [], "stale": false, "reason": null }, "why": "not a state" },
+    { "type": "ColumnDiff", "value": { "state": "known", "baseline": "git", "added": [], "removed": [], "typeChanged": [], "stale": false, "reason": null }, "why": "not a baseline" },
+    { "type": "ReviewAirflow", "value": {}, "why": "whether Airflow was analysed must be said" }
   ]
 }

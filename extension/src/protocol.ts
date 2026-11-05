@@ -218,6 +218,172 @@ export const NodeResult = z.strictObject({
 });
 export type NodeResult = z.infer<typeof NodeResult>;
 
+export const FileStatus = z.enum(["added", "modified", "deleted", "renamed", "untracked"]);
+export type FileStatus = z.infer<typeof FileStatus>;
+
+/** A file that differs from the base. Files outside the project are counted and otherwise ignored. */
+export const ChangedFile = z.strictObject({
+  uri: Uri,
+  status: FileStatus,
+  previousUri: Uri.nullable(),
+});
+export type ChangedFile = z.infer<typeof ChangedFile>;
+
+/** What the changes are compared with: the ref asked for and the commit it came to, for the record, and a baseline manifest to compare columns with. */
+export const ReviewBaseline = z.strictObject({
+  ref: Name.nullable(),
+  commit: Name.nullable(),
+  manifestPath: Text.nullable(),
+});
+export type ReviewBaseline = z.infer<typeof ReviewBaseline>;
+
+export const ReviewParams = z.strictObject({
+  changedFiles: z.array(ChangedFile).max(20000),
+  baseline: ReviewBaseline,
+});
+export type ReviewParams = z.infer<typeof ReviewParams>;
+
+export const ColumnDiffState = z.enum(["known", "unknown", "not_compared"]);
+export type ColumnDiffState = z.infer<typeof ColumnDiffState>;
+
+export const BaselineKind = z.enum(["baseline_manifest", "catalog", "none"]);
+export type BaselineKind = z.infer<typeof BaselineKind>;
+
+export const ColumnTypeChange = z.strictObject({
+  name: Name,
+  before: Name,
+  after: Name,
+});
+export type ColumnTypeChange = z.infer<typeof ColumnTypeChange>;
+
+/** A changed node's columns against a baseline, by name and declared type. known with nothing added or removed does not rule out a change in how a column is computed. */
+export const ColumnDiff = z.strictObject({
+  state: ColumnDiffState,
+  baseline: BaselineKind,
+  added: z.array(Name),
+  removed: z.array(Name),
+  typeChanged: z.array(ColumnTypeChange),
+  stale: z.boolean(),
+  reason: Text.nullable(),
+});
+export type ColumnDiff = z.infer<typeof ColumnDiff>;
+
+/** A changed file, and whether it defines the node or only describes it. */
+export const ReviewFile = z.strictObject({
+  path: Text,
+  status: FileStatus,
+  role: z.enum(["definition", "properties"]),
+});
+export type ReviewFile = z.infer<typeof ReviewFile>;
+
+export const ChangedNode = z.strictObject({
+  id: Id,
+  kind: NodeKind,
+  name: Name,
+  owner: Name.nullable(),
+  status: z.enum(["added", "modified", "deleted", "renamed", "untracked", "properties"]),
+  files: z.array(ReviewFile),
+  columns: ColumnDiff,
+});
+export type ChangedNode = z.infer<typeof ChangedNode>;
+
+/** One step that reached an impacted node or column, and what says so. */
+export const ImpactEvidence = z.strictObject({
+  source: Id,
+  target: Id,
+  confidence: Confidence,
+  origins: z.array(Origin).max(5),
+});
+export type ImpactEvidence = z.infer<typeof ImpactEvidence>;
+
+export const ReviewImpacted = z.strictObject({
+  id: Id,
+  kind: NodeKind,
+  name: Name,
+  owner: Name.nullable(),
+  file: Text.nullable(),
+  depth: Count,
+  reach: Granularity,
+  confidence: Confidence,
+  origins: z.array(Origin).max(5),
+  columns: z.array(Name),
+  reason: Text.nullable(),
+  via: z.array(ImpactEvidence).max(5),
+  viaMore: Count,
+});
+export type ReviewImpacted = z.infer<typeof ReviewImpacted>;
+
+/** Impacted nodes by owner: meta.owner or group. A null owner holds the nodes nobody owns. */
+export const OwnerGroup = z.strictObject({
+  owner: Name.nullable(),
+  nodes: z.array(Id),
+});
+export type OwnerGroup = z.infer<typeof OwnerGroup>;
+
+export const ReviewAirflow = z.strictObject({
+  analysed: z.boolean(),
+});
+export type ReviewAirflow = z.infer<typeof ReviewAirflow>;
+
+/** A changed file no node maps to, that cannot change one. */
+export const OtherFile = z.strictObject({
+  path: Text,
+  status: FileStatus,
+});
+export type OtherFile = z.infer<typeof OtherFile>;
+
+export const BaselineInfo = z.strictObject({
+  name: Name,
+  sha256: Name.nullable(),
+  generatedAt: Name.nullable(),
+  dbtVersion: Name.nullable(),
+});
+export type BaselineInfo = z.infer<typeof BaselineInfo>;
+
+export const ReviewArtifacts = z.strictObject({
+  manifestGeneratedAt: Name.nullable(),
+  dbtVersion: Name.nullable(),
+  baselineManifest: BaselineInfo.nullable(),
+});
+export type ReviewArtifacts = z.infer<typeof ReviewArtifacts>;
+
+export const ReviewBase = z.strictObject({
+  ref: Name.nullable(),
+  commit: Name.nullable(),
+});
+export type ReviewBase = z.infer<typeof ReviewBase>;
+
+export const ReviewSummary = z.strictObject({
+  changedFiles: Count,
+  changedNodes: Count,
+  changedColumns: Count,
+  staleNodes: Count,
+  impacted: z.record(z.string(), Count),
+  impactedByColumn: Count,
+  unknowns: Count,
+});
+export type ReviewSummary = z.infer<typeof ReviewSummary>;
+
+/** A Change Impact Review (design section 8). The same inputs give the same result; locations aside, it is what lineagepilot review --json prints, and markdown is what it prints without --json. */
+export const ReviewResult = z.strictObject({
+  project: Name.nullable(),
+  base: ReviewBase.nullable(),
+  artifacts: ReviewArtifacts,
+  columnLineage: ColumnStage,
+  summary: ReviewSummary,
+  changedNodes: z.array(ChangedNode),
+  impacted: z.array(ReviewImpacted),
+  owners: z.array(OwnerGroup),
+  airflow: ReviewAirflow,
+  unknowns: z.array(Unknown),
+  otherFiles: z.array(OtherFile),
+  outsideProject: Count,
+  notes: z.array(Text),
+  markdown: Text,
+  locations: z.record(z.string(), Location),
+});
+export type ReviewResult = z.infer<typeof ReviewResult>;
+
 export const IndexError = z.strictObject({
   severity: z.enum(["error", "warning"]),
   message: Text,
@@ -330,6 +496,7 @@ export const requests = {
   'lineage/export': { params: ExportParams, result: ExportResult },
   'lineage/nodesForFile': { params: NodesForFileParams, result: NodesForFileResult },
   'lineage/node': { params: NodeParams, result: NodeResult },
+  'lineage/reviewChanges': { params: ReviewParams, result: ReviewResult },
 } as const;
 export type RequestMethod = keyof typeof requests;
 

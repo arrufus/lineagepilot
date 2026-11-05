@@ -10,6 +10,11 @@ writes snapshots to the cache directory, and reports on stdout, one JSON object 
                               "snapshot") or "unknown" (see "errors")
     {"event": "failed", ...}  an unexpected error; details on stderr
 
+The Change Impact Review reads a baseline manifest the same way, because it costs as much to
+parse as the project's own: with ``"task": "baseline"`` in the request this reports
+
+    {"event": "baseline", "baseline": {...}}   what the review needs from that manifest
+
 stdout carries nothing else. Logging goes to stderr, which the server forwards.
 """
 
@@ -22,6 +27,7 @@ import sys
 import traceback
 from typing import Any, TextIO
 
+from lineagepilot_core.analysis.baseline import load_baseline_manifest
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, IndexResult, index_project
 from lineagepilot_core.snapshot import SnapshotCache
 
@@ -74,7 +80,8 @@ def describe(result: IndexResult) -> dict[str, Any]:
 
 def main(request: dict[str, Any], out: TextIO | None = None) -> int:
     """Index one project. ``request`` keys: projectDir, cacheDir, manifest, catalog,
-    columnLineage, maxArtifactBytes."""
+    columnLineage, maxArtifactBytes. Or, with ``task`` "baseline", read a baseline manifest:
+    manifest, nodes, files, maxArtifactBytes."""
     out = out or sys.stdout
     logging.basicConfig(
         stream=sys.stderr, level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
@@ -83,6 +90,21 @@ def main(request: dict[str, Any], out: TextIO | None = None) -> int:
     def emit(event: dict[str, Any]) -> None:
         out.write(json.dumps(event) + "\n")
         out.flush()
+
+    if request.get("task") == "baseline":
+        try:
+            baseline = load_baseline_manifest(
+                request["manifest"],
+                request["nodes"],
+                request["files"],
+                max_artifact_bytes=request.get("maxArtifactBytes", DEFAULT_MAX_ARTIFACT_BYTES),
+            )
+        except Exception as e:
+            traceback.print_exc(file=sys.stderr)
+            emit({"event": "failed", "message": f"{type(e).__name__}: {e}"})
+            return 1
+        emit({"event": "baseline", "baseline": baseline.to_json()})
+        return 0
 
     try:
         result = index_project(

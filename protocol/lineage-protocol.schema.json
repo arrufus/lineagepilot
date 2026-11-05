@@ -11,7 +11,8 @@
     "lineage/impact": { "params": "ImpactParams", "result": "ImpactResult" },
     "lineage/export": { "params": "ExportParams", "result": "ExportResult" },
     "lineage/nodesForFile": { "params": "NodesForFileParams", "result": "NodesForFileResult" },
-    "lineage/node": { "params": "NodeParams", "result": "NodeResult" }
+    "lineage/node": { "params": "NodeParams", "result": "NodeResult" },
+    "lineage/reviewChanges": { "params": "ReviewParams", "result": "ReviewResult" }
   },
   "x-notifications": {
     "lineage/indexUpdated": "Status"
@@ -255,6 +256,226 @@
         "downstream": { "$ref": "#/$defs/Count" }
       },
       "required": ["node", "columns", "upstream", "downstream"],
+      "additionalProperties": false
+    },
+
+    "FileStatus": { "enum": ["added", "modified", "deleted", "renamed", "untracked"] },
+    "ChangedFile": {
+      "description": "A file that differs from the base. Files outside the project are counted and otherwise ignored.",
+      "type": "object",
+      "properties": {
+        "uri": { "$ref": "#/$defs/Uri" },
+        "status": { "$ref": "#/$defs/FileStatus" },
+        "previousUri": { "anyOf": [{ "$ref": "#/$defs/Uri" }, { "type": "null" }], "description": "Where a renamed file was." }
+      },
+      "required": ["uri", "status", "previousUri"],
+      "additionalProperties": false
+    },
+    "ReviewBaseline": {
+      "description": "What the changes are compared with: the ref asked for and the commit it came to, for the record, and a baseline manifest to compare columns with.",
+      "type": "object",
+      "properties": {
+        "ref": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "commit": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "manifestPath": {
+          "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }],
+          "description": "Absolute, or relative to the project. Null compares columns with catalog.json."
+        }
+      },
+      "required": ["ref", "commit", "manifestPath"],
+      "additionalProperties": false
+    },
+    "ReviewParams": {
+      "type": "object",
+      "properties": {
+        "changedFiles": { "type": "array", "items": { "$ref": "#/$defs/ChangedFile" }, "maxItems": 20000 },
+        "baseline": { "$ref": "#/$defs/ReviewBaseline" }
+      },
+      "required": ["changedFiles", "baseline"],
+      "additionalProperties": false
+    },
+    "ColumnDiffState": { "enum": ["known", "unknown", "not_compared"] },
+    "BaselineKind": { "enum": ["baseline_manifest", "catalog", "none"] },
+    "ColumnTypeChange": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/Name" },
+        "before": { "$ref": "#/$defs/Name" },
+        "after": { "$ref": "#/$defs/Name" }
+      },
+      "required": ["name", "before", "after"],
+      "additionalProperties": false
+    },
+    "ColumnDiff": {
+      "description": "A changed node's columns against a baseline, by name and declared type. known with nothing added or removed does not rule out a change in how a column is computed.",
+      "type": "object",
+      "properties": {
+        "state": { "$ref": "#/$defs/ColumnDiffState" },
+        "baseline": { "$ref": "#/$defs/BaselineKind" },
+        "added": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "removed": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "typeChanged": { "type": "array", "items": { "$ref": "#/$defs/ColumnTypeChange" } },
+        "stale": { "type": "boolean", "description": "The file changed after the manifest was written, so the comparison waits for dbt compile." },
+        "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] }
+      },
+      "required": ["state", "baseline", "added", "removed", "typeChanged", "stale", "reason"],
+      "additionalProperties": false
+    },
+    "ReviewFile": {
+      "description": "A changed file, and whether it defines the node or only describes it.",
+      "type": "object",
+      "properties": {
+        "path": { "$ref": "#/$defs/Text" },
+        "status": { "$ref": "#/$defs/FileStatus" },
+        "role": { "enum": ["definition", "properties"] }
+      },
+      "required": ["path", "status", "role"],
+      "additionalProperties": false
+    },
+    "ChangedNode": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "$ref": "#/$defs/Name" },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "status": { "enum": ["added", "modified", "deleted", "renamed", "untracked", "properties"] },
+        "files": { "type": "array", "items": { "$ref": "#/$defs/ReviewFile" } },
+        "columns": { "$ref": "#/$defs/ColumnDiff" }
+      },
+      "required": ["id", "kind", "name", "owner", "status", "files", "columns"],
+      "additionalProperties": false
+    },
+    "ImpactEvidence": {
+      "description": "One step that reached an impacted node or column, and what says so.",
+      "type": "object",
+      "properties": {
+        "source": { "$ref": "#/$defs/Id" },
+        "target": { "$ref": "#/$defs/Id" },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 }
+      },
+      "required": ["source", "target", "confidence", "origins"],
+      "additionalProperties": false
+    },
+    "ReviewImpacted": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "$ref": "#/$defs/Name" },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "file": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "depth": { "$ref": "#/$defs/Count" },
+        "reach": { "$ref": "#/$defs/Granularity", "description": "column: traced from a changed column. model: only known to depend on a changed node." },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "via": { "type": "array", "items": { "$ref": "#/$defs/ImpactEvidence" }, "maxItems": 5 },
+        "viaMore": { "$ref": "#/$defs/Count" }
+      },
+      "required": ["id", "kind", "name", "owner", "file", "depth", "reach", "confidence", "origins", "columns", "reason", "via", "viaMore"],
+      "additionalProperties": false
+    },
+    "OwnerGroup": {
+      "description": "Impacted nodes by owner: meta.owner or group. A null owner holds the nodes nobody owns.",
+      "type": "object",
+      "properties": {
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/Id" } }
+      },
+      "required": ["owner", "nodes"],
+      "additionalProperties": false
+    },
+    "ReviewAirflow": {
+      "type": "object",
+      "properties": { "analysed": { "type": "boolean", "description": "False until the graph has Airflow DAGs: the review then says no DAG was looked at, rather than that no task is impacted." } },
+      "required": ["analysed"],
+      "additionalProperties": false
+    },
+    "OtherFile": {
+      "description": "A changed file no node maps to, that cannot change one.",
+      "type": "object",
+      "properties": {
+        "path": { "$ref": "#/$defs/Text" },
+        "status": { "$ref": "#/$defs/FileStatus" }
+      },
+      "required": ["path", "status"],
+      "additionalProperties": false
+    },
+    "BaselineInfo": {
+      "type": "object",
+      "properties": {
+        "name": { "$ref": "#/$defs/Name" },
+        "sha256": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "generatedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "dbtVersion": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["name", "sha256", "generatedAt", "dbtVersion"],
+      "additionalProperties": false
+    },
+    "ReviewArtifacts": {
+      "type": "object",
+      "properties": {
+        "manifestGeneratedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "dbtVersion": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "baselineManifest": { "anyOf": [{ "$ref": "#/$defs/BaselineInfo" }, { "type": "null" }] }
+      },
+      "required": ["manifestGeneratedAt", "dbtVersion", "baselineManifest"],
+      "additionalProperties": false
+    },
+    "ReviewBase": {
+      "type": "object",
+      "properties": {
+        "ref": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "commit": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+      },
+      "required": ["ref", "commit"],
+      "additionalProperties": false
+    },
+    "ReviewSummary": {
+      "type": "object",
+      "properties": {
+        "changedFiles": { "$ref": "#/$defs/Count" },
+        "changedNodes": { "$ref": "#/$defs/Count" },
+        "changedColumns": { "$ref": "#/$defs/Count" },
+        "staleNodes": { "$ref": "#/$defs/Count" },
+        "impacted": { "type": "object", "additionalProperties": { "$ref": "#/$defs/Count" } },
+        "impactedByColumn": { "$ref": "#/$defs/Count" },
+        "unknowns": { "$ref": "#/$defs/Count" }
+      },
+      "required": ["changedFiles", "changedNodes", "changedColumns", "staleNodes", "impacted", "impactedByColumn", "unknowns"],
+      "additionalProperties": false
+    },
+    "ReviewResult": {
+      "description": "A Change Impact Review (design section 8). The same inputs give the same result; locations aside, it is what lineagepilot review --json prints, and markdown is what it prints without --json.",
+      "type": "object",
+      "properties": {
+        "project": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "base": { "anyOf": [{ "$ref": "#/$defs/ReviewBase" }, { "type": "null" }] },
+        "artifacts": { "$ref": "#/$defs/ReviewArtifacts" },
+        "columnLineage": { "$ref": "#/$defs/ColumnStage" },
+        "summary": { "$ref": "#/$defs/ReviewSummary" },
+        "changedNodes": { "type": "array", "items": { "$ref": "#/$defs/ChangedNode" } },
+        "impacted": { "type": "array", "items": { "$ref": "#/$defs/ReviewImpacted" } },
+        "owners": { "type": "array", "items": { "$ref": "#/$defs/OwnerGroup" } },
+        "airflow": { "$ref": "#/$defs/ReviewAirflow" },
+        "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } },
+        "otherFiles": { "type": "array", "items": { "$ref": "#/$defs/OtherFile" } },
+        "outsideProject": { "$ref": "#/$defs/Count" },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } },
+        "markdown": { "$ref": "#/$defs/Text" },
+        "locations": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/$defs/Location" },
+          "description": "Where to open each node, by ID. Only the language server adds this: it differs per machine."
+        }
+      },
+      "required": [
+        "project", "base", "artifacts", "columnLineage", "summary", "changedNodes", "impacted", "owners",
+        "airflow", "unknowns", "otherFiles", "outsideProject", "notes", "markdown", "locations"
+      ],
       "additionalProperties": false
     },
 
