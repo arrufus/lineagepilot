@@ -2,9 +2,9 @@
 
 How to demonstrate LineagePilot from a checkout of this repository: what to prepare, what to click, what the audience should see, and what to say.
 
-**What the build contains.** Phases 0–3 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), and the lineage graph (Phase 3). Part 4 below covers the graph; skip it to show only what Phase 2 delivered. The change-impact review of a branch (Phase 4) and Airflow linkage (Phase 5) are not built yet, and the empty **Airflow** view says so.
+**What the build contains.** Phases 0–4 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), the lineage graph (Phase 3) and the Change Impact Review (Phase 4). Part 4 below covers the graph and Part 6 the review; skip them to show only what Phase 2 delivered. Airflow linkage (Phase 5) is not built yet: the empty **Airflow** view says so, and so does the review.
 
-**The project you demo on** is `fixtures/jaffle-shop`: dbt Labs' sample project with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 13 models, 6 sources and 6 seeds, column lineage for every model, and no exposures. dbt does not need to be installed.
+**The project you demo on** is `fixtures/jaffle-shop`: dbt Labs' sample project with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 13 models, 6 sources and 6 seeds, column lineage for every model, and no exposures. dbt does not need to be installed. Part 6 uses `fixtures/impact-shop`, a small project of our own with an exposure, owners and a model that cannot be parsed, and the artifacts real dbt wrote before and after a column rename.
 
 | Part | What the audience sees | Phase | Time |
 |---|---|---|---|
@@ -13,8 +13,9 @@ How to demonstrate LineagePilot from a checkout of this repository: what to prep
 | 3 | Rule packs, the staleness warning, exports | 2 | 5 min |
 | 4 | The lineage graph | 3 | 6 min |
 | 5 | A cloned repository that is not trusted | 2 | 4 min |
+| 6 | The Change Impact Review: rename a column, see what it reaches, paste it into a pull request | 4 | 6 min |
 
-About 25 minutes in all. Parts 3 and 5 can be cut for a short demo.
+About 30 minutes in all. Parts 3 and 5 can be cut for a short demo.
 
 ---
 
@@ -83,6 +84,18 @@ cat > "$CLONE/.vscode/settings.json" <<EOF
 }
 EOF
 printf 'version: 1\ndisable: [DBT_009]\n' > "$CLONE/.lineagepilot/rules.yml"
+```
+
+For Part 6, make the review's project a repository of its own, with the project as deployed as its only commit:
+
+```bash
+REVIEW="$DEMO/impact-shop"
+cp -R "$REPO/fixtures/impact-shop" "$REVIEW"
+printf 'target/\nchanges/\nmake_fixture.py\nPROVENANCE.json\n' > "$REVIEW/.gitignore"
+git -C "$REVIEW" init -q -b main
+git -C "$REVIEW" add -A
+git -C "$REVIEW" -c user.name=demo -c user.email=demo@example.com commit -qm "The project as deployed"
+touch "$REVIEW/target/manifest.json"
 ```
 
 ### 3. Make a clean VS Code profile and install the VSIX
@@ -325,6 +338,43 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
    > **Say:** In Restricted Mode we only read artifacts. We never run dbt, never run an interpreter from inside the workspace (not even to check its version), and use only the built-in rules. The interpreter and dbt settings are machine-scoped, so a workspace can't set them even once it is trusted.
 
+### Part 6: the Change Impact Review (Phase 4)
+
+1. Open `$DEMO/impact-shop` in a new window of the same profile, as in Part 5, step 1. Run **LineagePilot: Review Changes**, or press the compare icon on the Lineage view. The review opens and says `Nothing differs from this base`.
+
+2. Rename a column, as a developer would, and recompile. In the terminal:
+
+   ```bash
+   cp -R "$REVIEW/changes/rename-order-total/models/." "$REVIEW/models/"
+   cp "$REVIEW/changes/rename-order-total/target/manifest.json" "$REVIEW/target/manifest.json"
+   ```
+
+   This puts in the files from a rename of `orders.order_total` to `total_usd`, and the manifest real `dbt compile` wrote from them. `customer_revenue` still reads the old name: that is the breakage to find. The review updates by itself within a few seconds.
+
+3. Read it from the top. **Changed** shows `orders` with `−order_total` and `+total_usd`, compared with `catalog.json`.
+
+   > **Say:** This is the diff of what the model selects, not of its text: compiled SQL against what is deployed.
+
+4. **Downstream impact.** `customer_revenue` and `revenue_tiers` are in bold and reached through a named column, `lifetime_value` and then `tier`, with the column that led there. `order_counts` is listed too, at model level: it reads `orders`, but not the column that changed.
+
+   > **Say:** Column lineage says what breaks. Everything else below a changed model is still listed, labelled, because comparing names can't rule out a change in how a column is computed. The line beside each row is the same one the graph uses: dashed means parsing inferred it.
+
+5. `revenue_dashboard` is the exposure, with its owner. **Owners** groups the same list by who to tell, from `meta.owner` or dbt `group`; `revenue_tiers` is under **No owner**.
+
+6. **Unknowns.** `broken_report` is there because its SQL cannot be parsed. It is also in the models table, at model level.
+
+   > **Say:** A model we can't read is never counted as safe. And the Airflow section says we didn't look, rather than that nothing is affected, until the Airflow linkage is in.
+
+7. **Make the model stale.** Add a comment to `models/marts/orders.sql` and save. Within a few seconds the columns turn unknown and every row becomes model level, with **Run dbt compile** offered. Undo the edit and save: the review recovers, because the manifest's source text matches the file again.
+
+8. **Copy as Markdown.** Press it, and paste into a scratch file or a pull request. Then produce the same text from the command line:
+
+   ```bash
+   cd "$REPO/packages/core" && uv run lineagepilot review --project-dir "$REVIEW" --base main
+   ```
+
+   > **Say:** The panel and the command line produce the same bytes from the same inputs, so CI can post this later. Everything from the repository is escaped, so a model called `@org/everyone` mentions nobody.
+
 ---
 
 ## Reset between runs
@@ -350,7 +400,8 @@ Repeat preparation steps 2 and 3; the build from step 1 can be reused. Deleting 
 
 ## If you are asked
 
-- **What about my pull request?** The change-impact review of a branch against its merge-base, with "Copy as Markdown" and `lineagepilot review` for CI, is Phase 4.
+- **What about my pull request?** That is Part 6: **Copy as Markdown**, or `lineagepilot review` for the same text. A GitHub Action that posts it is on the backlog.
+- **What about a changed macro?** The review lists it under Unknowns: which models call it is not worked out yet (LP-a04).
 - **And Airflow?** Phase 5 links Cosmos `DbtDag`/`DbtTaskGroup` and `BashOperator` dbt tasks to models, from the DAG files' syntax. DAG files are parsed, never imported or run.
 - **How big can a project be?** On a synthetic 5,000-model project: a model-level cold index takes 2.5 s, a warm start 0.5 s, and an impact query 3–5 ms ([core README](../packages/core/README.md#performance-budgets)). The server is still 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt).
 - **Can I install it?** Not yet from a marketplace: publishing waits for the licence decision (D-5). The VSIX from step 1 installs with `code --install-extension`.

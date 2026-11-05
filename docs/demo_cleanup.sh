@@ -62,7 +62,7 @@ if [ -d "$DEMO" ]; then
   for entry in "$DEMO"/* "$DEMO"/.[!.]*; do
     [ -e "$entry" ] || continue
     case ${entry##*/} in
-      jaffle-shop | untrusted-clone | profile | extensions | PLANTED-RAN.txt | jaffle_shop-* | .DS_Store) ;;
+      jaffle-shop | untrusted-clone | impact-shop | profile | extensions | PLANTED-RAN.txt | jaffle_shop-* | .DS_Store) ;;
       *) die "$(show "$entry") is not something the demo makes; move it out of $(show "$DEMO") first" ;;
     esac
   done

@@ -124,7 +124,7 @@ The server is told at initialise which project it serves, whether the workspace 
 | Component | Language | Responsibility |
 |---|---|---|
 | `extension/` | TypeScript | Activation, interpreter discovery, language-server lifecycle, commands, tree views, status bar, git integration, webview host. After the MVP, also connector secrets in SecretStorage. |
-| `extension/webview/` | React | Lineage graph, column lineage and the change-impact review panel. Built from the existing ReactFlow components. |
+| `extension/webview/` | React | Lineage graph and column lineage, built from the existing ReactFlow components, and the change-impact review, a page of its own with no graph to pay for. |
 | `packages/lsp` (`lineagepilot_lsp`) | Python (pygls) | Standard LSP features (CodeLens, hover, diagnostics), plus the custom `lineage/*` requests. |
 | `packages/core` (`lineagepilot_core`) | Python | Parsers, `MetadataGraph`, analysis (lineage, impact, rules, PII) and exporters. Editor-agnostic and headless, so it can also run in CI. |
 
@@ -297,7 +297,7 @@ Post-MVP. If the Snowflake parser returns, its SQL construction must be fixed fi
 | Sidebar tree views | **Lineage** (upstream and downstream of the active file) and **Airflow** (the DAGs and tasks touching it). |
 | Lineage graph webview | **Show Lineage Graph** (command palette, or a node in the Lineage view). Model and column modes, a depth and direction control, filters by node kind, a highlighting search, auto-layout and lazy expansion (+). Clicking a node shows its details and previews its file at the node's range beside the graph; double-click, O or **Open** opens it. Arrow keys follow the edges. Follows the VS Code theme. |
 | Problems panel | Conformance and PII diagnostics on model and `schema.yml` files, each with its rule ID, mapped severity and a docs link. |
-| **Change Impact Review** panel | Base ref picker, defaulting to the merge-base with the default branch. Shows changed nodes and columns, then downstream impact grouped by dbt models, exposures, Airflow tasks and owners, then an **Unknowns** section. Has a "Copy as Markdown" action for the pull request. |
+| **Change Impact Review** panel | **Review Changes** (command palette, or the compare icon on the Lineage view). **Change base** picks a branch or tag, defaulting to the merge-base with the default branch. Shows changed nodes with their columns as a diff, then downstream impact grouped by dbt models, exposures, Airflow tasks and owners, each row with how it was reached, its confidence (the graph's line styles) and its evidence, then an **Unknowns** section. **Run dbt compile** appears when a changed model is newer than the manifest, in a trusted workspace. **Copy as Markdown** copies the review for the pull request. It updates by itself when the index or the working tree changes. In Restricted Mode VS Code's Git extension is off, so the panel says it cannot tell what changed, and offers **Manage Workspace Trust**. |
 | Status bar | `Lineage: 1,204 nodes · manifest 3 min old`, or a stale-artifact warning. |
 | Commands | Show lineage · Analyze impact of current model · Review changes · Refresh artifacts · Export graph (JSON / Mermaid / DOT / GraphML / Cypher) · PII inventory (Markdown / CSV). |
 
@@ -307,17 +307,26 @@ Navigation features that competitors already have (go-to-definition for `ref()`,
 
 ## 8. Change-impact review: algorithm
 
-1. **Changed files**: diff from the merge-base with the default branch to the working tree, including untracked files, using the VS Code git API.
-2. **Files to nodes**: map changed files to nodes using the manifest's `original_file_path` and `patch_path` (for `schema.yml`).
-3. **Column changes**: compare each changed node's current output columns, from compiled SQL, with a baseline. Baselines in priority order:
-   1. A baseline manifest from `lineagePilot.baseline.manifestPath` (typically the production manifest used for `--state`).
+1. **Changed files**: diff from the merge-base with the default branch to the working tree, including untracked files, using the VS Code git API. The base is the first of `origin/HEAD`, `origin/main`, `origin/master`, `main` and `master` with a merge-base, or a ref the user picks, and it is always the merge-base of `HEAD` and that ref, so commits on the other branch do not count as this branch's changes.
+2. **Files to nodes**: map changed files to nodes using the manifest's `original_file_path` and `patch_path` (for `schema.yml`). A renamed file also maps through its old path, while the manifest is older than the rename.
+   - A file that defines a node (`definition`) is compared and followed downstream.
+   - A YAML file that only describes nodes (`properties`) is listed but not followed. It documents the data rather than changing it, and one file often documents dozens of models. That is stated under **Unknowns**, for the case where it does change the data, such as the table a source reads.
+   - A file no node maps to is an **Unknown** if it could change one: a macro, `dbt_project.yml` or `packages.yml`, a new model the manifest has not seen, or a deleted file no artifact knows. Anything else is listed under "other changed files". dbt's own output under `target/` is left out.
+3. **Column changes**: compare each changed node's current output columns, from compiled SQL, with a baseline. Baselines in priority order, per node:
+   1. A baseline manifest from `lineagePilot.baseline.manifestPath` (typically the production manifest used for `--state`). Its compiled SQL gives what the node selected; a node it does not have is new. It is read in a child process, like an index, and only for the changed nodes. One that cannot be read is an **Unknown**, and the next baseline is used.
    2. Columns from `catalog.json`, which reflect what is actually deployed.
    3. Model level only, with every column marked `unknown`.
-4. **Traverse downstream** on the current graph: use column edges where they exist, and fall back to model-level edges marked `inferred`.
-5. **Cross into Airflow** through the `orchestrates` edges. Group the results by DAG, and take owners from `meta.owner` or `group`.
+
+   Compiled SQL only counts if the manifest has seen the file's current text; otherwise the comparison would miss the very change under review, and report that nothing changed. So the file is compared with the manifest's `raw_code`, stripped as dbt strips it, by hash. If they differ, the node's columns are `unknown` and the panel offers `dbt compile`. The check is on content, not modification times, so it gives the same answer in a fresh CI checkout, and undoing an edit clears it. It is not the manifest's own `checksum`, which on real dbt 1.12 and Fusion manifests matches neither the file nor `raw_code`. A snapshot's `raw_code` is only its block, so snapshots stay `unknown`.
+
+   What a model selects is recorded on the graph at index time (`output_columns`), from the lineage trace or, without a catalog, from qualifying the SQL alone, which expands `select *` over a CTE but not over a table. So a developer who ran `dbt compile` but never `dbt docs generate` still gets a comparison against a baseline manifest. The comparison is by name, folded to the adapter's case rules, and by type where the baseline and the current graph both state one.
+4. **Traverse downstream** on the current graph: use column edges where they exist, and fall back to model-level edges marked `inferred`. Two traversals are merged. Changed columns follow column lineage, which says what breaks. Then everything else below a changed node is listed at model level, with the reason, because comparing names cannot rule out a change in how an unchanged column is computed (LP-85e would narrow this). A removed column stays in the graph while the catalog lists it; once it is gone, nothing can be traced from it and its dependents are reached at model level.
+5. **Cross into Airflow** through the `orchestrates` edges. Group the results by DAG, and take owners from `meta.owner` or `group`. Until Phase 5 the graph has no Airflow nodes, and the review says DAGs were not analysed rather than that no task is impacted.
 6. **Emit a structured result** as JSON, rendered as Markdown. A headless CLI entry point (`lineagepilot review`) produces the identical output for CI.
 
-The output is deterministic: the same inputs always give the same review, with stable sorting and IDs, so reviews can be compared across pull requests.
+The output is deterministic: the same inputs always give the same review, with stable sorting and IDs, so reviews can be compared across pull requests. It holds nothing about the machine or the time: paths are relative to the project, and the language server adds where to open each node as a separate field (`locations`), left out of `lineagepilot review --json` and the Markdown. An end-to-end test compares the panel's response with the command's output on the same repository, Markdown and JSON, and a golden file pins the text.
+
+**Markdown is untrusted output.** Names, paths and reasons come from the workspace, and the text is pasted where other people read it and where GitHub renders it. So workspace text only reaches the page as a code span (in which nothing renders, and `@team` mentions nobody) or with its punctuation escaped and any mention broken up; control and bidirectional characters are removed. sqlglot's error messages carried terminal escape codes, which are stripped where they are made. A long list is cut, with a count, to stay under GitHub's limit of 65,536 characters on a comment. Hypothesis tests that any name keeps the tables and the structure intact.
 
 ---
 
@@ -337,7 +346,7 @@ Standard LSP, plus versioned custom requests. The client lists the `lineage/*` p
 | `lineage/node` | `id` (node or column) | The node, its columns (type, description, PII, test count) and its direct upstream and downstream counts (the graph's details panel and column picker; Phase 3) |
 | `lineage/refresh` | none | Status |
 | `lineage/indexUpdated` (notification) | Status | none |
-| `lineage/reviewChanges` | `changedFiles[]`, `baseline` | A review result (section 8). Added in Phase 4 |
+| `lineage/reviewChanges` | `changedFiles[]` (at most 20,000: `uri`, `status`, `previousUri`), `baseline` (`ref`, `commit`, `manifestPath`) | A review result (section 8), and where to open each node |
 
 Errors carry the protocol's codes: `NotReady` (-32001, no graph is loaded, with the reason), `UnknownNode` (-32002, the graph has no such ID, perhaps after a re-index) and `ProtocolMismatch` (-32003); malformed params get the standard `InvalidParams`.
 
@@ -358,6 +367,19 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 
 The extension also sends `focus` (show another node; one panel per project) and `indexUpdated` (re-indexed: the view reloads).
 
+The Change Impact Review has its own page and its own messages (`extension/src/reviewMessages.ts`), validated the same way:
+
+| From the webview | The extension |
+|---|---|
+| `ready` | Answers `init` (the project, whether the workspace is trusted), then the last review, or runs one |
+| `refresh`, `pickBase` | Reviews again; shows a quick pick of branches and tags and remembers the choice per project |
+| `copyMarkdown` | Copies the text the server rendered. The message carries no text, so a page cannot put anything else on the clipboard |
+| `openFile` (`location`) | As for the graph: only `file:` URIs inside the project root, in another editor group |
+| `showInGraph` (`id`) | Runs **Show Lineage Graph** on that node |
+| `runCompile`, `manageTrust` | Runs **Refresh dbt Artifacts** with `compile`, the guarded command, refused in Restricted Mode; opens VS Code's trust editor |
+
+The extension sends `reviewStarted`, then `reviewResult` or `reviewFailed` (with the kind of problem, such as `restricted` or `no_base`, and words for it), and `copied`.
+
 Unless a panel retains its context, which costs memory, VS Code destroys a hidden webview's page and builds it again when it is shown. So the webview keeps its focus, depth and direction in VS Code's webview state (`setState`) and restores them, validated, when its page is rebuilt; and the panel treats a hidden page as not ready, holding a focus asked for meanwhile until the new page's `init`.
 
 ---
@@ -370,12 +392,13 @@ Unless a panel retains its context, which costs memory, VS Code destroys a hidde
 |---|---|
 | Workspace Trust | `capabilities.untrustedWorkspaces.supported = "limited"`. Restricted mode only reads and parses artifacts: no dbt execution, built-in rules only. The interpreter and dbt-executable settings are listed in `restrictedConfigurations`. |
 | Workspace interpreters | A cloned repository can commit a `.venv`, and the Python extension may select it. In an untrusted workspace, the extension never runs an interpreter inside a workspace folder, not even to probe its version. It checks the candidate path before probing and the resolved `sys.executable` after. |
-| Setting scopes | Interpreter path, dbt executable and any future connection URL are **`machine`-scoped**, so workspace settings cannot set them. This closes the class of the server's Airflow `base_url` credential exfiltration (DCS-99m), where whoever chose the URL received the credential. |
+| Setting scopes | Interpreter path, dbt executable and any future connection URL are **`machine`-scoped**, so workspace settings cannot set them. This closes the class of the server's Airflow `base_url` credential exfiltration (DCS-99m), where whoever chose the URL received the credential. The baseline manifest path is `resource`-scoped, because a team may keep one in the repository, and listed in `restrictedConfigurations`, so an untrusted workspace cannot choose it. |
+| Git | The extension only reads, through `vscode.git`, which VS Code turns off in Restricted Mode: the review then says it cannot tell what changed. `lineagepilot review` runs read-only git commands with arguments, never a shell. A `git` found inside the project is refused, a ref cannot be taken for an option, and `core.fsmonitor` is off. To check a changed file against the manifest the review reads it only if it is a regular file inside the project and under 5 MB: a repository can hold a symlink to `/dev/zero`, which reports size 0 and never ends. |
 | Secrets (post-MVP connectors) | Held only in VS Code SecretStorage, never in settings or environment variables. Each secret is bound to the host it was entered for. |
 | Network | No listener, stdio only. No outbound network in the MVP. Telemetry is off; if it is ever added, it must respect `vscode.env.isTelemetryEnabled`. |
 | Code execution | DAG files are analysed with the AST only; user Python is never imported. dbt runs only on an explicit user command in a trusted workspace. |
 | Resource limits | Manifest size cap (configurable). Parsing runs in a worker with a per-statement time budget for sqlglot. Rule-pack regexes have a length cap and are evaluated with a timeout, or with `re2` if available. This closes the ReDoS class (DCS-61r). |
-| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`, with a fresh nonce for each page. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. zod runs `jitless` in the webview: otherwise it probes for `eval` with `new Function`, which the CSP reports as a violation. Every message is validated both ways; `openFile` opens only `file:` URIs inside the project root. |
+| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`, with a fresh nonce for each page. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. zod runs `jitless` in the webview: otherwise it probes for `eval` with `new Function`, which the CSP reports as a violation. Every message is validated both ways; `openFile` opens only `file:` URIs inside the project root. The review's page copies nothing itself: the extension copies the server's text. |
 | Exporters | Escaping for each format is fixed **before** export ships: Cypher uses parameters or JSON escaping; XML escapes every field; DOT uses quoted, escaped IDs; Mermaid uses generated IDs; CSV neutralises leading formula characters. This closes LP-auw, LP-aml and LP-l1s. |
 | Supply chain | `package-lock.json` and `uv.lock` with hashes; bundled libraries installed with `--require-hashes`; `npm audit`, `pip-audit` and gitleaks in CI; the publisher account protected with 2FA; publishing only from CI. |
 | Carry-over | **The leaked Snowflake key must still be rotated (DCS-hov).** Pivoting does not retract a key that is already public. |
@@ -415,6 +438,17 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 To meet the warm-start budget, the server loads a current snapshot itself instead of starting the indexer (which would load it only to find it current), and says "ready" before running the rules, which follow within half a second. The graph being replaced is collected before the next one loads. After a cold index the server still stays about 95 MB above a warm start, because Python keeps memory it has used: 15% over the 500 MB budget at 5,000 models, until the server restarts (beads LP-dtt).
 
 So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
+
+**The Change Impact Review** (Phase 4, `packages/lsp/scripts/server_budgets.py`, a 5,000-model project built with dbt 1.12, Python 3.13, an Apple M4, 5 November 2026). No budget was set for a review; these show it fits inside the 300 ms set for impact. Each review here finds no column changed, so it makes one model-level traversal; a changed column adds the column traversal measured above (16–25 ms for all 14 columns of the largest source).
+
+| Measure | Result |
+|---|---|
+| A review of 1, 10 and 100 changed models | 1.6, 3.0 and 41.5 ms |
+| The same 10 against a baseline manifest, first time (132 MB, read in a child process) | 2.5 s |
+| Again, with the manifest and the changed nodes unchanged | 3.1 ms |
+| What `output_columns` holds in a loaded graph (96,103 names, 7,256 unique) | 1.2 MB; the snapshot grows from 61.1 to 62.6 MB |
+| Warm start, before and after adding it | 0.79 and 0.81 s (budget 1 s) |
+| Peak server memory, on Linux (`VmHWM`), running those reviews | 375 MB cold, 372 MB warm; before Phase 4, with no reviews, 363 and 360 MB (budget 500 MB) |
 
 **The graph webview in a browser** (Phase 3 exit, beads LP-08j, `extension/webview/perf/`, 4 November 2026): the production bundle under the webview's CSP, in Chrome 156 on an Apple M4 with a 60 Hz display, in a 1600×913 page, on a layered graph of 500 models and 931 edges. Chrome is not VS Code's own Chromium, and this machine is slower than the M4 Max above, so the figures indicate rather than reproduce what the editor does.
 
@@ -484,7 +518,7 @@ LineagePilot has its own repository. It moved out of data-capsule, with its hist
 spikes/          Phase 0 spikes S1–S3 (throwaway code and their reports)
 packages/core/   lineagepilot_core   (pyproject.toml, uv.lock)
 packages/lsp/    lineagepilot_lsp    (pygls server; pyproject.toml, uv.lock)
-fixtures/        dbt project workspaces shared by the server and extension tests
+fixtures/        dbt project workspaces shared by the core, server and extension tests
 extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
 protocol/        the lineage/* JSON Schema, its generator and contract examples
 docs/            this design and the implementation plan
@@ -518,6 +552,13 @@ How the lineage view is tested (Phase 3):
 - The tests drive the whole view through the real transport against a fake extension, which validates every message with the extension's own schemas.
 - **In VS Code**, the integration tests open the panel and wait for the webview's own bundle to say it is ready and ask for its graph, which only happens if it loads under the CSP. They then check forwarding, opening the right file and range beside the graph, the refusals, and a page rebuilt after being hidden.
 - **In a browser**, `extension/webview/perf/` runs the production bundle under the same CSP with a stand-in for VS Code and a 500-node graph, and measures the first draw, zooming, selection, search and the arrow keys (results in section 11).
+
+How the Change Impact Review is tested (Phase 4):
+- **On real artifacts.** `fixtures/impact-shop` is a small project of our own: a source, a staging model, a mart, its downstream models, an exposure, owners by `meta.owner` and by `group`, and a model dbt compiles but nothing can parse. `make_fixture.py` builds it with real dbt on DuckDB, in two states: as deployed, and after renaming the column and running only `dbt compile`, with the old catalog. So the tests see what a developer's workspace holds, not a hand-edited manifest.
+- **In the core**, on those artifacts: the mapping, every baseline and its fallbacks, staleness, and the aggregation. A golden file pins the Markdown; other tests reverse the input, change the hash seed across processes and check that nothing about the machine gets in. Git is exercised on real repositories.
+- **Over stdio**, the panel's request and `lineagepilot review` run on the same repository and must agree, Markdown and JSON.
+- **In the page**, React Testing Library drives it against a fake extension that validates every message with the extension's own schemas.
+- **In VS Code**, against the real `vscode.git`: the `review` configuration runs the acceptance scenario on `fixtures/impact-shop`, and the other configurations run the panel's wiring on `fixtures/jaffle-shop`, including that Restricted Mode has no git and says so.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 
