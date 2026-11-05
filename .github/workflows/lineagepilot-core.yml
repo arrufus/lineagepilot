@@ -7,10 +7,12 @@ on:
   push:
     paths:
       - "packages/core/**"
+      - "fixtures/**"
       - ".github/workflows/lineagepilot-core.yml"
   pull_request:
     paths:
       - "packages/core/**"
+      - "fixtures/**"
       - ".github/workflows/lineagepilot-core.yml"
 
 permissions:

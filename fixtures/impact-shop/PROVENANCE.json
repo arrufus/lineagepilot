@@ -1,0 +1,14 @@
+{
+ "about": "A small dbt project of our own for the Change Impact Review: a source, a staging model, a mart, its downstream models, an exposure, owners and a deliberately unparseable model (design section 14). Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
+ "licence": "Written for this repository; not derived from jaffle-shop.",
+ "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+ "steps": {
+  "target/": "seed, run --exclude broken_report, docs generate; macros emptied",
+  "changes/rename-order-total/target/": "the rename applied, then compile; macros emptied. catalog.json stays the one in target/"
+ },
+ "sha256": {
+  "target/manifest.json": "bbe6e6ce24c69df87dff6445b2d90d9adfb5bd8cf5dbb0aee1e505ef69f89725",
+  "target/catalog.json": "33f0f331530b8781b10aef929e2dfcead8a1da6c4dd39e08e3a633d17f622d1f",
+  "changes/rename-order-total/target/manifest.json": "63b80f681d615ba6fdc5692c36dc2bee1cf75865b239d8dad4e9fc032e1e1ab5"
+ }
+}

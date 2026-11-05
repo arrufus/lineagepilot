@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: orders
+    description: The orders mart.
+    meta:
+      owner: finance-data
+    columns:
+      - name: order_id
+        description: The order's key.
+        data_tests:
+          - not_null
+          - unique
+      - name: order_total
+        description: The order's total in US dollars.
+      - name: customer_id
+        description: Who placed the order.

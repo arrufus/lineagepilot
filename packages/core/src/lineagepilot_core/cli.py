@@ -1,8 +1,9 @@
-"""The headless entry point: ``lineagepilot index`` and ``lineagepilot impact`` (task 1.8).
+"""The headless entry point: ``lineagepilot index``, ``impact`` and ``review`` (tasks 1.8, 4.5).
 
 Runs the same core as the language server, so CI can use it later (design section 8).
-Output is deterministic, as text or ``--json``. Exit codes: 0 on success, 1 when the
-index is unknown or a target cannot be found, 2 for usage errors.
+Output is deterministic, as text or ``--json``. ``review`` prints the same Markdown as the
+panel's "Copy as Markdown". Exit codes: 0 on success, 1 when the index is unknown, a target
+cannot be found or git cannot say what changed, 2 for usage errors.
 """
 
 from __future__ import annotations
@@ -16,10 +17,14 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from lineagepilot_core import __version__
+from lineagepilot_core.analysis.baseline import ManifestBaseline, load_baseline_manifest
 from lineagepilot_core.analysis.impact import Impact, impact
+from lineagepilot_core.analysis.review import baseline_inputs, review_changes
+from lineagepilot_core.gitdiff import GitError, git_changes
 from lineagepilot_core.graph.ids import column_id
 from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph
 from lineagepilot_core.indexer import IndexResult, IndexStatus, index_project
+from lineagepilot_core.project import DbtProject, read_project
 from lineagepilot_core.snapshot import SnapshotCache
 
 EXIT_OK, EXIT_UNKNOWN, EXIT_USAGE = 0, 1, 2
@@ -66,6 +71,24 @@ def build_parser() -> argparse.ArgumentParser:
     )
     impact_command.add_argument("--max-depth", type=int, help="stop after this many steps")
     artifact_options(impact_command)
+
+    review = commands.add_parser(
+        "review", help="what the changes on this branch affect, as Markdown for a pull request"
+    )
+    review.add_argument(
+        "--base",
+        metavar="REF",
+        help="compare with the merge-base of HEAD and this ref; "
+        "default: the first of origin/HEAD, origin/main, origin/master, main, master",
+    )
+    review.add_argument(
+        "--baseline-manifest",
+        type=Path,
+        metavar="PATH",
+        help="the manifest to compare columns with, typically the one for dbt's --state; "
+        "default: compare with catalog.json",
+    )
+    artifact_options(review)
     return parser
 
 
@@ -81,12 +104,14 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
         format="%(levelname)s %(name)s: %(message)s",
     )
 
+    project = read_project(args.project_dir) if args.command == "review" else None
+    manifest = args.manifest or (project.manifest_path if project else None)
     cache = None
     if not args.no_cache:
         cache = SnapshotCache(args.cache_dir or args.project_dir / "target" / ".lineagepilot")
     result = index_project(
         args.project_dir,
-        manifest=args.manifest,
+        manifest=manifest,
         catalog=args.catalog,
         cache=cache,
         column_lineage=not args.no_column_lineage,
@@ -99,12 +124,39 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
     if result.graph is None:
         _write(out, _index_json(result) if args.json else _index_text(result), args.json)
         return EXIT_UNKNOWN
+    if project is not None:
+        return _review(args, project, result.graph, out)
     targets, problems = resolve_targets(result.graph, args.targets, args.project_dir)
     if problems:
         _write(out, {"errors": problems} if args.json else "\n".join(problems), args.json)
         return EXIT_UNKNOWN
     found = impact(result.graph, targets, max_depth=args.max_depth)
     _write(out, _impact_json(found) if args.json else _impact_text(result.graph, found), args.json)
+    return EXIT_OK
+
+
+def _review(
+    args: argparse.Namespace, project: DbtProject, graph: MetadataGraph, out: TextIO
+) -> int:
+    try:
+        changes = git_changes(project, args.base)
+    except GitError as e:
+        sys.stderr.write(f"lineagepilot review: {e}\n")
+        return EXIT_UNKNOWN
+    baseline: ManifestBaseline | None = None
+    if args.baseline_manifest is not None:
+        nodes, files = baseline_inputs(graph, changes.files, project)
+        baseline = load_baseline_manifest(args.baseline_manifest, nodes, files)
+    review = review_changes(
+        graph,
+        changes.files,
+        project,
+        baseline=baseline,
+        base=changes.base,
+        outside_project=changes.outside_project,
+        column_stage="off" if args.no_column_lineage else "done",
+    )
+    _write(out, review if args.json else review["markdown"], args.json)
     return EXIT_OK
 
 

@@ -127,6 +127,7 @@ class Node:
     properties: dict[str, Any] = field(default_factory=dict)
     language: str | None = None  # sql or python, for models
     compiled_path: str | None = None  # where dbt writes the compiled SQL
+    source_sha256: str | None = None  # of a model's source text, as the manifest saw it
     in_catalog: bool = False  # catalog.json has an entry for it
     primary_key: list[str] = field(default_factory=list)  # contract primary-key columns
 
@@ -218,6 +219,10 @@ class MetadataGraph:
         self._files: defaultdict[str, set[str]] = defaultdict(set)
         # Column lineage state per model or snapshot; absent means not computed yet
         self.column_lineage: dict[str, ColumnLineageStatus] = {}
+        # What each model's compiled SQL selects, in order, as written there. Not the same as
+        # its columns in the graph, which also hold what the catalog and the docs list: the
+        # Change Impact Review compares this with a baseline. Absent when it cannot be known.
+        self.output_columns: dict[str, list[str]] = {}
 
     # Building
 

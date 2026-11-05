@@ -18,6 +18,7 @@ import gc
 import hashlib
 import logging
 import os
+import sys
 import tempfile
 from collections.abc import Iterator
 from dataclasses import MISSING, fields
@@ -44,7 +45,7 @@ from lineagepilot_core.parsers import _json
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_FORMAT = 1
+SNAPSHOT_FORMAT = 2
 
 _REQUIRED = object()
 
@@ -144,6 +145,7 @@ def to_dict(graph: MetadataGraph) -> dict[str, Any]:
             node_id: [status.state.value, status.reason]
             for node_id, status in graph.column_lineage.items()
         },
+        "output_columns": graph.output_columns,
     }
 
 
@@ -251,6 +253,10 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
     for node_id, (state, reason) in data["column_lineage"].items():
         graph.node(node_id)  # must exist
         graph.column_lineage[node_id] = ColumnLineageStatus(LineageState(state), reason)
+    for node_id, names in data["output_columns"].items():
+        graph.node(node_id)  # must exist
+        # Thousands of models share a few hundred column names (design section 11)
+        graph.output_columns[node_id] = [sys.intern(name) for name in names]
     return graph
 
 

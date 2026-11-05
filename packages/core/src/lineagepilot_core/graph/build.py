@@ -161,6 +161,7 @@ def _node(raw: RawNode, relation: str | None) -> Node:
         properties=raw.properties,
         language=raw.language,
         compiled_path=raw.compiled_path,
+        source_sha256=raw.source_sha256,
         in_catalog=raw.in_catalog,
         primary_key=raw.primary_key,
     )

@@ -17,6 +17,7 @@ from lineagepilot_core.indexer import IndexStatus, index_project, locate_artifac
 from lineagepilot_core.parsers import DbtParser
 from lineagepilot_core.parsers.base import ParseErrorSeverity, ParseResult, RawNode
 from lineagepilot_core.snapshot import (
+    SNAPSHOT_FORMAT,
     SnapshotCache,
     SnapshotError,
     file_sha256,
@@ -47,6 +48,7 @@ def assert_same(a, b):
     assert list(a.edges) == list(b.edges)
     assert a.unresolved == b.unresolved
     assert a.column_lineage == b.column_lineage
+    assert a.output_columns == b.output_columns
     for node_id in a.nodes:
         assert [c.id for c in a.columns_of(node_id)] == [c.id for c in b.columns_of(node_id)]
         assert a.nodes_for_file(a.nodes[node_id].file_path or "") == b.nodes_for_file(
@@ -95,8 +97,8 @@ class TestSnapshot:
         [
             ([], "not a snapshot"),
             ({"format": 99, "core": __version__}, "does not match"),
-            ({"format": 1, "core": "0.0.0"}, "does not match"),
-            ({"format": 1, "core": __version__}, "malformed snapshot: KeyError"),
+            ({"format": SNAPSHOT_FORMAT, "core": "0.0.0"}, "does not match"),
+            ({"format": SNAPSHOT_FORMAT, "core": __version__}, "malformed snapshot: KeyError"),
         ],
     )
     def test_bad_snapshots_are_refused(self, data, message):

@@ -387,7 +387,7 @@ def test_malformed_options_keep_safe_defaults(data):
 
 
 def test_relative_to_follows_the_platform_case_rules(tmp_path, monkeypatch):
-    from lineagepilot_lsp import project as project_module
+    from lineagepilot_core import project as project_module
 
     root = tmp_path / "Proj"
     assert project_module.relative_to(root / "models" / "A.sql", root) == "models/A.sql"

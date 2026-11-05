@@ -1,0 +1,10 @@
+version: 2
+
+sources:
+  - name: shop
+    schema: main_raw
+    tables:
+      - name: raw_orders
+        description: Orders as the shop writes them.
+      - name: raw_customers
+        description: Customers as the shop writes them.

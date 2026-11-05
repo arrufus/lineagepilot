@@ -19,15 +19,19 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `analysis/traversal.py` | Breadth-first upstream and downstream traversal at model or column level, with depth and size caps; steps through physical tables from builders to the sources that read them. |
 | `analysis/impact.py` | Downstream impact of changed nodes or columns: column-precise where column lineage is known, model level (marked `inferred`) where it is not, with exposures, Airflow tasks, confidence and unknowns. |
 | `analysis/pii.py` | PII indicators: declared (tag), suggested by a column name (pattern), or inherited along every lineage path (lineage), with masking stopping the flow. An exposure report for consumption layers and a per-column trace. Labelled indicators, not verified exposure. |
+| `analysis/review.py` | The Change Impact Review (design section 8): changed files to nodes, each changed model's columns against a baseline, impact with evidence and owners, and every unknown met on the way. Returns the JSON the panel and the CLI share. |
+| `analysis/baseline.py` | What a review needs from a baseline manifest, read only for the changed nodes. |
 | `rules/` | Conformance rules with five results (`pass`, `fail`, `not_applicable`, `unsupported`, `unknown`) and a score that leaves the last two out, with coverage beside it. 18 built-in rules (design section 12). Custom rules come from `.lineagepilot/rules.yml`, a size-capped, validated file whose regexes are checked for ReDoS shapes before use. |
-| `export/` | Graph exports (JSON, Mermaid, DOT, GraphML, Cypher) and the PII inventory (Markdown, CSV). Every value is escaped for its format; Mermaid and DOT IDs are generated; Cypher labels and relationship types come from fixed lists. Hypothesis property tests re-parse every format. |
+| `export/` | Graph exports (JSON, Mermaid, DOT, GraphML, Cypher) and the PII inventory (Markdown, CSV). Every value is escaped for its format; Mermaid and DOT IDs are generated; Cypher labels and relationship types come from fixed lists. Hypothesis property tests re-parse every format. `review_markdown.py` renders the review for a pull request: workspace text only reaches the page in code spans or with its punctuation escaped, and the text stays under GitHub's comment limit. |
+| `gitdiff.py` | What changed since the merge-base, from git, for `lineagepilot review`. The extension asks the same questions through `vscode.git`. |
+| `project.py` | `dbt_project.yml`, read as untrusted input: where the artifacts and source folders are. |
 | `snapshot.py` | JSON snapshots of the whole graph, keyed by the artifacts' sha256, the snapshot format and the core version; atomic writes; a bad snapshot is rebuilt, never trusted. |
 | `indexer.py` | One pipeline for the CLI and the language server's indexer: snapshot or parse, graph, column lineage, snapshot. It can hand over the model-level graph before column lineage (`on_model_graph`), and refuses artifacts over a size cap. |
-| `cli.py` | `lineagepilot index` and `lineagepilot impact`. |
+| `cli.py` | `lineagepilot index`, `impact` and `review`. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
 
-Test fixtures under `tests/fixtures/dbt/` are real dbt artifacts. [PROVENANCE.json](tests/fixtures/dbt/PROVENANCE.json) records where each came from and its hash.
+Test fixtures under `tests/fixtures/dbt/` are real dbt artifacts, as are those of `fixtures/impact-shop`, the Change Impact Review's project, from before and after a column rename. `tests/fixtures/review/` holds its golden Markdown. [PROVENANCE.json](tests/fixtures/dbt/PROVENANCE.json) records where each came from and its hash.
 
 ## Develop
 
@@ -69,9 +73,13 @@ The server freezes its heap after loading (`gc.collect(); gc.freeze()`); without
 ```sh
 uv run lineagepilot index --project-dir path/to/dbt/project       # or --json
 uv run lineagepilot impact stg_orders#order_total --project-dir ...  # a model, column, file or unique_id
+uv run lineagepilot review --project-dir ...                      # Markdown for a pull request, or --json
+uv run lineagepilot review --base origin/develop --baseline-manifest prod/manifest.json --project-dir ...
 ```
 
-Snapshots go to `<project>/target/.lineagepilot` unless `--cache-dir` or `--no-cache` says otherwise. Exit codes: 0 success, 1 unknown index or target, 2 usage.
+`review` prints exactly what the panel's **Copy as Markdown** copies for the same inputs. It compares the working tree with the merge-base of `HEAD` and `--base`, by default the first of `origin/HEAD`, `origin/main`, `origin/master`, `main` and `master`, and needs `git` on `PATH` and enough history for a merge-base.
+
+Snapshots go to `<project>/target/.lineagepilot` unless `--cache-dir` or `--no-cache` says otherwise. Exit codes: 0 success, 1 unknown index or target, or git cannot say what changed, 2 usage.
 
 ## Rules this package keeps
 

@@ -1,0 +1,1633 @@
+{
+ "child_map": {
+  "exposure.impact_shop.revenue_dashboard": [],
+  "model.impact_shop.broken_report": [],
+  "model.impact_shop.customer_revenue": [
+   "exposure.impact_shop.revenue_dashboard",
+   "model.impact_shop.revenue_tiers"
+  ],
+  "model.impact_shop.order_counts": [],
+  "model.impact_shop.orders": [
+   "model.impact_shop.broken_report",
+   "model.impact_shop.customer_revenue",
+   "model.impact_shop.order_counts",
+   "test.impact_shop.not_null_orders_order_id.cf6c17daed",
+   "test.impact_shop.unique_orders_order_id.fed79b3a6e"
+  ],
+  "model.impact_shop.revenue_tiers": [],
+  "model.impact_shop.stg_customers": [
+   "model.impact_shop.customer_revenue"
+  ],
+  "model.impact_shop.stg_orders": [
+   "model.impact_shop.orders"
+  ],
+  "seed.impact_shop.raw_customers": [],
+  "seed.impact_shop.raw_orders": [],
+  "source.impact_shop.shop.raw_customers": [
+   "model.impact_shop.stg_customers"
+  ],
+  "source.impact_shop.shop.raw_orders": [
+   "model.impact_shop.stg_orders"
+  ],
+  "test.impact_shop.not_null_orders_order_id.cf6c17daed": [],
+  "test.impact_shop.unique_orders_order_id.fed79b3a6e": []
+ },
+ "disabled": {},
+ "docs": {
+  "doc.dbt.__overview__": {
+   "block_contents": "### Welcome!\n\nWelcome to the auto-generated documentation for your dbt project!\n\n### Navigation\n\nYou can use the `Project` and `Database` navigation tabs on the left side of the window to explore the models\nin your project.\n\n#### Project Tab\nThe `Project` tab mirrors the directory structure of your dbt project. In this tab, you can see all of the\nmodels defined in your dbt project, as well as models imported from dbt packages.\n\n#### Database Tab\nThe `Database` tab also exposes your models, but in a format that looks more like a database explorer. This view\nshows relations (tables and views) grouped into database schemas. Note that ephemeral models are _not_ shown\nin this interface, as they do not exist in the database.\n\n### Graph Exploration\nYou can click the blue icon on the bottom-right corner of the page to view the lineage graph of your models.\n\nOn model pages, you'll see the immediate parents and children of the model you're exploring. By clicking the `Expand`\nbutton at the top-right of this lineage pane, you'll be able to see all of the models that are used to build,\nor are built from, the model you're exploring.\n\nOnce expanded, you'll be able to use the `--select` and `--exclude` model selection syntax to filter the\nmodels in the graph. For more information on model selection, check out the [dbt docs](https://docs.getdbt.com/docs/model-selection-syntax).\n\nNote that you can also right-click on models to interactively filter and explore the graph.\n\n---\n\n### More information\n\n- [What is dbt](https://docs.getdbt.com/docs/introduction)?\n- Read the [dbt viewpoint](https://docs.getdbt.com/docs/viewpoint)\n- [Installation](https://docs.getdbt.com/docs/installation)\n- Join the [dbt Community](https://www.getdbt.com/community/) for questions and discussion",
+   "name": "__overview__",
+   "original_file_path": "docs/overview.md",
+   "package_name": "dbt",
+   "path": "overview.md",
+   "resource_type": "doc",
+   "unique_id": "doc.dbt.__overview__"
+  }
+ },
+ "exposures": {
+  "exposure.impact_shop.revenue_dashboard": {
+   "config": {
+    "enabled": true,
+    "meta": {},
+    "tags": []
+   },
+   "created_at": 1793865920.32758,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.customer_revenue"
+    ]
+   },
+   "description": "",
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "revenue_dashboard"
+   ],
+   "label": "Revenue dashboard",
+   "maturity": null,
+   "meta": {},
+   "metrics": [],
+   "name": "revenue_dashboard",
+   "original_file_path": "models/marts/marts.yml",
+   "owner": {
+    "email": "revenue@example.com",
+    "name": "Revenue Analytics"
+   },
+   "package_name": "impact_shop",
+   "path": "marts/marts.yml",
+   "refs": [
+    {
+     "name": "customer_revenue",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "exposure",
+   "sources": [],
+   "tags": [],
+   "type": "dashboard",
+   "unique_id": "exposure.impact_shop.revenue_dashboard",
+   "unrendered_config": {},
+   "url": null
+  }
+ },
+ "functions": {},
+ "group_map": {
+  "operations": [
+   "model.impact_shop.order_counts"
+  ]
+ },
+ "groups": {
+  "group.impact_shop.operations": {
+   "config": {
+    "materialized": "table",
+    "meta": {}
+   },
+   "description": null,
+   "name": "operations",
+   "original_file_path": "models/marts/marts.yml",
+   "owner": {
+    "email": null,
+    "name": "Operations"
+   },
+   "package_name": "impact_shop",
+   "path": "marts/marts.yml",
+   "resource_type": "group",
+   "unique_id": "group.impact_shop.operations"
+  }
+ },
+ "macros": {},
+ "metadata": {
+  "adapter_type": "duckdb",
+  "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "dbt_version": "1.12.6",
+  "env": {},
+  "generated_at": "2026-11-05T08:05:22.632146Z",
+  "invocation_id": "8ae36f58-a97b-4a79-98f6-29d30f88e322",
+  "invocation_started_at": "2026-11-05T08:05:19.597210+00:00",
+  "project_id": "4e0b163b6456ee2ef68a9c6b0fda803c",
+  "project_name": "impact_shop",
+  "quoting": {
+   "column": null,
+   "database": true,
+   "identifier": true,
+   "schema": true
+  },
+  "run_started_at": "2026-11-05T08:05:19.597419+00:00",
+  "send_anonymous_usage_stats": false,
+  "user_id": null
+ },
+ "metrics": {},
+ "nodes": {
+  "model.impact_shop.broken_report": {
+   "access": "protected",
+   "alias": "broken_report",
+   "build_path": null,
+   "checksum": {
+    "checksum": "2bad9084e10e7f006b7c352e80239eecb236a66b02f70ccd24aaba73cace2e14",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "-- Deliberately not valid SQL (design section 14): dbt compiles it, nothing can parse it\nselect order_id, order_total\nfrom \"impact_shop\".\"main\".\"orders\"\nwhere ((",
+   "compiled_path": "target/compiled/impact_shop/models/marts/broken_report.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.1415029,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "broken_report"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "broken_report",
+   "original_file_path": "models/marts/broken_report.sql",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "marts/broken_report.sql",
+   "primary_key": [],
+   "raw_code": "-- Deliberately not valid SQL (design section 14): dbt compiles it, nothing can parse it\nselect order_id, order_total\nfrom {{ ref('orders') }}\nwhere ((",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"impact_shop\".\"main\".\"broken_report\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.broken_report",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.impact_shop.customer_revenue": {
+   "access": "protected",
+   "alias": "customer_revenue",
+   "build_path": null,
+   "checksum": {
+    "checksum": "2e3a80f9b0742657c3e3da2d2ccb5dff0bda34ee707bf0cc2aa89e5cd805a7cf",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The customer's key.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "lifetime_value": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "Everything the customer has spent.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "lifetime_value",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "select\n    customers.customer_id,\n    customers.full_name,\n    sum(orders.order_total) as lifetime_value\nfrom \"impact_shop\".\"main\".\"stg_customers\" as customers\nleft join \"impact_shop\".\"main\".\"orders\" as orders\n    on customers.customer_id = orders.customer_id\ngroup by 1, 2",
+   "compiled_path": "target/compiled/impact_shop/models/marts/customer_revenue.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {
+     "owner": "growth-analytics"
+    },
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.319017,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.stg_customers",
+     "model.impact_shop.orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "Lifetime value per customer.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "customer_revenue"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {
+    "owner": "growth-analytics"
+   },
+   "metrics": [],
+   "name": "customer_revenue",
+   "original_file_path": "models/marts/customer_revenue.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/marts/marts.yml",
+   "path": "marts/customer_revenue.sql",
+   "primary_key": [],
+   "raw_code": "select\n    customers.customer_id,\n    customers.full_name,\n    sum(orders.order_total) as lifetime_value\nfrom {{ ref('stg_customers') }} as customers\nleft join {{ ref('orders') }} as orders\n    on customers.customer_id = orders.customer_id\ngroup by 1, 2",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"impact_shop\".\"main\".\"customer_revenue\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.customer_revenue",
+   "unrendered_config": {
+    "materialized": "table",
+    "meta": {
+     "owner": "growth-analytics"
+    }
+   },
+   "version": null
+  },
+  "model.impact_shop.order_counts": {
+   "access": "protected",
+   "alias": "order_counts",
+   "build_path": null,
+   "checksum": {
+    "checksum": "152b9b034730a0ac66bb0dec863c1d243bc0306bce3892c7842fe1c55183918a",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "-- Reads orders, but not the column the rename changes\nselect\n    customer_id,\n    count(order_id) as order_count\nfrom \"impact_shop\".\"main\".\"orders\"\ngroup by 1",
+   "compiled_path": "target/compiled/impact_shop/models/marts/order_counts.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": "operations",
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.319801,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "Orders per customer.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "order_counts"
+   ],
+   "functions": [],
+   "group": "operations",
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "order_counts",
+   "original_file_path": "models/marts/order_counts.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/marts/marts.yml",
+   "path": "marts/order_counts.sql",
+   "primary_key": [],
+   "raw_code": "-- Reads orders, but not the column the rename changes\nselect\n    customer_id,\n    count(order_id) as order_count\nfrom {{ ref('orders') }}\ngroup by 1",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"impact_shop\".\"main\".\"order_counts\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.order_counts",
+   "unrendered_config": {
+    "group": "operations",
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.impact_shop.orders": {
+   "access": "protected",
+   "alias": "orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "756bdca176d208fcddf78a4ba49651b998dbaf44823b48c3d83958e0c87aef0e",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "Who placed the order.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The order's key.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_total": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The order's total in US dollars.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_total",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "select\n    order_id,\n    customer_id,\n    amount_usd as order_total,\n    ordered_at\nfrom \"impact_shop\".\"main\".\"stg_orders\"",
+   "compiled_path": "target/compiled/impact_shop/models/marts/orders.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {
+     "owner": "finance-data"
+    },
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.280828,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.stg_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "The orders mart.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {
+    "owner": "finance-data"
+   },
+   "metrics": [],
+   "name": "orders",
+   "original_file_path": "models/marts/orders.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/marts/orders.yml",
+   "path": "marts/orders.sql",
+   "primary_key": [
+    "order_id"
+   ],
+   "raw_code": "select\n    order_id,\n    customer_id,\n    amount_usd as order_total,\n    ordered_at\nfrom {{ ref('stg_orders') }}",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"impact_shop\".\"main\".\"orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.orders",
+   "unrendered_config": {
+    "materialized": "table",
+    "meta": {
+     "owner": "finance-data"
+    }
+   },
+   "version": null
+  },
+  "model.impact_shop.revenue_tiers": {
+   "access": "protected",
+   "alias": "revenue_tiers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "78d70412c5bacbf612565447ca4514363521bcbe34efbb7384ec6ae765194ef8",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "select\n    customer_id,\n    case when lifetime_value >= 100 then 'gold' else 'standard' end as tier\nfrom \"impact_shop\".\"main\".\"customer_revenue\"",
+   "compiled_path": "target/compiled/impact_shop/models/marts/revenue_tiers.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.319941,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.customer_revenue"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "Customers by how much they spend. Nobody owns this yet.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "revenue_tiers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "revenue_tiers",
+   "original_file_path": "models/marts/revenue_tiers.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/marts/marts.yml",
+   "path": "marts/revenue_tiers.sql",
+   "primary_key": [],
+   "raw_code": "select\n    customer_id,\n    case when lifetime_value >= 100 then 'gold' else 'standard' end as tier\nfrom {{ ref('customer_revenue') }}",
+   "refs": [
+    {
+     "name": "customer_revenue",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"impact_shop\".\"main\".\"revenue_tiers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.revenue_tiers",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.impact_shop.stg_customers": {
+   "access": "protected",
+   "alias": "stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "ff1811e3fc3609a97f326e6c79f16999910489265f1483b0ccaf294bef4d4bda",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "select\n    id as customer_id,\n    full_name,\n    signed_up_at\nfrom \"impact_shop\".\"main_raw\".\"raw_customers\"",
+   "compiled_path": "target/compiled/impact_shop/models/staging/stg_customers.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.126328,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.impact_shop.shop.raw_customers"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "staging",
+    "stg_customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_customers",
+   "original_file_path": "models/staging/stg_customers.sql",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "staging/stg_customers.sql",
+   "primary_key": [],
+   "raw_code": "select\n    id as customer_id,\n    full_name,\n    signed_up_at\nfrom {{ source('shop', 'raw_customers') }}",
+   "refs": [],
+   "relation_name": "\"impact_shop\".\"main\".\"stg_customers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "shop",
+     "raw_customers"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.stg_customers",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "model.impact_shop.stg_orders": {
+   "access": "protected",
+   "alias": "stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "92a2529376866012862ef7bffd92055d89f8b44c568de422fbcb4fb9f7a2d849",
+    "name": "sha256"
+   },
+   "columns": {
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The order's key.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "select\n    id as order_id,\n    customer_id,\n    \n    (amount_cents / 100.0)\n as amount_usd,\n    ordered_at\nfrom \"impact_shop\".\"main_raw\".\"raw_orders\"",
+   "compiled_path": "target/compiled/impact_shop/models/staging/stg_orders.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {
+     "owner": "data-platform"
+    },
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.251711,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [
+     "macro.impact_shop.cents_to_dollars"
+    ],
+    "nodes": [
+     "source.impact_shop.shop.raw_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "One row per order, in dollars.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "staging",
+    "stg_orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {
+    "owner": "data-platform"
+   },
+   "metrics": [],
+   "name": "stg_orders",
+   "original_file_path": "models/staging/stg_orders.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/staging/stg_orders.yml",
+   "path": "staging/stg_orders.sql",
+   "primary_key": [],
+   "raw_code": "select\n    id as order_id,\n    customer_id,\n    {{ cents_to_dollars('amount_cents') }} as amount_usd,\n    ordered_at\nfrom {{ source('shop', 'raw_orders') }}",
+   "refs": [],
+   "relation_name": "\"impact_shop\".\"main\".\"stg_orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "shop",
+     "raw_orders"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.impact_shop.stg_orders",
+   "unrendered_config": {
+    "materialized": "view",
+    "meta": {
+     "owner": "data-platform"
+    }
+   },
+   "version": null
+  },
+  "seed.impact_shop.raw_customers": {
+   "alias": "raw_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "e5285bdfdb910b7c91545b96dbad685515dab1d3f39cbbc68886f913b0a418dd",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1793865920.191539,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "impact_shop",
+    "raw_customers"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_customers",
+   "original_file_path": "seeds/raw_customers.csv",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "raw_customers.csv",
+   "raw_code": "",
+   "relation_name": "\"impact_shop\".\"main_raw\".\"raw_customers\"",
+   "resource_type": "seed",
+   "root_path": "/project/impact_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.impact_shop.raw_customers",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "seed.impact_shop.raw_orders": {
+   "alias": "raw_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "a47837340d51dc268b729cc43ed0dd386d9dc6b60390ff8131eac030e47a891a",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1793865920.1923258,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "impact_shop",
+    "raw_orders"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_orders",
+   "original_file_path": "seeds/raw_orders.csv",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "raw_orders.csv",
+   "raw_code": "",
+   "relation_name": "\"impact_shop\".\"main_raw\".\"raw_orders\"",
+   "resource_type": "seed",
+   "root_path": "/project/impact_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.impact_shop.raw_orders",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "test.impact_shop.not_null_orders_order_id.cf6c17daed": {
+   "alias": "not_null_orders_order_id",
+   "attached_node": "model.impact_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect order_id\nfrom \"impact_shop\".\"main\".\"orders\"\nwhere order_id is null\n\n\n",
+   "compiled_path": "target/compiled/impact_shop/models/marts/orders.yml/not_null_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.317037,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.impact_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "not_null_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_orders_order_id",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "not_null_orders_order_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.impact_shop.not_null_orders_order_id.cf6c17daed",
+   "unrendered_config": {}
+  },
+  "test.impact_shop.unique_orders_order_id.fed79b3a6e": {
+   "alias": "unique_orders_order_id",
+   "attached_node": "model.impact_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    order_id as unique_field,\n    count(*) as n_records\n\nfrom \"impact_shop\".\"main\".\"orders\"\nwhere order_id is not null\ngroup by order_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/impact_shop/models/marts/orders.yml/unique_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793865920.317746,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.impact_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "unique_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_orders_order_id",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "unique_orders_order_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.impact_shop.unique_orders_order_id.fed79b3a6e",
+   "unrendered_config": {}
+  }
+ },
+ "parent_map": {
+  "exposure.impact_shop.revenue_dashboard": [
+   "model.impact_shop.customer_revenue"
+  ],
+  "model.impact_shop.broken_report": [
+   "model.impact_shop.orders"
+  ],
+  "model.impact_shop.customer_revenue": [
+   "model.impact_shop.orders",
+   "model.impact_shop.stg_customers"
+  ],
+  "model.impact_shop.order_counts": [
+   "model.impact_shop.orders"
+  ],
+  "model.impact_shop.orders": [
+   "model.impact_shop.stg_orders"
+  ],
+  "model.impact_shop.revenue_tiers": [
+   "model.impact_shop.customer_revenue"
+  ],
+  "model.impact_shop.stg_customers": [
+   "source.impact_shop.shop.raw_customers"
+  ],
+  "model.impact_shop.stg_orders": [
+   "source.impact_shop.shop.raw_orders"
+  ],
+  "seed.impact_shop.raw_customers": [],
+  "seed.impact_shop.raw_orders": [],
+  "source.impact_shop.shop.raw_customers": [],
+  "source.impact_shop.shop.raw_orders": [],
+  "test.impact_shop.not_null_orders_order_id.cf6c17daed": [
+   "model.impact_shop.orders"
+  ],
+  "test.impact_shop.unique_orders_order_id.fed79b3a6e": [
+   "model.impact_shop.orders"
+  ]
+ },
+ "saved_queries": {},
+ "selectors": {},
+ "semantic_models": {},
+ "sources": {
+  "source.impact_shop.shop.raw_customers": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1793865920.3372102,
+   "database": "impact_shop",
+   "description": "Customers as the shop writes them.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "impact_shop",
+    "staging",
+    "shop",
+    "raw_customers"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_customers",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_customers",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"impact_shop\".\"main_raw\".\"raw_customers\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "",
+   "source_meta": {},
+   "source_name": "shop",
+   "tags": [],
+   "unique_id": "source.impact_shop.shop.raw_customers",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  },
+  "source.impact_shop.shop.raw_orders": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1793865920.3367019,
+   "database": "impact_shop",
+   "description": "Orders as the shop writes them.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "impact_shop",
+    "staging",
+    "shop",
+    "raw_orders"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_orders",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_orders",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "impact_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"impact_shop\".\"main_raw\".\"raw_orders\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "",
+   "source_meta": {},
+   "source_name": "shop",
+   "tags": [],
+   "unique_id": "source.impact_shop.shop.raw_orders",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  }
+ },
+ "unit_tests": {}
+}

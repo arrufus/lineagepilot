@@ -22,6 +22,7 @@ Two measured choices (task 1.9):
 
 from __future__ import annotations
 
+import re
 import time
 from collections import Counter
 from collections.abc import Iterable
@@ -31,6 +32,7 @@ from sqlglot import exp, parse_one
 from sqlglot.dialects.dialect import Dialect
 from sqlglot.lineage import Node, lineage
 from sqlglot.optimizer.normalize_identifiers import normalize_identifiers
+from sqlglot.optimizer.qualify import qualify
 from sqlglot.schema import MappingSchema
 
 # Compiled SQL larger than this is not analysed; sqlglot's cost grows with it, and the
@@ -45,6 +47,9 @@ _DIALECTS = {
     "materialize": "postgres",
     "firebolt": "postgres",
 }
+
+_ANSI = re.compile(r"\x1b\[[0-9;]*[A-Za-z]")
+_CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f-\x9f]")
 
 # How much a column is changed on its way from source to output; a path takes the most
 TRANSFORMATIONS = ("passthrough", "transform", "aggregate")
@@ -141,6 +146,44 @@ def sql_column_lineage(
     result = _trace(sql, schema, dialect, max_chars)
     result.seconds = time.perf_counter() - started
     return result
+
+
+def sql_output_columns(
+    sql: str | None,
+    schema: MappingSchema | None,
+    dialect: str | None,
+    max_chars: int = MAX_SQL_CHARS,
+) -> tuple[list[str] | None, str | None]:
+    """The names a SELECT outputs, in order, or None and why they cannot be known.
+
+    Needs far less than lineage: no catalog unless a ``*`` reads a table directly, since
+    ``select * from final`` over a CTE with a column list expands without one. So a developer
+    who ran ``dbt compile`` but not ``dbt docs generate`` still gets the names.
+    """
+    if not sql or not sql.strip():
+        return None, "no compiled SQL"
+    if len(sql) > max_chars:
+        return None, f"compiled SQL is {len(sql):,} characters, over the {max_chars:,} limit"
+    try:
+        ast = parse_one(sql, dialect=dialect)
+    except Exception as e:  # sqlglot raises several types; hostile SQL can recurse deeply
+        return None, f"SQL could not be parsed: {_short(e)}"
+    if not isinstance(ast, exp.Query):
+        return None, f"not a query ({type(ast).__name__})"
+    try:
+        qualified = qualify(
+            ast,
+            dialect=dialect,
+            schema=schema if schema is not None else MappingSchema({}, dialect=dialect),
+            validate_qualify_columns=False,
+            quote_identifiers=False,
+        )
+        names = list(qualified.named_selects)
+    except Exception as e:
+        return None, f"the output columns could not be read: {_short(e)}"
+    if not names or any(name == "*" or name.endswith(".*") for name in names):
+        return None, "a * could not be expanded; run dbt docs generate"
+    return names, None
 
 
 def _unknown(reason: str) -> SqlLineage:
@@ -267,5 +310,7 @@ def _source_order(item: tuple[tuple[TableRef, str], int]) -> tuple:
 
 
 def _short(error: Exception) -> str:
-    text = " ".join(str(error).split())
+    # sqlglot underlines the bad token with terminal escapes, and quotes the SQL as it found it
+    text = _CONTROL.sub("", _ANSI.sub("", str(error)))
+    text = " ".join(text.split())
     return f"{type(error).__name__}: {text[:200]}"

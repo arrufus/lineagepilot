@@ -482,6 +482,7 @@ class DbtParser(MetadataParser):
             language=_str(node.get("language")),
             compiled_code=_str(node.get("compiled_code")),
             compiled_path=_str(node.get("compiled_path")),
+            source_sha256=_source_sha256(resource_type, node.get("raw_code")),
             primary_key=_primary_key(node),
         )
 
@@ -777,6 +778,13 @@ def _primary_key(node: dict[str, Any]) -> list[str]:
 
 def _owner(meta: dict[str, Any]) -> str | None:
     return _str(meta.get("owner"))
+
+
+def _source_sha256(resource_type: str, raw_code: Any) -> str | None:
+    """A hash of a model's source text. A snapshot's raw_code is only its block, not its file."""
+    if resource_type != "model" or not isinstance(raw_code, str) or not raw_code.strip():
+        return None
+    return hashlib.sha256(raw_code.strip().encode("utf-8")).hexdigest()
 
 
 def _patch_path(value: Any) -> str | None:

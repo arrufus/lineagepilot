@@ -42,6 +42,7 @@ from lineagepilot_core.parsers.sql_lineage import (
     TableRef,
     build_schema,
     sql_column_lineage,
+    sql_output_columns,
     sqlglot_dialect,
 )
 
@@ -158,6 +159,11 @@ def add_column_lineage(
                     evidence=_evidence(graph, node_id, text),
                 )
             )
+            # Lineage needs the catalog; the names of what a model selects often do not
+            if text and node.language != "python":
+                names, _ = sql_output_columns(text, schema, dialect, max_chars)
+                if names:
+                    graph.output_columns[node_id] = names
         statuses[node_id] = status
     return statuses
 
@@ -174,6 +180,7 @@ def _clear(graph: MetadataGraph, node_id: str) -> None:
             graph.remove_edge(edge)
     graph.remove_unresolved([node_id, *column_ids], origin=Origin.COMPILED_SQL)
     graph.column_lineage.pop(node_id, None)
+    graph.output_columns.pop(node_id, None)
 
 
 def _evidence(graph: MetadataGraph, node_id: str, sql: str | None) -> Evidence:
@@ -204,6 +211,7 @@ def _apply(
     traced = sql_column_lineage(sql, schema, dialect, max_chars)
     if traced.unknown:
         return _unknown(traced.reason or "unknown")
+    graph.output_columns[node_id] = list(traced.columns)
 
     adapter = graph.adapter_type
     evidence = _evidence(graph, node_id, sql)

@@ -192,3 +192,52 @@ def test_unexpanded_star_is_unknown(monkeypatch):
 
 def test_timing_is_recorded():
     assert sql_column_lineage("select a from db.s.t", SCHEMA, "duckdb").seconds > 0
+
+
+class TestOutputColumns:
+    def names(self, sql, schema=None, dialect=None):
+        from lineagepilot_core.parsers.sql_lineage import sql_output_columns
+
+        return sql_output_columns(sql, schema, dialect)
+
+    def test_a_select_list_needs_no_schema(self):
+        assert self.names("select a, b as c, 1 as d from t") == (["a", "c", "d"], None)
+
+    def test_a_star_over_a_cte_with_a_column_list_expands_without_one(self):
+        sql = "with final as (select a, b from t) select * from final"
+        assert self.names(sql) == (["a", "b"], None)
+
+    def test_a_star_over_a_table_needs_the_catalog(self):
+        names, reason = self.names("select * from t")
+        assert names is None and "could not be expanded" in reason
+        schema = build_schema([([("t", False)], ["a", "b"])], None)
+        assert self.names("select * from t", schema) == (["a", "b"], None)
+
+    def test_a_union_takes_its_names_from_the_first_branch(self):
+        assert self.names("select a from t union all select b from u") == (["a"], None)
+
+    @pytest.mark.parametrize(
+        ("sql", "reason"),
+        [
+            (None, "no compiled SQL"),
+            ("   ", "no compiled SQL"),
+            ("select from where ((", "could not be parsed"),
+            ("drop table t", "not a query"),
+            ("x" * 1_000_001, "over the"),
+        ],
+    )
+    def test_what_cannot_be_read_says_why(self, sql, reason):
+        names, why = self.names(sql)
+        assert names is None and reason in why
+
+    def test_a_failure_while_qualifying_is_caught(self, monkeypatch):
+        def fails(*_args, **_kwargs):
+            raise ValueError("boom")
+
+        monkeypatch.setattr("lineagepilot_core.parsers.sql_lineage.qualify", fails)
+        names, why = self.names("select a from t")
+        assert names is None and "could not be read: ValueError: boom" in why
+
+    def test_terminal_escapes_in_sqlglot_s_errors_do_not_get_through(self):
+        _, why = self.names("select order_id from t where ((")
+        assert "\x1b" not in why and "[4m" not in why

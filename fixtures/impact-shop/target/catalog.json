@@ -1,0 +1,427 @@
+{
+ "errors": null,
+ "metadata": {
+  "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
+  "dbt_version": "1.12.6",
+  "env": {},
+  "generated_at": "2026-11-05T08:05:22.830951Z",
+  "invocation_id": "8ae36f58-a97b-4a79-98f6-29d30f88e322",
+  "invocation_started_at": "2026-11-05T08:05:22.419860Z"
+ },
+ "nodes": {
+  "model.impact_shop.customer_revenue": {
+   "columns": {
+    "customer_id": {
+     "comment": null,
+     "index": 1,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "full_name": {
+     "comment": null,
+     "index": 2,
+     "name": "full_name",
+     "type": "VARCHAR"
+    },
+    "lifetime_value": {
+     "comment": null,
+     "index": 3,
+     "name": "lifetime_value",
+     "type": "DOUBLE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "customer_revenue",
+    "owner": null,
+    "schema": "main",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.customer_revenue"
+  },
+  "model.impact_shop.order_counts": {
+   "columns": {
+    "customer_id": {
+     "comment": null,
+     "index": 1,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "order_count": {
+     "comment": null,
+     "index": 2,
+     "name": "order_count",
+     "type": "BIGINT"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "order_counts",
+    "owner": null,
+    "schema": "main",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.order_counts"
+  },
+  "model.impact_shop.orders": {
+   "columns": {
+    "customer_id": {
+     "comment": null,
+     "index": 2,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "order_id": {
+     "comment": null,
+     "index": 1,
+     "name": "order_id",
+     "type": "INTEGER"
+    },
+    "order_total": {
+     "comment": null,
+     "index": 3,
+     "name": "order_total",
+     "type": "DOUBLE"
+    },
+    "ordered_at": {
+     "comment": null,
+     "index": 4,
+     "name": "ordered_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "orders",
+    "owner": null,
+    "schema": "main",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.orders"
+  },
+  "model.impact_shop.revenue_tiers": {
+   "columns": {
+    "customer_id": {
+     "comment": null,
+     "index": 1,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "tier": {
+     "comment": null,
+     "index": 2,
+     "name": "tier",
+     "type": "VARCHAR"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "revenue_tiers",
+    "owner": null,
+    "schema": "main",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.revenue_tiers"
+  },
+  "model.impact_shop.stg_customers": {
+   "columns": {
+    "customer_id": {
+     "comment": null,
+     "index": 1,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "full_name": {
+     "comment": null,
+     "index": 2,
+     "name": "full_name",
+     "type": "VARCHAR"
+    },
+    "signed_up_at": {
+     "comment": null,
+     "index": 3,
+     "name": "signed_up_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "stg_customers",
+    "owner": null,
+    "schema": "main",
+    "type": "VIEW"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.stg_customers"
+  },
+  "model.impact_shop.stg_orders": {
+   "columns": {
+    "amount_usd": {
+     "comment": null,
+     "index": 3,
+     "name": "amount_usd",
+     "type": "DOUBLE"
+    },
+    "customer_id": {
+     "comment": null,
+     "index": 2,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "order_id": {
+     "comment": null,
+     "index": 1,
+     "name": "order_id",
+     "type": "INTEGER"
+    },
+    "ordered_at": {
+     "comment": null,
+     "index": 4,
+     "name": "ordered_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "stg_orders",
+    "owner": null,
+    "schema": "main",
+    "type": "VIEW"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.stg_orders"
+  },
+  "seed.impact_shop.raw_customers": {
+   "columns": {
+    "full_name": {
+     "comment": null,
+     "index": 2,
+     "name": "full_name",
+     "type": "VARCHAR"
+    },
+    "id": {
+     "comment": null,
+     "index": 1,
+     "name": "id",
+     "type": "INTEGER"
+    },
+    "signed_up_at": {
+     "comment": null,
+     "index": 3,
+     "name": "signed_up_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "raw_customers",
+    "owner": null,
+    "schema": "main_raw",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "seed.impact_shop.raw_customers"
+  },
+  "seed.impact_shop.raw_orders": {
+   "columns": {
+    "amount_cents": {
+     "comment": null,
+     "index": 3,
+     "name": "amount_cents",
+     "type": "INTEGER"
+    },
+    "customer_id": {
+     "comment": null,
+     "index": 2,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "id": {
+     "comment": null,
+     "index": 1,
+     "name": "id",
+     "type": "INTEGER"
+    },
+    "ordered_at": {
+     "comment": null,
+     "index": 4,
+     "name": "ordered_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "raw_orders",
+    "owner": null,
+    "schema": "main_raw",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "seed.impact_shop.raw_orders"
+  }
+ },
+ "sources": {
+  "source.impact_shop.shop.raw_customers": {
+   "columns": {
+    "full_name": {
+     "comment": null,
+     "index": 2,
+     "name": "full_name",
+     "type": "VARCHAR"
+    },
+    "id": {
+     "comment": null,
+     "index": 1,
+     "name": "id",
+     "type": "INTEGER"
+    },
+    "signed_up_at": {
+     "comment": null,
+     "index": 3,
+     "name": "signed_up_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "raw_customers",
+    "owner": null,
+    "schema": "main_raw",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "source.impact_shop.shop.raw_customers"
+  },
+  "source.impact_shop.shop.raw_orders": {
+   "columns": {
+    "amount_cents": {
+     "comment": null,
+     "index": 3,
+     "name": "amount_cents",
+     "type": "INTEGER"
+    },
+    "customer_id": {
+     "comment": null,
+     "index": 2,
+     "name": "customer_id",
+     "type": "INTEGER"
+    },
+    "id": {
+     "comment": null,
+     "index": 1,
+     "name": "id",
+     "type": "INTEGER"
+    },
+    "ordered_at": {
+     "comment": null,
+     "index": 4,
+     "name": "ordered_at",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "raw_orders",
+    "owner": null,
+    "schema": "main_raw",
+    "type": "BASE TABLE"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "source.impact_shop.shop.raw_orders"
+  }
+ }
+}

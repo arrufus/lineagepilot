@@ -101,6 +101,11 @@ class RawNode:
     compiled_code: str | None = None
     compiled_path: str | None = None
 
+    # sha256 of a model's raw_code, stripped as dbt strips the file it reads. Comparing it with
+    # the file says whether the manifest has seen the file's current text. Not the manifest's
+    # own checksum: on the real fixtures that does not match the file or raw_code.
+    source_sha256: str | None = None
+
     # True if catalog.json has an entry for this node
     in_catalog: bool = False
 

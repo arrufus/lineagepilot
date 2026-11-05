@@ -1,0 +1,33 @@
+version: 2
+
+groups:
+  - name: operations
+    owner:
+      name: Operations
+
+models:
+  - name: customer_revenue
+    description: Lifetime value per customer.
+    meta:
+      owner: growth-analytics
+    columns:
+      - name: customer_id
+        description: The customer's key.
+      - name: lifetime_value
+        description: Everything the customer has spent.
+  - name: order_counts
+    description: Orders per customer.
+    config:
+      group: operations
+  - name: revenue_tiers
+    description: Customers by how much they spend. Nobody owns this yet.
+
+exposures:
+  - name: revenue_dashboard
+    type: dashboard
+    label: Revenue dashboard
+    owner:
+      name: Revenue Analytics
+      email: revenue@example.com
+    depends_on:
+      - ref('customer_revenue')

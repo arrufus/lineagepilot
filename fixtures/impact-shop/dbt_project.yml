@@ -1,0 +1,21 @@
+name: impact_shop
+version: "1.0.0"
+config-version: 2
+profile: impact_shop
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+
+seeds:
+  impact_shop:
+    +schema: raw
+
+models:
+  impact_shop:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

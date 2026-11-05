@@ -1,0 +1,10 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: One row per order, in dollars.
+    meta:
+      owner: data-platform
+    columns:
+      - name: order_id
+        description: The order's key.
