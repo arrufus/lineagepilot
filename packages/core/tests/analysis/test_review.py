@@ -252,6 +252,36 @@ class TestColumnComparison:
         path.write_text(path.read_text() + "\n\n  \n")
         assert review(root, changed(ORDERS_SQL))["changedNodes"][0]["columns"]["state"] == "known"
 
+    def test_a_windows_checkout_of_the_same_text_is_not_stale(self, root):
+        # git on Windows checks files out with CRLF; this manifest was written where they are LF
+        apply_rename(root)
+        path = root / ORDERS_SQL
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n"))
+        assert b"\r\n" in path.read_bytes()
+        columns = review(root, changed(ORDERS_SQL))["changedNodes"][0]["columns"]
+        assert columns["state"] == "known" and columns["stale"] is False
+        assert columns["removed"] == ["order_total"] and columns["added"] == ["total_usd"]
+
+    def test_a_manifest_written_on_windows_is_not_stale_for_a_unix_checkout(self, root):
+        apply_rename(root)
+        manifest = root / "target" / "manifest.json"
+        data = json.loads(manifest.read_bytes())
+        node = data["nodes"][f"{S}.orders"]
+        node["raw_code"] = node["raw_code"].replace("\r\n", "\n").replace("\n", "\r\n")
+        manifest.write_text(json.dumps(data))
+        path = root / ORDERS_SQL
+        path.write_bytes(path.read_bytes().replace(b"\r\n", b"\n"))
+        columns = review(root, changed(ORDERS_SQL))["changedNodes"][0]["columns"]
+        assert columns["state"] == "known" and columns["stale"] is False
+
+    def test_a_real_edit_is_stale_whatever_its_line_endings(self, root):
+        apply_rename(root)
+        path = root / ORDERS_SQL
+        text = path.read_bytes().replace(b"\r\n", b"\n").replace(b"total_usd", b"total_eur")
+        path.write_bytes(text.replace(b"\n", b"\r\n"))
+        columns = review(root, changed(ORDERS_SQL))["changedNodes"][0]["columns"]
+        assert columns["state"] == "unknown" and columns["stale"] is True
+
     def test_no_column_change_is_said_and_impact_is_still_listed(self, root):
         result = review(root, changed(ORDERS_SQL))
         columns = result["changedNodes"][0]["columns"]

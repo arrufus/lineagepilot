@@ -25,7 +25,6 @@ review`` agree and reviews can be compared across pull requests.
 
 from __future__ import annotations
 
-import hashlib
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass
 from enum import Enum
@@ -45,6 +44,7 @@ from lineagepilot_core.graph.model import (
     NodeKind,
     Unresolved,
 )
+from lineagepilot_core.parsers.base import source_sha256
 from lineagepilot_core.project import PROJECT_FILE, DbtProject, relative_to
 
 # Free text from the workspace is cut to this many characters (design section 9)
@@ -359,13 +359,11 @@ def _manifest_has_seen(node: Node, project: DbtProject, file: ChangedFile) -> st
             return "the file is not a regular file inside the project"
         if path.stat().st_size > MAX_SOURCE_BYTES:
             return "the file is too large to check against the manifest"
-        # dbt reads the bytes as UTF-8 and strips them, with no change to line endings
-        text = path.read_bytes().decode("utf-8").strip()
+        # Bytes, because reading as text would change line endings on some platforms only
+        text = path.read_bytes().decode("utf-8")
     except (OSError, UnicodeDecodeError) as e:
         return f"the file cannot be read: {type(e).__name__}"
-    if hashlib.sha256(text.encode("utf-8")).hexdigest() != node.source_sha256:
-        return STALE
-    return None
+    return None if source_sha256(text) == node.source_sha256 else STALE
 
 
 def _by_position(graph: MetadataGraph, node_id: str) -> list[Any]:

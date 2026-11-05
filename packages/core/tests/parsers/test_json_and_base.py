@@ -94,3 +94,19 @@ def test_dumps_round_trips_on_both_paths(loader, value):
 
 def test_loads_accepts_what_the_stdlib_accepts(loader):
     assert loader.loads(b'{"a": "\\ud800"}') == {"a": "\ud800"}
+
+
+class TestSourceHash:
+    def test_line_endings_and_surrounding_space_are_not_the_text(self):
+        from lineagepilot_core.parsers.base import source_sha256
+
+        same = source_sha256("select 1\nfrom t")
+        assert source_sha256("select 1\r\nfrom t") == same
+        assert source_sha256("\n select 1\nfrom t\n\n") == same
+        assert source_sha256("select 1\r\nfrom t\r\n") == same
+
+    def test_anything_else_is(self):
+        from lineagepilot_core.parsers.base import source_sha256
+
+        assert source_sha256("select 1\nfrom t") != source_sha256("select 2\nfrom t")
+        assert source_sha256("select 1\nfrom t") != source_sha256("select 1 from t")

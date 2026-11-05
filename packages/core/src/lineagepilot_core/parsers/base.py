@@ -17,6 +17,7 @@ Ported from data-capsule ``backend/src/parsers/base.py`` (commit 5e57fcc). Chang
 
 from __future__ import annotations
 
+import hashlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
@@ -42,6 +43,16 @@ class ParseError:
     def __str__(self) -> str:
         loc = f" at {self.location}" if self.location else ""
         return f"[{self.severity.value.upper()}]{loc}: {self.message}"
+
+
+def source_sha256(text: str) -> str:
+    """A hash of a model's source text, for comparing a file with the manifest's ``raw_code``.
+
+    Stripped, as dbt strips the file it reads. And with line endings normalised, because they
+    are not the file's text: git checks the same file out with CRLF on Windows and LF elsewhere,
+    so a manifest built on one must not call the file stale on the other.
+    """
+    return hashlib.sha256(text.replace("\r\n", "\n").strip().encode("utf-8")).hexdigest()
 
 
 @dataclass(slots=True)
@@ -101,9 +112,9 @@ class RawNode:
     compiled_code: str | None = None
     compiled_path: str | None = None
 
-    # sha256 of a model's raw_code, stripped as dbt strips the file it reads. Comparing it with
-    # the file says whether the manifest has seen the file's current text. Not the manifest's
-    # own checksum: on the real fixtures that does not match the file or raw_code.
+    # source_sha256() of a model's raw_code. Comparing it with the file says whether the manifest
+    # has seen the file's current text. Not the manifest's own checksum: on the real fixtures
+    # that does not match the file or raw_code.
     source_sha256: str | None = None
 
     # True if catalog.json has an entry for this node
