@@ -89,8 +89,9 @@ suite(`change impact review (${label})`, () => {
     fs.writeFileSync(model(), original);
     fs.utimesSync(model(), times.atime, times.mtime);
     fs.rmSync(newModel(), { force: true });
+    // The repository stays: this is a temporary copy, and on Windows VS Code's Git extension holds
+    // .git open, so it cannot be deleted from here
     fs.rmSync(path.join(root(), '.gitignore'), { force: true });
-    fs.rmSync(path.join(root(), '.git'), { recursive: true, force: true });
   });
 
   test('Review Changes opens the page; its script loads under the CSP and gets a review', async function () {

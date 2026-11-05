@@ -223,7 +223,9 @@ class TestOutputColumns:
             ("   ", "no compiled SQL"),
             ("select from where ((", "could not be parsed"),
             ("drop table t", "not a query"),
-            ("x" * 1_000_001, "over the"),
+            # With an ID: pytest keeps a test's name in an environment variable, and Windows
+            # refuses one over 32,767 characters
+            pytest.param("x" * 1_000_001, "over the", id="too long"),
         ],
     )
     def test_what_cannot_be_read_says_why(self, sql, reason):
