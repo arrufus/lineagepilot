@@ -12,7 +12,8 @@
     "lineage/export": { "params": "ExportParams", "result": "ExportResult" },
     "lineage/nodesForFile": { "params": "NodesForFileParams", "result": "NodesForFileResult" },
     "lineage/node": { "params": "NodeParams", "result": "NodeResult" },
-    "lineage/reviewChanges": { "params": "ReviewParams", "result": "ReviewResult" }
+    "lineage/reviewChanges": { "params": "ReviewParams", "result": "ReviewResult" },
+    "lineage/airflow": { "params": "AirflowParams", "result": "AirflowResult" }
   },
   "x-notifications": {
     "lineage/indexUpdated": "Status"
@@ -42,6 +43,7 @@
     "IndexState": { "enum": ["starting", "ready", "unknown", "failed"] },
     "ColumnStage": { "enum": ["pending", "computing", "done", "off"] },
     "ExportFormat": { "enum": ["json", "mermaid", "dot", "graphml", "cypher", "pii-markdown", "pii-csv"] },
+    "AirflowStage": { "enum": ["pending", "scanning", "done", "failed"] },
 
     "Position": {
       "type": "object",
@@ -373,9 +375,10 @@
         "columns": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
         "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
         "via": { "type": "array", "items": { "$ref": "#/$defs/ImpactEvidence" }, "maxItems": 5 },
-        "viaMore": { "$ref": "#/$defs/Count" }
+        "viaMore": { "$ref": "#/$defs/Count" },
+        "airflow": { "anyOf": [{ "$ref": "#/$defs/ImpactAirflow" }, { "type": "null" }], "description": "For an Airflow task or DAG: what it has to do with the change." }
       },
-      "required": ["id", "kind", "name", "owner", "file", "depth", "reach", "confidence", "origins", "columns", "reason", "via", "viaMore"],
+      "required": ["id", "kind", "name", "owner", "file", "depth", "reach", "confidence", "origins", "columns", "reason", "via", "viaMore", "airflow"],
       "additionalProperties": false
     },
     "OwnerGroup": {
@@ -388,10 +391,104 @@
       "required": ["owner", "nodes"],
       "additionalProperties": false
     },
-    "ReviewAirflow": {
+    "ImpactAirflow": {
+      "description": "How a task or DAG relates to a change. A Cosmos DAG or group is one link in the file; tasks holds the task ids derived for the nodes it runs.",
       "type": "object",
-      "properties": { "analysed": { "type": "boolean", "description": "False until the graph has Airflow DAGs: the review then says no DAG was looked at, rather than that no task is impacted." } },
-      "required": ["analysed"],
+      "properties": {
+        "dag": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "operator": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "how": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "runs": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "runsMore": { "$ref": "#/$defs/Count" },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "tasksMore": { "$ref": "#/$defs/Count" },
+        "after": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
+      },
+      "required": ["dag", "operator", "how", "runs", "runsMore", "tasks", "tasksMore", "after", "notes"],
+      "additionalProperties": false
+    },
+    "AirflowSummary": {
+      "description": "What a scan of the DAG files looked at and found. analysed is false when none was read: the review then says that, rather than that no task is impacted.",
+      "type": "object",
+      "properties": {
+        "analysed": { "type": "boolean" },
+        "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "dagFiles": { "$ref": "#/$defs/Count" },
+        "dags": { "$ref": "#/$defs/Count" },
+        "tasks": { "$ref": "#/$defs/Count" },
+        "links": { "$ref": "#/$defs/Count" },
+        "unknowns": { "$ref": "#/$defs/Count" },
+        "opaqueTasks": { "$ref": "#/$defs/Count", "description": "Tasks whose commands cannot be read and do not mention dbt: counted, not listed." },
+        "folders": { "type": "array", "items": { "$ref": "#/$defs/Text" } },
+        "problems": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
+      },
+      "required": ["analysed", "reason", "dagFiles", "dags", "tasks", "links", "unknowns", "opaqueTasks", "folders", "problems"],
+      "additionalProperties": false
+    },
+    "AirflowParams": {
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/Id" }, "maxItems": 200 }, { "type": "null" }],
+          "description": "Only the tasks that run or read these nodes; null for every DAG and task."
+        }
+      },
+      "required": ["nodes"],
+      "additionalProperties": false
+    },
+    "AirflowTask": {
+      "description": "A task, or a DAG that is one link as a whole (a Cosmos DbtDag).",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "name": { "$ref": "#/$defs/Name" },
+        "operator": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "how": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
+        "derivedTasks": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "confidence": { "anyOf": [{ "$ref": "#/$defs/Confidence" }, { "type": "null" }] },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] }
+      },
+      "required": ["id", "kind", "name", "operator", "owner", "how", "nodes", "derivedTasks", "confidence", "origins", "notes", "location"],
+      "additionalProperties": false
+    },
+    "AirflowDag": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "name": { "$ref": "#/$defs/Name" },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/AirflowTask" } }
+      },
+      "required": ["id", "name", "owner", "location", "tasks"],
+      "additionalProperties": false
+    },
+    "AirflowResult": {
+      "description": "The DAGs and tasks touching some nodes, or all of them (the Airflow view).",
+      "type": "object",
+      "properties": {
+        "stage": { "$ref": "#/$defs/AirflowStage" },
+        "summary": { "$ref": "#/$defs/AirflowSummary" },
+        "dags": { "type": "array", "items": { "$ref": "#/$defs/AirflowDag" } },
+        "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } }
+      },
+      "required": ["stage", "summary", "dags", "unknowns"],
+      "additionalProperties": false
+    },
+    "AirflowStatus": {
+      "type": "object",
+      "properties": {
+        "stage": { "$ref": "#/$defs/AirflowStage" },
+        "generation": { "$ref": "#/$defs/Count", "description": "One per scan started." },
+        "summary": { "$ref": "#/$defs/AirflowSummary" }
+      },
+      "required": ["stage", "generation", "summary"],
       "additionalProperties": false
     },
     "OtherFile": {
@@ -460,7 +557,7 @@
         "changedNodes": { "type": "array", "items": { "$ref": "#/$defs/ChangedNode" } },
         "impacted": { "type": "array", "items": { "$ref": "#/$defs/ReviewImpacted" } },
         "owners": { "type": "array", "items": { "$ref": "#/$defs/OwnerGroup" } },
-        "airflow": { "$ref": "#/$defs/ReviewAirflow" },
+        "airflow": { "$ref": "#/$defs/AirflowSummary" },
         "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } },
         "otherFiles": { "type": "array", "items": { "$ref": "#/$defs/OtherFile" } },
         "outsideProject": { "$ref": "#/$defs/Count" },
@@ -615,12 +712,13 @@
         "stale": { "$ref": "#/$defs/Stale" },
         "fromCache": { "type": "boolean" },
         "indexedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
-        "rules": { "$ref": "#/$defs/RulesStatus" }
+        "rules": { "$ref": "#/$defs/RulesStatus" },
+        "airflow": { "$ref": "#/$defs/AirflowStatus" }
       },
       "required": [
         "protocolVersion", "server", "project", "trusted", "state", "indexing", "generation",
         "columnLineage", "message", "errors", "errorCount", "artifacts", "counts", "columnStates",
-        "stale", "fromCache", "indexedAt", "rules"
+        "stale", "fromCache", "indexedAt", "rules", "airflow"
       ],
       "additionalProperties": false
     }

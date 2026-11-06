@@ -29,8 +29,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
+from lineagepilot_core.airflow.link import link_airflow, mark_not_analysed
+from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.review import baseline_inputs
+from lineagepilot_core.graph.model import MetadataGraph
 from lineagepilot_core.rules import (
     Evaluation,
     RulePack,
@@ -46,6 +50,7 @@ from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 from pygls.uris import to_fs_path
 
 from lineagepilot_lsp import __version__, features, methods, protocol, worker
+from lineagepilot_lsp.airflow_scan import AirflowScanner, AirflowStage
 from lineagepilot_lsp.context import GraphContext, clip
 from lineagepilot_lsp.indexing import (
     ColumnStage,
@@ -55,7 +60,16 @@ from lineagepilot_lsp.indexing import (
     run_worker,
 )
 from lineagepilot_lsp.project import DbtProject, read_project
-from lineagepilot_lsp.watch import RULES_FILE, Change, Debouncer, classify, watchers
+from lineagepilot_lsp.watch import (
+    RULES_FILE,
+    Change,
+    Debouncer,
+    classify,
+    watchers,
+)
+from lineagepilot_lsp.watch import (
+    clean_folders as watch_folders,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -103,7 +117,7 @@ class Options:
     column_lineage: bool = True
     max_artifact_mb: float = DEFAULT_MAX_ARTIFACT_MB
     debounce_s: float = 1.0
-    dag_folders: list[str] = field(default_factory=lambda: ["dags"])
+    dag_folders: list[str] = field(default_factory=lambda: list(DEFAULT_DAG_FOLDERS))
 
     @classmethod
     def from_json(cls, data: Any) -> Options:
@@ -147,6 +161,7 @@ class LineagePilotServer(LanguageServer):
         self.project: DbtProject | None = None
         self.workspace_root: Path | None = None
         self.index: ProjectIndex | None = None
+        self.airflow: AirflowScanner | None = None
         self.context: GraphContext | None = None
         self.rule_pack: RulePack | None = None
         self.evaluation: Evaluation | None = None
@@ -202,12 +217,21 @@ class LineagePilotServer(LanguageServer):
             Change.RULES: Debouncer(self.options.debounce_s, lambda _: self.rules_changed()),
             Change.DAGS: Debouncer(self.options.debounce_s, self.dags_changed),
         }
+        self.airflow = AirflowScanner(
+            self.project,
+            self.workspace_root or self.project.root,
+            watch_folders(self.options.dag_folders),
+            self.cache_dir() / "airflow",
+            self.airflow_changed,
+        )
         self.load_rules()
         self.index.start()
 
     async def stop_indexing(self) -> None:
         for debouncer in self._debouncers.values():
             debouncer.cancel()
+        if self.airflow is not None:
+            await self.airflow.stop()
         if self.index is not None:
             await self.index.stop()
         for task in list(self._background):
@@ -296,8 +320,43 @@ class LineagePilotServer(LanguageServer):
         self.notify_index_updated()
 
     def dags_changed(self, files: set[str]) -> None:
-        # Phase 5 analyses DAG files statically; until then a change is only logged
-        self.log(f"{len(files)} Airflow DAG file(s) changed; DAG analysis is not available yet")
+        assert self.airflow is not None
+        self.airflow.invalidate()
+        if self.context is not None:
+            self.airflow.start(_manifest_key(self.context.graph))
+
+    def link_scan(self, graph: MetadataGraph) -> None:
+        """Put the DAG scan on a new graph: the one held, if it read this manifest, or a new one.
+
+        A model-level graph and then the full graph come from one manifest, so one scan serves
+        both. Until it is in, the review says the DAG files are still being read.
+        """
+        assert self.airflow is not None
+        key = _manifest_key(graph)
+        if self.airflow.current_for(key) and self.airflow.scan is not None:
+            link_airflow(graph, self.airflow.scan)
+            return
+        mark_not_analysed(graph, "the DAG files are still being read")
+        if not self.airflow.scanning_for(key):
+            self.airflow.start(key)
+
+    def airflow_changed(self) -> None:
+        """A scan finished, or failed."""
+        assert self.airflow is not None
+        context = self.context
+        if context is not None:
+            graph = context.graph
+            if self.airflow.stage is AirflowStage.FAILED:
+                reason = f"the DAG files could not be read: {self.airflow.message}"
+                mark_not_analysed(graph, reason)
+            elif self.airflow.current_for(_manifest_key(graph)) and self.airflow.scan is not None:
+                link_airflow(graph, self.airflow.scan)
+            else:  # the manifest moved on while this scan ran
+                self.airflow.start(_manifest_key(graph))
+            context.forget_derived()
+            gc.freeze()
+            self.refresh_code_lenses()
+        self.notify_index_updated()
 
     def release_graph(self) -> None:
         """The graph is being replaced: forget it, but keep the diagnostics until the next.
@@ -319,6 +378,8 @@ class LineagePilotServer(LanguageServer):
             if graph is None
             else GraphContext(graph, self.project, lambda: index.columns is ColumnStage.COMPUTING)
         )
+        if graph is not None:
+            self.link_scan(graph)
         freeze_heap()
         self.refresh_code_lenses()
         self.spawn(self.index.refresh_staleness())
@@ -467,6 +528,18 @@ class LineagePilotServer(LanguageServer):
             "fromCache": bool(index and index.result.get("fromCache")),
             "indexedAt": index.indexed_at if index else None,
             "rules": self.rules_status(),
+            "airflow": self.airflow_status(),
+        }
+
+    def airflow_stage(self) -> str:
+        return self.airflow.stage.value if self.airflow else AirflowStage.PENDING.value
+
+    def airflow_status(self) -> dict[str, Any]:
+        graph = self.context.graph if self.context else None
+        return {
+            "stage": self.airflow_stage(),
+            "generation": self.airflow.generation if self.airflow else 0,
+            "summary": summary_json(graph.airflow if graph is not None else None),
         }
 
     def _artifacts(self) -> dict[str, Any]:
@@ -492,6 +565,8 @@ class LineagePilotServer(LanguageServer):
         }
 
     def refresh(self) -> dict[str, Any]:
+        if self.airflow is not None:
+            self.airflow.invalidate()  # a module DAG files import is not watched
         if self.index is not None:
             self.index.start()
         return self.status()
@@ -618,6 +693,12 @@ def _module_files() -> dict[str, str]:
     }
 
 
+def _manifest_key(graph: MetadataGraph) -> str | None:
+    """Which manifest a graph came from: a scan's selectors were evaluated over one."""
+    manifest = graph.manifest
+    return (manifest.sha256 or manifest.generated_at) if manifest is not None else None
+
+
 def _mtime_iso(path: Path) -> str | None:
     try:
         return iso_time(path.stat().st_mtime)
@@ -693,6 +774,11 @@ def create_server() -> LineagePilotServer:
     async def on_review(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
         checked = _params(ls, protocol.ReviewParams, params)
         return await ls.review_changes(checked)
+
+    @server.feature("lineage/airflow")
+    def on_airflow(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, protocol.AirflowParams, params)
+        return methods.airflow(ls.ready_context(), checked, ls.airflow_stage())
 
     @server.feature("lineage/nodesForFile")
     def on_nodes_for_file(ls: LineagePilotServer, params: Any) -> dict[str, Any]:

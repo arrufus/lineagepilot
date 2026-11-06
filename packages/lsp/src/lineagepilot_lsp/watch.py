@@ -8,7 +8,8 @@ by kind and debounced, because dbt writes several artifacts in a row:
 - **project**: ``dbt_project.yml``; re-read the project, and re-index if its paths moved.
 - **sources**: files dbt reads to build the manifest; update the staleness warning.
 - **rules**: ``.lineagepilot/rules.yml``; re-run the rules.
-- **dags**: Python files in the Airflow DAG folders; analysed from Phase 5.
+- **dags**: Python files in the Airflow DAG folders, and ``.lineagepilot/airflow.yml``; read them
+  again. A module they import from elsewhere is not watched: **Reindex** picks that up.
 """
 
 from __future__ import annotations
@@ -16,8 +17,10 @@ from __future__ import annotations
 import asyncio
 from collections.abc import Callable, Iterable
 from enum import Enum
-from pathlib import Path, PurePosixPath
+from pathlib import Path
 
+from lineagepilot_core.airflow.dag_static import clean_dag_folder, in_dag_folder
+from lineagepilot_core.airflow.workspace import ANNOTATION_FILE
 from lsprotocol import types
 
 from lineagepilot_lsp.project import PROJECT_FILE, DbtProject, relative_to
@@ -42,6 +45,7 @@ def watchers(
         f"{project.target_path}/{{manifest,catalog}}.json",
         PROJECT_FILE,
         RULES_FILE,
+        ANNOTATION_FILE,
         *(f"{p}/**" if p != "." else "**/*.{sql,yml,yaml,py,csv,md}" for p in project.source_paths),
     ]
     found = [
@@ -55,7 +59,7 @@ def watchers(
                     base_uri=workspace.as_uri(), pattern=f"{folder}/**/*.py"
                 )
             )
-            for folder in _clean_folders(dag_folders)
+            for folder in clean_folders(dag_folders)
         ]
     return found
 
@@ -73,6 +77,8 @@ def classify(
             return Change.ARTIFACTS, relative
         if relative == RULES_FILE:
             return Change.RULES, relative
+        if relative == ANNOTATION_FILE:
+            return Change.DAGS, relative
         if relative == PROJECT_FILE:
             return Change.PROJECT, relative
         if project.is_source_file(relative) and not relative.startswith(f"{project.target_path}/"):
@@ -81,23 +87,14 @@ def classify(
         in_workspace = relative_to(path, workspace)
         if in_workspace is None:
             return None
-        for folder in _clean_folders(dag_folders):
-            if in_workspace.startswith(f"{folder}/"):
-                return Change.DAGS, in_workspace
+        if in_dag_folder(in_workspace, clean_folders(dag_folders)):
+            return Change.DAGS, in_workspace
     return None
 
 
-def _clean_folders(folders: Iterable[str]) -> list[str]:
-    """Relative folder names only: a DAG folder setting cannot point outside the workspace."""
-    clean = []
-    for folder in folders:
-        if not isinstance(folder, str):
-            continue
-        posix = PurePosixPath(folder.strip().replace("\\", "/"))
-        if not posix.parts or posix.is_absolute() or ".." in posix.parts or ":" in posix.parts[0]:
-            continue
-        clean.append(posix.as_posix().rstrip("/"))
-    return clean
+def clean_folders(folders: Iterable[str]) -> list[str]:
+    """Relative folders or patterns only: a setting cannot point outside the workspace."""
+    return [f for f in (clean_dag_folder(folder) for folder in folders) if f]
 
 
 class Debouncer:

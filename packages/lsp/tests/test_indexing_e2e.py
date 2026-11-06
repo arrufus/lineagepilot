@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import asyncio
 import hashlib
 import json
 import os
@@ -199,17 +198,15 @@ async def test_a_moved_target_path_is_followed(start, workspace):
     assert len(client.registrations) == 2
 
 
-async def test_dag_changes_are_logged(start, workspace):
+async def test_dag_changes_are_read_again(start, workspace):
     client, _ = await start()
-    await client.ready()
+    status = await client.wait_for_update(lambda u: u["airflow"]["stage"] == "done")
+    generation = status["airflow"]["generation"]
     dag = workspace / "dags" / "daily.py"
     dag.parent.mkdir()
     dag.write_text("")
     client.file_changed(dag, types.FileChangeType.Created)
-    deadline = time.monotonic() + 10
-    while not any("DAG file" in m.message for m in client.log_messages):
-        assert time.monotonic() < deadline
-        await asyncio.sleep(0.05)
+    await client.wait_for_update(lambda u: u["airflow"]["generation"] > generation)
 
 
 async def test_without_storage_snapshots_go_to_a_temporary_directory(start, workspace):

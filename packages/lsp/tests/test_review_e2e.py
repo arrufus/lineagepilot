@@ -69,7 +69,9 @@ def as_params(root: Path, base: str = "main", manifest: str | None = None) -> di
 
 async def ready(start, root):
     client, _ = await start(root=root)
-    status = await client.ready()
+    status = await client.wait_for_update(
+        lambda u: not u["indexing"] and u["airflow"]["stage"] in ("done", "failed")
+    )
     assert status["state"] == "ready", status
     return client
 

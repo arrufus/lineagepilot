@@ -10,6 +10,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
+from lineagepilot_core.airflow.view import airflow_view
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import weakest
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
@@ -211,6 +212,16 @@ def node(ctx: GraphContext, params: protocol.NodeParams) -> dict[str, Any]:
         "upstream": sum(1 for _ in steps(ctx.graph, ref, Direction.UPSTREAM, granularity)),
         "downstream": sum(1 for _ in steps(ctx.graph, ref, Direction.DOWNSTREAM, granularity)),
     }
+
+
+def airflow(ctx: GraphContext, params: protocol.AirflowParams, stage: str) -> dict[str, Any]:
+    """The DAGs and tasks touching some nodes, or all of them, and where to open each."""
+    view = airflow_view(ctx.graph, params.nodes)
+    for dag in view["dags"]:
+        dag["location"] = ctx.location(dag["id"])
+        for task in dag["tasks"]:
+            task["location"] = ctx.location(task["id"])
+    return {"stage": stage, **view}
 
 
 def changed_files(

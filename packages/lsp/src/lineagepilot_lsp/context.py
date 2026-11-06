@@ -116,6 +116,10 @@ class GraphContext:
         self._pii_nodes: set[str] | None = None
         self._downstream: dict[str, dict[str, int]] = {}
 
+    def forget_derived(self) -> None:
+        """A DAG scan changed what is downstream of what."""
+        self._downstream.clear()
+
     def columns_computing(self) -> bool:
         """Whether the indexer is still adding column lineage to this graph."""
         return self._columns_computing()

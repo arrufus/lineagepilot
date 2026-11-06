@@ -58,6 +58,9 @@ export type ColumnStage = z.infer<typeof ColumnStage>;
 export const ExportFormat = z.enum(["json", "mermaid", "dot", "graphml", "cypher", "pii-markdown", "pii-csv"]);
 export type ExportFormat = z.infer<typeof ExportFormat>;
 
+export const AirflowStage = z.enum(["pending", "scanning", "done", "failed"]);
+export type AirflowStage = z.infer<typeof AirflowStage>;
+
 export const Position = z.strictObject({
   line: Count,
   character: Count,
@@ -296,6 +299,20 @@ export const ImpactEvidence = z.strictObject({
 });
 export type ImpactEvidence = z.infer<typeof ImpactEvidence>;
 
+/** How a task or DAG relates to a change. A Cosmos DAG or group is one link in the file; tasks holds the task ids derived for the nodes it runs. */
+export const ImpactAirflow = z.strictObject({
+  dag: Name.nullable(),
+  operator: Name.nullable(),
+  how: z.array(Name),
+  runs: z.array(Name),
+  runsMore: Count,
+  tasks: z.array(Name),
+  tasksMore: Count,
+  after: z.array(Name),
+  notes: z.array(Text),
+});
+export type ImpactAirflow = z.infer<typeof ImpactAirflow>;
+
 export const ReviewImpacted = z.strictObject({
   id: Id,
   kind: NodeKind,
@@ -310,6 +327,7 @@ export const ReviewImpacted = z.strictObject({
   reason: Text.nullable(),
   via: z.array(ImpactEvidence).max(5),
   viaMore: Count,
+  airflow: ImpactAirflow.nullable(),
 });
 export type ReviewImpacted = z.infer<typeof ReviewImpacted>;
 
@@ -320,10 +338,67 @@ export const OwnerGroup = z.strictObject({
 });
 export type OwnerGroup = z.infer<typeof OwnerGroup>;
 
-export const ReviewAirflow = z.strictObject({
+/** What a scan of the DAG files looked at and found. analysed is false when none was read: the review then says that, rather than that no task is impacted. */
+export const AirflowSummary = z.strictObject({
   analysed: z.boolean(),
+  reason: Text.nullable(),
+  dagFiles: Count,
+  dags: Count,
+  tasks: Count,
+  links: Count,
+  unknowns: Count,
+  opaqueTasks: Count,
+  folders: z.array(Text),
+  problems: z.array(Text),
 });
-export type ReviewAirflow = z.infer<typeof ReviewAirflow>;
+export type AirflowSummary = z.infer<typeof AirflowSummary>;
+
+export const AirflowParams = z.strictObject({
+  nodes: z.array(Id).max(200).nullable(),
+});
+export type AirflowParams = z.infer<typeof AirflowParams>;
+
+/** A task, or a DAG that is one link as a whole (a Cosmos DbtDag). */
+export const AirflowTask = z.strictObject({
+  id: Id,
+  kind: NodeKind,
+  name: Name,
+  operator: Name.nullable(),
+  owner: Name.nullable(),
+  how: z.array(Name),
+  nodes: z.array(Id),
+  derivedTasks: z.array(Name),
+  confidence: Confidence.nullable(),
+  origins: z.array(Origin).max(5),
+  notes: z.array(Text),
+  location: Location.nullable(),
+});
+export type AirflowTask = z.infer<typeof AirflowTask>;
+
+export const AirflowDag = z.strictObject({
+  id: Id,
+  name: Name,
+  owner: Name.nullable(),
+  location: Location.nullable(),
+  tasks: z.array(AirflowTask),
+});
+export type AirflowDag = z.infer<typeof AirflowDag>;
+
+/** The DAGs and tasks touching some nodes, or all of them (the Airflow view). */
+export const AirflowResult = z.strictObject({
+  stage: AirflowStage,
+  summary: AirflowSummary,
+  dags: z.array(AirflowDag),
+  unknowns: z.array(Unknown),
+});
+export type AirflowResult = z.infer<typeof AirflowResult>;
+
+export const AirflowStatus = z.strictObject({
+  stage: AirflowStage,
+  generation: Count,
+  summary: AirflowSummary,
+});
+export type AirflowStatus = z.infer<typeof AirflowStatus>;
 
 /** A changed file no node maps to, that cannot change one. */
 export const OtherFile = z.strictObject({
@@ -374,7 +449,7 @@ export const ReviewResult = z.strictObject({
   changedNodes: z.array(ChangedNode),
   impacted: z.array(ReviewImpacted),
   owners: z.array(OwnerGroup),
-  airflow: ReviewAirflow,
+  airflow: AirflowSummary,
   unknowns: z.array(Unknown),
   otherFiles: z.array(OtherFile),
   outsideProject: Count,
@@ -485,6 +560,7 @@ export const Status = z.strictObject({
   fromCache: z.boolean(),
   indexedAt: Name.nullable(),
   rules: RulesStatus,
+  airflow: AirflowStatus,
 });
 export type Status = z.infer<typeof Status>;
 
@@ -497,6 +573,7 @@ export const requests = {
   'lineage/nodesForFile': { params: NodesForFileParams, result: NodesForFileResult },
   'lineage/node': { params: NodeParams, result: NodeResult },
   'lineage/reviewChanges': { params: ReviewParams, result: ReviewResult },
+  'lineage/airflow': { params: AirflowParams, result: AirflowResult },
 } as const;
 export type RequestMethod = keyof typeof requests;
 

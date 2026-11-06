@@ -15,6 +15,11 @@ parse as the project's own: with ``"task": "baseline"`` in the request this repo
 
     {"event": "baseline", "baseline": {...}}   what the review needs from that manifest
 
+A DAG scan runs the same way, for what it costs to read the manifest. With ``"task": "airflow"`` it
+writes the scan to ``output``, which can be large, and reports
+
+    {"event": "airflow", "path": ...}
+
 stdout carries nothing else. Logging goes to stderr, which the server forwards.
 """
 
@@ -25,8 +30,10 @@ import logging
 import os
 import sys
 import traceback
+from pathlib import Path
 from typing import Any, TextIO
 
+from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.baseline import load_baseline_manifest
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, IndexResult, index_project
 from lineagepilot_core.snapshot import SnapshotCache
@@ -78,10 +85,22 @@ def describe(result: IndexResult) -> dict[str, Any]:
     }
 
 
+def _write_scan(request: dict[str, Any]) -> None:
+    scan = scan_airflow(
+        request["projectDir"], request["workspace"], request["dagFolders"], request.get("manifest")
+    )
+    output = Path(request["output"])
+    output.parent.mkdir(parents=True, exist_ok=True)
+    temporary = output.with_suffix(".tmp")
+    temporary.write_text(json.dumps(scan), encoding="utf-8")
+    os.replace(temporary, output)
+
+
 def main(request: dict[str, Any], out: TextIO | None = None) -> int:
     """Index one project. ``request`` keys: projectDir, cacheDir, manifest, catalog,
     columnLineage, maxArtifactBytes. Or, with ``task`` "baseline", read a baseline manifest:
-    manifest, nodes, files, maxArtifactBytes."""
+    manifest, nodes, files, maxArtifactBytes. Or, with ``task`` "airflow", read the DAG files:
+    projectDir, workspace, dagFolders, manifest, output."""
     out = out or sys.stdout
     logging.basicConfig(
         stream=sys.stderr, level=logging.INFO, format="%(levelname)s %(name)s: %(message)s"
@@ -104,6 +123,16 @@ def main(request: dict[str, Any], out: TextIO | None = None) -> int:
             emit({"event": "failed", "message": f"{type(e).__name__}: {e}"})
             return 1
         emit({"event": "baseline", "baseline": baseline.to_json()})
+        return 0
+
+    if request.get("task") == "airflow":
+        try:
+            _write_scan(request)
+        except Exception as e:
+            traceback.print_exc(file=sys.stderr)
+            emit({"event": "failed", "message": f"{type(e).__name__}: {e}"})
+            return 1
+        emit({"event": "airflow", "path": request["output"]})
         return 0
 
     try:

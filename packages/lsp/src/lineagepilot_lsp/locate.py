@@ -10,11 +10,13 @@ is size-capped, and a file that does not parse simply has no positions.
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
 import yaml
+from lineagepilot_core.airflow.link import AIRFLOW_KINDS
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import Node, NodeKind
 
@@ -148,7 +150,8 @@ class Locator:
         root = self.project.root
         if node.package and self.project.name and node.package != self.project.name:
             root = root / self.project.packages_path / node.package
-        path = root / relative
+        # A DAG file may be outside the project: its path is relative, with .. in it
+        path = Path(os.path.normpath(root / relative))
         return path if path.is_file() else None
 
     def entries(self, path: Path) -> YamlEntries:
@@ -172,6 +175,9 @@ class Locator:
         path = self.file(node, node.file_path)
         if path is None:
             return None
+        if node.kind in AIRFLOW_KINDS:
+            line, column = node.properties.get("line", 0), node.properties.get("col", 0)
+            return path, Span(line, column, line, column)
         if path.suffix in (".yml", ".yaml"):
             key = entry_key(node)
             return path, self.entries(path).get(*key) if key else None

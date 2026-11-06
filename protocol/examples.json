@@ -34,11 +34,22 @@
         "files": [{ "path": "models/orders.sql", "status": "modified", "role": "definition" }],
         "columns": { "state": "known", "baseline": "catalog", "added": [], "removed": ["x"], "typeChanged": [], "stale": false, "reason": null } }],
       "impacted": [{ "id": "model.shop.customers", "kind": "model", "name": "customers", "owner": "team", "file": "models/customers.sql", "depth": 1, "reach": "column", "confidence": "inferred", "origins": ["compiled_sql"], "columns": ["y"], "reason": null,
-        "via": [{ "source": "model.shop.orders#x", "target": "model.shop.customers#y", "confidence": "inferred", "origins": ["compiled_sql"] }], "viaMore": 0 }],
+        "via": [{ "source": "model.shop.orders#x", "target": "model.shop.customers#y", "confidence": "inferred", "origins": ["compiled_sql"] }], "viaMore": 0, "airflow": null },
+        { "id": "airflow:daily.marts", "kind": "airflow_task", "name": "marts", "owner": "platform", "file": "../dags/daily.py", "depth": 1, "reach": "model", "confidence": "heuristic", "origins": ["dag_static"], "columns": [], "reason": null,
+          "via": [{ "source": "model.shop.orders", "target": "airflow:daily.marts", "confidence": "heuristic", "origins": ["dag_static"] }], "viaMore": 0,
+          "airflow": { "dag": "daily", "operator": "DbtTaskGroup", "how": ["dbt, through Cosmos"], "runs": ["orders"], "runsMore": 0, "tasks": ["marts.orders.run"], "tasksMore": 0, "after": [], "notes": ["environment variable assumed unset"] } }],
       "owners": [{ "owner": "team", "nodes": ["model.shop.customers"] }, { "owner": null, "nodes": [] }],
-      "airflow": { "analysed": false }, "unknowns": [], "otherFiles": [{ "path": "README.md", "status": "added" }], "outsideProject": 0, "notes": [], "markdown": "## Review",
+      "airflow": { "analysed": false, "reason": "not read", "dagFiles": 0, "dags": 0, "tasks": 0, "links": 0, "unknowns": 0, "opaqueTasks": 0, "folders": [], "problems": [] }, "unknowns": [], "otherFiles": [{ "path": "README.md", "status": "added" }], "outsideProject": 0, "notes": [], "markdown": "## Review",
       "locations": { "model.shop.customers": { "uri": "file:///w/models/customers.sql", "range": null } }
-    } }
+    } },
+    { "type": "AirflowParams", "value": { "nodes": null } },
+    { "type": "AirflowParams", "value": { "nodes": ["model.shop.orders"] } },
+    { "type": "AirflowResult", "value": { "stage": "done", "summary": { "analysed": false, "reason": "not read", "dagFiles": 0, "dags": 0, "tasks": 0, "links": 0, "unknowns": 0, "opaqueTasks": 0, "folders": [], "problems": [] }, "dags": [
+      { "id": "airflow:daily", "name": "daily", "owner": "platform", "location": { "uri": "file:///w/dags/daily.py", "range": null }, "tasks": [
+        { "id": "airflow:daily.marts", "kind": "airflow_task", "name": "marts", "operator": "DbtTaskGroup", "owner": null, "how": ["dbt run"], "nodes": ["model.shop.orders"], "derivedTasks": ["marts.orders.run"], "confidence": "heuristic", "origins": ["dag_static"], "notes": [], "location": null }
+      ] }
+    ], "unknowns": [{ "subject": "airflow:backfill", "reference": "loop or factory", "reason": "dags/b.py:3: created in a loop" }] } },
+    { "type": "AirflowStatus", "value": { "stage": "scanning", "generation": 2, "summary": { "analysed": false, "reason": "not read", "dagFiles": 0, "dags": 0, "tasks": 0, "links": 0, "unknowns": 0, "opaqueTasks": 0, "folders": [], "problems": [] } } }
   ],
   "invalid": [
     { "type": "EmptyParams", "value": null, "why": "a request must carry a params object (S1 finding 4)" },
@@ -70,6 +81,9 @@
     { "type": "ReviewParams", "value": { "changedFiles": [{ "uri": "file:///w/a.sql", "status": "modified" }], "baseline": { "ref": null, "commit": null, "manifestPath": null } }, "why": "previousUri is required, even if null" },
     { "type": "ColumnDiff", "value": { "state": "maybe", "baseline": "catalog", "added": [], "removed": [], "typeChanged": [], "stale": false, "reason": null }, "why": "not a state" },
     { "type": "ColumnDiff", "value": { "state": "known", "baseline": "git", "added": [], "removed": [], "typeChanged": [], "stale": false, "reason": null }, "why": "not a baseline" },
-    { "type": "ReviewAirflow", "value": {}, "why": "whether Airflow was analysed must be said" }
+    { "type": "AirflowSummary", "value": {}, "why": "whether Airflow was analysed must be said" },
+    { "type": "AirflowParams", "value": {}, "why": "nodes is required, even if null" },
+    { "type": "AirflowParams", "value": { "nodes": "model.shop.orders" }, "why": "nodes is a list" },
+    { "type": "AirflowStatus", "value": { "stage": "later", "generation": 1, "summary": {} }, "why": "not a stage" }
   ]
 }
