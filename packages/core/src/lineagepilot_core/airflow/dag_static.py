@@ -176,6 +176,9 @@ SQL_TABLE_OPS = {"SQLColumnCheckOperator", "SQLTableCheckOperator", "SQLInterval
 _JINJA_EXPRESSION = re.compile(r"\{\{.*?\}\}", re.S)
 _JINJA_BLOCK = re.compile(r"\{%.*?%\}", re.S)
 _JINJA_PLACEHOLDER = "__lp_jinja__"
+# dbt as a word or part of a name, as in `dbt_run` or `acme/dbt-duckdb`, but not in `xdbtx`
+_DBT_NAME = re.compile(r"(?<![a-z])dbt(?![a-z])", re.I)
+_CREATES_TASKS = re.compile(r"dag|task|operator|group", re.I)
 _FORMAT_WIDTH = re.compile(r"%[-#0 +]*(\d+)?(?:\.(\d+))?")
 POD_OPS = {"KubernetesPodOperator", "GKEStartPodOperator", "EksPodOperator", "AKSPodOperator"}
 DOCKER_OPS = {"DockerOperator", "DockerSwarmOperator"}
@@ -1522,6 +1525,7 @@ class FileScanner:
         if not ctx.emit or fname.startswith(KNOWN_LIBRARY_PREFIXES):
             return
         dbt_kw = [k for k in kwargs if "dbt" in k.lower()]
+        last = fname.rsplit(".", 1)[-1]
         info = None
         if local and local in self.imports:
             mod, attr, level = self.imports[local]
@@ -1552,6 +1556,32 @@ class FileScanner:
                 category=UnknownCategory.WRAPPER,
                 mentions_dbt=True,
             )
+        elif _DBT_NAME.search(last) and _CREATES_TASKS.search(last):
+            self._unresolved(
+                node.lineno,
+                node.col_offset,
+                f"{fname}(...) looks like it creates dbt tasks; what it creates cannot be read",
+                ctx,
+                dag_id=ctx.dag.dag_id if ctx.dag else None,
+                category=UnknownCategory.WRAPPER,
+                mentions_dbt=True,
+            )
+
+    def _no_dbt_command(self, handle: TaskHandle, node: ast.AST, ctx: Ctx, seen_in: str) -> None:
+        """A task that mentions dbt in which no dbt command could be read: never nothing."""
+        if not _DBT_NAME.search(seen_in):
+            return
+        self._unresolved(
+            node.lineno,  # type: ignore[attr-defined]
+            node.col_offset,  # type: ignore[attr-defined]
+            "this task mentions dbt, and no dbt command could be read in it; it may be in the "
+            "image, or in a form the scanner does not know",
+            ctx,
+            dag_id=handle.dag_id,
+            task_id=handle.task_id,
+            category=UnknownCategory.OTHER_OPERATOR,
+            mentions_dbt=True,
+        )
 
     def _call_function(
         self,
@@ -2224,6 +2254,8 @@ class FileScanner:
     ) -> None:
         if not ctx.emit:
             return
+        if cmd is None and kind == "docker":  # what it runs is in the image
+            self._no_dbt_command(handle, node, ctx, self._segment(node))
         commands: list[Val] = []
         if isinstance(cmd, ListV) and mapped and ("bash_command" in mapped or "command" in mapped):
             commands = list(cmd.items)
@@ -2272,6 +2304,8 @@ class FileScanner:
                         category=UnknownCategory.SHELL_SCRIPT,
                         mentions_dbt="dbt" in (text + self._segment(node)).lower(),
                     )
+                elif not text.strip().startswith(("echo", "#")):
+                    self._no_dbt_command(handle, node, ctx, text)
                 continue
             for i, inv in enumerate(invs):
                 self._link_from_invocation(
@@ -2323,7 +2357,8 @@ class FileScanner:
                 return
             parts.extend(lst)
             conf_vals.append(v)
-        if not parts:
+        if not parts:  # what it runs is in the image
+            self._no_dbt_command(handle, node, ctx, self._segment(node))
             return
         if cmds is None:
             parts_note = ("no cmds: assumed the image entrypoint is dbt-compatible with arguments",)
@@ -2336,6 +2371,8 @@ class FileScanner:
                 "no cmds and arguments start with a dbt sub-command: "
                 "assumed the image entrypoint is dbt",
             )
+        if not invs:
+            self._no_dbt_command(handle, node, ctx, self._segment(node) + " ".join(parts))
         conf, notes = collect_meta(*conf_vals)
         for i, inv in enumerate(invs):
             self._link_from_invocation(

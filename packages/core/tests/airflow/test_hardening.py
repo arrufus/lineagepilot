@@ -539,3 +539,102 @@ class TestShellForms:
         )
         assert find_link(result, "d", "t")["resolved_models"] == ["model.one.one"]
         assert find_link(result, "d", "u")["resolved_models"] == ["model.two.two"]
+
+
+class TestSilenceIsNeverTheAnswer:
+    """What the held-out corpus found: tasks that run dbt, and left no record at all. The scanner
+    may not be able to read them, but it must say so (the plan's definition of done)."""
+
+    POD = "from airflow.providers.cncf.kubernetes.operators.pod import KubernetesPodOperator\n"
+    DOCKER = "from airflow.providers.docker.operators.docker import DockerOperator\n"
+
+    @pytest.fixture
+    def project(self, tmp_path):
+        (tmp_path / "dbt_project.yml").write_text("name: p\n")
+        (tmp_path / "models").mkdir()
+        (tmp_path / "models" / "a.sql").write_text("select 1")
+        return tmp_path
+
+    def unknowns(self, project, body):
+        result = scan_one(project, body)
+        return [u for u in result["unresolved"] if u["category"] == "other_operator"], result
+
+    @pytest.mark.parametrize(
+        "call",
+        [
+            'KubernetesPodOperator(task_id="t", image="acme/dbt-duckdb", name="x")',
+            'KubernetesPodOperator(task_id="dbt_run", image="x", cmds=["run"])',
+            'KubernetesPodOperator(task_id="t", image="x", name="run-dbt", arguments=["go"])',
+        ],
+    )
+    def test_a_pod_whose_command_is_in_its_image(self, project, call):
+        found, result = self.unknowns(project, f"{self.POD}with DAG('d') as d:\n    {call}\n")
+        assert found and found[0]["task_id"] in ("t", "dbt_run") and found[0]["mentions_dbt"]
+        assert result["links"] == []
+
+    def test_a_shell_flag_the_parser_does_not_know_leaves_a_record(self, project):
+        found, _ = self.unknowns(
+            project,
+            f"{self.POD}with DAG('d') as d:\n"
+            '    KubernetesPodOperator(task_id="t", image="x", cmds=["/bin/bash", "-cx"],\n'
+            '                          arguments=["dbt run --select a"])\n',
+        )
+        assert found
+
+    def test_a_docker_task_whose_command_is_in_its_image(self, project):
+        found, _ = self.unknowns(
+            project,
+            f"{self.DOCKER}with DAG('d') as d:\n"
+            '    DockerOperator(task_id="t", image="acme/dbt:1")\n',
+        )
+        assert found
+
+    def test_a_shell_command_that_mentions_dbt_in_a_form_not_known(self, project):
+        found, _ = self.unknowns(
+            project,
+            """
+            with DAG("d") as d:
+                BashOperator(task_id="t", bash_command="python -m run_dbt --all")
+            """,
+        )
+        assert found
+
+    def test_a_factory_from_a_library(self, project):
+        result = scan_one(
+            project,
+            """
+            from some_library import compile_dbt_dags
+            dags = compile_dbt_dags(manifest_path="/x/manifest.json")
+            """,
+        )
+        assert [u["category"] for u in result["unresolved"]] == ["wrapper"]
+
+    @pytest.mark.parametrize(
+        "line",
+        [
+            'BashOperator(task_id="t", bash_command="echo dbt is done")',
+            'BashOperator(task_id="t", bash_command="python load.py")',
+            'BashOperator(task_id="dbt_ready", bash_command="python load.py")',
+        ],
+    )
+    def test_a_task_that_only_looks_near_dbt_is_not_flagged(self, project, line):
+        found, _ = self.unknowns(project, f"with DAG('d') as d:\n    {line}\n")
+        assert found == []
+
+    def test_a_pod_with_nothing_to_do_with_dbt_is_not_flagged(self, project):
+        found, _ = self.unknowns(
+            project,
+            f"{self.POD}with DAG('d') as d:\n"
+            '    KubernetesPodOperator(task_id="t", image="x", cmds=["python", "-c", "print(1)"])\n',
+        )
+        assert found == []
+
+    def test_a_config_helper_with_dbt_in_its_name_is_not_flagged(self, project):
+        result = scan_one(
+            project,
+            """
+            from some_library import get_dbt_profile
+            profile = get_dbt_profile("x")
+            """,
+        )
+        assert result["unresolved"] == []
