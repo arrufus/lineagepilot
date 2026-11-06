@@ -245,7 +245,7 @@ class TestSemanticsFollowTheManifestsDbtVersion:
     """dbt 1.10 made a bare wildcard also match a node's leaf name. These answers are real dbt's,
     from scripts/selector_conformance.py, which CI runs on both sides of that change."""
 
-    @pytest.fixture(scope="class")
+    @pytest.fixture
     def older(self):
         path = FIXTURES / "dbt" / "shop_dbt_ls_1.9.json"
         return json.loads(path.read_text(encoding="utf-8"))
