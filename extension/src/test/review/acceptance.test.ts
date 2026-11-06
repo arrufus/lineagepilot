@@ -178,6 +178,64 @@ suite('acceptance: rename a mart column', () => {
     assert.match(text, /### Unknowns \(2\)/);
   });
 
+  // Through VS Code's own file watchers, not a simulated event: the demo script relies on these
+  test('a changed DAG file is read again, and the view and the review follow', async () => {
+    const server = await readyServer();
+    const dag = path.join(root(), 'dags', 'operations.py');
+    const before = fs.readFileSync(dag, 'utf8');
+    const generation = server.status.airflow.generation;
+    fs.writeFileSync(dag, before.replace('--select order_counts', '--select nothing_called_this'));
+    try {
+      await until('the DAG file to be read again', 30_000, () =>
+        server.status.airflow.generation > generation && server.status.airflow.stage === 'done');
+      const edited = await until('the review to follow', 30_000, async () => {
+        await panel.run();
+        return panel.latest?.unknowns.some((u) => u.reference === 'selects nothing') ? panel.latest : undefined;
+      });
+      assert.match(edited.unknowns.find((u) => u.reference === 'selects nothing')?.reason ?? '', /nothing_called_this matches no node/);
+      assert.ok(edited.otherFiles.some((f) => f.path === 'dags/operations.py'));
+    } finally {
+      fs.writeFileSync(dag, before);
+    }
+    await until('the DAG file to be restored', 30_000, async () => {
+      await panel.run();
+      return panel.latest?.unknowns.some((u) => u.reference === 'selects nothing') ? undefined : true;
+    });
+  });
+
+  test('the annotation file answers an unknown, and the review follows', async () => {
+    const server = await readyServer();
+    const file = path.join(root(), '.lineagepilot', 'airflow.yml');
+    const generation = server.status.airflow.generation;
+    fs.writeFileSync(file, [
+      'acknowledged:',
+      '  - file: dags/backfill.py',
+      'pipelines:',
+      '  - pipeline_id: backfill',
+      '    owner: data-platform',
+      '    tasks:',
+      '      - task_id: backfill_all',
+      `        consumes: [${S}.orders]`,
+      '',
+    ].join('\n'));
+    try {
+      await until('the annotation file to be read', 30_000, () =>
+        server.status.airflow.generation > generation && server.status.airflow.stage === 'done');
+      const answered = await until('the review to follow', 30_000, async () => {
+        await panel.run();
+        return panel.latest?.impacted.some((n) => n.id === 'airflow:backfill.backfill_all') ? panel.latest : undefined;
+      });
+      assert.equal(answered.unknowns.some((u) => u.subject === 'airflow:backfill'), false);
+      assert.deepEqual(answered.impacted.find((n) => n.id === 'airflow:backfill.backfill_all')?.origins, ['annotation']);
+    } finally {
+      fs.rmSync(file, { force: true });
+    }
+    await until('the annotation file to be gone', 30_000, async () => {
+      await panel.run();
+      return panel.latest?.unknowns.some((u) => u.subject === 'airflow:backfill') ? true : undefined;
+    });
+  });
+
   test('nothing planted in the workspace ran', () => {
     assert.equal(ran('planted-python-ran'), undefined);
     assert.equal(ran('planted-dbt-ran'), undefined);

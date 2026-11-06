@@ -63,7 +63,9 @@
 /* A name keeps its column wide enough to stay whole, unless it is too long to fit at all */
 .lp-impact th .lp-identifier { overflow-wrap: break-word; }
 .lp-impact td:nth-child(2) { width: 38%; }
-.lp-impact-airflow td:nth-child(3) { width: 26%; }
+/* A DAG's name keeps its column wide enough to stay whole, as a node's name does above */
+.lp-impact-airflow td:first-child.lp-identifier { overflow-wrap: break-word; }
+.lp-impact-airflow td:nth-child(3) { width: 24%; }
 .lp-impact-airflow td:nth-child(5) { width: 26%; overflow-wrap: anywhere; }
 .lp-reach-column th .lp-identifier { font-weight: 600; }
 .lp-reach-model td:nth-child(2) { color: var(--lp-muted); }

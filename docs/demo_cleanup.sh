@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Removes what docs/demo.md makes: the demo folder (the workspace copies, the VS Code profile and
+# Removes what docs/demo.md and docs/demo_phase5.md make: the demo folder (the workspace copies, the VS Code profile and
 # extensions, and the snapshot caches, rule packs and exports inside them), the build from Prepare
 # step 1, and the folders that the tests in Prepare step 4 leave in $TMPDIR. Without --yes it only
 # lists what it would remove.
@@ -9,7 +9,7 @@
 #   --uninstall-python  also uninstall uv's Python 3.13, which Prepare installs. Other projects may
 #                       use it, and so do this repository's tests (LP_PYTHONS defaults to 3.13)
 #
-#   DEMO   the demo folder (default: ~/lp-demo). docs/demo.md sets it without exporting it.
+#   DEMO   the demo folder (default: ~/lp-demo). The scripts set it without exporting it.
 set -euo pipefail
 
 REPO=$(cd "$(dirname "$0")/.." && pwd)
@@ -62,7 +62,7 @@ if [ -d "$DEMO" ]; then
   for entry in "$DEMO"/* "$DEMO"/.[!.]*; do
     [ -e "$entry" ] || continue
     case ${entry##*/} in
-      jaffle-shop | untrusted-clone | impact-shop | profile | extensions | PLANTED-RAN.txt | jaffle_shop-* | .DS_Store) ;;
+      jaffle-shop | untrusted-clone | impact-shop | airflow-shop | airflow-clone | profile | extensions | PLANTED-RAN.txt | PLANTED-DAG-RAN.txt | jaffle_shop-* | .DS_Store) ;;
       *) die "$(show "$entry") is not something the demo makes; move it out of $(show "$DEMO") first" ;;
     esac
   done

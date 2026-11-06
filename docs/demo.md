@@ -2,7 +2,7 @@
 
 How to demonstrate LineagePilot from a checkout of this repository: what to prepare, what to click, what the audience should see, and what to say.
 
-**What the build contains.** Phases 0–5 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), the lineage graph (Phase 3), the Change Impact Review (Phase 4) and Airflow linkage (Phase 5). Part 4 below covers the graph, Part 6 the review and Part 7 Airflow; skip them to show only what Phase 2 delivered.
+**What the build contains.** Phases 0–5 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), the lineage graph (Phase 3), the Change Impact Review (Phase 4) and Airflow linkage (Phase 5). Part 4 below covers the graph and Part 6 the review; skip them to show only what Phase 2 delivered. Airflow linkage has its own script, [demo_phase5.md](demo_phase5.md).
 
 **The project you demo on** is `fixtures/jaffle-shop`: dbt Labs' sample project with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 13 models, 6 sources and 6 seeds, column lineage for every model, and no exposures. dbt does not need to be installed. Part 6 uses `fixtures/impact-shop`, a small project of our own with an exposure, owners and a model that cannot be parsed, and the artifacts real dbt wrote before and after a column rename.
 
@@ -251,7 +251,7 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
    > **Say:** PII findings are *indicators*, from tags, column names and lineage, never claims of verified exposure. A check we can't make shows as "Not checked", never as a pass. Here every check could be made.
 
-5. **Lineage view.** Click **Follow the Active Editor** (the pin icon in the view's title) to unpin it, then switch between files: the view follows the editor. Expand **Upstream** and **Downstream** one level at a time. Each node is labelled with its kind, its link's confidence and a PII flag, and clicking it opens its file. The **Airflow** view below it says what it found; Part 7 shows it with DAG files to read.
+5. **Lineage view.** Click **Follow the Active Editor** (the pin icon in the view's title) to unpin it, then switch between files: the view follows the editor. Expand **Upstream** and **Downstream** one level at a time. Each node is labelled with its kind, its link's confidence and a PII flag, and clicking it opens its file. The **Airflow** view below it says there are no DAG files to read here; [demo_phase5.md](demo_phase5.md) shows it with some.
 
 ### Part 3: rule packs, staleness and exports (Phase 2)
 
@@ -363,7 +363,9 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 6. **Unknowns.** `broken_report` is there because its SQL cannot be parsed. It is also in the models table, at model level.
 
-   > **Say:** A model we can't read is never counted as safe. The same goes for a DAG we can't read: Part 7 shows that.
+   > **Say:** A model we can't read is never counted as safe. The same goes for a DAG we can't read.
+
+   This project has DAG files, so the review also lists Airflow tasks and one unknown task. [demo_phase5.md](demo_phase5.md) walks through them.
 
 7. **Make the model stale.** Add a comment to `models/marts/orders.sql` and save. Within a few seconds the columns turn unknown and every row becomes model level, with **Run dbt compile** offered. Undo the edit and save: the review recovers, because the manifest's source text matches the file again.
 
@@ -377,31 +379,9 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 ---
 
-### Part 7: the Airflow tasks (Phase 5)
+### Airflow linkage (Phase 5)
 
-Run this on the same `impact-shop` workspace as Part 6, with the rename still in place. Its `dags` folder holds a Cosmos task group over the mart, a shell task, a SQL task and a task created in a loop.
-
-1. **The review.** Run **Review Changes** again, or look at the panel from Part 6. Under **Airflow tasks**: `marts` in `daily_marts`, owned by `data-platform`, with the tasks Cosmos should render for each model; `notify_finance`, which runs after it; `refresh_counts` and `export_orders` in `operations`, labelled `heuristic`, each saying why.
-   > **Say:** Renaming a column in a dbt model now tells you which Airflow tasks run that model, which run after them, and who owns them. No Airflow connection: we read the DAG files as syntax, and never import or run them.
-2. **Unknowns.** Under **Unknowns**: `backfill`, `loop or factory`, at `dags/backfill.py:12`.
-   > **Say:** That task is built in a loop, so which model it runs is only known when the file runs. We don't guess. We say so, and every review lists it, because it could run anything.
-3. **Open a task.** Click `marts` in the table: `dags/daily_marts.py` opens at the `DbtTaskGroup` call.
-4. **The Airflow view.** Open `models/marts/order_counts.sql`. The **Airflow** view lists the two DAGs and the tasks that run it. Hover over a task for its operator, its owner and why it is as sure as it is. Expand **Could not be read** for the unknown.
-5. **CodeLens.** On `models/marts/orders.sql`, the CodeLens now counts Airflow tasks too.
-6. **Answer an unknown.** Create `.lineagepilot/airflow.yml` in the project:
-   ```yaml
-   acknowledged:
-     - file: dags/backfill.py
-   pipelines:
-     - pipeline_id: backfill
-       owner: data-platform
-       tasks:
-         - task_id: backfill_all
-           consumes: [model.impact_shop.orders]
-   ```
-   Within a couple of seconds the review updates: the unknown has gone, and `backfill_all` is listed as `declared`.
-   > **Say:** Whatever the scanner can't see, the team can declare. That's also how you tell it where a path in a container really is.
-7. **In CI.** `lineagepilot review` prints the same Markdown, tasks included, and `lineagepilot airflow` shows the scan by itself.
+It has its own script, with its own workspaces: [demo_phase5.md](demo_phase5.md).
 
 ## Reset between runs
 
@@ -428,7 +408,7 @@ Repeat preparation steps 2 and 3; the build from step 1 can be reused. Deleting 
 
 - **What about my pull request?** That is Part 6: **Copy as Markdown**, or `lineagepilot review` for the same text. A GitHub Action that posts it is on the backlog.
 - **What about a changed macro?** The review lists it under Unknowns: which models call it is not worked out yet (LP-a04).
-- **And Airflow?** Cosmos `DbtDag` and `DbtTaskGroup`, dbt commands in `BashOperator`, `KubernetesPodOperator` and `DockerOperator`, and SQL operators are linked to models from the DAG files' syntax. DAG files are parsed, never imported or run. `corpus/README.md` has the miss rate on repositories the scanner had never seen.
+- **And Airflow?** Cosmos `DbtDag` and `DbtTaskGroup`, dbt commands in `BashOperator`, `KubernetesPodOperator` and `DockerOperator`, and SQL operators are linked to models from the DAG files' syntax. DAG files are parsed, never imported or run. [demo_phase5.md](demo_phase5.md) shows it, and `corpus/README.md` has the miss rate on repositories the scanner had never seen: 84.0%.
 - **How big can a project be?** On a synthetic 5,000-model project: a model-level cold index takes 2.5 s, a warm start 0.5 s, and an impact query 3–5 ms ([core README](../packages/core/README.md#performance-budgets)). The server is still 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt).
 - **Can I install it?** Not yet from a marketplace: publishing waits for the licence decision (D-5). The VSIX from step 1 installs with `code --install-extension`.
 - **Before showing this outside the team:** the jaffle-shop fixture has no licence, and LP-0tf replaces it before the repository goes public.
