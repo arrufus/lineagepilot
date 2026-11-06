@@ -253,6 +253,7 @@ class TestSemanticsFollowTheManifestsDbtVersion:
     def manifest_of(self, manifest, version):
         pinned = copy.copy(manifest)
         pinned.metadata = {**manifest.metadata, "dbt_version": version}
+        pinned._engine = None  # its selector engine knows which version it is for
         return pinned
 
     def test_the_answers_differ_so_this_tests_something(self, older, dbt_ls_answers):
@@ -292,3 +293,50 @@ class TestSemanticsFollowTheManifestsDbtVersion:
     )
     def test_the_version_gate(self, version, expected):
         assert leaf_wildcards(version) is expected
+
+
+class TestWhatIsWorkedOutOnce:
+    NAMES = (
+        "stg_customers",
+        "fct_orders",
+        "fct_revenue",
+        "fct_revenue.v1",
+        "fct_revenue.v2",
+        "fct_revenue_v1",
+        "fct_revenue_v2",
+        "shop",
+        "marts",
+        "staging",
+        "marts.finance",
+        "shop.staging",
+        "shop.staging.stg_orders",
+        "shop.marts.finance.fct_orders",
+        "finance.fct_orders",
+        "nothing_called_this",
+        "shop.nothing",
+    )
+
+    @pytest.mark.parametrize("name", NAMES)
+    def test_the_names_index_says_what_the_definition_says(self, shop_manifest, name):
+        by_definition = {
+            n.unique_id
+            for n in shop_manifest.nodes.values()
+            if n.resource_type != "source"
+            and n.fqn
+            and (
+                is_selected_node(n.fqn, name, n.version is not None)
+                or is_selected_node(n.fqn[1:], name, n.version is not None)
+            )
+        }
+        assert SelectorEngine(shop_manifest)._select_by(parse_spec(name)) == by_definition
+
+    def test_a_manifest_has_one_engine(self, shop_manifest):
+        first = shop_manifest.selector_engine(SelectorEngine)
+        assert shop_manifest.selector_engine(SelectorEngine) is first
+        select(shop_manifest, ["stg_customers"])
+        assert ("fqn", (), "stg_customers") in first._methods
+
+    def test_what_is_kept_cannot_be_changed_by_a_later_selection(self, shop_manifest):
+        first = select(shop_manifest, ["stg_customers+"]).ids
+        select(shop_manifest, ["stg_customers"], ["stg_customers"])
+        assert select(shop_manifest, ["stg_customers+"]).ids == first

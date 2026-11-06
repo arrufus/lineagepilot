@@ -54,6 +54,8 @@ class Manifest:
     notes: list[str] = field(default_factory=list)
     children: dict[str, set[str]] = field(default_factory=dict)
     parents: dict[str, set[str]] = field(default_factory=dict)
+    _engine: Any = None
+    _tested: set[str] | None = None
 
     def __post_init__(self) -> None:
         self.rebuild_graph()
@@ -66,6 +68,24 @@ class Manifest:
                 if parent in self.nodes:
                     self.parents[uid].add(parent)
                     self.children[parent].add(uid)
+
+    def selector_engine(self, factory: Any) -> Any:
+        """One selector engine per manifest, which keeps what it has worked out."""
+        if self._engine is None:
+            self._engine = factory(self)
+        return self._engine
+
+    @property
+    def tested(self) -> set[str]:
+        """The nodes that at least one test depends on."""
+        if self._tested is None:
+            self._tested = {
+                parent
+                for node in self.nodes.values()
+                if node.resource_type == "test"
+                for parent in node.depends_on
+            }
+        return self._tested
 
     def of_type(self, *types: str) -> list[Node]:
         return [n for n in self.nodes.values() if n.resource_type in types]

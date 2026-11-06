@@ -5,7 +5,6 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import { AirflowMessage } from '../../views/airflowTree';
 import type { GroupItem, NodeItem } from '../../views/lineageTree';
 import { api, codeOf, J, position, readyServer, root, until, uri } from './helpers';
 
@@ -28,11 +27,11 @@ suite('LineagePilot features', () => {
     const server = await readyServer();
     await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
     await airflowTree.showFile(undefined);
-    const [item] = airflowTree.items;
-    assert.ok(item instanceof AirflowMessage);
+    // The view may be refreshing itself as well, so wait for what it settles on
+    const [item] = await until('the message for no file', 30_000, () => (airflowTree.items[0]?.type === 'message' ? airflowTree.items : undefined));
     assert.equal(airflowTree.getTreeItem(item).label, 'No task in the DAG files read runs dbt.');
     await airflowTree.showFile(uri('models', 'marts', 'orders.sql'));
-    assert.equal(airflowTree.getTreeItem(airflowTree.items[0]).label, 'No task in the DAG files read runs this.');
+    await until('the message for a model', 30_000, () => airflowTree.getTreeItem(airflowTree.items[0]).label === 'No task in the DAG files read runs this.');
     assert.deepEqual(airflowTree.getChildren(airflowTree.items[0]), []);
   });
 

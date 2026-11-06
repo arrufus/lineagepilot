@@ -192,7 +192,12 @@ def test_project_index_and_drift(tmp_path, shop_manifest):
     idx = ProjectIndex(str(FIXTURES))
     assert {Path(p).name for p in idx.projects} == {"shop", "mini"}
     m = idx.match("/usr/local/airflow/dbt/shop")
-    assert m.path and Path(m.path).as_posix().endswith("dbt/shop") and m.conf == "heuristic" and "last 2" in m.note
+    assert (
+        m.path
+        and Path(m.path).as_posix().endswith("dbt/shop")
+        and m.conf == "heuristic"
+        and "last 2" in m.note
+    )
     assert idx.match("/nowhere/at/all").path is None
     assert idx.only_project() is None
     (tmp_path / "a" / "x").mkdir(parents=True)

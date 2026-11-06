@@ -334,11 +334,18 @@ class LineagePilotServer(LanguageServer):
         assert self.airflow is not None
         key = _manifest_key(graph)
         if self.airflow.current_for(key) and self.airflow.scan is not None:
-            link_airflow(graph, self.airflow.scan)
+            self.apply_scan(graph)
             return
         mark_not_analysed(graph, "the DAG files are still being read")
         if not self.airflow.scanning_for(key):
             self.airflow.start(key)
+
+    def apply_scan(self, graph: MetadataGraph) -> None:
+        """Link the scan, and let it go unless the full graph of this manifest is still to come."""
+        assert self.airflow is not None and self.airflow.scan is not None and self.index is not None
+        link_airflow(graph, self.airflow.scan)
+        if self.index.columns is not ColumnStage.COMPUTING and not self.index.indexing:
+            self.airflow.release()
 
     def airflow_changed(self) -> None:
         """A scan finished, or failed."""
@@ -350,7 +357,7 @@ class LineagePilotServer(LanguageServer):
                 reason = f"the DAG files could not be read: {self.airflow.message}"
                 mark_not_analysed(graph, reason)
             elif self.airflow.current_for(_manifest_key(graph)) and self.airflow.scan is not None:
-                link_airflow(graph, self.airflow.scan)
+                self.apply_scan(graph)
             else:  # the manifest moved on while this scan ran
                 self.airflow.start(_manifest_key(graph))
             context.forget_derived()

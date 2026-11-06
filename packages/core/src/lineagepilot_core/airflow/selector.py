@@ -253,10 +253,16 @@ def _norm_rel(p: str) -> str:
 
 
 class SelectorEngine:
+    """Node selection over one manifest. A scan asks it thousands of times, so what it works out
+    is kept: walking every node for each selector took a minute at 5,000 models and 2,000 tasks."""
+
     def __init__(self, manifest: Manifest):
         self.m = manifest
         self._path_candidates: set[str] | None = None
         self._leaf_rule = leaf_wildcards(manifest.dbt_version)
+        self._names: dict[str, set[str]] | None = None
+        self._joined: dict[str, set[str]] = {}
+        self._methods: dict[tuple[str, tuple[str, ...], str], set[str]] = {}
 
     # --- node sets -------------------------------------------------------------------------
     def _non_source(self) -> Iterable[Node]:
@@ -288,9 +294,39 @@ class SelectorEngine:
         return self._path_candidates
 
     # --- methods ---------------------------------------------------------------------------
+    def _fqn_names(self) -> dict[str, set[str]]:
+        """Every name without a wildcard that selects a node: what ``is_selected_node`` accepts
+        for one, computed once. Prefixes of the dotted fqn, the leaf name, and for a versioned
+        node the name before its version."""
+        if self._names is None:
+            self._names = {}
+            for node in self._non_source():
+                for fqn in (node.fqn, node.fqn[1:]):
+                    if not fqn:
+                        continue
+                    if node.version is not None and len(fqn) >= 2:
+                        self._names.setdefault(fqn[-2], set()).add(node.unique_id)
+                        self._joined.setdefault("_".join(fqn[-2:]), set()).add(node.unique_id)
+                    else:
+                        self._names.setdefault(fqn[-1], set()).add(node.unique_id)
+                    flat = [item for segment in fqn for item in segment.split(".")]
+                    for end in range(1, len(flat) + 1):
+                        prefix = ".".join(flat[:end])
+                        self._names.setdefault(prefix, set()).add(node.unique_id)
+        return self._names
+
     def _method(self, c: Criteria) -> set[str]:
+        key = (c.method, tuple(c.args), c.value)
+        if key not in self._methods:
+            self._methods[key] = self._select_by(c)
+        return self._methods[key]
+
+    def _select_by(self, c: Criteria) -> set[str]:
         v = c.value
         if c.method == "fqn":
+            if not any(w in v for w in WILDCARDS):
+                found = set(self._fqn_names().get(v, ()))
+                return found | self._joined.get("_".join(v.split(".")[-2:]), set())
             return {
                 n.unique_id
                 for n in self._non_source()
@@ -545,7 +581,7 @@ def select(
     include_external: bool = False,
 ) -> Selection:
     """Evaluate a dbt selection. Returns ``Selection(ids=None, reason=...)`` when unsupported."""
-    eng = SelectorEngine(manifest)
+    eng = manifest.selector_engine(SelectorEngine)
     notes: list[str] = []
     try:
         if selector:

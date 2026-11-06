@@ -64,6 +64,12 @@ class AirflowScanner:
     def scanning_for(self, key: str | None) -> bool:
         return self.stage is AirflowStage.SCANNING and self.manifest_key == key
 
+    def release(self) -> None:
+        """Nothing more is coming that needs this scan: it can be 30 MB at 5,000 models, and the
+        server has a memory budget. If the graph is replaced, a new scan takes a second or two."""
+        self.scan = None
+        self.manifest_key = None
+
     def invalidate(self) -> None:
         """The DAG files may have changed: the scan held no longer counts."""
         self.manifest_key = None

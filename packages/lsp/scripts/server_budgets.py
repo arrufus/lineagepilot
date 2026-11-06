@@ -95,11 +95,20 @@ async def run(project: Path, storage: Path) -> dict:
         await asyncio.sleep(0.05)
     model_stage = next((t for t, u in updates if u["state"] == "ready"), None)
     done = next(t for t, u in updates if u["columnLineage"] == "done" and not u["indexing"])
+    while not any(u["airflow"]["stage"] in ("done", "failed") for _, u in updates):
+        await asyncio.sleep(0.05)
+    scanned = next(t for t, u in updates if u["airflow"]["stage"] in ("done", "failed"))
     await asyncio.sleep(2)  # let the diagnostics drain
 
+    airflow = updates[-1][1]["airflow"]
     result = {
         "first_graph_s": round(model_stage, 2) if model_stage else None,
         "column_lineage_done_s": round(done, 2),
+        "airflow_scan_done_s": round(scanned, 2),
+        "airflow_stage": airflow["stage"],
+        "airflow_summary": {
+            k: airflow["summary"][k] for k in ("dagFiles", "dags", "tasks", "links")
+        },
         "from_cache": updates[-1][1]["fromCache"],
         "nodes": updates[-1][1]["counts"]["nodes"],
         "diagnostics": diagnostics["items"],
@@ -186,6 +195,28 @@ def main() -> None:
                     if not path.exists():
                         # A model's own text, so a review finds the manifest has seen the file
                         path.write_text(node.get("raw_code") or "select 1\n")
+        # DAG files, as a project with Airflow has: a Cosmos DAG over every model, and shell tasks
+        dags = project / "dags"
+        dags.mkdir()
+        (dags / "everything.py").write_text(
+            "from cosmos import DbtDag, ProjectConfig\n"
+            "# airflow dag\n"
+            'DbtDag(dag_id="everything", '
+            'project_config=ProjectConfig("/usr/local/airflow/project"))\n'
+        )
+        names = sorted(
+            n["name"] for n in manifest["nodes"].values() if n["resource_type"] == "model"
+        )
+        for number in range(50):
+            (dags / f"shell_{number}.py").write_text(
+                "from airflow import DAG\nfrom airflow.operators.bash import BashOperator\n"
+                f'with DAG("shell_{number}") as dag:\n'
+                + "".join(
+                    f'    BashOperator(task_id="t{i}", bash_command="dbt run --select '
+                    f'{names[(number * 40 + i) % len(names)]}+")\n'
+                    for i in range(40)
+                )
+            )
         storage = Path(tmp) / "storage"
         results = {"python": sys.version.split()[0]}
         results["cold"] = asyncio.run(run(project, storage))

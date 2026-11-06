@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 
 import type { ReviewResult } from '../../protocol';
 import type { ReviewPanel } from '../../reviewPanel';
-import { DagItem, TaskItem, UnknownsItem } from '../../views/airflowTree';
+import type { DagItem, TaskItem } from '../../views/airflowTree';
 import { api, ran, readyServer, root, until } from '../integration/helpers';
 
 const S = 'model.impact_shop';
@@ -141,14 +141,18 @@ suite('acceptance: rename a mart column', () => {
   test('the Airflow view shows the DAGs and tasks of the open model', async () => {
     const { airflowTree } = await api();
     await airflowTree.showFile(vscode.Uri.file(path.join(root(), 'models', 'marts', 'order_counts.sql')));
-    const dags = airflowTree.items.filter((item) => item instanceof DagItem);
+    // Type-only imports and .type: these tests load out/, and the extension runs from its bundle
+    const dags = await until('the DAGs that run the model', 30_000, () => {
+      const found = airflowTree.items.filter((item) => item.type === 'dag');
+      return found.length > 0 ? found : undefined;
+    });
     assert.deepEqual(dags.map((item) => (item as DagItem).dag.name), ['daily_marts', 'operations']);
     const tasks = airflowTree.getChildren(dags[1]);
     assert.deepEqual(tasks.map((item) => (item as TaskItem).task.name), ['refresh_counts']);
     const tree = airflowTree.getTreeItem(tasks[0]);
     assert.equal(tree.description, 'dbt run · heuristic');
     assert.equal(tree.command?.command, 'lineagePilot.openNode');
-    const unknowns = airflowTree.items.find((item) => item instanceof UnknownsItem);
+    const unknowns = airflowTree.items.find((item) => item.type === 'unknowns');
     assert.ok(unknowns);
     assert.equal(airflowTree.getTreeItem(unknowns).label, 'Could not be read (1)');
     const [unknown] = airflowTree.getChildren(unknowns);
@@ -157,8 +161,9 @@ suite('acceptance: rename a mart column', () => {
 
   test('CodeLens counts the tasks', async () => {
     const orders = vscode.Uri.file(path.join(root(), 'models', 'marts', 'orders.sql'));
+    await vscode.workspace.openTextDocument(orders);
     const lenses = await until('the lens', 30_000, async () => {
-      const found = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', orders, 10);
+      const found = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', orders);
       return found?.find((lens) => /Airflow tasks/.test(lens.command?.title ?? ''));
     });
     assert.match(lenses.command?.title ?? '', /\d+ Airflow tasks/);

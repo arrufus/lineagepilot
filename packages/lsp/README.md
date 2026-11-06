@@ -5,9 +5,10 @@ The LineagePilot language server: `lineagepilot_core` behind the Language Server
 ## What it does
 
 - **Indexes in a child process** (`worker.py`): the model-level graph first, then column lineage, each handed over as a snapshot in the cache directory. The server never parses on its event loop, and freezes its heap after each load (design section 11).
-- **Watches** the artifacts, `dbt_project.yml`, the project's source files, `.lineagepilot/rules.yml` and the DAG folders through `workspace/didChangeWatchedFiles`, with debouncing.
+- **Reads DAG files in a child process** (`airflow_scan.py`), as syntax only, and puts the result on top of whichever graph is loaded. A scan is never part of a snapshot (design section 6.2).
+- **Watches** the artifacts, `dbt_project.yml`, the project's source files, `.lineagepilot/rules.yml`, `.lineagepilot/airflow.yml` and the DAG folders through `workspace/didChangeWatchedFiles`, with debouncing.
 - **LSP features**: CodeLens, hover and diagnostics (`features.py`).
-- **`lineage/*` requests** (`methods.py`): `status`, `refresh`, `graph`, `impact`, `export`, `nodesForFile`, `node`, `reviewChanges`, and the `indexUpdated` notification. Params are validated against the shared schema in `protocol/` (`protocol.py` is generated from it).
+- **`lineage/*` requests** (`methods.py`): `status`, `refresh`, `graph`, `impact`, `export`, `nodesForFile`, `node`, `reviewChanges`, `airflow`, and the `indexUpdated` notification. Params are validated against the shared schema in `protocol/` (`protocol.py` is generated from it).
 
 ## Modules
 
@@ -15,7 +16,8 @@ The LineagePilot language server: `lineagepilot_core` behind the Language Server
 |---|---|
 | `server.py` | The pygls server: initialise and protocol negotiation, handlers, diagnostics publishing, logging to the client |
 | `indexing.py` | The index state machine for one project, the indexer process, staleness |
-| `worker.py` | The indexer, run as a child process; it also reads a review's baseline manifest |
+| `airflow_scan.py` | One project's DAG scan: when it runs, and what became of it |
+| `worker.py` | The indexer, run as a child process; it also reads a review's baseline manifest and the DAG files |
 | `context.py` | Everything derived from one loaded graph, and column lineage on demand |
 | `features.py` | CodeLens, hover and diagnostics |
 | `methods.py` | The `lineage/*` requests |

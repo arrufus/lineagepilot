@@ -2125,10 +2125,7 @@ class FileScanner:
         ids = sorted(sel.ids)  # type: ignore[arg-type]
         nodes = [i for i in ids if m.nodes[i].resource_type in types]
         if command == "test":
-            tested = {
-                p for n in m.nodes.values() if n.resource_type == "test" for p in n.depends_on
-            }
-            nodes = [i for i in nodes if i in tested]
+            nodes = [i for i in nodes if i in m.tested]
             rec["notes"].append("dbt test: linked to selected nodes that have at least one test")
         rec["resolved_nodes"] = nodes
         rec["resolved_models"] = [i for i in nodes if m.nodes[i].resource_type == "model"]

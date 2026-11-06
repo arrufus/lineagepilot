@@ -10,7 +10,7 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `parsers/dbt_config.py` | PII name patterns and layer inference rules. |
 | `parsers/sql_parser.py` | Tables read and written by one SQL statement (sqlglot). |
 | `parsers/data_flow_annotations.py` | Declared data flow for Airflow tasks, from YAML or JSON. |
-| `parsers/dbt_manifest_resolver.py` | dbt selectors to models. Phase 5 replaces its selector rules. |
+| `parsers/dbt_manifest_resolver.py` | dbt selectors to models, simplified. Nothing uses it: `airflow/selector.py` took over in Phase 5. |
 | `parsers/sql_lineage.py` | Column lineage of one compiled SQL statement with `sqlglot.lineage` over a `catalog.json` schema; `unknown`, with a reason, whenever a wrong answer is possible. |
 | `graph/ids.py` | Canonical IDs (design section 5.1): dbt `unique_id`, `relation:<db>.<schema>.<name>`, `<node>#<column>` and `airflow:<dag>.<task>`, folded to the adapter's case rules. |
 | `graph/model.py` | `MetadataGraph`: nodes, columns, edges that point upstream to downstream and carry evidence (origin, confidence, artifact version, location), and `Unresolved` records. |
@@ -23,15 +23,19 @@ The editor-agnostic core of LineagePilot: parsers, the metadata graph, analysis 
 | `analysis/baseline.py` | What a review needs from a baseline manifest, read only for the changed nodes. |
 | `rules/` | Conformance rules with five results (`pass`, `fail`, `not_applicable`, `unsupported`, `unknown`) and a score that leaves the last two out, with coverage beside it. 18 built-in rules (design section 12). Custom rules come from `.lineagepilot/rules.yml`, a size-capped, validated file whose regexes are checked for ReDoS shapes before use. |
 | `export/` | Graph exports (JSON, Mermaid, DOT, GraphML, Cypher) and the PII inventory (Markdown, CSV). Every value is escaped for its format; Mermaid and DOT IDs are generated; Cypher labels and relationship types come from fixed lists. Hypothesis property tests re-parse every format. `review_markdown.py` renders the review for a pull request: workspace text only reaches the page in code spans or with its punctuation escaped, and the text stays under GitHub's comment limit. |
+| `airflow/dag_static.py` | The AST scanner (design section 6.2): a small abstract interpreter over a DAG file's syntax, its discovery rules, SQL operators. DAG files are never imported or executed. `values.py` holds what it computes, each with a confidence; `shell.py` finds dbt in commands; `cosmos.py` reads `DbtDag` and `DbtTaskGroup` and derives their task ids; `selector.py` is dbt's node selection, following the manifest's dbt version; `manifest.py` is a light view of a manifest; `standin.py` builds an approximate one from project files; `projects.py` maps a path in a DAG file to a project; `categories.py` names the reasons a file cannot be read; `safe_io.py` reads files that may be anything. |
+| `airflow/workspace.py` | One scan for one project: its annotation file, then its DAG files. |
+| `airflow/link.py` | Puts a scan into the graph, and takes it out again. A scan is never part of a snapshot. |
+| `airflow/view.py` | The DAGs and tasks touching some nodes. |
 | `gitdiff.py` | What changed since the merge-base, from git, for `lineagepilot review`. The extension asks the same questions through `vscode.git`. |
 | `project.py` | `dbt_project.yml`, read as untrusted input: where the artifacts and source folders are. |
 | `snapshot.py` | JSON snapshots of the whole graph, keyed by the artifacts' sha256, the snapshot format and the core version; atomic writes; a bad snapshot is rebuilt, never trusted. |
 | `indexer.py` | One pipeline for the CLI and the language server's indexer: snapshot or parse, graph, column lineage, snapshot. It can hand over the model-level graph before column lineage (`on_model_graph`), and refuses artifacts over a size cap. |
-| `cli.py` | `lineagepilot index`, `impact` and `review`. |
+| `cli.py` | `lineagepilot index`, `impact`, `review` and `airflow`. |
 
 The parsers were ported from data-capsule at commit `5e57fcc`. Each module's docstring lists what changed and why; the changes come from spike S2 ([findings](../../spikes/s2-parse-perf/README.md#findings-that-should-change-the-design-or-the-phase-1-plan)).
 
-Test fixtures under `tests/fixtures/dbt/` are real dbt artifacts, as are those of `fixtures/impact-shop`, the Change Impact Review's project, from before and after a column rename. `tests/fixtures/review/` holds its golden Markdown. [PROVENANCE.json](tests/fixtures/dbt/PROVENANCE.json) records where each came from and its hash.
+Test fixtures under `tests/fixtures/dbt/` are real dbt artifacts, as are those of `fixtures/impact-shop`, the Change Impact Review's project, from before and after a column rename. `tests/fixtures/review/` holds its golden Markdown. `tests/fixtures/airflow/` holds DAG files, one per pattern, and dbt projects written for spike S3, with real `dbt ls` answers from dbt 1.9 and 1.12: `scripts/selector_conformance.py` records and checks them. [PROVENANCE.json](tests/fixtures/dbt/PROVENANCE.json) records where each came from and its hash.
 
 ## Develop
 
