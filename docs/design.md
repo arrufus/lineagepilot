@@ -117,7 +117,7 @@ flowchart LR
 
 **Process model**: one language server per dbt project, that is per folder with a `dbt_project.yml` in any workspace folder. Usually that is one per workspace folder; a repository with several dbt projects gets one each, so a failure in one never affects another (task 2.1). Multi-root workspaces work the same way. The transport is **stdio only**: the extension never opens a network port.
 
-The server is told at initialise which project it serves, whether the workspace is trusted, and where to cache snapshots (`context.storageUri`). It indexes in a child process (section 11), and the editor watches the files for it: `target/manifest.json` and `catalog.json` (re-index, debounced), `dbt_project.yml` (follow moved paths), the files dbt reads to build the manifest (the staleness warning), `.lineagepilot/rules.yml` at the project root (re-run the rules) and the Airflow DAG folders (Phase 5).
+The server is told at initialise which project it serves, whether the workspace is trusted, and where to cache snapshots (`context.storageUri`). It indexes in a child process (section 11), and the editor watches the files for it: `target/manifest.json` and `catalog.json` (re-index, debounced), `dbt_project.yml` (follow moved paths), the files dbt reads to build the manifest (the staleness warning), `.lineagepilot/rules.yml` at the project root (re-run the rules), and the Airflow DAG folders and `.lineagepilot/airflow.yml` (read the DAG files again).
 
 ### 4.1 Components
 
@@ -207,8 +207,8 @@ Logical-to-physical mappings are stored as explicit edges, so a dbt model and th
 | `depends_on` | dbt node → dbt node (from the manifest) |
 | `derives` | column → column, with a transformation type |
 | `materialises` | logical node → physical relation |
-| `orchestrates` | Airflow task → dbt node(s) |
-| `task_depends_on` | Airflow task → Airflow task |
+| `orchestrates` | Airflow task → dbt node(s) it runs or reads; `transformation` says how (`dbt run`, `dbt, through Cosmos`, `reads`, `writes`, or an annotation's `consumes`, `produces`, `transforms`, `validates`) |
+| `task_depends_on` | Airflow task → the task that runs after it, and a task → the group it is in |
 
 Every edge and every finding carries an evidence record:
 
@@ -277,7 +277,44 @@ Other rules from S3:
 
 S3's evidence is in-sample: the scanner was built while reading the same repositories. A held-out corpus of 10 or more repositories, labelled before tuning, is the Phase 5 exit test (beads LP-56q.5).
 
-**Reused**: `data_flow_annotations.py` (YAML mappings for anything the scanner cannot see) and `dbt_manifest_resolver.py`. **New**: `dag_static.py`.
+**What the held-out corpus found** ([corpus/README.md](../corpus/README.md)). On 106 links in 17 unseen repositories, the frozen scanner got 17 right, a miss rate of **84.0%**: 78 links were reported as unknown at the line that caused them, 9 left no record, 2 were wrong, and there were no false positives. So S3's 0% says little about other repositories. The scanner rarely misleads, but it often cannot tell. Three general gaps make up 62 of the 89 misses: `os.environ["AIRFLOW_HOME"]` with no default (LP-0o1), helpers imported from another file (LP-z2x) and container paths that match no project by their tail (LP-c05). After the freeze only the silent links were changed, into unknowns, because silence breaks the plan's definition of done. The correct count did not move. A tuned scanner needs a fresh corpus (LP-aax): this one has now been read.
+
+**Reused**: `data_flow_annotations.py` (YAML mappings for anything the scanner cannot see). **New**: the `lineagepilot_core.airflow` package, with `dag_static.py` at its centre, grown from the spike. It takes over from `dbt_manifest_resolver.py`, whose selector rules were a simplification S3 showed to be wrong.
+
+**What Phase 5 added to the spike** (task 5.1), none of it from reading the held-out corpus:
+
+- **SQL operators.** The SQL of `SQLExecuteQueryOperator`, `SnowflakeOperator`, `PostgresOperator`, `BigQueryInsertJobOperator` and the like, literal or in a `.sql` file beside the DAG, is parsed with sqlglot in the project's dialect. A task gets an `orchestrates` edge to each dbt node whose table it reads or writes. A name in full is `inferred`; part of a name is `heuristic`, and only counts if exactly one relation ends with it. A templated value such as `{{ ds }}` is fine; a templated table name is not.
+- **Owners**, from `owner=` and `default_args`, for the review.
+- **dbt inside another command**: `docker exec`, `docker compose run`, `kubectl exec`, `ssh`. The working directory there says nothing, so the project comes from `--project-dir`, or from being the only one.
+- **A shell variable** in a selector (`--select $MODEL`) is as unknown as Jinja. It used to be taken for a model's name, and select nothing.
+- **Any other operator that mentions dbt**, such as `DbtCloudRunJobOperator`, is an unknown rather than nothing.
+- **Hostile input.** A crafted file can only get a wrong answer: strings and lists it builds are capped, each file has a budget of evaluation steps, a format string cannot reach attributes or allocate memory, and a symlink to a device or a FIFO cannot block. A failure on one file costs that file, and says so. `.airflowignore` patterns go through the safe regex (section 10) and are also read as globs, which Airflow 3 defaults to; a repository does not say which it runs on, and what is skipped is reported.
+
+**What a `dbt test` task links to** (decided in Phase 5; S3 left it open). The selected models that have at least one test. dbt's eager indirect selection also runs tests that belong to other models, such as a `relationships` test whose other parent was not selected. Those are not linked: the task is about the models it was told to select, and the other parent's own tasks are what a reviewer needs for it.
+
+**Where DAG files are looked for.** `lineagePilot.airflow.dagFolders`, relative to the workspace folder. The default, `**/dags`, finds any folder called `dags` up to six levels down, because most monorepos keep theirs below something like `airflow/`. The workspace is what DAG files and the modules they import must be inside, and may be larger than the project: `dags/` beside `dbt/`. When no file is found the review says where it looked.
+
+**The annotation file** is `.lineagepilot/airflow.yml` at the project root (task 5.2), the way out of every unknown:
+
+```yaml
+path_map:                         # where a path in a DAG file really is, relative to the project
+  /usr/local/airflow/dbt: .
+pipelines:                        # what the scanner cannot see
+  - pipeline_id: finance_gl
+    owner: finance-eng
+    tasks:
+      - task_id: load_gl
+        consumes: [model.finance.stg_accounts, analytics.staging.raw_transactions, stg_orders]
+        produces:
+          - urn: analytics.facts.gl
+            operation: insert
+acknowledged:                     # unknowns a person has answered
+  - file: dags/factory.py
+```
+
+A reference is a dbt ID, a table name or a model's name if it is unique; one that matches nothing is an unknown, not dropped. An annotated task's own unknowns count as answered. It is data, like the manifest, so it loads in Restricted Mode too, and a path map cannot leave the workspace.
+
+**A scan sits on top of the graph, and is never in a snapshot.** A DAG file changes far more often than the manifest, and re-indexing column lineage for it would cost seconds at best. So the language server reads DAG files in a child process of their own (section 11) and applies the result to whichever graph is loaded; the model-level and full graphs of one manifest share one scan. It starts again when a DAG file or the annotation file changes, and when a new manifest arrives, because selectors are evaluated over a manifest. A module imported from outside the DAG folders is not watched: **Re-index Lineage** picks that up. Only DAGs that touch this project become nodes, with all their tasks; a link to another dbt project in the workspace is left to that project's server, which reads the same files.
 
 **After the MVP**: live Airflow through the existing REST parser, with connection settings that a workspace cannot override and tokens in SecretStorage (section 10).
 
@@ -294,7 +331,7 @@ Post-MVP. If the Snowflake parser returns, its SQL construction must be fixed fi
 | Activation | `workspaceContains:**/dbt_project.yml`, or on command. |
 | CodeLens (model SQL, `schema.yml`) | `↓ 14 models · 3 Airflow tasks · 1 exposure · PII`. Clicking opens the impact view for that node. |
 | Hover on `ref()` / `source()` and on select-list columns | Upstream and downstream summary, with the evidence class for each edge. |
-| Sidebar tree views | **Lineage** (upstream and downstream of the active file) and **Airflow** (the DAGs and tasks touching it). |
+| Sidebar tree views | **Lineage** (upstream and downstream of the active file) and **Airflow** (the DAGs and tasks that run or read the active file's nodes, or all of them when it has none, each with how sure the link is and why, then what could not be read). |
 | Lineage graph webview | **Show Lineage Graph** (command palette, or a node in the Lineage view). Model and column modes, a depth and direction control, filters by node kind, a highlighting search, auto-layout and lazy expansion (+). Clicking a node shows its details and previews its file at the node's range beside the graph; double-click, O or **Open** opens it. Arrow keys follow the edges. Follows the VS Code theme. |
 | Problems panel | Conformance and PII diagnostics on model and `schema.yml` files, each with its rule ID, mapped severity and a docs link. |
 | **Change Impact Review** panel | **Review Changes** (command palette, or the compare icon on the Lineage view). **Change base** picks a branch or tag, defaulting to the merge-base with the default branch. Shows changed nodes with their columns as a diff, then downstream impact grouped by dbt models, exposures, Airflow tasks and owners, each row with how it was reached, its confidence (the graph's line styles) and its evidence, then an **Unknowns** section. **Run dbt compile** appears when a changed model is newer than the manifest, in a trusted workspace. **Copy as Markdown** copies the review for the pull request. It updates by itself when the index or the working tree changes. In Restricted Mode VS Code's Git extension is off, so the panel says it cannot tell what changed, and offers **Manage Workspace Trust**. |
@@ -321,7 +358,7 @@ Navigation features that competitors already have (go-to-definition for `ref()`,
 
    What a model selects is recorded on the graph at index time (`output_columns`), from the lineage trace or, without a catalog, from qualifying the SQL alone, which expands `select *` over a CTE but not over a table. So a developer who ran `dbt compile` but never `dbt docs generate` still gets a comparison against a baseline manifest. The comparison is by name, folded to the adapter's case rules, and by type where the baseline and the current graph both state one.
 4. **Traverse downstream** on the current graph: use column edges where they exist, and fall back to model-level edges marked `inferred`. Two traversals are merged. Changed columns follow column lineage, which says what breaks. Then everything else below a changed node is listed at model level, with the reason, because comparing names cannot rule out a change in how an unchanged column is computed (LP-85e would narrow this). A removed column stays in the graph while the catalog lists it; once it is gone, nothing can be traced from it and its dependents are reached at model level.
-5. **Cross into Airflow** through the `orchestrates` edges. Group the results by DAG, and take owners from `meta.owner` or `group`. Until Phase 5 the graph has no Airflow nodes, and the review says DAGs were not analysed rather than that no task is impacted.
+5. **Cross into Airflow** through the `orchestrates` edges, then along `task_depends_on` to the tasks that run after. Group the results by DAG, and take owners from `meta.owner` or `group`, and for a task from `owner=` or `default_args`. Heuristic links are shown by default and labelled, with why: most correct links are heuristic (section 6.2), so hiding them would hide most of the real ones. A Cosmos DAG or group is one row, with the task ids derived for what it runs. Every unknown from the DAG files is listed in every review, because a task whose selector cannot be read may run any node; a task whose command cannot be read and does not mention dbt is only counted, or one line each would bury the rest. When DAG files were not read, the review says why (none found, still being read, or the reader failed) rather than that no task is impacted. A changed DAG file is listed as another changed file and not followed (LP-o59).
 6. **Emit a structured result** as JSON, rendered as Markdown. A headless CLI entry point (`lineagepilot review`) produces the identical output for CI.
 
 The output is deterministic: the same inputs always give the same review, with stable sorting and IDs, so reviews can be compared across pull requests. It holds nothing about the machine or the time: paths are relative to the project, and the language server adds where to open each node as a separate field (`locations`), left out of `lineagepilot review --json` and the Markdown. An end-to-end test compares the panel's response with the command's output on the same repository, Markdown and JSON, and a golden file pins the text.
@@ -347,6 +384,7 @@ Standard LSP, plus versioned custom requests. The client lists the `lineage/*` p
 | `lineage/refresh` | none | Status |
 | `lineage/indexUpdated` (notification) | Status | none |
 | `lineage/reviewChanges` | `changedFiles[]` (at most 20,000: `uri`, `status`, `previousUri`), `baseline` (`ref`, `commit`, `manifestPath`) | A review result (section 8), and where to open each node |
+| `lineage/airflow` | `nodes` (at most 200, or null for all) | The DAGs and tasks touching them, each with how, confidence, notes and where to open it, the unknowns, and what the scan read |
 
 Errors carry the protocol's codes: `NotReady` (-32001, no graph is loaded, with the reason), `UnknownNode` (-32002, the graph has no such ID, perhaps after a re-index) and `ProtocolMismatch` (-32003); malformed params get the standard `InvalidParams`.
 
@@ -362,7 +400,7 @@ Every request carries a `params` object, even an empty one. Spike S1 found that 
 |---|---|
 | `ready` | Answers `init`: the project, the focus asked for (if any), the saved view settings and the index generation |
 | `graph`, `impact`, `node` (with a request ID) | Forwards `lineage/graph`, `lineage/impact` or `lineage/node` and answers `graphResult`, `impactResult` or `nodeResult`, or `error` with the protocol's code |
-| `openFile` (`location`, `preserveFocus`) | Opens the file at the location's range, in an editor group other than the graph's. A click sends `preserveFocus`: the file is previewed and the keyboard stays in the graph. Only `file:` URIs inside the project root |
+| `openFile` (`location`, `preserveFocus`) | Opens the file at the location's range, in an editor group other than the graph's. A click sends `preserveFocus`: the file is previewed and the keyboard stays in the graph. Only `file:` URIs inside the workspace folder: a DAG file is often beside the project |
 | `saveSettings` | Keeps the view settings (global state) |
 
 The extension also sends `focus` (show another node; one panel per project) and `indexUpdated` (re-indexed: the view reloads).
@@ -374,7 +412,7 @@ The Change Impact Review has its own page and its own messages (`extension/src/r
 | `ready` | Answers `init` (the project, whether the workspace is trusted), then the last review, or runs one |
 | `refresh`, `pickBase` | Reviews again; shows a quick pick of branches and tags and remembers the choice per project |
 | `copyMarkdown` | Copies the text the server rendered. The message carries no text, so a page cannot put anything else on the clipboard |
-| `openFile` (`location`) | As for the graph: only `file:` URIs inside the project root, in another editor group |
+| `openFile` (`location`) | As for the graph: only `file:` URIs inside the workspace folder, in another editor group |
 | `showInGraph` (`id`) | Runs **Show Lineage Graph** on that node |
 | `runCompile`, `manageTrust` | Runs **Refresh dbt Artifacts** with `compile`, the guarded command, refused in Restricted Mode; opens VS Code's trust editor |
 
@@ -396,9 +434,10 @@ Unless a panel retains its context, which costs memory, VS Code destroys a hidde
 | Git | The extension only reads, through `vscode.git`, which VS Code turns off in Restricted Mode: the review then says it cannot tell what changed. `lineagepilot review` runs read-only git commands with arguments, never a shell. A `git` found inside the project is refused, a ref cannot be taken for an option, and `core.fsmonitor` is off. To check a changed file against the manifest the review reads it only if it is a regular file inside the project and under 5 MB: a repository can hold a symlink to `/dev/zero`, which reports size 0 and never ends. |
 | Secrets (post-MVP connectors) | Held only in VS Code SecretStorage, never in settings or environment variables. Each secret is bound to the host it was entered for. |
 | Network | No listener, stdio only. No outbound network in the MVP. Telemetry is off; if it is ever added, it must respect `vscode.env.isTelemetryEnabled`. |
-| Code execution | DAG files are analysed with the AST only; user Python is never imported. dbt runs only on an explicit user command in a trusted workspace. |
+| Code execution | DAG files are analysed with the AST only; user Python is never imported. Every integration test configuration, Restricted Mode included, has a DAG file that leaves a marker if it is ever imported or run. dbt runs only on an explicit user command in a trusted workspace. |
+| DAG files | Read as bytes, regular files inside the workspace only, under 2 MB. Strings and lists a file builds are capped, each file has a budget of evaluation steps, format strings cannot reach attributes or allocate memory, and no more than 5,000 files are read. A module is imported only from inside the workspace, as syntax. The scan runs in a child process with a time limit. Nothing about the machine reaches its result. |
 | Resource limits | Manifest size cap (configurable). Parsing runs in a worker with a per-statement time budget for sqlglot. Rule-pack regexes have a length cap and are evaluated with a timeout, or with `re2` if available. This closes the ReDoS class (DCS-61r). |
-| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`, with a fresh nonce for each page. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. zod runs `jitless` in the webview: otherwise it probes for `eval` with `new Function`, which the CSP reports as a violation. Every message is validated both ways; `openFile` opens only `file:` URIs inside the project root. The review's page copies nothing itself: the extension copies the server's text. |
+| Webview | CSP of `default-src 'none'; script-src 'nonce-…'; style-src ${webview.cspSource} 'unsafe-inline'; img-src ${webview.cspSource} data:`, with a fresh nonce for each page. `localResourceRoots` is limited to the bundled webview build. No remote resources. React rendering only, no `innerHTML`. zod runs `jitless` in the webview: otherwise it probes for `eval` with `new Function`, which the CSP reports as a violation. Every message is validated both ways; `openFile` opens only `file:` URIs inside the workspace folder. The review's page copies nothing itself: the extension copies the server's text. |
 | Exporters | Escaping for each format is fixed **before** export ships: Cypher uses parameters or JSON escaping; XML escapes every field; DOT uses quoted, escaped IDs; Mermaid uses generated IDs; CSV neutralises leading formula characters. This closes LP-auw, LP-aml and LP-l1s. |
 | Supply chain | `package-lock.json` and `uv.lock` with hashes; bundled libraries installed with `--require-hashes`; `npm audit`, `pip-audit` and gitleaks in CI; the publisher account protected with 2FA; publishing only from CI. |
 | Carry-over | **The leaked Snowflake key must still be rotated (DCS-hov).** Pivoting does not retract a key that is already public. |
@@ -449,6 +488,22 @@ So **indexing runs in a child process**, never on the server's event loop: an `a
 | What `output_columns` holds in a loaded graph (96,103 names, 7,256 unique) | 1.2 MB; the snapshot grows from 61.1 to 62.6 MB |
 | Warm start, before and after adding it | 0.79 and 0.81 s (budget 1 s) |
 | Peak server memory, on Linux (`VmHWM`), running those reviews | 375 MB cold, 372 MB warm; before Phase 4, with no reviews, 363 and 360 MB (budget 500 MB) |
+
+**The DAG scan** (Phase 5, `packages/lsp/scripts/server_budgets.py`, the same 5,000-model project, Python 3.13, 6 November 2026). Deliberately heavy: 51 DAG files, 2,000 shell tasks each with its own selector, and a Cosmos DAG over every model, which gives 6,437 links. Linux is the project's container on an Apple M4; memory there is `VmHWM`, as for Phase 4.
+
+| Measure | macOS | Linux |
+|---|---|---|
+| Lineage ready, warm | 0.86 s | 1.18 s |
+| The scan linked, warm, from process start | 2.1 s | 2.8 s |
+| The scan linked, cold, from process start | 5.1 s | 6.6 s |
+| CodeLens p95 | 0.9 ms | 1.3 ms |
+| Impact, worst of 20 sources | 0.7 ms | 1.4 ms |
+| A review of 1 and of 100 changed models | 1.3 and 92 ms | 1.2 and 112 ms |
+| Peak server memory, cold and warm (budget 500 MB) | 608 and 511 MB | 379 and 374 MB |
+
+On Linux, the scan adds about 4 MB to Phase 4's 375 and 372 MB. macOS reads higher throughout, as it did before Phase 5 (576 and 482 MB in the table above), and is over the budget here; LP-dtt tracks that. A review of 100 models takes about twice as long as in Phase 4, because each now also walks the tasks, and stays inside the 300 ms set for impact.
+
+**The measurement found two faults, both fixed before the freeze.** The first scan took about 60 s, half its time limit, because each selector walked all 15,000 nodes twice: names without a wildcard now come from an index, and each method's answer is kept per manifest, on the same answers (44 of 44 against real dbt). And the server kept the scan after linking it, about 30 MB: it now lets go once the full graph of a manifest is linked.
 
 **The graph webview in a browser** (Phase 3 exit, beads LP-08j, `extension/webview/perf/`, 4 November 2026): the production bundle under the webview's CSP, in Chrome 156 on an Apple M4 with a 60 Hz display, in a 1600×913 page, on a layered graph of 500 models and 931 edges. Chrome is not VS Code's own Chromium, and this machine is slower than the M4 Max above, so the figures indicate rather than reproduce what the editor does.
 
@@ -505,7 +560,7 @@ The modules below live in the data-capsule repository, under `backend/src/` and 
 
 | Current component | Fate |
 |---|---|
-| `CapsuleNode`, `ColumnNode`, `LineageGraph`, `ColumnLineageGraph`, `ColumnDetailPanel`, `ImpactAnalysis`, `SettingsPanel`, `TaskImpactGraph`, `TaskImpactList`, `TaskImpactSummary` (about 2,300 lines) | **Port** to the webview. The `@/lib/api/*` hooks are replaced by a message transport, and `next/navigation` by `openFile` messages. Phase 3 ported the first seven: `LineageGraph` and `ColumnLineageGraph` became one graph with two modes, and `ImpactAnalysis` lost its risk levels and recommendations, which rested on unmeasured heuristics (review finding F13). The `TaskImpact*` components wait for the Airflow linkage. |
+| `CapsuleNode`, `ColumnNode`, `LineageGraph`, `ColumnLineageGraph`, `ColumnDetailPanel`, `ImpactAnalysis`, `SettingsPanel`, `TaskImpactGraph`, `TaskImpactList`, `TaskImpactSummary` (about 2,300 lines) | **Port** to the webview. The `@/lib/api/*` hooks are replaced by a message transport, and `next/navigation` by `openFile` messages. Phase 3 ported the first seven: `LineageGraph` and `ColumnLineageGraph` became one graph with two modes, and `ImpactAnalysis` lost its risk levels and recommendations, which rested on unmeasured heuristics (review finding F13). The `TaskImpact*` components were not needed: the review page and the **Airflow** view show tasks, from the server's own shapes. |
 | Every other Next.js page and component | **Retire.** |
 
 ---
@@ -521,6 +576,7 @@ packages/lsp/    lineagepilot_lsp    (pygls server; pyproject.toml, uv.lock)
 fixtures/        dbt project workspaces shared by the core, server and extension tests
 extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
 protocol/        the lineage/* JSON Schema, its generator and contract examples
+corpus/          the held-out DAG corpus: labels, scorer and results (the Phase 5 exit)
 docs/            this design and the implementation plan
 ```
 
@@ -559,6 +615,14 @@ How the Change Impact Review is tested (Phase 4):
 - **Over stdio**, the panel's request and `lineagepilot review` run on the same repository and must agree, Markdown and JSON.
 - **In the page**, React Testing Library drives it against a fake extension that validates every message with the extension's own schemas.
 - **In VS Code**, against the real `vscode.git`: the `review` configuration runs the acceptance scenario on `fixtures/impact-shop`, and the other configurations run the panel's wiring on `fixtures/jaffle-shop`, including that Restricted Mode has no git and says so.
+
+How the Airflow linkage is tested (Phase 5):
+- **On fixtures written for it**, one DAG file per pattern, from spike S3, with its tests kept as they were: they are the evidence that the port behaves. New tests cover what a crafted workspace can do, each named unknown category, SQL operators, owners, annotations and the path map.
+- **Selectors against real dbt.** `scripts/selector_conformance.py` compares the engine with `dbt ls` on 44 expressions, in CI, with dbt on both sides of the 1.10 change. An offline test holds both sets of answers.
+- **On `fixtures/impact-shop`**, the acceptance scenario: a Cosmos group that consumes the mart, a shell task, a SQL task and a task in a loop. A golden file pins the Markdown.
+- **Over stdio**, the panel and `lineagepilot review` must agree with the tasks in; a changed DAG file, a changed annotation file and a new manifest each start a new scan; a file that would write a marker when run never does.
+- **In VS Code**, every workspace is planted with such a file, and the acceptance scenario runs with the real `vscode.git`.
+- **On a held-out corpus**, labelled blind before the scanner was frozen (`corpus/`, the Phase 5 exit). It needs third-party repositories, so it is run by hand, not in CI.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

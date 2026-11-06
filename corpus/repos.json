@@ -1,0 +1,272 @@
+{
+  "selected_on": "2026-11-06",
+  "queries": [
+    "gh search code 'BashOperator \"dbt run\" language:python' --limit 50 --json repository,path",
+    "gh search code 'KubernetesPodOperator dbt language:python' --limit 50 --json repository,path",
+    "gh search code 'DockerOperator dbt language:python' --limit 50 --json repository,path",
+    "gh search code 'DbtTaskGroup ProjectConfig language:python' --limit 30 --json repository,path",
+    "gh search code 'DbtDag ProjectConfig language:python' --limit 30 --json repository,path"
+  ],
+  "excluded": [
+    "astronomer/astronomer-cosmos",
+    "astronomer/cosmos-demo",
+    "astronomer/airflow-dbt-demo",
+    "konosp/dbt-airflow-docker-compose",
+    "danielvdende/data-testing-with-airflow",
+    "GokuMohandas/data-engineering",
+    "saastoolset/dbt-core-airflow-template"
+  ],
+  "repos": [
+    {
+      "repo": "dungtran174/ecommerce-lakehouse-platform",
+      "url": "https://github.com/dungtran174/ecommerce-lakehouse-platform",
+      "sha": "3ad3ca8efba30ae2d0388be37b1bc30f05b8122e",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 6,
+      "resolved": 6,
+      "unknown": 0
+    },
+    {
+      "repo": "UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+      "url": "https://github.com/UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+      "sha": "0f0588ed822c8cb38af4205b0e16e250a1603bb9",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "feast-dev/feast-workshop",
+      "url": "https://github.com/feast-dev/feast-workshop",
+      "sha": "b407d1cc25244907585e4feef6b574ba94531f57",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 4,
+      "resolved": 4,
+      "unknown": 0
+    },
+    {
+      "repo": "Kevin-Nduati/My-Spotify-Wrapped",
+      "url": "https://github.com/Kevin-Nduati/My-Spotify-Wrapped",
+      "sha": "7e2c2faf3764d71ccf3f1007f1f372d87e956424",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "halltape/HalltapeETL",
+      "url": "https://github.com/halltape/HalltapeETL",
+      "sha": "af186d27c167bc22eb4d6bb99c2b1c9605b068d0",
+      "license": "MIT",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "Nathnael12/Datawarehouse",
+      "url": "https://github.com/Nathnael12/Datawarehouse",
+      "sha": "418674325c57f3a02ccf1a4f4572bfb694171b45",
+      "license": "MIT",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "feluelle/kind-data-platform",
+      "url": "https://github.com/feluelle/kind-data-platform",
+      "sha": "3e35bfaaf5dbc8508defce087950dfa2081971a3",
+      "license": "Apache-2.0",
+      "operators": [
+        "KubernetesPodOperator"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "sungchun12/airflow-toolkit",
+      "url": "https://github.com/sungchun12/airflow-toolkit",
+      "sha": "efc6c927267e2bc1dcd2a9164a0aa934f5c25668",
+      "license": "MIT",
+      "operators": [
+        "KubernetesPodOperator"
+      ],
+      "links": 3,
+      "resolved": 3,
+      "unknown": 0
+    },
+    {
+      "repo": "teamdatatonic/dop",
+      "url": "https://github.com/teamdatatonic/dop",
+      "sha": "08b64972e9899971d5c4f892480aa0c067b53c3b",
+      "license": "MIT",
+      "operators": [
+        "DbtK8Operator"
+      ],
+      "links": 4,
+      "resolved": 4,
+      "unknown": 0
+    },
+    {
+      "repo": "Toloka/dbt-af",
+      "url": "https://github.com/Toloka/dbt-af",
+      "sha": "ab888ffaad6e6a945b2690186a011f5d9fb412f0",
+      "license": "Apache-2.0",
+      "operators": [
+        "compile_dbt_af_dags"
+      ],
+      "links": 2,
+      "resolved": 0,
+      "unknown": 2
+    },
+    {
+      "repo": "datamindedbe/eu-data-platform",
+      "url": "https://github.com/datamindedbe/eu-data-platform",
+      "sha": "119712adeb198c403da3ac7eaa102a1d60f15325",
+      "license": "MIT",
+      "operators": [
+        "KubernetesPodOperator"
+      ],
+      "links": 3,
+      "resolved": 3,
+      "unknown": 0
+    },
+    {
+      "repo": "anhhoangdev/KonohaDataPlatform",
+      "url": "https://github.com/anhhoangdev/KonohaDataPlatform",
+      "sha": "73ab523a38586403cb5eeb47cacf6c9bc943b2a7",
+      "license": "MIT",
+      "operators": [
+        "DbtSparkRunOperator",
+        "DbtSparkSeedOperator"
+      ],
+      "links": 4,
+      "resolved": 4,
+      "unknown": 0
+    },
+    {
+      "repo": "dataengineerankur/dms-snowpipe-dbt-airflow",
+      "url": "https://github.com/dataengineerankur/dms-snowpipe-dbt-airflow",
+      "sha": "ccb09927aed04c58598f715780846e0615ab07e5",
+      "license": "MIT",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 16,
+      "resolved": 16,
+      "unknown": 0
+    },
+    {
+      "repo": "21voidx/F1_RealtimeReplay_Historical_Project",
+      "url": "https://github.com/21voidx/F1_RealtimeReplay_Historical_Project",
+      "sha": "71d6c745b6554518bc396c24e1fa8da7a83be84e",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DbtTaskGroup",
+        "DockerOperator"
+      ],
+      "links": 14,
+      "resolved": 14,
+      "unknown": 0
+    },
+    {
+      "repo": "zhfem05-star/steam_analysis",
+      "url": "https://github.com/zhfem05-star/steam_analysis",
+      "sha": "66df015db6b74cbe894b52c7fb07b7b3e7e81e6f",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "Som-Energia/somenergia-jardiner",
+      "url": "https://github.com/Som-Energia/somenergia-jardiner",
+      "sha": "a1bf32b3c066bf882bc83ebeee784edc3ea984a9",
+      "license": "GPL-3.0",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 5,
+      "resolved": 5,
+      "unknown": 0
+    },
+    {
+      "repo": "astronomer/cosmos-ebook-companion",
+      "url": "https://github.com/astronomer/cosmos-ebook-companion",
+      "sha": "03a54fe12e7c18d9758ff6e5f37888540cc79e83",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DbtBuildLocalOperator",
+        "DbtDag",
+        "DbtTaskGroup"
+      ],
+      "links": 34,
+      "resolved": 34,
+      "unknown": 0
+    }
+  ],
+  "rejected": [
+    {
+      "repo": "airflow-plugins/Example-Airflow-DAGs",
+      "why": "no dbt_project.yml in the repository"
+    },
+    {
+      "repo": "GoogleCloudPlatform/professional-services",
+      "why": "about 646 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "UllasP0707/bellwether",
+      "why": "KubernetesPodOperator search hit is only a code comment; no such operator is used"
+    },
+    {
+      "repo": "gmyrianthous/dbt-airflow",
+      "why": "first Cosmos search hit, but a library with its own DbtTaskGroup class, not Cosmos"
+    },
+    {
+      "repo": "awslabs/runner-dbt-aws-airflow",
+      "why": "no dbt_project.yml in the repository"
+    },
+    {
+      "repo": "cal-itp/data-infra",
+      "why": "about 294 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "hainguyenle89/airflow-dags",
+      "why": "qualifies, not taken: stopped at one mainly-Cosmos repository once the corpus was past the 12 aimed for"
+    }
+  ],
+  "shortfalls": "None against the wanted mix. Only one repository yields expect=unknown links.",
+  "selection_notes": "Hits were taken in returned order from each query, none skipped for being hard; excluded repositories were passed over. Stopping points: BashOperator query after Nathnael12/Datawarehouse; KubernetesPodOperator query after anhhoangdev/KonohaDataPlatform; DockerOperator query after Som-Energia/somenergia-jardiner; Cosmos queries after astronomer/cosmos-ebook-companion. Later hits were not evaluated. The KubernetesPodOperator query was followed further than its quota because the first three repositories gave few links.",
+  "conventions": [
+    "Task built by a helper in the same file: line is the operator call inside the helper, lines holds the helper's call site.",
+    "Task built by a helper in another file: file is the DAG file and line the helper's call site; the helper's location is in reason.",
+    "Custom operators are named by their own class; reason says which standard operator they use.",
+    "command_index counts every dbt command in the string, in-scope or not.",
+    "Selected models for dbt test also count a model that is only the 'to' target of a relationships test, because that test depends on it; disabled tests do not count.",
+    "dbt test has empty other_nodes, even when seeds or snapshots have tests.",
+    "Cosmos units have task_id null; other_nodes holds the seeds and snapshots they select.",
+    "When one dag_id and task appear in several files, id carries a @ suffix to stay unique.",
+    "Model sets were worked out by applying dbt's selection rules with a small script of the labeller's own that reads project text, then checked by eye. It is not the scanner, and nothing from the repositories was executed."
+  ]
+}

@@ -1,0 +1,78 @@
+{
+ "about": "Every miss of the first run (results/first.json, the frozen scanner), by cause. Read after that run, by the scanner's author. No label was changed.",
+ "frozen": {
+  "scanner_sha256": "78b914834e14f62a11a7f9f620f73d95959e14d129d56c6a06e99fc2a6bf0a07",
+  "commit": "5a50fc862a72383b7a3f994696923ec6d1118fee"
+ },
+ "clusters": {
+  "A": {
+   "count": 35,
+   "reported_as": "unknown at the call site",
+   "cause": "os.environ['AIRFLOW_HOME'] has no default, so the project path is unknown, though its tail names the project",
+   "follow_up": "LP-0o1"
+  },
+  "B": {
+   "count": 16,
+   "reported_as": "unknown at the call site",
+   "cause": "a helper imported from another workspace file builds the operator",
+   "follow_up": "LP-z2x"
+  },
+  "C": {
+   "count": 11,
+   "reported_as": "unknown at the call site",
+   "cause": "a container path that matches no project by its tail, where a mount names the host folder",
+   "follow_up": "LP-c05"
+  },
+  "D": {
+   "count": 8,
+   "reported_as": "unknown at the call site",
+   "cause": "repo-local subclasses of operators, and factories driven by YAML",
+   "follow_up": "LP-2cd"
+  },
+  "E": {
+   "count": 4,
+   "reported_as": "unknown at the call site",
+   "cause": "cd ${AIRFLOW_HOME} with several projects in the workspace; a setup script says which",
+   "follow_up": "LP-x29"
+  },
+  "F": {
+   "count": 3,
+   "reported_as": "unknown at the call site",
+   "cause": "a shell variable after a selector: a rule added before the freeze, without seeing this corpus, that was too strict here",
+   "follow_up": "LP-x29"
+  },
+  "G": {
+   "count": 7,
+   "reported_as": "nothing at the frozen commit; an unknown since 64ce438",
+   "cause": "a pod whose dbt command is in its image (4), and cmds=['/bin/bash','-cx'], which is not recognised as a shell (3)",
+   "follow_up": "LP-x29"
+  },
+  "H": {
+   "count": 2,
+   "reported_as": "nothing at the frozen commit; an unknown since 64ce438",
+   "cause": "a factory from a library. Expected unknown: nothing could tell, but it must be said",
+   "follow_up": null
+  },
+  "I": {
+   "count": 2,
+   "reported_as": "one unknown at the call site, one wrong identity",
+   "cause": "a date in an f-string makes the whole command unknown; a task with no dag= takes its DAG from the task before it",
+   "follow_up": "LP-x29, LP-4aw"
+  },
+  "J": {
+   "count": 1,
+   "reported_as": "wrong model set",
+   "cause": "the stand-in manifest counted a relationships test with enabled: false. A real manifest leaves it out",
+   "follow_up": "LP-ykj"
+  }
+ },
+ "reported": {
+  "unknown_at_the_call_site": 78,
+  "silent": 9,
+  "wrong": 2
+ },
+ "out_of_reach_of_a_scanner_of_dag_files": {
+  "count": 12,
+  "why": "The answer is outside the DAG files: an image's entrypoint (eu-data-platform 3, kind-data-platform 1), a setup script (feast-workshop 4), a YAML config (dop 4). A person can follow these, so they stay misses. They are listed so the rate is not read as all reachable."
+ }
+}

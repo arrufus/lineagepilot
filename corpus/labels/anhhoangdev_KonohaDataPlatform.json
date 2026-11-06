@@ -1,0 +1,122 @@
+{
+  "repo": "anhhoangdev/KonohaDataPlatform",
+  "url": "https://github.com/anhhoangdev/KonohaDataPlatform",
+  "sha": "73ab523a38586403cb5eeb47cacf6c9bc943b2a7",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dag"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "dag/dbt_analytics_pipeline.py",
+      "what": "dbt debug task validate_dbt_connection"
+    },
+    {
+      "file": "dag/dbt_analytics_pipeline.py",
+      "what": "dbt deps task install_dbt_deps"
+    },
+    {
+      "file": "dag/dbt_analytics_pipeline.py",
+      "what": "dbt docs generate task generate_documentation"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_analytics_pipeline_v2.seed_reference_data.seed",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "line": 75,
+      "lines": [],
+      "dag_id": "dbt_analytics_pipeline_v2",
+      "unit": "task",
+      "task_id": "seed_reference_data",
+      "group_id": null,
+      "operator": "DbtSparkSeedOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "analytics",
+      "models": [],
+      "other_nodes": [],
+      "reason": "dbt seed, no selector; no csv files under analytics/seeds, so no seeds; DbtSparkOperator in dag/operators/dbt_spark_operator.py starts a KubernetesPodOperator at line 388; host_dbt_path ends in dbt"
+    },
+    {
+      "id": "dbt_analytics_pipeline_v2.run_stg_users.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "line": 82,
+      "lines": [],
+      "dag_id": "dbt_analytics_pipeline_v2",
+      "unit": "task",
+      "task_id": "run_stg_users",
+      "group_id": null,
+      "operator": "DbtSparkRunOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "analytics",
+      "models": [
+        "stg_users"
+      ],
+      "other_nodes": [],
+      "reason": "models= becomes select; DbtSparkOperator in dag/operators/dbt_spark_operator.py starts a KubernetesPodOperator at line 388; host_dbt_path ends in dbt"
+    },
+    {
+      "id": "dbt_analytics_pipeline_v2.run_stg_orders.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "line": 89,
+      "lines": [],
+      "dag_id": "dbt_analytics_pipeline_v2",
+      "unit": "task",
+      "task_id": "run_stg_orders",
+      "group_id": null,
+      "operator": "DbtSparkRunOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "analytics",
+      "models": [
+        "stg_orders"
+      ],
+      "other_nodes": [],
+      "reason": "models= becomes select; DbtSparkOperator in dag/operators/dbt_spark_operator.py starts a KubernetesPodOperator at line 388; host_dbt_path ends in dbt"
+    },
+    {
+      "id": "dbt_analytics_pipeline_v2.run_simple_pipeline.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "line": 97,
+      "lines": [],
+      "dag_id": "dbt_analytics_pipeline_v2",
+      "unit": "task",
+      "task_id": "run_simple_pipeline",
+      "group_id": null,
+      "operator": "DbtSparkRunOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "analytics",
+      "models": [
+        "simple_pipeline"
+      ],
+      "other_nodes": [],
+      "reason": "models= becomes select; DbtSparkOperator in dag/operators/dbt_spark_operator.py starts a KubernetesPodOperator at line 388; host_dbt_path ends in dbt"
+    }
+  ]
+}

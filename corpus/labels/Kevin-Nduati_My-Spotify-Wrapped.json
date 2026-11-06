@@ -1,0 +1,71 @@
+{
+  "repo": "Kevin-Nduati/My-Spotify-Wrapped",
+  "url": "https://github.com/Kevin-Nduati/My-Spotify-Wrapped",
+  "sha": "7e2c2faf3764d71ccf3f1007f1f372d87e956424",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "operators/dbt/spotify_wrapped"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "my_spotify_wrapped.dbt_run.run",
+      "file": "dags/songs.py",
+      "line": 111,
+      "lines": [],
+      "dag_id": "my_spotify_wrapped",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "operators/dbt/spotify_wrapped",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "spotify_wrapped",
+      "models": [
+        "artists_listened_to",
+        "minutes_per_artist",
+        "most_streamed_artists",
+        "most_streamed_songs",
+        "newly_discovered_artists",
+        "newly_discovered_tracks",
+        "total_minutes_streamed",
+        "tracks_listened_to",
+        "tracks_per_dow"
+      ],
+      "other_nodes": [],
+      "reason": "dbt_folder built from __file__; no selector, --vars only: every model. Task joins the DAG through >> with a dag= task"
+    },
+    {
+      "id": "my_spotify_wrapped.dbt_test.test",
+      "file": "dags/songs.py",
+      "line": 123,
+      "lines": [],
+      "dag_id": "my_spotify_wrapped",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "operators/dbt/spotify_wrapped",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "spotify_wrapped",
+      "models": [],
+      "other_nodes": [],
+      "reason": "project has no YAML tests and an empty tests folder, so no model has a test"
+    }
+  ]
+}

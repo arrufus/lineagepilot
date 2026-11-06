@@ -1,0 +1,75 @@
+{
+  "repo": "Nathnael12/Datawarehouse",
+  "url": "https://github.com/Nathnael12/Datawarehouse",
+  "sha": "418674325c57f3a02ccf1a4f4572bfb694171b45",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt/traffic_data"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "airflow/dags/dbt_invoke.py",
+      "what": "dbt docs generate task dbt_doc_gen"
+    }
+  ],
+  "links": [
+    {
+      "id": "Traffic_dbt_dag.dbt_run.run",
+      "file": "airflow/dags/dbt_invoke.py",
+      "line": 33,
+      "lines": [],
+      "dag_id": "Traffic_dbt_dag",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt/traffic_data",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "traffic_data",
+      "models": [
+        "fast_vehicles",
+        "fast_vehicles_summary",
+        "lat_timely_summary",
+        "lon_timely_summary",
+        "reverse_geocoding",
+        "speed_timely_summary",
+        "timely_summary",
+        "vehicles_summary"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: every model, counting the Python model reverse_geocoding, whose dbt.ref target is not in the repo and whose requirements pin dbt==0.15"
+    },
+    {
+      "id": "Traffic_dbt_dag.dbt_test.test",
+      "file": "airflow/dags/dbt_invoke.py",
+      "line": 38,
+      "lines": [],
+      "dag_id": "Traffic_dbt_dag",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "dbt/traffic_data",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "traffic_data",
+      "models": [],
+      "other_nodes": [],
+      "reason": "schema.yml has descriptions only and tests folder is empty, so no model has a test"
+    }
+  ]
+}

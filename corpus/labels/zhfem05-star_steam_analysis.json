@@ -1,0 +1,74 @@
+{
+  "repo": "zhfem05-star/steam_analysis",
+  "url": "https://github.com/zhfem05-star/steam_analysis",
+  "sha": "66df015db6b74cbe894b52c7fb07b7b3e7e81e6f",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt/steam_dbt"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "steam_gold_02_dbt_marts.dbt_staging.run",
+      "file": "dags/gold_dbt_marts_DAG.py",
+      "line": 35,
+      "lines": [],
+      "dag_id": "steam_gold_02_dbt_marts",
+      "unit": "task",
+      "task_id": "dbt_staging",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt/steam_dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "steam_dbt",
+      "models": [
+        "stg_concurrent_players",
+        "stg_games",
+        "stg_price_history",
+        "stg_review_daily",
+        "stg_review_playtime_daily"
+      ],
+      "other_nodes": [],
+      "reason": "dbt/Dockerfile copies steam_dbt to /usr/app/dbt; --select staging folder"
+    },
+    {
+      "id": "steam_gold_02_dbt_marts.dbt_marts.run",
+      "file": "dags/gold_dbt_marts_DAG.py",
+      "line": 46,
+      "lines": [],
+      "dag_id": "steam_gold_02_dbt_marts",
+      "unit": "task",
+      "task_id": "dbt_marts",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt/steam_dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "steam_dbt",
+      "models": [
+        "mart_discount_analysis",
+        "mart_discount_player_trend",
+        "mart_discount_playtime_trend",
+        "mart_discount_review_trend",
+        "mart_game_overview",
+        "mart_player_daily_avg"
+      ],
+      "other_nodes": [],
+      "reason": "dbt/Dockerfile copies steam_dbt to /usr/app/dbt; --select marts folder"
+    }
+  ]
+}

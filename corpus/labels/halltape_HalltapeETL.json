@@ -1,0 +1,66 @@
+{
+  "repo": "halltape/HalltapeETL",
+  "url": "https://github.com/halltape/HalltapeETL",
+  "sha": "af186d27c167bc22eb4d6bb99c2b1c9605b068d0",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags",
+      "scripts/legacy"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt_click"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "debit_cards.load_to_clickhouse.run",
+      "file": "scripts/legacy/debit_cards.py",
+      "line": 150,
+      "lines": [],
+      "dag_id": "debit_cards",
+      "unit": "task",
+      "task_id": "load_to_clickhouse",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt_click",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_click",
+      "models": [
+        "debit_cards"
+      ],
+      "other_nodes": [],
+      "reason": "cd /opt/dbt_click, -m datamart: folder models/datamart. File sits in scripts/legacy, outside the mounted dags folder"
+    },
+    {
+      "id": "monitoring.load_to_click.run",
+      "file": "scripts/legacy/data_quality.py",
+      "line": 18,
+      "lines": [],
+      "dag_id": "monitoring",
+      "unit": "task",
+      "task_id": "load_to_click",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt_click",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_click",
+      "models": [
+        "logs_datamart"
+      ],
+      "other_nodes": [],
+      "reason": "-m monitoring: folder models/monitoring. File sits in scripts/legacy, outside the mounted dags folder"
+    }
+  ]
+}

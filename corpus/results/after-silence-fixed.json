@@ -1,0 +1,2253 @@
+{
+ "scanner_sha256": "0150ec1d3d5bd7ae6e3abb4ba7efc94fbcf69b745907d910ddaa3d5494e2c446",
+ "commit": "64ce43871d69e4a71d3b32aca8f4de76f38f5920",
+ "summary": {
+  "labelled_folders": {
+   "expected_links": 106,
+   "expected_resolvable": 104,
+   "expected_unknown": 2,
+   "correct": 17,
+   "misses": 87,
+   "legit_unknowns": 2,
+   "false_positives": 0,
+   "unexpected_unknown_links": 0,
+   "miss_rate": 0.8208,
+   "other_nodes_wrong": 0,
+   "confidence_of_correct": {
+    "heuristic": 17
+   },
+   "without_unsure_labels": {
+    "expected_links": 96,
+    "expected_resolvable": 94,
+    "expected_unknown": 2,
+    "correct": 16,
+    "misses": 78,
+    "legit_unknowns": 2,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "miss_rate": 0.8125,
+    "other_nodes_wrong": 0,
+    "confidence_of_correct": {
+     "heuristic": 16
+    }
+   },
+   "by_operator": {
+    "BashOperator": {
+     "expected_links": 18,
+     "correct": 12,
+     "misses": 6,
+     "miss_rate": 0.3333
+    },
+    "DbtBuildLocalOperator": {
+     "expected_links": 2,
+     "correct": 0,
+     "misses": 2,
+     "miss_rate": 1.0
+    },
+    "DbtDag": {
+     "expected_links": 18,
+     "correct": 0,
+     "misses": 18,
+     "miss_rate": 1.0
+    },
+    "DbtK8Operator": {
+     "expected_links": 4,
+     "correct": 0,
+     "misses": 4,
+     "miss_rate": 1.0
+    },
+    "DbtSparkRunOperator": {
+     "expected_links": 3,
+     "correct": 0,
+     "misses": 3,
+     "miss_rate": 1.0
+    },
+    "DbtSparkSeedOperator": {
+     "expected_links": 1,
+     "correct": 0,
+     "misses": 1,
+     "miss_rate": 1.0
+    },
+    "DbtTaskGroup": {
+     "expected_links": 16,
+     "correct": 1,
+     "misses": 15,
+     "miss_rate": 0.9375
+    },
+    "DockerOperator": {
+     "expected_links": 35,
+     "correct": 4,
+     "misses": 31,
+     "miss_rate": 0.8857
+    },
+    "KubernetesPodOperator": {
+     "expected_links": 7,
+     "correct": 0,
+     "misses": 7,
+     "miss_rate": 1.0
+    },
+    "compile_dbt_af_dags": {
+     "expected_links": 2,
+     "correct": 0,
+     "misses": 0,
+     "miss_rate": 0.0
+    }
+   },
+   "miss_reasons": {
+    "unknown": 53,
+    "only an unresolved record": 32,
+    "found with the wrong identity": 1,
+    "wrong model set": 1
+   }
+  },
+  "default_folders": {
+   "expected_links": 106,
+   "expected_resolvable": 104,
+   "expected_unknown": 2,
+   "correct": 15,
+   "misses": 91,
+   "legit_unknowns": 0,
+   "false_positives": 0,
+   "unexpected_unknown_links": 0,
+   "miss_rate": 0.8585,
+   "other_nodes_wrong": 0,
+   "confidence_of_correct": {
+    "heuristic": 15
+   },
+   "without_unsure_labels": {
+    "expected_links": 96,
+    "expected_resolvable": 94,
+    "expected_unknown": 2,
+    "correct": 14,
+    "misses": 82,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 0,
+    "miss_rate": 0.8542,
+    "other_nodes_wrong": 0,
+    "confidence_of_correct": {
+     "heuristic": 14
+    }
+   },
+   "by_operator": {
+    "BashOperator": {
+     "expected_links": 18,
+     "correct": 10,
+     "misses": 8,
+     "miss_rate": 0.4444
+    },
+    "DbtBuildLocalOperator": {
+     "expected_links": 2,
+     "correct": 0,
+     "misses": 2,
+     "miss_rate": 1.0
+    },
+    "DbtDag": {
+     "expected_links": 18,
+     "correct": 0,
+     "misses": 18,
+     "miss_rate": 1.0
+    },
+    "DbtK8Operator": {
+     "expected_links": 4,
+     "correct": 0,
+     "misses": 4,
+     "miss_rate": 1.0
+    },
+    "DbtSparkRunOperator": {
+     "expected_links": 3,
+     "correct": 0,
+     "misses": 3,
+     "miss_rate": 1.0
+    },
+    "DbtSparkSeedOperator": {
+     "expected_links": 1,
+     "correct": 0,
+     "misses": 1,
+     "miss_rate": 1.0
+    },
+    "DbtTaskGroup": {
+     "expected_links": 16,
+     "correct": 1,
+     "misses": 15,
+     "miss_rate": 0.9375
+    },
+    "DockerOperator": {
+     "expected_links": 35,
+     "correct": 4,
+     "misses": 31,
+     "miss_rate": 0.8857
+    },
+    "KubernetesPodOperator": {
+     "expected_links": 7,
+     "correct": 0,
+     "misses": 7,
+     "miss_rate": 1.0
+    },
+    "compile_dbt_af_dags": {
+     "expected_links": 2,
+     "correct": 0,
+     "misses": 2,
+     "miss_rate": 1.0
+    }
+   },
+   "miss_reasons": {
+    "unknown": 49,
+    "only an unresolved record": 28,
+    "not found: no link and no unresolved record": 10,
+    "silently dropped: no link and no unresolved record": 2,
+    "found with the wrong identity": 1,
+    "wrong model set": 1
+   }
+  }
+ },
+ "repos": [
+  {
+   "repo": "21voidx/F1_RealtimeReplay_Historical_Project",
+   "sha": "71d6c745b6554518bc396c24e1fa8da7a83be84e",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "openf1_dbt_snowflake.dbt_build_staging.build",
+      "file": "dags/openf1_dbt_snowflake_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 10,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "shell variable in --select: ${FULL_REFRESH_FLAG}; no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "openf1_dbt_snowflake.dbt_build_intermediate.build",
+      "file": "dags/openf1_dbt_snowflake_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "shell variable in --select: ${FULL_REFRESH_FLAG}; no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "openf1_dbt_snowflake.dbt_build_marts.build",
+      "file": "dags/openf1_dbt_snowflake_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "shell variable in --select: ${FULL_REFRESH_FLAG}; no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "f1_data_pipeline_backfill_dockeroperator_v2.dbt_build_staging.build",
+      "file": "dags/f1_data_pipeline_dockeroperator_dockerfile_a.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 10,
+      "confidence": "heuristic",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "f1_data_pipeline_backfill_dockeroperator_v2.dbt_build_intermediate.build",
+      "file": "dags/f1_data_pipeline_dockeroperator_dockerfile_a.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": "heuristic",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "f1_data_pipeline_backfill_dockeroperator_v2.dbt_build_marts.build",
+      "file": "dags/f1_data_pipeline_dockeroperator_dockerfile_a.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "confidence": "heuristic",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline.dbt_run_staging.run",
+      "file": "dags/openf1_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 10,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline.dbt_run_intermediate.run",
+      "file": "dags/openf1_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline.dbt_run_marts.run",
+      "file": "dags/openf1_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline_v2.dbt_run_staging.run",
+      "file": "dags/openf1_pipeline_v2.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 10,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline_v2.dbt_run_intermediate.run",
+      "file": "dags/openf1_pipeline_v2.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "openf1_session_pipeline_v2.dbt_run_marts.run",
+      "file": "dags/openf1_pipeline_v2.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/app' matches no dbt project here"
+     },
+     {
+      "id": "f1_data_pipeline_backfill.f1_dbt_transformations.cosmos_render@v1",
+      "file": "dags/hitesh_f1_snowflake_dags_with_backfill.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 27,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' has no default)"
+     },
+     {
+      "id": "f1_data_pipeline_backfill.f1_dbt_transformations.cosmos_render@v2",
+      "file": "dags/hitesh_f1_snowflake_dags_with_backfill_v2.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 27,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 14,
+     "expected_resolvable": 14,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 13,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.9286,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dag_files": 8,
+     "unresolved_records": 27
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 14,
+     "expected_resolvable": 14,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 13,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.9286,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dag_files": 8,
+     "unresolved_records": 27
+    }
+   }
+  },
+  {
+   "repo": "Kevin-Nduati/My-Spotify-Wrapped",
+   "sha": "7e2c2faf3764d71ccf3f1007f1f372d87e956424",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "my_spotify_wrapped.dbt_run.run",
+      "file": "dags/songs.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "not_literal",
+      "detail": "shell command not statically resolvable: result of datetime.date.today() is not known statically"
+     },
+     {
+      "id": "my_spotify_wrapped.dbt_test.test",
+      "file": "dags/songs.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "found with the wrong identity",
+      "got": {
+       "dag_id": null,
+       "task_id": "dbt_test",
+       "group_id": null,
+       "dbt_command": "test",
+       "command_index": null
+      }
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 2,
+     "unresolved_records": 2
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 2,
+     "unresolved_records": 2
+    }
+   }
+  },
+  {
+   "repo": "Nathnael12/Datawarehouse",
+   "sha": "418674325c57f3a02ccf1a4f4572bfb694171b45",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "Traffic_dbt_dag.dbt_run.run",
+      "file": "airflow/dags/dbt_invoke.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 8,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "Traffic_dbt_dag.dbt_test.test",
+      "file": "airflow/dags/dbt_invoke.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dag_files": 2,
+     "unresolved_records": 0
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dag_files": 2,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "Som-Energia/somenergia-jardiner",
+   "sha": "a1bf32b3c066bf882bc83ebeee784edc3ea984a9",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dag_jardiner_dbt_snapshot.dbt_snapshot_task__gestio_actius_data_sync.snapshot",
+      "file": "dags/dag_jardiner_dbt_snapshot.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "dbt_test_dset_quality_v2.dbt_test_task.test",
+      "file": "dags/dbt_test_quality_dset.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 10,
+      "confidence": "heuristic",
+      "outcome": "miss",
+      "reason": "wrong model set",
+      "missing": [],
+      "extra": [
+       "model.dbt_jardiner.raw_plantmonitor_plants"
+      ],
+      "other_nodes_match": true
+     },
+     {
+      "id": "dset_materialize_dag_v1.dbt_transformation_task__dset_materialization.run",
+      "file": "dags/dset_materialize_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "plant_production_datasets_v3.dbt_transformation_task.run",
+      "file": "dags/plant_production_datasets_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "plant_production_datasets__jardiner__v1.dbt_transformation_task__jardiner.run",
+      "file": "dags/plant_production_datasets_jardiner_dag.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 24,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 5,
+     "expected_resolvable": 5,
+     "expected_unknown": 0,
+     "correct": 4,
+     "misses": 1,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.2,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 4
+     },
+     "dag_files": 7,
+     "unresolved_records": 2
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 5,
+     "expected_resolvable": 5,
+     "expected_unknown": 0,
+     "correct": 4,
+     "misses": 1,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.2,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 4
+     },
+     "dag_files": 7,
+     "unresolved_records": 2
+    }
+   }
+  },
+  {
+   "repo": "Toloka/dbt-af",
+   "sha": "ab888ffaad6e6a945b2690186a011f5d9fb412f0",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "compile_dbt_af_dags.jaffle_shop.run",
+      "file": "examples/dags/example_dbt_af_dag.py",
+      "operator": "compile_dbt_af_dags",
+      "expect": "unknown",
+      "unsure": false,
+      "outcome": "unknown_legit",
+      "category": "wrapper"
+     },
+     {
+      "id": "compile_dbt_af_dags.advanced_jaffle_shop.run",
+      "file": "examples/dags/example_advanced_dbt_af_dag.py",
+      "operator": "compile_dbt_af_dags",
+      "expect": "unknown",
+      "unsure": false,
+      "outcome": "unknown_legit",
+      "category": "wrapper"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 0,
+     "expected_unknown": 2,
+     "correct": 0,
+     "misses": 0,
+     "legit_unknowns": 2,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 2,
+     "unresolved_records": 7
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 0,
+     "expected_unknown": 2,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 0,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+   "sha": "0f0588ed822c8cb38af4205b0e16e250a1603bb9",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "flight_etl_pipeline.dbt_run.run",
+      "file": "airflow/dags/flight_etl_dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 17,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "flight_etl_pipeline.dbt_test.test",
+      "file": "airflow/dags/flight_etl_dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 17,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dag_files": 1,
+     "unresolved_records": 0
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dag_files": 1,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "anhhoangdev/KonohaDataPlatform",
+   "sha": "73ab523a38586403cb5eeb47cacf6c9bc943b2a7",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dbt_analytics_pipeline_v2.seed_reference_data.seed",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "operator": "DbtSparkSeedOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "DbtSparkSeedOperator mentions dbt, but what it runs cannot be read"
+     },
+     {
+      "id": "dbt_analytics_pipeline_v2.run_stg_users.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "operator": "DbtSparkRunOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "DbtSparkRunOperator mentions dbt, but what it runs cannot be read"
+     },
+     {
+      "id": "dbt_analytics_pipeline_v2.run_stg_orders.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "operator": "DbtSparkRunOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "DbtSparkRunOperator mentions dbt, but what it runs cannot be read"
+     },
+     {
+      "id": "dbt_analytics_pipeline_v2.run_simple_pipeline.run",
+      "file": "dag/dbt_analytics_pipeline.py",
+      "operator": "DbtSparkRunOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "DbtSparkRunOperator mentions dbt, but what it runs cannot be read"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 4,
+     "unresolved_records": 11
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 0,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "astronomer/cosmos-ebook-companion",
+   "sha": "03a54fe12e7c18d9758ff6e5f37888540cc79e83",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "example_DbtDag_spark.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_spark.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtDag_bigquery.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_bigquery.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtDag_databricks.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_databricks.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtDag_snowflake.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_snowflake.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtDag_postgres.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_postgres.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtDag_duckdb.DbtDag.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtDag/example_DbtDag_duckdb.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_spark.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_spark.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_bigquery.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_bigquery.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_databricks.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_databricks.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_snowflake.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_snowflake.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_postgres.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_postgres.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_DbtTaskGroup_duckdb.dbt_project.cosmos_render",
+      "file": "dags/basic_examples_per_dwh/examples_DbtTaskGroup/example_DbtTaskGroup_duckdb.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "watcher_tuned.DbtDag.cosmos_render",
+      "file": "dags/watcher_examples/watcher_tuned.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "watcher_subprocess.DbtDag.cosmos_render",
+      "file": "dags/watcher_examples/watcher_subprocess.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_dag_watcher_mode.DbtDag.cosmos_render",
+      "file": "dags/watcher_examples/example_dag_watcher_mode.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "customer_360.dbt_project.cosmos_render",
+      "file": "dags/complex_examples/customer_360.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 43,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default)); ProjectConfig.manifest_path is not literal"
+     },
+     {
+      "id": "customer_360_snow.dbt_project.cosmos_render",
+      "file": "dags/complex_examples/customer_360_snowflake.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 43,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_inject_dbt_vars.dbt_project.cosmos_render",
+      "file": "dags/advanced_examples/example_inject_dbt_vars.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_granular_task_dependencies_DbtDag.DbtDag.cosmos_render",
+      "file": "dags/advanced_examples/example_granular_task_dependencies_DbtDag.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_granular_task_dependencies_DbtTaskGroup.dbt_project.cosmos_render",
+      "file": "dags/advanced_examples/example_granular_task_dependencies_DbtTaskGroup.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "cosmos_assets.DbtDag.cosmos_render",
+      "file": "dags/advanced_examples/cosmos_assets.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_use_profiles_yml.DbtDag.cosmos_render",
+      "file": "dags/advanced_examples/example_use_profiles_yml.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "cosmos_async.DbtDag.cosmos_render",
+      "file": "dags/advanced_examples/cosmos_async.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_dbt_docs.dbt_project.cosmos_render",
+      "file": "dags/advanced_examples/example_dbt_docs.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_reduce_granularity.bulk_dbt_project.build",
+      "file": "dags/advanced_examples/example_reduce_granularity.py",
+      "operator": "DbtBuildLocalOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 3,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "project_dir not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_reduce_granularity.granular_dbt_project.cosmos_render",
+      "file": "dags/advanced_examples/example_reduce_granularity.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "per_node_profile.DbtDag.cosmos_render",
+      "file": "dags/other_examples/per_node_profile.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "cross_project_dbt_loom.upstream_project.cosmos_render",
+      "file": "dags/other_examples/cross_project_dbt_loom.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default)))"
+     },
+     {
+      "id": "cross_project_dbt_loom.downstream_project.cosmos_render",
+      "file": "dags/other_examples/cross_project_dbt_loom.py",
+      "operator": "DbtTaskGroup",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default)))"
+     },
+     {
+      "id": "fqn_selectors.DbtDag.cosmos_render",
+      "file": "dags/other_examples/fqn_selectors.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "yaml_selectors.DbtDag.cosmos_render",
+      "file": "dags/other_examples/yaml_selectors.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_dag_dbtbuildlocal.build_dbt_project.build",
+      "file": "dags/other_examples/example_dag_dbtbuildlocal.py",
+      "operator": "DbtBuildLocalOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "project_dir not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "task_group_by_folder.DbtDag.cosmos_render",
+      "file": "dags/other_examples/task_group_by_folder.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     },
+     {
+      "id": "example_dbt_fusion.DbtDag.cosmos_render",
+      "file": "dags/cosmos_and_dbt_fusion/example_dbt_fusion.py",
+      "operator": "DbtDag",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "ProjectConfig.dbt_project_path not resolvable: an f-string part is not resolvable (environment variable 'AIRFLOW_HOME' read with os.environ[...] (no default))"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 34,
+     "expected_resolvable": 34,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 34,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 33,
+     "unresolved_records": 38
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 34,
+     "expected_resolvable": 34,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 34,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 34,
+     "unresolved_records": 38
+    }
+   }
+  },
+  {
+   "repo": "dataengineerankur/dms-snowpipe-dbt-airflow",
+   "sha": "ccb09927aed04c58598f715780846e0615ab07e5",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dbt_customers.dbt_run_stg.run",
+      "file": "airflow/dags/dbt_customers.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_customers.dbt_run_int.run",
+      "file": "airflow/dags/dbt_customers.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_customers.dbt_run_gold.run",
+      "file": "airflow/dags/dbt_customers.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_customers.dbt_test.test",
+      "file": "airflow/dags/dbt_customers.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_orders.dbt_run_stg.run",
+      "file": "airflow/dags/dbt_orders.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_orders.dbt_run_int.run",
+      "file": "airflow/dags/dbt_orders.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_orders.dbt_run_gold.run",
+      "file": "airflow/dags/dbt_orders.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_orders.dbt_test.test",
+      "file": "airflow/dags/dbt_orders.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_products.dbt_run_stg.run",
+      "file": "airflow/dags/dbt_products.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_products.dbt_run_int.run",
+      "file": "airflow/dags/dbt_products.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_products.dbt_run_gold.run",
+      "file": "airflow/dags/dbt_products.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_products.dbt_test.test",
+      "file": "airflow/dags/dbt_products.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_pipeline.dbt_run_stg.run",
+      "file": "airflow/dags/dbt_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_pipeline.dbt_run_int.run",
+      "file": "airflow/dags/dbt_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_pipeline.dbt_run_gold.run",
+      "file": "airflow/dags/dbt_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     },
+     {
+      "id": "dbt_pipeline.dbt_test.test",
+      "file": "airflow/dags/dbt_pipeline.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "dbt_utils.build_dbt_task(...) is defined in airflow/dags/dbt_utils.py and creates DockerOperator at parse time from non-literal inputs; tasks not resolved statically"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 16,
+     "expected_resolvable": 16,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 16,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 23,
+     "unresolved_records": 20
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 16,
+     "expected_resolvable": 16,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 16,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 23,
+     "unresolved_records": 20
+    }
+   }
+  },
+  {
+   "repo": "datamindedbe/eu-data-platform",
+   "sha": "119712adeb198c403da3ac7eaa102a1d60f15325",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "example_dbt_duckdb.dbt_run_task.run",
+      "file": "dags/k8s_dbt_duckdb_dag.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 8,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     },
+     {
+      "id": "scaleway_registry_dbt_duckdb.dbt_run_task.run",
+      "file": "dags/k8s_dbt_duckdb_dag_from_scaleway_registry.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 8,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     },
+     {
+      "id": "k8s_dbt_trino.run_dbt_trino_task.run",
+      "file": "dags/k8s_trino_dag.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 3,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 4,
+     "unresolved_records": 3
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 3,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 4,
+     "unresolved_records": 3
+    }
+   }
+  },
+  {
+   "repo": "dungtran174/ecommerce-lakehouse-platform",
+   "sha": "3ad3ca8efba30ae2d0388be37b1bc30f05b8122e",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "oltp_data_pipeline.dbt_run.run",
+      "file": "airflow/dags/oltp_data_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 25,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "oltp_data_pipeline.dbt_test.test",
+      "file": "airflow/dags/oltp_data_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 25,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "marketing_campaign_pipeline.dbt_run_marketing.run",
+      "file": "airflow/dags/marketing_campaign_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "marketing_campaign_pipeline.dbt_test_marketing.test",
+      "file": "airflow/dags/marketing_campaign_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "user_activity_logs_pipeline.dbt_run.run",
+      "file": "airflow/dags/user_activity_logs_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "user_activity_logs_pipeline.dbt_test.test",
+      "file": "airflow/dags/user_activity_logs_pipeline.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 6,
+     "expected_resolvable": 6,
+     "expected_unknown": 0,
+     "correct": 6,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 6
+     },
+     "dag_files": 3,
+     "unresolved_records": 2
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 6,
+     "expected_resolvable": 6,
+     "expected_unknown": 0,
+     "correct": 6,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 6
+     },
+     "dag_files": 3,
+     "unresolved_records": 2
+    }
+   }
+  },
+  {
+   "repo": "feast-dev/feast-workshop",
+   "sha": "b407d1cc25244907585e4feef6b574ba94531f57",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "feature_dag.dbt_test.test@module_3_sf",
+      "file": "module_3_sf/airflow_demo/dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "feature_dag.dbt_run.run@module_3_sf",
+      "file": "module_3_sf/airflow_demo/dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "feature_dag.dbt_test.test@module_3_db",
+      "file": "module_3_db/airflow_demo/dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "no project_dir and the working directory is unknown"
+     },
+     {
+      "id": "feature_dag.dbt_run.run@module_3_db",
+      "file": "module_3_db/airflow_demo/dag.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "declared",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "no project_dir and the working directory is unknown"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 3,
+     "unresolved_records": 4
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 0,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "feluelle/kind-data-platform",
+   "sha": "3e35bfaaf5dbc8508defce087950dfa2081971a3",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dbt.dbt_run.run",
+      "file": "airflow/dags/dbt.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 1,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 2,
+     "unresolved_records": 1
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 1,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 2,
+     "unresolved_records": 1
+    }
+   }
+  },
+  {
+   "repo": "halltape/HalltapeETL",
+   "sha": "af186d27c167bc22eb4d6bb99c2b1c9605b068d0",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "debit_cards.load_to_clickhouse.run",
+      "file": "scripts/legacy/debit_cards.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "monitoring.load_to_click.run",
+      "file": "scripts/legacy/data_quality.py",
+      "operator": "BashOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dag_files": 14,
+     "unresolved_records": 0
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 9,
+     "unresolved_records": 0
+    }
+   }
+  },
+  {
+   "repo": "sungchun12/airflow-toolkit",
+   "sha": "efc6c927267e2bc1dcd2a9164a0aa934f5c25668",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dbt_example.dbt-seed.seed",
+      "file": "dags/examples/dbt_example.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     },
+     {
+      "id": "dbt_example.dbt-run.run",
+      "file": "dags/examples/dbt_example.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     },
+     {
+      "id": "dbt_example.dbt-test.test",
+      "file": "dags/examples/dbt_example.py",
+      "operator": "KubernetesPodOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "other_operator",
+      "detail": "this task mentions dbt, and no dbt command could be read in it; it may be in the image, or in a form the scanner does not know"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 3,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 6,
+     "unresolved_records": 5
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 3,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 6,
+     "unresolved_records": 5
+    }
+   }
+  },
+  {
+   "repo": "teamdatatonic/dop",
+   "sha": "08b64972e9899971d5c4f892480aa0c067b53c3b",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "dop__example_covid19.dbt_start_staging.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "operator": "DbtK8Operator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "inside a for-loop (line 264): tasks created a dynamic number of times; unrecognised call operator(...) with dbt-related arguments ['dbt_project_name', 'dbt_version', 'dbt_arguments']; may create dbt tasks"
+     },
+     {
+      "id": "dop__example_covid19.dbt_start_aggregation_a.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "operator": "DbtK8Operator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "inside a for-loop (line 264): tasks created a dynamic number of times; unrecognised call operator(...) with dbt-related arguments ['dbt_project_name', 'dbt_version', 'dbt_arguments']; may create dbt tasks"
+     },
+     {
+      "id": "dop__example_covid19.dbt_start_aggregation_b.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "operator": "DbtK8Operator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "inside a for-loop (line 264): tasks created a dynamic number of times; unrecognised call operator(...) with dbt-related arguments ['dbt_project_name', 'dbt_version', 'dbt_arguments']; may create dbt tasks"
+     },
+     {
+      "id": "dop__example_covid19.dbt_start_test.test",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "operator": "DbtK8Operator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "outcome": "miss",
+      "reason": "only an unresolved record",
+      "category": "wrapper",
+      "detail": "inside a for-loop (line 264): tasks created a dynamic number of times; unrecognised call operator(...) with dbt-related arguments ['dbt_project_name', 'dbt_version', 'dbt_arguments']; may create dbt tasks"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 5,
+     "unresolved_records": 5
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 4,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 5,
+     "unresolved_records": 5
+    }
+   }
+  },
+  {
+   "repo": "zhfem05-star/steam_analysis",
+   "sha": "66df015db6b74cbe894b52c7fb07b7b3e7e81e6f",
+   "labelled_folders": {
+    "rows": [
+     {
+      "id": "steam_gold_02_dbt_marts.dbt_staging.run",
+      "file": "dags/gold_dbt_marts_DAG.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/usr/app/dbt' matches no dbt project here"
+     },
+     {
+      "id": "steam_gold_02_dbt_marts.dbt_marts.run",
+      "file": "dags/gold_dbt_marts_DAG.py",
+      "operator": "DockerOperator",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 6,
+      "confidence": "inferred",
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "no_project",
+      "detail": "project path '/usr/app/dbt' matches no dbt project here"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 13,
+     "unresolved_records": 2
+    }
+   },
+   "default_folders": {
+    "metrics": {
+     "expected_links": 2,
+     "expected_resolvable": 2,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dag_files": 13,
+     "unresolved_records": 2
+    }
+   }
+  }
+ ]
+}

@@ -1,0 +1,61 @@
+{
+  "repo": "Toloka/dbt-af",
+  "url": "https://github.com/Toloka/dbt-af",
+  "sha": "ab888ffaad6e6a945b2690186a011f5d9fb412f0",
+  "license": "Apache-2.0",
+  "scan": {
+    "paths": [
+      "examples/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "examples/dags"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "compile_dbt_af_dags.jaffle_shop.run",
+      "file": "examples/dags/example_dbt_af_dag.py",
+      "line": 23,
+      "lines": [],
+      "dag_id": null,
+      "unit": "task",
+      "task_id": null,
+      "group_id": null,
+      "operator": "compile_dbt_af_dags",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "examples/dags",
+      "expect": "unknown",
+      "legit": true,
+      "unknown_category": "manifest_generated",
+      "package": "dbt_af_project",
+      "models": [],
+      "other_nodes": [],
+      "reason": "dags and tasks (DbtRun, DbtTest, ...) generated at parse time from target/manifest.json, which is gitignored and built by build_manifest.sh"
+    },
+    {
+      "id": "compile_dbt_af_dags.advanced_jaffle_shop.run",
+      "file": "examples/dags/example_advanced_dbt_af_dag.py",
+      "line": 34,
+      "lines": [],
+      "dag_id": null,
+      "unit": "task",
+      "task_id": null,
+      "group_id": null,
+      "operator": "compile_dbt_af_dags",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "examples/dags",
+      "expect": "unknown",
+      "legit": true,
+      "unknown_category": "manifest_generated",
+      "package": "dbt_af_project",
+      "models": [],
+      "other_nodes": [],
+      "reason": "dags and tasks (DbtRun, DbtTest, ...) generated at parse time from target/manifest.json, which is gitignored and built by build_manifest.sh"
+    }
+  ]
+}

@@ -16,6 +16,7 @@ packages/lsp/     lineagepilot_lsp, the pygls language server (Phase 2)
 extension/        the VS Code extension (Phase 2)
 protocol/         the lineage/* JSON Schema, its generator and contract examples
 fixtures/         dbt project workspaces for the core, server and extension tests
+corpus/           the held-out DAG corpus: labels, scorer and results (Phase 5)
 docs/             design, implementation plan and the rules reference
 ```
 
@@ -51,3 +52,16 @@ Phase 4, the Change Impact Review (LP-zod), was built on 5 November 2026: **Revi
 - at 5,000 models a review takes 2–45 ms, and the server's peak stays within its budget, at 375 MB on Linux ([design §11](docs/design.md#11-performance-budgets)).
 
 CI found one bug that local runs could not: on Windows, git checks files out with CRLF, and the stale check called them changed against a manifest built with LF. Line endings are now normalised before comparing. Follow-ups, none blocking: a changed macro is an unknown because which models call it is not worked out (LP-a04); everything below a changed model is listed at model level because comparing names cannot rule out a change in how a column is computed (LP-85e); and a properties file touches every node it documents (LP-07a).
+
+Phase 5, Airflow linkage (LP-56q), was built on 6 November 2026: DAG files read as syntax only and never imported or run, and tasks linked to dbt nodes in CodeLens, the **Airflow** view, the lineage graph, **Review Changes** and `lineagepilot review` ([design §6.2](docs/design.md#62-airflow-mvp-static-analysis)). What could not be read is listed as an unknown, at the line that caused it, and `.lineagepilot/airflow.yml` can answer it.
+
+**The miss rate on repositories the scanner had never seen is 84.0%** (LP-56q.5, [corpus/README.md](corpus/README.md)). On 106 links in 17 repositories labelled blind, the frozen scanner got 17 right, reported 78 as unknown at the call site, said nothing on 9 and was wrong on 2, with no false positives. Spike S3's 0% was in-sample and says little about other repositories. The scanner rarely misleads, but on repositories like these it often cannot tell, so the review's Airflow section is mostly a list of tasks it could not read. Three general gaps make up 62 of the 89 misses (LP-0o1, LP-z2x, LP-c05). The silent links are now unknowns, and the correct count did not move. Nothing else was tuned: this corpus has been read, so a tuned scanner needs a fresh one (LP-aax).
+
+The exit criteria:
+- the full acceptance scenario passes in a real VS Code with the real `vscode.git`, on real dbt 1.12 artifacts: the review lists the downstream models, the exposure, the Airflow task and its owner, an unparseable model is under Unknowns, and Restricted Mode keeps lineage and refuses dbt. Its Airflow assertions passed in CI on Linux, macOS and Windows on an earlier commit (run 42236319899, where the only failures were three new tests with bugs of their own, since fixed); the whole scenario passes on the final code in the Linux container, on Python 3.10 and 3.13;
+- the miss rate on the held-out corpus is measured and reported, above.
+
+**CI is not complete, and the epic stays open for it** (LP-kf5). GitHub Actions stopped starting jobs on 6 November, with "recent account payments have failed or your spending limit needs to be increased". At the frozen commit `5a50fc8` the core passed on Linux, macOS and Windows with Python 3.10 and 3.13, the selector conformance job passed against real dbt 1.9 and 1.12 (run 42238432705), the server passed on Linux and macOS (run 42238432674), and the extension built and met its coverage gate (run 42238432678), but its test matrix never started. The commits after it have had no CI. Locally on the final code: the core and server suites pass on macOS with Python 3.10 and 3.13, and the extension's suite on Linux with both. Extension coverage is 85.3% of lines (gate 75%), the review page's view tests 99.5%, and the core 93.5% (gate 80%).
+
+At 5,000 models with 2,000 tasks linked, a warm start has its scan linked in 2.1 s on macOS and 2.8 s on Linux, and the server's peak on Linux is 379 MB, within its 500 MB budget. On macOS it reads 511 MB warm and 608 MB cold, over budget (LP-dtt). A changed DAG file is listed, not followed (LP-o59).
+

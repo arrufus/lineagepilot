@@ -1,0 +1,114 @@
+{
+  "repo": "feast-dev/feast-workshop",
+  "url": "https://github.com/feast-dev/feast-workshop",
+  "sha": "b407d1cc25244907585e4feef6b574ba94531f57",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "module_1/airflow_demo",
+      "module_3_sf/airflow_demo",
+      "module_3_db/airflow_demo"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "module_3_sf/dbt/feast_demo",
+    "module_3_db/dbt/feast_demo"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "feature_dag.dbt_test.test@module_3_sf",
+      "file": "module_3_sf/airflow_demo/dag.py",
+      "line": 20,
+      "lines": [],
+      "dag_id": "feature_dag",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "module_3_sf/dbt/feast_demo",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "feast_demo",
+      "models": [
+        "aggregate_transaction_features"
+      ],
+      "other_nodes": [],
+      "reason": "cd AIRFLOW_HOME; setup_airflow.sh next to the DAG copies ../dbt/feast_demo there; named model has a not_null test"
+    },
+    {
+      "id": "feature_dag.dbt_run.run@module_3_sf",
+      "file": "module_3_sf/airflow_demo/dag.py",
+      "line": 28,
+      "lines": [],
+      "dag_id": "feature_dag",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "module_3_sf/dbt/feast_demo",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "feast_demo",
+      "models": [
+        "aggregate_transaction_features"
+      ],
+      "other_nodes": [],
+      "reason": "named model; project located through setup_airflow.sh next to the DAG"
+    },
+    {
+      "id": "feature_dag.dbt_test.test@module_3_db",
+      "file": "module_3_db/airflow_demo/dag.py",
+      "line": 21,
+      "lines": [],
+      "dag_id": "feature_dag",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "module_3_db/dbt/feast_demo",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "feast_demo",
+      "models": [
+        "aggregate_transaction_features"
+      ],
+      "other_nodes": [],
+      "reason": "same dag_id as the module_3_sf file; setup_airflow.sh copies this module's ../dbt/feast_demo"
+    },
+    {
+      "id": "feature_dag.dbt_run.run@module_3_db",
+      "file": "module_3_db/airflow_demo/dag.py",
+      "line": 30,
+      "lines": [],
+      "dag_id": "feature_dag",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "module_3_db/dbt/feast_demo",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "feast_demo",
+      "models": [
+        "aggregate_transaction_features"
+      ],
+      "other_nodes": [],
+      "reason": "same dag_id as the module_3_sf file; named model of this module's project"
+    }
+  ]
+}

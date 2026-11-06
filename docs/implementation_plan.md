@@ -134,7 +134,7 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 
 **Exit**:
 - The full acceptance scenario passes.
-- With the scanner frozen, the miss rate on the 5.5 held-out corpus is measured and reported, not only the hits. The S3 repositories are in-sample and do not count.
+- With the scanner frozen, the miss rate on the 5.5 held-out corpus is measured and reported, not only the hits. The S3 repositories are in-sample and do not count. Measured on 6 November 2026: 84.0% on 106 links in 17 repositories, with no false positives ([corpus/README.md](../corpus/README.md)).
 
 ---
 

@@ -1,0 +1,103 @@
+{
+  "repo": "datamindedbe/eu-data-platform",
+  "url": "https://github.com/datamindedbe/eu-data-platform",
+  "sha": "119712adeb198c403da3ac7eaa102a1d60f15325",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "etl/dbt-jobs/jaffle-shop/dbt",
+    "etl/dbt-jobs/trino-test/dbt"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "example_dbt_duckdb.dbt_run_task.run",
+      "file": "dags/k8s_dbt_duckdb_dag.py",
+      "line": 30,
+      "lines": [],
+      "dag_id": "example_dbt_duckdb",
+      "unit": "task",
+      "task_id": "dbt_run_task",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "etl/dbt-jobs/jaffle-shop/dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customers",
+        "orders",
+        "stg_customers",
+        "stg_locations",
+        "stg_order_items",
+        "stg_orders",
+        "stg_products",
+        "stg_supplies"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: no cmds; image name nilli9990/dbt-duckdb tied by name to the only folder installing dbt-duckdb; its entrypoint.sh runs dbt run with no selector; one Python model has enabled=False"
+    },
+    {
+      "id": "scaleway_registry_dbt_duckdb.dbt_run_task.run",
+      "file": "dags/k8s_dbt_duckdb_dag_from_scaleway_registry.py",
+      "line": 29,
+      "lines": [],
+      "dag_id": "scaleway_registry_dbt_duckdb",
+      "unit": "task",
+      "task_id": "dbt_run_task",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "etl/dbt-jobs/jaffle-shop/dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customers",
+        "orders",
+        "stg_customers",
+        "stg_locations",
+        "stg_order_items",
+        "stg_orders",
+        "stg_products",
+        "stg_supplies"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: image dbt-scaleway has no recipe in the repo; dag_id and file name say dbt_duckdb, so read as the same jaffle-shop job and entrypoint.sh"
+    },
+    {
+      "id": "k8s_dbt_trino.run_dbt_trino_task.run",
+      "file": "dags/k8s_trino_dag.py",
+      "line": 29,
+      "lines": [],
+      "dag_id": "k8s_dbt_trino",
+      "unit": "task",
+      "task_id": "run_dbt_trino_task",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "etl/dbt-jobs/trino-test/dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "trino_test",
+      "models": [
+        "count_customer"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: no cmds; image nilli9990/dbt-trino tied by name to the only folder installing dbt-trino; entrypoint.sh runs dbt run; TARGET dev is not in its profiles.yml"
+    }
+  ]
+}

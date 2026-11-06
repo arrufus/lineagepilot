@@ -1,0 +1,126 @@
+{
+  "repo": "teamdatatonic/dop",
+  "url": "https://github.com/teamdatatonic/dop",
+  "sha": "08b64972e9899971d5c4f892480aa0c067b53c3b",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "examples/service_project/dbt_start",
+    "examples/service_project/dbt_start_two"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "examples/service_project/embedded_dop/orchestration/example_covid19/config.yaml",
+      "what": "dbt docs generate task dbt_start_docs"
+    }
+  ],
+  "links": [
+    {
+      "id": "dop__example_covid19.dbt_start_staging.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "line": 345,
+      "lines": [
+        73
+      ],
+      "dag_id": "dop__example_covid19",
+      "unit": "task",
+      "task_id": "dbt_start_staging",
+      "group_id": null,
+      "operator": "DbtK8Operator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "examples/service_project/dbt_start",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dop_test",
+      "models": [
+        "stg_covid19_cases"
+      ],
+      "other_nodes": [],
+      "reason": "built from examples/service_project/embedded_dop/orchestration/example_covid19/config.yaml line 119: run -m staging; DbtK8Operator subclasses KubernetesPodOperator when the sandbox env var is unset"
+    },
+    {
+      "id": "dop__example_covid19.dbt_start_aggregation_a.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "line": 345,
+      "lines": [
+        73
+      ],
+      "dag_id": "dop__example_covid19",
+      "unit": "task",
+      "task_id": "dbt_start_aggregation_a",
+      "group_id": null,
+      "operator": "DbtK8Operator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "examples/service_project/dbt_start",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dop_test",
+      "models": [
+        "covid19_cases_by_country"
+      ],
+      "other_nodes": [],
+      "reason": "built from examples/service_project/embedded_dop/orchestration/example_covid19/config.yaml line 132: run -m aggregation_a"
+    },
+    {
+      "id": "dop__example_covid19.dbt_start_aggregation_b.run",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "line": 345,
+      "lines": [
+        73
+      ],
+      "dag_id": "dop__example_covid19",
+      "unit": "task",
+      "task_id": "dbt_start_aggregation_b",
+      "group_id": null,
+      "operator": "DbtK8Operator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "examples/service_project/dbt_start",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dop_test",
+      "models": [
+        "covid19_cases_by_country_and_region"
+      ],
+      "other_nodes": [],
+      "reason": "built from examples/service_project/embedded_dop/orchestration/example_covid19/config.yaml line 145: run -m aggregation_b"
+    },
+    {
+      "id": "dop__example_covid19.dbt_start_test.test",
+      "file": "dags/dop/airflow_module/dag_builder/transformation_dag_builder.py",
+      "line": 345,
+      "lines": [
+        73
+      ],
+      "dag_id": "dop__example_covid19",
+      "unit": "task",
+      "task_id": "dbt_start_test",
+      "group_id": null,
+      "operator": "DbtK8Operator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "examples/service_project/dbt_start",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dop_test",
+      "models": [
+        "covid19_cases_by_country",
+        "covid19_cases_by_country_and_region"
+      ],
+      "other_nodes": [],
+      "reason": "built from examples/service_project/embedded_dop/orchestration/example_covid19/config.yaml line 158: test with no arguments; the two aggregation models have tests"
+    }
+  ]
+}

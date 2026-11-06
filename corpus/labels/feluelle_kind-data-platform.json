@@ -1,0 +1,43 @@
+{
+  "repo": "feluelle/kind-data-platform",
+  "url": "https://github.com/feluelle/kind-data-platform",
+  "sha": "3e35bfaaf5dbc8508defce087950dfa2081971a3",
+  "license": "Apache-2.0",
+  "scan": {
+    "paths": [
+      "airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt/project"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "dbt.dbt_run.run",
+      "file": "airflow/dags/dbt.py",
+      "line": 13,
+      "lines": [],
+      "dag_id": "dbt",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt/project",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "project",
+      "models": [
+        "my_first_dbt_model",
+        "my_second_dbt_model"
+      ],
+      "other_nodes": [],
+      "reason": "cmds=['run'] on the image from dbt/Dockerfile, whose base runs dbt; no selector: both models of the only project"
+    }
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "repo": "sungchun12/airflow-toolkit",
+  "url": "https://github.com/sungchun12/airflow-toolkit",
+  "sha": "efc6c927267e2bc1dcd2a9164a0aa934f5c25668",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt_bigquery_example"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "dags/examples/dbt_example.py",
+      "what": "dbt debug task dbt-debug"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_example.dbt-seed.seed",
+      "file": "dags/examples/dbt_example.py",
+      "line": 53,
+      "lines": [
+        25
+      ],
+      "dag_id": "dbt_example",
+      "unit": "task",
+      "task_id": "dbt-seed",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_example",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "dbt_setup_cmds in dags/airflow_utils.py cd into dbt_bigquery_example; no selector: all seeds in data-paths"
+    },
+    {
+      "id": "dbt_example.dbt-run.run",
+      "file": "dags/examples/dbt_example.py",
+      "line": 64,
+      "lines": [
+        30
+      ],
+      "dag_id": "dbt_example",
+      "unit": "task",
+      "task_id": "dbt-run",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_example",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customer_orders",
+        "customer_payments",
+        "dim_customers",
+        "fct_orders",
+        "order_payments",
+        "stg_customers",
+        "stg_orders",
+        "stg_payments"
+      ],
+      "other_nodes": [],
+      "reason": "same setup; no selector: every model"
+    },
+    {
+      "id": "dbt_example.dbt-test.test",
+      "file": "dags/examples/dbt_example.py",
+      "line": 75,
+      "lines": [
+        35
+      ],
+      "dag_id": "dbt_example",
+      "unit": "task",
+      "task_id": "dbt-test",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_example",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "dim_customers",
+        "fct_orders",
+        "stg_customers",
+        "stg_orders",
+        "stg_payments"
+      ],
+      "other_nodes": [],
+      "reason": "same setup; models with tests, dim_customers counted through its own tests and a relationships target"
+    }
+  ]
+}

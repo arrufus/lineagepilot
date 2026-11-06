@@ -1,0 +1,97 @@
+{
+  "repo": "UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+  "url": "https://github.com/UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+  "sha": "0f0588ed822c8cb38af4205b0e16e250a1603bb9",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt_project"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "flight_etl_pipeline.dbt_run.run",
+      "file": "airflow/dags/flight_etl_dag.py",
+      "line": 103,
+      "lines": [],
+      "dag_id": "flight_etl_pipeline",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt_project",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "flight_dbt",
+      "models": [
+        "dim_aircraft",
+        "dim_airlines",
+        "dim_airports",
+        "dim_date",
+        "dim_passengers",
+        "fact_bookings",
+        "fact_flights",
+        "int_booking_revenue",
+        "int_flight_delays",
+        "stg_aircrafts",
+        "stg_airlines",
+        "stg_airports",
+        "stg_boarding_passes",
+        "stg_bookings",
+        "stg_flights",
+        "stg_passengers",
+        "stg_seats"
+      ],
+      "other_nodes": [],
+      "reason": "cd /opt/airflow/dbt_project then dbt run, no selector: every model; compose mounts ./dbt_project there"
+    },
+    {
+      "id": "flight_etl_pipeline.dbt_test.test",
+      "file": "airflow/dags/flight_etl_dag.py",
+      "line": 108,
+      "lines": [],
+      "dag_id": "flight_etl_pipeline",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "dbt_project",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "flight_dbt",
+      "models": [
+        "dim_aircraft",
+        "dim_airlines",
+        "dim_airports",
+        "dim_date",
+        "dim_passengers",
+        "fact_bookings",
+        "fact_flights",
+        "int_booking_revenue",
+        "int_flight_delays",
+        "stg_aircrafts",
+        "stg_airlines",
+        "stg_airports",
+        "stg_boarding_passes",
+        "stg_bookings",
+        "stg_flights",
+        "stg_passengers",
+        "stg_seats"
+      ],
+      "other_nodes": [],
+      "reason": "no selector: all 17 models have generic tests in schema.yml files"
+    }
+  ]
+}
