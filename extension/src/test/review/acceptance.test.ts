@@ -1,5 +1,5 @@
-// The dbt half of the acceptance scenario (design section 14, the Phase 4 exit), in a real VS Code
-// on fixtures/impact-shop, with real dbt's artifacts from before and after the rename. Every
+// The full acceptance scenario (design section 14, the Phase 5 exit), in a real VS Code on
+// fixtures/impact-shop, with real dbt's artifacts from before and after the rename. Every
 // workspace is hostile, this one too, so the review also runs next to planted settings and scripts.
 import { strict as assert } from 'assert';
 import { execFileSync } from 'child_process';
@@ -9,7 +9,8 @@ import * as vscode from 'vscode';
 
 import type { ReviewResult } from '../../protocol';
 import type { ReviewPanel } from '../../reviewPanel';
-import { ran, readyServer, root, until } from '../integration/helpers';
+import { DagItem, TaskItem, UnknownsItem } from '../../views/airflowTree';
+import { api, ran, readyServer, root, until } from '../integration/helpers';
 
 const S = 'model.impact_shop';
 
@@ -47,13 +48,13 @@ suite('acceptance: rename a mart column', () => {
     overlay(path.join(root(), 'changes', 'rename-order-total'), root());
     await until('the server to index the new manifest', 120_000, () => {
       const status = server.status;
-      return status.generation > generation && !status.indexing && status.columnLineage === 'done' ? status : undefined;
+      return status.generation > generation && !status.indexing && status.columnLineage === 'done' && status.airflow.stage === 'done' ? status : undefined;
     });
 
     panel = (await vscode.commands.executeCommand<ReviewPanel>('lineagePilot.reviewChanges', root()))!;
     review = await until('the review of the rename', 90_000, async () => {
       const latest = panel.latest;
-      if (latest?.changedNodes.some((n) => n.columns.removed.length > 0)) {
+      if (latest?.airflow.analysed && latest.changedNodes.some((n) => n.columns.removed.length > 0)) {
         return latest;
       }
       await panel.run();
@@ -98,9 +99,69 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(before.get(`${S}.broken_report`), 'model');
   });
 
-  test('Airflow is said not to have been analysed: Phase 5 adds the task and its owner', () => {
-    assert.equal(review.airflow.analysed, false);
-    assert.match(review.markdown, /Airflow DAGs were not analysed in this version/);
+  test('the review lists the Airflow task and its owner', () => {
+    assert.equal(review.airflow.analysed, true);
+    const group = review.impacted.find((n) => n.id === 'airflow:daily_marts.marts');
+    assert.equal(group?.kind, 'airflow_task');
+    assert.equal(group?.owner, 'data-platform');
+    assert.equal(group?.airflow?.dag, 'daily_marts');
+    assert.deepEqual(group?.airflow?.how, ['dbt, through Cosmos']);
+    assert.ok(group?.airflow?.tasks.includes('marts.orders.run'));
+    const owners = new Map(review.owners.map((o) => [o.owner, o.nodes]));
+    assert.ok(owners.get('data-platform')?.includes('airflow:daily_marts.marts'));
+    assert.match(review.markdown, /\| `daily_marts` \| `marts`\. Derived: /);
+  });
+
+  test('heuristic links are shown, and labelled', () => {
+    const shell = review.impacted.find((n) => n.id === 'airflow:operations.export_orders');
+    assert.equal(shell?.confidence, 'heuristic');
+    assert.match(review.markdown, /\| `operations` \| `export_orders` \| reads: `orders` \| heuristic \|/);
+  });
+
+  test('a task that runs after the changed one is listed too', () => {
+    const after = review.impacted.find((n) => n.id === 'airflow:daily_marts.notify_finance');
+    assert.deepEqual(after?.airflow?.after, ['marts']);
+  });
+
+  test('a task created in a loop is an unknown at its call site', () => {
+    const unknown = review.unknowns.find((u) => u.subject === 'airflow:backfill');
+    assert.equal(unknown?.reference, 'loop or factory');
+    assert.match(unknown?.reason ?? '', /^dags\/backfill\.py:12: /);
+  });
+
+  test('the task opens in its DAG file, at its line', async () => {
+    const location = review.locations['airflow:daily_marts.marts'];
+    await panel.handle({ type: 'openFile', location });
+    await until('the DAG file to open', 10_000, () => vscode.window.visibleTextEditors.find(
+      (editor) => editor.document.uri.fsPath.endsWith('daily_marts.py')));
+    const editor = vscode.window.visibleTextEditors.find((e) => e.document.uri.fsPath.endsWith('daily_marts.py'));
+    assert.equal(editor?.selection.active.line, 21);
+  });
+
+  test('the Airflow view shows the DAGs and tasks of the open model', async () => {
+    const { airflowTree } = await api();
+    await airflowTree.showFile(vscode.Uri.file(path.join(root(), 'models', 'marts', 'order_counts.sql')));
+    const dags = airflowTree.items.filter((item) => item instanceof DagItem);
+    assert.deepEqual(dags.map((item) => (item as DagItem).dag.name), ['daily_marts', 'operations']);
+    const tasks = airflowTree.getChildren(dags[1]);
+    assert.deepEqual(tasks.map((item) => (item as TaskItem).task.name), ['refresh_counts']);
+    const tree = airflowTree.getTreeItem(tasks[0]);
+    assert.equal(tree.description, 'dbt run · heuristic');
+    assert.equal(tree.command?.command, 'lineagePilot.openNode');
+    const unknowns = airflowTree.items.find((item) => item instanceof UnknownsItem);
+    assert.ok(unknowns);
+    assert.equal(airflowTree.getTreeItem(unknowns).label, 'Could not be read (1)');
+    const [unknown] = airflowTree.getChildren(unknowns);
+    assert.equal(airflowTree.getTreeItem(unknown).label, 'backfill');
+  });
+
+  test('CodeLens counts the tasks', async () => {
+    const orders = vscode.Uri.file(path.join(root(), 'models', 'marts', 'orders.sql'));
+    const lenses = await until('the lens', 30_000, async () => {
+      const found = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', orders, 10);
+      return found?.find((lens) => /Airflow tasks/.test(lens.command?.title ?? ''));
+    });
+    assert.match(lenses.command?.title ?? '', /\d+ Airflow tasks/);
   });
 
   test('Copy as Markdown gives the review, ready for a pull request', async () => {
@@ -109,7 +170,7 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(text, review.markdown);
     assert.match(text, /Removed: `order_total`/);
     assert.match(text, /\| `customer_revenue` \| Column `lifetime_value` \| inferred \| compiled SQL, from `orders\.order_total` \| `growth-analytics` \|/);
-    assert.match(text, /### Unknowns \(1\)/);
+    assert.match(text, /### Unknowns \(2\)/);
   });
 
   test('nothing planted in the workspace ran', () => {

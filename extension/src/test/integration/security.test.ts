@@ -94,6 +94,16 @@ suite(`interpreter (${label})`, () => {
   });
 });
 
+suite('DAG files', () => {
+  test('a DAG file is read and never run, trusted or not', async function () {
+    this.timeout(120_000);
+    const server = await readyServer();
+    await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
+    assert.ok(server.status.airflow.summary.dagFiles >= 1, 'no DAG file was read');
+    assert.equal(ran('planted-dag-ran'), undefined, 'a DAG file was imported or run');
+  });
+});
+
 (expectTrusted ? suite.skip : suite)('Restricted Mode', () => {
   test('the workspace is not trusted, and the lineage still works', async () => {
     assert.equal(vscode.workspace.isTrusted, false);

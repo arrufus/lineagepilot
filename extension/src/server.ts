@@ -28,7 +28,7 @@ export function serverSettings(folder: vscode.Uri) {
   return {
     columnLineage: config.get<boolean>('index.columnLineage', true),
     maxArtifactMB: config.get<number>('index.maxArtifactMB', 512),
-    dagFolders: config.get<string[]>('airflow.dagFolders', ['dags']),
+    dagFolders: config.get<string[]>('airflow.dagFolders', ['**/dags']),
   };
 }
 

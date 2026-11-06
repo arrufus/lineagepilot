@@ -149,8 +149,8 @@ suite(`change impact review (${label})`, () => {
     graph.dispose();
   });
 
-  test('it refuses to open anything outside the project', async () => {
-    const outside = path.join(root(), '..', 'outside-the-project.sql');
+  test('it refuses to open anything outside the workspace folder', async () => {
+    const outside = path.join(root(), '..', 'outside-the-project.sql'); // root() is the workspace folder
     fs.writeFileSync(outside, 'select 1');
     try {
       await vscode.commands.executeCommand('workbench.action.closeAllEditors');

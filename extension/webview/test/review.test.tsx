@@ -49,6 +49,27 @@ function changedNode(fields: Partial<ChangedNode> = {}): ChangedNode {
   };
 }
 
+function analysed(fields: Partial<ReviewResult['airflow']> = {}): ReviewResult['airflow'] {
+  return { ...{ analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] }, analysed: true, reason: null, dagFiles: 1, ...fields };
+}
+
+function task(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
+  return impacted({
+    id: 'airflow:z.t',
+    kind: 'airflow_task',
+    name: 't',
+    file: 'dags/z.py',
+    reach: 'model',
+    confidence: 'heuristic',
+    origins: ['dag_static'],
+    columns: [],
+    reason: null,
+    via: [],
+    airflow: { dag: 'z', operator: 'BashOperator', how: ['dbt run'], runs: ['orders'], runsMore: 0, tasks: [], tasksMore: 0, after: [], notes: [] },
+    ...fields,
+  });
+}
+
 function impacted(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
   return {
     id: 'model.shop.customer_revenue',
@@ -64,6 +85,7 @@ function impacted(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
     reason: null,
     via: [{ source: 'model.shop.orders#order_total', target: 'model.shop.customer_revenue#lifetime_value', confidence: 'inferred', origins: ['compiled_sql'] }],
     viaMore: 0,
+    airflow: null,
     ...fields,
   };
 }
@@ -78,7 +100,7 @@ function review(fields: Partial<ReviewResult> = {}): ReviewResult {
     changedNodes: [changedNode()],
     impacted: [impacted()],
     owners: [{ owner: 'growth', nodes: ['model.shop.customer_revenue'] }],
-    airflow: { analysed: false },
+    airflow: { analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] },
     unknowns: [],
     otherFiles: [],
     outsideProject: 0,
@@ -194,11 +216,11 @@ suite('review page', () => {
         impacted({ reach: 'model', columns: [], via: [], reason: 'depends on a changed model', owner: null, origins: ['manifest'] }),
         impacted({ id: 'model.shop.both', name: 'both', reach: 'model', columns: ['a', 'b'], reason: null, viaMore: 3 }),
         impacted({ id: 'exposure.shop.dash', kind: 'exposure', name: 'dash', reach: 'model', confidence: 'declared', reason: 'uses the whole node' }),
-        impacted({ id: 'airflow:d.t', kind: 'airflow_task', name: 't', confidence: 'heuristic', origins: ['dag_static'], reason: null }),
+        task(),
         impacted({ id: 'snapshot.shop.s', kind: 'snapshot', name: 's', confidence: 'declared', origins: ['manifest', 'catalog', 'annotation'] }),
       ],
       owners: [],
-      airflow: { analysed: true },
+      airflow: analysed(),
     }));
     const models = screen.getByRole('table', { name: 'Impacted models' });
     const [first, second] = within(models).getAllByRole('row').slice(1);
@@ -208,8 +230,8 @@ suite('review page', () => {
     assert.equal(within(second).getAllByRole('cell')[0].textContent, 'Model levelColumns a, b');
     assert.match(within(second).getAllByRole('cell')[2].textContent ?? '', /and 3 more/);
     assert.ok(screen.getByRole('table', { name: 'Impacted exposures' }));
-    const task = screen.getByRole('table', { name: 'Impacted airflow tasks' });
-    assert.ok(task.querySelector('.lp-edge-heuristic'));
+    const tasks = screen.getByRole('table', { name: 'Impacted airflow tasks' });
+    assert.ok(tasks.querySelector('.lp-edge-heuristic'));
     assert.match(screen.getByRole('table', { name: 'Impacted snapshots' }).textContent ?? '', /the manifest, the catalog, an annotation/);
     assert.equal(screen.queryByText(/were not analysed/), null);
   });
@@ -217,7 +239,58 @@ suite('review page', () => {
   test('without Airflow analysis it says so rather than listing none', async () => {
     await shown();
     assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow tasks' }));
-    assert.ok(screen.getByText(/Airflow DAGs were not analysed in this version/));
+    assert.ok(screen.getByText(/Airflow DAGs were not analysed: the DAG files were not analysed/));
+  });
+
+  test('tasks are shown by DAG, with what they run, how sure that is, and why', async () => {
+    const host = await shown(review({
+      impacted: [
+        impacted(),
+        task({ id: 'airflow:z.last', name: 'last', owner: null }),
+        task({
+          id: 'airflow:a.marts',
+          name: 'marts',
+          owner: 'platform',
+          airflow: {
+            ...task().airflow!, dag: 'a', how: ['dbt, through Cosmos'], runs: ['orders', 'revenue'], runsMore: 3, tasks: ['marts.orders.run'], tasksMore: 2,
+            notes: ['environment variable assumed unset'],
+          },
+        }),
+        task({
+          id: 'airflow:a.after',
+          name: 'after',
+          airflow: { ...task().airflow!, dag: 'a', how: [], runs: [], after: ['marts'] },
+        }),
+        task({ id: 'airflow:b', kind: 'airflow_dag', name: 'b', airflow: { ...task().airflow!, dag: 'b' } }),
+      ],
+      airflow: analysed({ opaqueTasks: 2 }),
+      locations: { 'airflow:a.marts': { uri: 'file:///w/dags/a.py', range: { start: { line: 3, character: 0 }, end: { line: 3, character: 0 } } } },
+    }));
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow tasks (4 tasks in 3 DAGs)' }));
+    const table = screen.getByRole('table', { name: 'Impacted airflow tasks' });
+    const rows = within(table).getAllByRole('row').slice(1);
+    assert.deepEqual(rows.map((row) => row.querySelector('td')?.textContent), ['a', 'a', 'b', 'z']);
+    const marts = rows[1];
+    assert.match(marts.textContent ?? '', /Tasks Cosmos should render: marts\.orders\.run and 2 more/);
+    assert.match(marts.textContent ?? '', /dbt, through Cosmos: orders, revenue and 3 more/);
+    assert.match(marts.textContent ?? '', /environment variable assumed unset/);
+    assert.match(marts.textContent ?? '', /platform/);
+    assert.ok(marts.querySelector('.lp-edge-heuristic'));
+    assert.match(rows[0].textContent ?? '', /Runs after marts/);
+    assert.match(rows[2].textContent ?? '', /The whole DAG/);
+    assert.match(rows[3].textContent ?? '', /No owner/);
+    assert.ok(screen.getByText(/2 tasks could not be read and do not mention dbt/));
+    fireEvent.click(within(marts).getByRole('button', { name: 'marts' }));
+    assert.ok(host.posted.some((m) => m.type === 'openFile' && m.location.uri === 'file:///w/dags/a.py'));
+  });
+
+  test('DAG files that were read and touch nothing are said to', async () => {
+    await shown(review({ airflow: analysed({ dagFiles: 3 }) }));
+    assert.ok(screen.getByText(/No task in the 3 DAG files read runs a changed or downstream node/));
+  });
+
+  test('a reference to a task reads without its prefix', () => {
+    assert.equal(shortRef('airflow:d.t'), 'd.t');
   });
 
   test('owners group what they own, by name, and nobody\'s nodes are shown', async () => {

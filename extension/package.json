@@ -82,10 +82,10 @@
             "type": "string"
           },
           "default": [
-            "dags"
+            "**/dags"
           ],
           "scope": "resource",
-          "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. DAG files are only ever parsed, never imported or run."
+          "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. DAG files are only ever parsed, never imported or run."
         },
         "lineagePilot.trace.server": {
           "type": "string",
@@ -241,7 +241,7 @@
       },
       {
         "view": "lineagePilot.airflow",
-        "contents": "The Airflow DAGs and tasks that run the open model will appear here. Airflow linkage is not available in this version yet."
+        "contents": "The Airflow DAGs and tasks that run the open model appear here. Open a workspace with a dbt project and DAG files. DAG files are only ever parsed, never imported or run."
       }
     ]
   },

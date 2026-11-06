@@ -207,14 +207,3 @@ function messageOf(error: unknown): string {
   const text = error instanceof Error ? error.message : String(error);
   return text.length > 200 ? `${text.slice(0, 197)}...` : text;
 }
-
-/** The Airflow view: empty until DAG analysis arrives in Phase 5; its welcome text says so. */
-export class AirflowTree implements vscode.TreeDataProvider<never> {
-  getChildren(): never[] {
-    return [];
-  }
-
-  getTreeItem(item: never): vscode.TreeItem {
-    return item;
-  }
-}

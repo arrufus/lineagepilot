@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 
 import { isInside } from './interpreter';
-import type { Location } from './protocol';
+import type { Location, Status } from './protocol';
 import type { ProjectServer } from './server';
 import {
   DEFAULT_SETTINGS, type Focus, HostMessage, ViewSettings, WebviewMessage,
@@ -33,11 +33,15 @@ export async function openOutsidePanel(
 ): Promise<void> {
   const uri = vscode.Uri.parse(location.uri);
   if (uri.scheme !== 'file' || !isInside(uri.fsPath, root, process.platform)) {
-    output.warn(`A LineagePilot view asked to open ${location.uri}, which is outside the project; refused`);
+    output.warn(`A LineagePilot view asked to open ${location.uri}, which is outside the workspace folder; refused`);
     return;
   }
   const viewColumn = panel.viewColumn === vscode.ViewColumn.One ? vscode.ViewColumn.Two : vscode.ViewColumn.One;
   await openLocation(location, { viewColumn, preserveFocus });
+}
+
+function scanKey(status: Status | undefined): string {
+  return status ? `${status.airflow.generation}:${status.airflow.stage}` : '';
 }
 
 export class LineagePanel implements vscode.Disposable {
@@ -48,6 +52,7 @@ export class LineagePanel implements vscode.Disposable {
   readonly onDidPost = this.posted.event;
   private ready = false;
   private generation = -1;
+  private scan = '';
 
   /** Show the project's panel, focused on ``focus``, creating it if needed. */
   static show(
@@ -132,6 +137,7 @@ export class LineagePanel implements vscode.Disposable {
       case 'ready':
         this.ready = true;
         this.generation = this.server.status?.generation ?? 0;
+        this.scan = scanKey(this.server.status);
         await this.post({
           type: 'init',
           project: { name: this.server.name, root: this.server.project.root },
@@ -151,7 +157,8 @@ export class LineagePanel implements vscode.Disposable {
         return this.forward(message.id, () => this.server.request('lineage/node', message.params),
           (result) => ({ type: 'nodeResult', id: message.id, result }));
       case 'openFile':
-        await openOutsidePanel(this.panel, message.location, this.server.project.root, this.output, message.preserveFocus);
+        // The workspace folder, not the project: a DAG file is often beside the project
+        await openOutsidePanel(this.panel, message.location, this.server.project.folder, this.output, message.preserveFocus);
         return;
       case 'saveSettings':
         await this.context.globalState.update(SETTINGS_KEY, message.settings);
@@ -175,10 +182,15 @@ export class LineagePanel implements vscode.Disposable {
 
   private indexChanged(): void {
     const status = this.server.status;
-    if (!this.ready || !status || status.indexing || status.generation === this.generation) {
+    if (!this.ready || !status || status.indexing) {
+      return;
+    }
+    // A DAG scan arriving changes what the graph shows, with the same index
+    if (status.generation === this.generation && scanKey(status) === this.scan) {
       return;
     }
     this.generation = status.generation;
+    this.scan = scanKey(status);
     void this.post({ type: 'indexUpdated', generation: status.generation, ready: status.state === 'ready' });
   }
 

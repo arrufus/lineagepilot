@@ -5,6 +5,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
+import { AirflowMessage } from '../../views/airflowTree';
 import type { GroupItem, NodeItem } from '../../views/lineageTree';
 import { api, codeOf, J, position, readyServer, root, until, uri } from './helpers';
 
@@ -20,6 +21,19 @@ suite('LineagePilot features', () => {
     assert.ok((server.status.counts?.nodes ?? 0) > 20);
     assert.deepEqual(server.status.columnStates, { resolved: 13, partial: 0, unknown: 0 });
     assert.equal(server.status.artifacts.manifest?.schemaVersion, 12);
+  });
+
+  test('the Airflow view says a DAG file was read and that no task in it runs dbt', async () => {
+    const { airflowTree } = await api();
+    const server = await readyServer();
+    await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
+    await airflowTree.showFile(undefined);
+    const [item] = airflowTree.items;
+    assert.ok(item instanceof AirflowMessage);
+    assert.equal(airflowTree.getTreeItem(item).label, 'No task in the DAG files read runs dbt.');
+    await airflowTree.showFile(uri('models', 'marts', 'orders.sql'));
+    assert.equal(airflowTree.getTreeItem(airflowTree.items[0]).label, 'No task in the DAG files read runs this.');
+    assert.deepEqual(airflowTree.getChildren(airflowTree.items[0]), []);
   });
 
   test('CodeLens shows what is downstream of a model', async () => {

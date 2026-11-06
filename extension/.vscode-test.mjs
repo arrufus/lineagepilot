@@ -75,6 +75,18 @@ function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
   // A rule pack that turns off a built-in rule: loaded only when the workspace is trusted
   fs.mkdirSync(path.join(dir, '.lineagepilot'));
   fs.writeFileSync(path.join(dir, '.lineagepilot', 'rules.yml'), 'version: 1\ndisable: [DBT_009]\n');
+  // A DAG file that leaves a marker if anything ever imports or runs it: DAG files are only parsed
+  const marker = path.join(markers, 'planted-dag-ran').replaceAll('\\', '/');
+  fs.mkdirSync(path.join(dir, 'dags'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'dags', 'planted_dag.py'), [
+    'from pathlib import Path',
+    `Path(${JSON.stringify(marker)}).write_text("ran")`,
+    'from airflow import DAG',
+    'from airflow.operators.bash import BashOperator',
+    'with DAG("planted") as dag:',
+    '    BashOperator(task_id="say_hello", bash_command="echo hello")',
+    '',
+  ].join('\n'));
   return dir;
 }
 

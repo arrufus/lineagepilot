@@ -139,7 +139,8 @@ export class ReviewPanel implements vscode.Disposable {
         await this.copy();
         return;
       case 'openFile':
-        await openOutsidePanel(this.panel, message.location, this.server.project.root, this.output);
+        // The workspace folder, not the project: a DAG file is often beside the project
+        await openOutsidePanel(this.panel, message.location, this.server.project.folder, this.output);
         return;
       case 'showInGraph':
         await vscode.commands.executeCommand('lineagePilot.showLineage', message.id, this.server.project.root);
@@ -209,7 +210,9 @@ export class ReviewPanel implements vscode.Disposable {
 
   private keyOfIndex(): string | undefined {
     const status = this.server.status;
-    return status && !status.indexing ? `${status.generation}:${status.state}:${status.columnLineage}` : undefined;
+    return status && !status.indexing
+      ? `${status.generation}:${status.state}:${status.columnLineage}:${status.airflow.generation}:${status.airflow.stage}`
+      : undefined;
   }
 
   private indexChanged(): void {

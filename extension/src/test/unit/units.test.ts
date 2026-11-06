@@ -83,6 +83,7 @@ const EXAMPLE_STATUS: protocol.Status = {
   fromCache: false,
   indexedAt: null,
   rules: { pack: null, packLoaded: false, restricted: false, problems: [], findings: 0, score: null, coverage: null },
+  airflow: { stage: 'done', generation: 1, summary: { analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] } },
 };
 
 suite('status bar', () => {
@@ -169,6 +170,7 @@ suite('protocol', () => {
 
   test('every method names its params and result', () => {
     assert.deepEqual(Object.keys(protocol.requests).sort(), [
+      'lineage/airflow',
       'lineage/export', 'lineage/graph', 'lineage/impact', 'lineage/node', 'lineage/nodesForFile', 'lineage/refresh', 'lineage/reviewChanges', 'lineage/status',
     ]);
   });

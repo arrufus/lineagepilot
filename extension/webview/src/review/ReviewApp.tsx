@@ -17,7 +17,6 @@ const COPIED_MS = 2000;
 const KIND_ORDER: NodeKind[] = ['model', 'snapshot', 'seed', 'source', 'exposure', 'airflow_task', 'airflow_dag'];
 const KIND_HEADINGS: Partial<Record<NodeKind, string>> = {
   model: 'Models', snapshot: 'Snapshots', seed: 'Seeds', source: 'Sources', exposure: 'Exposures',
-  airflow_task: 'Airflow tasks', airflow_dag: 'Airflow DAGs',
 };
 const ORIGIN_LABELS: Record<Origin, string> = {
   manifest: 'the manifest', compiled_sql: 'compiled SQL', catalog: 'the catalog', dag_static: 'the DAG file', annotation: 'an annotation',
@@ -30,9 +29,14 @@ const STATUS_LABELS: Record<ChangedNode['status'], string> = {
 };
 
 const NODE_ID = /^(model|seed|snapshot|source|exposure)\./;
+const AIRFLOW_KINDS: NodeKind[] = ['airflow_task', 'airflow_dag'];
 
-/** ``model.shop.orders#total`` as ``orders.total``. Anything else, such as a path, as it is. */
+/** ``model.shop.orders#total`` as ``orders.total``, ``airflow:dag.task`` as ``dag.task``. Anything
+ * else, such as a path, as it is. */
 export function shortRef(ref: string): string {
+  if (ref.startsWith('airflow:')) {
+    return ref.slice('airflow:'.length);
+  }
   if (!NODE_ID.test(ref)) {
     return ref;
   }
@@ -187,22 +191,85 @@ function ImpactTable({ kind, nodes, actions }: { kind: NodeKind; nodes: ReviewIm
   );
 }
 
+function moreOf(shown: number, more: number): string {
+  return shown > 0 && more > 0 ? ` and ${more} more` : '';
+}
+
+/** One task: what it has to do with the change, and why the link is as sure as it is. */
+function AirflowRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions }) {
+  const detail = node.airflow;
+  return (
+    <tr className="lp-reach-model">
+      <td className="lp-identifier">{detail?.dag}</td>
+      <th scope="row">
+        {node.kind === 'airflow_dag' ? <span>The whole DAG</span> : <NodeName id={node.id} name={node.name} actions={actions} />}
+        {detail && detail.tasks.length > 0 && (
+          <div className="lp-muted">
+            Tasks Cosmos should render: <span className="lp-identifier">{detail.tasks.join(', ')}</span>{moreOf(detail.tasks.length, detail.tasksMore)}
+          </div>
+        )}
+      </th>
+      <td>
+        {detail && detail.runs.length > 0 && (
+          <div>{detail.how.join(', ') || 'Runs'}: <span className="lp-identifier">{detail.runs.join(', ')}</span>{moreOf(detail.runs.length, detail.runsMore)}</div>
+        )}
+        {detail && detail.after.length > 0 && <div>Runs after <span className="lp-identifier">{detail.after.join(', ')}</span></div>}
+      </td>
+      <td><ConfidenceMark confidence={node.confidence} /></td>
+      <td>
+        {node.origins.map((origin) => ORIGIN_LABELS[origin]).join(', ')}
+        {node.file && <div className="lp-muted lp-identifier">{node.file}</div>}
+        {detail?.notes.map((note) => <div key={note} className="lp-muted lp-reason" title={note}>{note}</div>)}
+      </td>
+      <td>{node.owner ?? <span className="lp-muted">No owner</span>}</td>
+    </tr>
+  );
+}
+
+function AirflowSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
+  const { airflow } = result;
+  if (!airflow.analysed) {
+    return (
+      <>
+        <h3>Airflow tasks</h3>
+        <p className="lp-muted">Airflow DAGs were not analysed: {airflow.reason ?? 'they were not read'}.</p>
+      </>
+    );
+  }
+  const nodes = result.impacted
+    .filter((node) => AIRFLOW_KINDS.includes(node.kind))
+    .sort((a, b) => (a.airflow?.dag ?? '').localeCompare(b.airflow?.dag ?? '') || a.name.localeCompare(b.name));
+  const dags = new Set(nodes.map((node) => node.airflow?.dag));
+  return (
+    <>
+      <h3>Airflow tasks{nodes.length > 0 ? ` (${plural(nodes.length, 'task')} in ${plural(dags.size, 'DAG')})` : ''}</h3>
+      {nodes.length === 0 && <p className="lp-muted">No task in the {plural(airflow.dagFiles, 'DAG file')} read runs a changed or downstream node.</p>}
+      {nodes.length > 0 && (
+        <table className="lp-impact lp-impact-airflow" aria-label="Impacted airflow tasks">
+          <thead>
+            <tr><th scope="col">DAG</th><th scope="col">Task</th><th scope="col">What it has to do with this</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
+          </thead>
+          <tbody>
+            {nodes.map((node) => <AirflowRow key={node.id} node={node} actions={actions} />)}
+          </tbody>
+        </table>
+      )}
+      {airflow.opaqueTasks > 0 && <p className="lp-muted">{plural(airflow.opaqueTasks, 'task')} could not be read and do not mention dbt, so they are not listed.</p>}
+    </>
+  );
+}
+
 function DownstreamSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
   const names = new Map(result.impacted.map((node) => [node.id, node.name]));
   return (
     <section aria-labelledby="lp-downstream">
       <h2 id="lp-downstream">Downstream impact</h2>
       {result.impacted.length === 0 && <p className="lp-muted">Nothing is known to be downstream of the changed nodes.</p>}
-      {KIND_ORDER.map((kind) => {
+      {KIND_ORDER.filter((kind) => !AIRFLOW_KINDS.includes(kind)).map((kind) => {
         const nodes = result.impacted.filter((node) => node.kind === kind);
         return nodes.length > 0 ? <ImpactTable key={kind} kind={kind} nodes={nodes} actions={actions} /> : null;
       })}
-      {!result.airflow.analysed && (
-        <>
-          <h3>Airflow tasks</h3>
-          <p className="lp-muted">Airflow DAGs were not analysed in this version, so tasks are not listed.</p>
-        </>
-      )}
+      <AirflowSection result={result} actions={actions} />
       {result.owners.length > 0 && (
         <>
           <h3>Owners</h3>
