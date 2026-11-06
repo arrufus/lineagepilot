@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from pathlib import Path
 
 import pytest
 from airflow_support import FIXTURES, MINI, SHOP
@@ -189,9 +190,9 @@ def test_standin_mini_project_features():
 
 def test_project_index_and_drift(tmp_path, shop_manifest):
     idx = ProjectIndex(str(FIXTURES))
-    assert {p.rsplit("/", 2)[-1] for p in idx.projects} == {"shop", "mini"}
+    assert {Path(p).name for p in idx.projects} == {"shop", "mini"}
     m = idx.match("/usr/local/airflow/dbt/shop")
-    assert m.path and m.path.endswith("dbt/shop") and m.conf == "heuristic" and "last 2" in m.note
+    assert m.path and Path(m.path).as_posix().endswith("dbt/shop") and m.conf == "heuristic" and "last 2" in m.note
     assert idx.match("/nowhere/at/all").path is None
     assert idx.only_project() is None
     (tmp_path / "a" / "x").mkdir(parents=True)
