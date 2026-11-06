@@ -22,6 +22,7 @@ from lineagepilot_core.analysis.review import (
     review_changes,
 )
 from lineagepilot_core.graph.model import (
+    AirflowSummary,
     ColumnLineageStatus,
     Confidence,
     EdgeKind,
@@ -133,7 +134,8 @@ class TestAcceptanceScenario:
         assert "\x1b" not in found[0]["reason"], "sqlglot's terminal escapes must not get through"
 
     def test_airflow_is_said_not_to_be_analysed(self, renamed):
-        assert renamed["airflow"] == {"analysed": False}
+        assert renamed["airflow"]["analysed"] is False
+        assert renamed["airflow"]["reason"] == "the DAG files were not analysed"
 
     def test_the_summary_adds_up(self, renamed):
         summary = renamed["summary"]
@@ -531,6 +533,7 @@ class TestStages:
 
     def test_airflow_counts_as_analysed_once_the_graph_has_it(self, root):
         graph = graph_of(root)
+        graph.airflow = AirflowSummary(analysed=True, dag_files=1)
         task = graph.add_node(Node("airflow:d.t", NodeKind.AIRFLOW_TASK, "t", owner="etl"))
         graph.add_edge(
             EdgeKind.ORCHESTRATES,
@@ -539,7 +542,7 @@ class TestStages:
             Evidence(Origin.DAG_STATIC, Confidence.HEURISTIC),
         )
         result = review(root, changed(ORDERS_SQL), graph=graph)
-        assert result["airflow"] == {"analysed": True}
+        assert result["airflow"]["analysed"] is True
         hit = by_id(result["impacted"])["airflow:d.t"]
         assert hit["kind"] == "airflow_task" and hit["confidence"] == "heuristic"
         assert {"owner": "etl", "nodes": ["airflow:d.t"]} in result["owners"]

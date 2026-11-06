@@ -13,6 +13,8 @@ from pathlib import Path
 import pytest
 from support import IMPACT_SHOP, apply_rename, copy_impact_shop
 
+from lineagepilot_core.airflow.link import link_airflow
+from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import (
     BaseRef,
     ChangedFile,
@@ -187,10 +189,11 @@ class TestReviewCommand:
         assert "Removed: `order_total`" in text and "`revenue_dashboard`" in text
         # What the panel gets for the same inputs, through the same function
         changes = git_changes(read_project(repo), "main")
-        direct = review_changes(
-            index_project(repo).graph, changes.files, read_project(repo), base=changes.base
-        )
+        graph = index_project(repo).graph
+        link_airflow(graph, scan_airflow(repo, repo))
+        direct = review_changes(graph, changes.files, read_project(repo), base=changes.base)
         assert text == direct["markdown"]
+        assert "`daily_marts`" in text and "`data-platform`" in text
 
     def test_the_same_repository_gives_the_same_bytes_every_time(self, repo):
         apply_rename(repo)
@@ -257,3 +260,52 @@ class TestReviewCommand:
     def test_a_bad_option_exits_2(self, capsys):
         assert main(["review", "--no-such-option"]) == EXIT_USAGE
         capsys.readouterr()
+
+
+class TestAirflowInTheCommands:
+    def test_no_airflow_says_so(self, repo):
+        apply_rename(repo)
+        code, text = run("--project-dir", str(repo), "--base", "main", "--no-airflow")
+        assert code == EXIT_OK and "Airflow DAGs were not analysed: --no-airflow was given" in text
+        assert "`daily_marts`" not in text
+
+    def test_dag_folders_and_the_workspace_can_be_named(self, repo):
+        apply_rename(repo)
+        args = ("--project-dir", str(repo), "--base", "main", "--workspace", str(repo))
+        code, text = run(*args, "--dag-folder", "dags/operations.py")
+        assert code == EXIT_OK and "`refresh_counts`" in text and "`daily_marts`" not in text
+        code, text = run(*args, "--dag-folder", "nowhere")
+        assert code == EXIT_OK and "no DAG files were found in nowhere" in text
+
+    def test_a_snapshot_never_holds_a_dag_scan(self, repo):
+        apply_rename(repo)
+        run("--project-dir", str(repo), "--base", "main")
+        snapshots = list((repo / "target" / ".lineagepilot").glob("*.json"))
+        assert snapshots and all(b"daily_marts" not in s.read_bytes() for s in snapshots)
+
+    def test_impact_lists_tasks(self, repo):
+        out = io.StringIO()
+        code = main(["impact", "orders", "--project-dir", str(repo), "--json"], out)
+        data = json.loads(out.getvalue())
+        assert code == EXIT_OK and data["counts"]["airflow_task"] >= 3
+
+    def test_the_airflow_command_as_text_and_json(self, repo):
+        out = io.StringIO()
+        assert main(["airflow", "--project-dir", str(repo), "--workspace", str(repo)], out) == 0
+        text = out.getvalue()
+        assert "3 DAG files in dags: 3 DAGs" in text and "daily_marts  marts" in text
+        assert "dags/backfill.py:12  loop or factory" in text
+        out = io.StringIO()
+        assert main(["airflow", "--workspace", str(repo), "--json"], out) == 0
+        data = json.loads(out.getvalue())
+        assert data["project"] is None and data["stats"]["links_resolved"] == 2
+
+    def test_the_airflow_command_reports_problems(self, repo):
+        (repo / ".lineagepilot").mkdir()
+        (repo / ".lineagepilot" / "airflow.yml").write_text("path_map: [a]\n")
+        scan_args = ["airflow", "--project-dir", str(repo), "--workspace", str(repo), "--json"]
+        out = io.StringIO()
+        assert main(scan_args, out) == 0
+        assert (
+            "path_map is not a mapping" in json.loads(out.getvalue())["annotations"]["problems"][0]
+        )

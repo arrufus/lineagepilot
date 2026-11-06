@@ -1,0 +1,3416 @@
+{
+ "child_map": {
+  "exposure.shop.weekly_report": [],
+  "model.shop.customer_ltv": [
+   "model.shop.rpt_weekly"
+  ],
+  "model.shop.dim_customers": [
+   "model.shop.customer_ltv",
+   "model.shop.py_scores",
+   "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4",
+   "test.shop.unique_dim_customers_customer_id.15c9f1e2fd"
+  ],
+  "model.shop.dim_products": [
+   "model.shop.rpt_legacy"
+  ],
+  "model.shop.fct_orders": [
+   "model.shop.customer_ltv",
+   "model.shop.fct_revenue.v1",
+   "model.shop.fct_revenue.v2",
+   "model.shop.fin_daily_summary",
+   "test.shop.not_null_fct_orders_order_id.4e687af8d0",
+   "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4"
+  ],
+  "model.shop.fct_revenue.v1": [],
+  "model.shop.fct_revenue.v2": [],
+  "model.shop.fin_daily_summary": [
+   "model.shop.rpt_weekly"
+  ],
+  "model.shop.int_customer_orders": [
+   "model.shop.dim_customers"
+  ],
+  "model.shop.int_order_items": [
+   "model.shop.fct_orders"
+  ],
+  "model.shop.py_scores": [],
+  "model.shop.rpt_legacy": [],
+  "model.shop.rpt_weekly": [
+   "exposure.shop.weekly_report"
+  ],
+  "model.shop.stg_customers": [
+   "model.shop.int_customer_orders",
+   "test.shop.not_null_stg_customers_customer_id.e2cfb1f9aa",
+   "test.shop.unique_stg_customers_customer_id.c7614daada"
+  ],
+  "model.shop.stg_orders": [
+   "model.shop.int_customer_orders",
+   "model.shop.int_order_items",
+   "test.shop.unique_stg_orders_order_id.e3b841c71a"
+  ],
+  "model.shop.stg_payments": [
+   "model.shop.dim_customers",
+   "model.shop.fct_orders"
+  ],
+  "model.shop.stg_products": [
+   "model.shop.dim_products",
+   "model.shop.int_order_items"
+  ],
+  "seed.shop.country_codes": [],
+  "seed.shop.products": [
+   "model.shop.stg_products"
+  ],
+  "snapshot.shop.snap_customers": [],
+  "source.shop.raw.customers": [
+   "model.shop.stg_customers",
+   "snapshot.shop.snap_customers"
+  ],
+  "source.shop.raw.orders": [
+   "model.shop.stg_orders"
+  ],
+  "source.shop.raw.payments": [
+   "model.shop.stg_payments"
+  ],
+  "test.shop.not_null_fct_orders_order_id.4e687af8d0": [],
+  "test.shop.not_null_stg_customers_customer_id.e2cfb1f9aa": [],
+  "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4": [],
+  "test.shop.unique_dim_customers_customer_id.15c9f1e2fd": [],
+  "test.shop.unique_stg_customers_customer_id.c7614daada": [],
+  "test.shop.unique_stg_orders_order_id.e3b841c71a": []
+ },
+ "disabled": {},
+ "exposures": {
+  "exposure.shop.weekly_report": {
+   "config": {
+    "enabled": true,
+    "meta": {},
+    "tags": []
+   },
+   "created_at": 1793544868.372252,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.rpt_weekly"
+    ]
+   },
+   "description": "",
+   "fqn": [
+    "shop",
+    "reporting",
+    "weekly_report"
+   ],
+   "label": null,
+   "maturity": null,
+   "meta": {},
+   "metrics": [],
+   "name": "weekly_report",
+   "original_file_path": "models/reporting/exposures.yml",
+   "owner": {
+    "email": "owner@example.com",
+    "name": "Spike Owner"
+   },
+   "package_name": "shop",
+   "path": "reporting/exposures.yml",
+   "refs": [
+    {
+     "name": "rpt_weekly",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "exposure",
+   "sources": [],
+   "tags": [],
+   "type": "dashboard",
+   "unique_id": "exposure.shop.weekly_report",
+   "unrendered_config": {},
+   "url": null
+  }
+ },
+ "functions": {},
+ "group_map": {},
+ "groups": {},
+ "metadata": {
+  "adapter_type": "duckdb",
+  "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "dbt_version": "1.12.6",
+  "env": {},
+  "generated_at": "2026-11-01T14:54:27.820876Z",
+  "invocation_id": "8bc8ca7d-03b5-4d8f-b29f-3d670c79b031",
+  "invocation_started_at": "2026-11-01T14:54:27.064358Z",
+  "project_id": "fb54f3c5992b96d001bb16e8e92d968d",
+  "project_name": "shop",
+  "quoting": {
+   "column": null,
+   "database": true,
+   "identifier": true,
+   "schema": true
+  },
+  "run_started_at": "2026-11-01T14:54:27.064571+00:00",
+  "send_anonymous_usage_stats": false,
+  "user_id": null
+ },
+ "metrics": {},
+ "nodes": {
+  "model.shop.customer_ltv": {
+   "access": "protected",
+   "alias": "customer_ltv",
+   "build_path": null,
+   "checksum": {
+    "checksum": "aae4ecb2e80c5da44529027fa1a51917678ea4ca591d5e3133c243c7635aaeca",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "core"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.215858,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.dim_customers",
+     "model.shop.fct_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "core",
+    "customer_ltv"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "customer_ltv",
+   "original_file_path": "models/marts/core/customer_ltv.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "marts/core/customer_ltv.sql",
+   "primary_key": [],
+   "raw_code": "select d.customer_id, sum(f.amount) as ltv\nfrom {{ ref('dim_customers') }} d join {{ ref('fct_orders') }} f using (customer_id)\ngroup by 1",
+   "refs": [
+    {
+     "name": "dim_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"customer_ltv\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "core"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.customer_ltv",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "core"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.dim_customers": {
+   "access": "protected",
+   "alias": "dim_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "6c37cb66599978d0803212711c1742e2a927e1e63a357c18001de917a6b85560",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "core"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.510304,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.int_customer_orders",
+     "model.shop.stg_payments"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "core",
+    "dim_customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "dim_customers",
+   "original_file_path": "models/marts/core/dim_customers.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/marts/core/schema.yml",
+   "path": "marts/core/dim_customers.sql",
+   "primary_key": [
+    "customer_id"
+   ],
+   "raw_code": "select c.customer_id, c.n_orders, sum(p.amount) as paid\nfrom {{ ref('int_customer_orders') }} c left join {{ ref('stg_payments') }} p on true\ngroup by 1, 2",
+   "refs": [
+    {
+     "name": "int_customer_orders",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_payments",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"dim_customers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "core"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.dim_customers",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "core"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.dim_products": {
+   "access": "protected",
+   "alias": "dim_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "77f311972dade73b8f889094c2f18e6e563f16df860f12446d958e49d5746c08",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "core"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.217896,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.stg_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "core",
+    "dim_products"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "dim_products",
+   "original_file_path": "models/marts/core/dim_products.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "marts/core/dim_products.sql",
+   "primary_key": [],
+   "raw_code": "select * from {{ ref('stg_products') }}",
+   "refs": [
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"dim_products\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "core"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.dim_products",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "core"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.fct_orders": {
+   "access": "protected",
+   "alias": "fct_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "859c6fc68e1086749b6e47bb4231d02d880f114709486c3803d33ee136d1a6b5",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "incremental",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "finance",
+     "daily",
+     "hourly"
+    ],
+    "unique_key": "order_id"
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.511303,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.int_order_items",
+     "model.shop.stg_payments"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "fct_orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "fct_orders",
+   "original_file_path": "models/marts/finance/fct_orders.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/marts/finance/schema.yml",
+   "path": "marts/finance/fct_orders.sql",
+   "primary_key": [],
+   "raw_code": "{{ config(materialized='incremental', tags=['hourly'], unique_key='order_id') }}\nselect i.order_id, i.customer_id, i.line_total, p.amount\nfrom {{ ref('int_order_items') }} i left join {{ ref('stg_payments') }} p using (order_id)",
+   "refs": [
+    {
+     "name": "int_order_items",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_payments",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"fct_orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "finance",
+    "daily",
+    "hourly"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.fct_orders",
+   "unrendered_config": {
+    "materialized": "incremental",
+    "tags": [
+     "hourly"
+    ],
+    "unique_key": "order_id"
+   },
+   "version": null
+  },
+  "model.shop.fct_revenue.v1": {
+   "access": "protected",
+   "alias": "fct_revenue_v1",
+   "build_path": null,
+   "checksum": {
+    "checksum": "63b37e1f90fb0cbcd35a139c30c6481d8e43f3aa5449a1684f2892b5e00e0a1a",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "finance",
+     "daily"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.5134132,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.fct_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "fct_revenue",
+    "v1"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": 2,
+   "meta": {},
+   "metrics": [],
+   "name": "fct_revenue",
+   "original_file_path": "models/marts/finance/fct_revenue_v1.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/marts/finance/schema.yml",
+   "path": "marts/finance/fct_revenue_v1.sql",
+   "primary_key": [],
+   "raw_code": "select customer_id, sum(line_total) as revenue from {{ ref('fct_orders') }} group by 1",
+   "refs": [
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"fct_revenue_v1\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "finance",
+    "daily"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.fct_revenue.v1",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "finance",
+     "daily"
+    ]
+   },
+   "version": 1
+  },
+  "model.shop.fct_revenue.v2": {
+   "access": "protected",
+   "alias": "fct_revenue_v2",
+   "build_path": null,
+   "checksum": {
+    "checksum": "ec3465230f33110aa7ff1bb62738ac26e29f05f475d4ae3f5555a479719090d5",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "finance",
+     "daily"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.5141718,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.fct_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "fct_revenue",
+    "v2"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": 2,
+   "meta": {},
+   "metrics": [],
+   "name": "fct_revenue",
+   "original_file_path": "models/marts/finance/fct_revenue_v2.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/marts/finance/schema.yml",
+   "path": "marts/finance/fct_revenue_v2.sql",
+   "primary_key": [],
+   "raw_code": "select customer_id, sum(amount) as revenue from {{ ref('fct_orders') }} group by 1",
+   "refs": [
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"fct_revenue_v2\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "finance",
+    "daily"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.fct_revenue.v2",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "finance",
+     "daily"
+    ]
+   },
+   "version": 2
+  },
+  "model.shop.fin_daily_summary": {
+   "access": "protected",
+   "alias": "fin_daily_summary",
+   "build_path": null,
+   "checksum": {
+    "checksum": "15cba42d999850059ca1b6e260e0d02df4e82e6896b1a9cee1fa350231549bf1",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "finance",
+     "daily"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.2221491,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.fct_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "fin_daily_summary"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "fin_daily_summary",
+   "original_file_path": "models/marts/finance/fin_daily_summary.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "marts/finance/fin_daily_summary.sql",
+   "primary_key": [],
+   "raw_code": "select count(*) as n, sum(amount) as total from {{ ref('fct_orders') }}",
+   "refs": [
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"fin_daily_summary\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "finance",
+    "daily"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.fin_daily_summary",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "finance",
+     "daily"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.int_customer_orders": {
+   "access": "protected",
+   "alias": "int_customer_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "a6f3480828aab5a3e3c9570e07ed1b32ff744e4e785a23c527f3e0de6c951643",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "ephemeral",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.223273,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.stg_customers",
+     "model.shop.stg_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "intermediate",
+    "int_customer_orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "int_customer_orders",
+   "original_file_path": "models/intermediate/int_customer_orders.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "intermediate/int_customer_orders.sql",
+   "primary_key": [],
+   "raw_code": "select c.customer_id, count(o.order_id) as n_orders\nfrom {{ ref('stg_customers') }} c left join {{ ref('stg_orders') }} o using (customer_id)\ngroup by 1",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.shop.int_customer_orders",
+   "unrendered_config": {
+    "materialized": "ephemeral"
+   },
+   "version": null
+  },
+  "model.shop.int_order_items": {
+   "access": "protected",
+   "alias": "int_order_items",
+   "build_path": null,
+   "checksum": {
+    "checksum": "f2887b98c2629db31fefe808469b6bf7cc81b4ef108bcf75dafd9bfab4a13a02",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "ephemeral",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.224417,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.stg_orders",
+     "model.shop.stg_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "intermediate",
+    "int_order_items"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "int_order_items",
+   "original_file_path": "models/intermediate/int_order_items.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "intermediate/int_order_items.sql",
+   "primary_key": [],
+   "raw_code": "select o.order_id, o.customer_id, o.quantity * p.price as line_total\nfrom {{ ref('stg_orders') }} o join {{ ref('stg_products') }} p using (product_id)",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.shop.int_order_items",
+   "unrendered_config": {
+    "materialized": "ephemeral"
+   },
+   "version": null
+  },
+  "model.shop.py_scores": {
+   "access": "protected",
+   "alias": "py_scores",
+   "build_path": null,
+   "checksum": {
+    "checksum": "948e2ce48e199e5fc8da4b9bde147de2a5bcf92a565bd0dfad26c6feb06214b9",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "core",
+     "ml"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.195217,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.dim_customers"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "marts",
+    "core",
+    "py_scores"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "python",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "py_scores",
+   "original_file_path": "models/marts/core/py_scores.py",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "marts/core/py_scores.py",
+   "primary_key": [],
+   "raw_code": "def model(dbt, session):\n    dbt.config(materialized=\"table\", tags=[\"ml\"])\n    return dbt.ref(\"dim_customers\")",
+   "refs": [
+    {
+     "name": "dim_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"py_scores\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "core",
+    "ml"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.py_scores",
+   "unrendered_config": {
+    "materialized": "table",
+    "tags": [
+     "ml"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.rpt_legacy": {
+   "access": "protected",
+   "alias": "rpt_legacy",
+   "build_path": null,
+   "checksum": {
+    "checksum": "b8b90efcfdfdb1c202596816b4212e62ccaf0c7310c852d139f45fd59c69e0df",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "reporting",
+     "deprecated"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.209884,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.dim_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "reporting",
+    "rpt_legacy"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "rpt_legacy",
+   "original_file_path": "models/reporting/rpt_legacy.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "reporting/rpt_legacy.sql",
+   "primary_key": [],
+   "raw_code": "{{ config(tags=['deprecated']) }}\nselect * from {{ ref('dim_products') }}",
+   "refs": [
+    {
+     "name": "dim_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"rpt_legacy\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "reporting",
+    "deprecated"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.rpt_legacy",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "deprecated"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.rpt_weekly": {
+   "access": "protected",
+   "alias": "rpt_weekly",
+   "build_path": null,
+   "checksum": {
+    "checksum": "8711d9fcb4f6e308cd7ac57a07e0910b5d457d612daedd24d375de0309551015",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "reporting"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.208129,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.shop.customer_ltv",
+     "model.shop.fin_daily_summary"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "reporting",
+    "rpt_weekly"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "rpt_weekly",
+   "original_file_path": "models/reporting/rpt_weekly.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "reporting/rpt_weekly.sql",
+   "primary_key": [],
+   "raw_code": "select * from {{ ref('customer_ltv') }} cross join {{ ref('fin_daily_summary') }}",
+   "refs": [
+    {
+     "name": "customer_ltv",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "fin_daily_summary",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"rpt_weekly\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "reporting"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.rpt_weekly",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "reporting"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.stg_customers": {
+   "access": "protected",
+   "alias": "stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "24e0d73d2e7d9da325c4b5e1b7b0c3d883f5db28e15097bc6822ba678eda781b",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "staging"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.4339368,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.shop.raw.customers"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "staging",
+    "stg_customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_customers",
+   "original_file_path": "models/staging/stg_customers.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/staging/schema.yml",
+   "path": "staging/stg_customers.sql",
+   "primary_key": [
+    "customer_id"
+   ],
+   "raw_code": "select id as customer_id, name, country_code from {{ source('raw', 'customers') }}",
+   "refs": [],
+   "relation_name": "\"memory\".\"main\".\"stg_customers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "raw",
+     "customers"
+    ]
+   ],
+   "tags": [
+    "staging"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.stg_customers",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "staging"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.stg_orders": {
+   "access": "protected",
+   "alias": "stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "1e510162624e858a9045021f0520e499dd1ecf5cf92e6b9d73a48a6661097d7e",
+    "name": "sha256"
+   },
+   "columns": {
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "staging"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.43439,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.shop.raw.orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "staging",
+    "stg_orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_orders",
+   "original_file_path": "models/staging/stg_orders.sql",
+   "package_name": "shop",
+   "patch_path": "shop://models/staging/schema.yml",
+   "path": "staging/stg_orders.sql",
+   "primary_key": [
+    "order_id"
+   ],
+   "raw_code": "select id as order_id, customer_id, product_id, quantity, ordered_at from {{ source('raw', 'orders') }}",
+   "refs": [],
+   "relation_name": "\"memory\".\"main\".\"stg_orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "raw",
+     "orders"
+    ]
+   ],
+   "tags": [
+    "staging"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.stg_orders",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "staging"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.stg_payments": {
+   "access": "protected",
+   "alias": "stg_payments",
+   "build_path": null,
+   "checksum": {
+    "checksum": "aef6da111f8404a85f962dcdbf1df59a166df005fd1f25ce90de9da9169521e8",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "staging",
+     "pii"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.213789,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.shop.raw.payments"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "staging",
+    "stg_payments"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_payments",
+   "original_file_path": "models/staging/stg_payments.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "staging/stg_payments.sql",
+   "primary_key": [],
+   "raw_code": "{{ config(tags=[\"pii\"]) }}\nselect id as payment_id, order_id, amount from {{ source('raw', 'payments') }}",
+   "refs": [],
+   "relation_name": "\"memory\".\"main\".\"stg_payments\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "raw",
+     "payments"
+    ]
+   ],
+   "tags": [
+    "staging",
+    "pii"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.stg_payments",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "pii"
+    ]
+   },
+   "version": null
+  },
+  "model.shop.stg_products": {
+   "access": "protected",
+   "alias": "stg_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "9c2ad991b6efe1eeb6e64e97cb4c4ad1f4d570fa3469bf76334694f1c798359c",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [
+     "staging"
+    ],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.211585,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "seed.shop.products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "staging",
+    "stg_products"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_products",
+   "original_file_path": "models/staging/stg_products.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "staging/stg_products.sql",
+   "primary_key": [],
+   "raw_code": "select id as product_id, name, price from {{ ref('products') }}",
+   "refs": [
+    {
+     "name": "products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"memory\".\"main\".\"stg_products\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [
+    "staging"
+   ],
+   "time_spine": null,
+   "unique_id": "model.shop.stg_products",
+   "unrendered_config": {
+    "materialized": "view",
+    "tags": [
+     "staging"
+    ]
+   },
+   "version": null
+  },
+  "seed.shop.country_codes": {
+   "alias": "country_codes",
+   "build_path": null,
+   "checksum": {
+    "checksum": "98586a4b1e03f2e0d455af7d54d9b1d3d5f7cd4c87e4abbea62abd589627856a",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1793544868.356617,
+   "database": "memory",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "country_codes"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "country_codes",
+   "original_file_path": "seeds/country_codes.csv",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "country_codes.csv",
+   "raw_code": "",
+   "relation_name": "\"memory\".\"main\".\"country_codes\"",
+   "resource_type": "seed",
+   "root_path": "<fixture>",
+   "schema": "main",
+   "tags": [],
+   "unique_id": "seed.shop.country_codes",
+   "unrendered_config": {}
+  },
+  "seed.shop.products": {
+   "alias": "products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "fbd71a2421afa3ed581992010cb5b29be4d95caec7eeac08e50a2e25572a6c60",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1793544868.355572,
+   "database": "memory",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "products"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "products",
+   "original_file_path": "seeds/products.csv",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "products.csv",
+   "raw_code": "",
+   "relation_name": "\"memory\".\"main\".\"products\"",
+   "resource_type": "seed",
+   "root_path": "<fixture>",
+   "schema": "main",
+   "tags": [],
+   "unique_id": "seed.shop.products",
+   "unrendered_config": {}
+  },
+  "snapshot.shop.snap_customers": {
+   "alias": "snap_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "875adc0f217a3af72e1a7cd0fa743387358c789ab5ed15d08afad3c23786f585",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "check_cols": "all",
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "dbt_valid_to_current": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "snapshot",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "snapshot_meta_column_names": {
+     "dbt_is_deleted": null,
+     "dbt_scd_id": null,
+     "dbt_updated_at": null,
+     "dbt_valid_from": null,
+     "dbt_valid_to": null
+    },
+    "static_analysis": null,
+    "strategy": "check",
+    "tags": [],
+    "target_database": null,
+    "target_schema": "snapshots",
+    "unique_key": "id",
+    "updated_at": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.2951522,
+   "database": "memory",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.shop.raw.customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "shop",
+    "snap_customers",
+    "snap_customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "snap_customers",
+   "original_file_path": "snapshots/snap_customers.sql",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "snap_customers.sql",
+   "raw_code": "\n{{ config(target_schema='snapshots', unique_key='id', strategy='check', check_cols='all') }}\nselect * from {{ source('raw', 'customers') }}\n",
+   "refs": [],
+   "relation_name": "\"memory\".\"snapshots\".\"snap_customers\"",
+   "resource_type": "snapshot",
+   "schema": "snapshots",
+   "sources": [
+    [
+     "raw",
+     "customers"
+    ]
+   ],
+   "tags": [],
+   "unique_id": "snapshot.shop.snap_customers",
+   "unrendered_config": {
+    "check_cols": "all",
+    "strategy": "check",
+    "target_schema": "snapshots",
+    "unique_key": "id"
+   }
+  },
+  "test.shop.not_null_fct_orders_order_id.4e687af8d0": {
+   "alias": "not_null_fct_orders_order_id",
+   "attached_node": "model.shop.fct_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.515157,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null"
+    ],
+    "nodes": [
+     "model.shop.fct_orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.fct_orders",
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "not_null_fct_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_fct_orders_order_id",
+   "original_file_path": "models/marts/finance/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "not_null_fct_orders_order_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('fct_orders')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.shop.not_null_fct_orders_order_id.4e687af8d0",
+   "unrendered_config": {}
+  },
+  "test.shop.not_null_stg_customers_customer_id.e2cfb1f9aa": {
+   "alias": "not_null_stg_customers_customer_id",
+   "attached_node": "model.shop.stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.474565,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null"
+    ],
+    "nodes": [
+     "model.shop.stg_customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.stg_customers",
+   "fqn": [
+    "shop",
+    "staging",
+    "not_null_stg_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_customers_customer_id",
+   "original_file_path": "models/staging/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "not_null_stg_customers_customer_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('stg_customers')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.shop.not_null_stg_customers_customer_id.e2cfb1f9aa",
+   "unrendered_config": {}
+  },
+  "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4": {
+   "alias": "relationships_fct_orders_0c6c6d9e6f30dfb9b653557ebf38e47c",
+   "attached_node": "model.shop.fct_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": "relationships_fct_orders_0c6c6d9e6f30dfb9b653557ebf38e47c",
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.515865,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_relationships",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.shop.dim_customers",
+     "model.shop.fct_orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.fct_orders",
+   "fqn": [
+    "shop",
+    "marts",
+    "finance",
+    "relationships_fct_orders_customer_id__customer_id__ref_dim_customers_"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "relationships_fct_orders_customer_id__customer_id__ref_dim_customers_",
+   "original_file_path": "models/marts/finance/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "relationships_fct_orders_0c6c6d9e6f30dfb9b653557ebf38e47c.sql",
+   "raw_code": "{{ test_relationships(**_dbt_generic_test_kwargs) }}{{ config(alias=\"relationships_fct_orders_0c6c6d9e6f30dfb9b653557ebf38e47c\") }}",
+   "refs": [
+    {
+     "name": "dim_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "fct_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "field": "customer_id",
+     "model": "{{ get_where_subquery(ref('fct_orders')) }}",
+     "to": "ref('dim_customers')"
+    },
+    "name": "relationships",
+    "namespace": null
+   },
+   "unique_id": "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4",
+   "unrendered_config": {
+    "alias": "relationships_fct_orders_0c6c6d9e6f30dfb9b653557ebf38e47c"
+   }
+  },
+  "test.shop.unique_dim_customers_customer_id.15c9f1e2fd": {
+   "alias": "unique_dim_customers_customer_id",
+   "attached_node": "model.shop.dim_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.51068,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique"
+    ],
+    "nodes": [
+     "model.shop.dim_customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.dim_customers",
+   "fqn": [
+    "shop",
+    "marts",
+    "core",
+    "unique_dim_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_dim_customers_customer_id",
+   "original_file_path": "models/marts/core/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "unique_dim_customers_customer_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "dim_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('dim_customers')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.shop.unique_dim_customers_customer_id.15c9f1e2fd",
+   "unrendered_config": {}
+  },
+  "test.shop.unique_stg_customers_customer_id.c7614daada": {
+   "alias": "unique_stg_customers_customer_id",
+   "attached_node": "model.shop.stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.4735842,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique"
+    ],
+    "nodes": [
+     "model.shop.stg_customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.stg_customers",
+   "fqn": [
+    "shop",
+    "staging",
+    "unique_stg_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_customers_customer_id",
+   "original_file_path": "models/staging/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "unique_stg_customers_customer_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('stg_customers')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.shop.unique_stg_customers_customer_id.c7614daada",
+   "unrendered_config": {}
+  },
+  "test.shop.unique_stg_orders_order_id.e3b841c71a": {
+   "alias": "unique_stg_orders_order_id",
+   "attached_node": "model.shop.stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled_path": null,
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1793544868.475271,
+   "database": "memory",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique"
+    ],
+    "nodes": [
+     "model.shop.stg_orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "file_key_name": "models.stg_orders",
+   "fqn": [
+    "shop",
+    "staging",
+    "unique_stg_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_orders_order_id",
+   "original_file_path": "models/staging/schema.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "unique_stg_orders_order_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('stg_orders')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.shop.unique_stg_orders_order_id.e3b841c71a",
+   "unrendered_config": {}
+  }
+ },
+ "parent_map": {
+  "exposure.shop.weekly_report": [
+   "model.shop.rpt_weekly"
+  ],
+  "model.shop.customer_ltv": [
+   "model.shop.dim_customers",
+   "model.shop.fct_orders"
+  ],
+  "model.shop.dim_customers": [
+   "model.shop.int_customer_orders",
+   "model.shop.stg_payments"
+  ],
+  "model.shop.dim_products": [
+   "model.shop.stg_products"
+  ],
+  "model.shop.fct_orders": [
+   "model.shop.int_order_items",
+   "model.shop.stg_payments"
+  ],
+  "model.shop.fct_revenue.v1": [
+   "model.shop.fct_orders"
+  ],
+  "model.shop.fct_revenue.v2": [
+   "model.shop.fct_orders"
+  ],
+  "model.shop.fin_daily_summary": [
+   "model.shop.fct_orders"
+  ],
+  "model.shop.int_customer_orders": [
+   "model.shop.stg_customers",
+   "model.shop.stg_orders"
+  ],
+  "model.shop.int_order_items": [
+   "model.shop.stg_orders",
+   "model.shop.stg_products"
+  ],
+  "model.shop.py_scores": [
+   "model.shop.dim_customers"
+  ],
+  "model.shop.rpt_legacy": [
+   "model.shop.dim_products"
+  ],
+  "model.shop.rpt_weekly": [
+   "model.shop.customer_ltv",
+   "model.shop.fin_daily_summary"
+  ],
+  "model.shop.stg_customers": [
+   "source.shop.raw.customers"
+  ],
+  "model.shop.stg_orders": [
+   "source.shop.raw.orders"
+  ],
+  "model.shop.stg_payments": [
+   "source.shop.raw.payments"
+  ],
+  "model.shop.stg_products": [
+   "seed.shop.products"
+  ],
+  "seed.shop.country_codes": [],
+  "seed.shop.products": [],
+  "snapshot.shop.snap_customers": [
+   "source.shop.raw.customers"
+  ],
+  "source.shop.raw.customers": [],
+  "source.shop.raw.orders": [],
+  "source.shop.raw.payments": [],
+  "test.shop.not_null_fct_orders_order_id.4e687af8d0": [
+   "model.shop.fct_orders"
+  ],
+  "test.shop.not_null_stg_customers_customer_id.e2cfb1f9aa": [
+   "model.shop.stg_customers"
+  ],
+  "test.shop.relationships_fct_orders_customer_id__customer_id__ref_dim_customers_.d5636051d4": [
+   "model.shop.dim_customers",
+   "model.shop.fct_orders"
+  ],
+  "test.shop.unique_dim_customers_customer_id.15c9f1e2fd": [
+   "model.shop.dim_customers"
+  ],
+  "test.shop.unique_stg_customers_customer_id.c7614daada": [
+   "model.shop.stg_customers"
+  ],
+  "test.shop.unique_stg_orders_order_id.e3b841c71a": [
+   "model.shop.stg_orders"
+  ]
+ },
+ "saved_queries": {},
+ "selectors": {
+  "core_not_python": {
+   "definition": {
+    "intersection": [
+     {
+      "method": "tag",
+      "value": "core"
+     },
+     {
+      "method": "config.materialized",
+      "value": "table"
+     }
+    ]
+   },
+   "name": "core_not_python"
+  },
+  "finance_and_children": {
+   "definition": {
+    "children": true,
+    "method": "fqn",
+    "value": "fct_orders"
+   },
+   "name": "finance_and_children"
+  },
+  "nightly": {
+   "definition": {
+    "union": [
+     {
+      "method": "tag",
+      "value": "daily"
+     },
+     {
+      "method": "path",
+      "value": "models/reporting"
+     },
+     {
+      "exclude": [
+       {
+        "method": "tag",
+        "value": "deprecated"
+       }
+      ]
+     }
+    ]
+   },
+   "name": "nightly"
+  },
+  "upstream_of_ltv": {
+   "definition": {
+    "method": "fqn",
+    "parents": true,
+    "parents_depth": 2,
+    "value": "customer_ltv"
+   },
+   "name": "upstream_of_ltv"
+  }
+ },
+ "semantic_models": {},
+ "sources": {
+  "source.shop.raw.customers": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "created_at": 1793544868.530616,
+   "database": "memory",
+   "description": "",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "shop",
+    "staging",
+    "raw",
+    "customers"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "customers",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "customers",
+   "original_file_path": "models/staging/sources.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "models/staging/sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"memory\".\"raw\".\"customers\"",
+   "resource_type": "source",
+   "schema": "raw",
+   "source_description": "",
+   "source_meta": {},
+   "source_name": "raw",
+   "tags": [
+    "raw_data"
+   ],
+   "unique_id": "source.shop.raw.customers",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "raw"
+  },
+  "source.shop.raw.orders": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "created_at": 1793544868.531214,
+   "database": "memory",
+   "description": "",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "shop",
+    "staging",
+    "raw",
+    "orders"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "orders",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "orders",
+   "original_file_path": "models/staging/sources.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "models/staging/sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"memory\".\"raw\".\"orders\"",
+   "resource_type": "source",
+   "schema": "raw",
+   "source_description": "",
+   "source_meta": {},
+   "source_name": "raw",
+   "tags": [
+    "raw_data"
+   ],
+   "unique_id": "source.shop.raw.orders",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "raw"
+  },
+  "source.shop.raw.payments": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "created_at": 1793544868.531401,
+   "database": "memory",
+   "description": "",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "shop",
+    "staging",
+    "raw",
+    "payments"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "payments",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "payments",
+   "original_file_path": "models/staging/sources.yml",
+   "package_name": "shop",
+   "patch_path": null,
+   "path": "models/staging/sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"memory\".\"raw\".\"payments\"",
+   "resource_type": "source",
+   "schema": "raw",
+   "source_description": "",
+   "source_meta": {},
+   "source_name": "raw",
+   "tags": [
+    "raw_data"
+   ],
+   "unique_id": "source.shop.raw.payments",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": [
+     "raw_data"
+    ]
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "raw"
+  }
+ },
+ "unit_tests": {}
+}

@@ -1,0 +1,9 @@
+version: 2
+exposures:
+  - name: weekly_report
+    type: dashboard
+    owner:
+      name: Spike Owner
+      email: owner@example.com
+    depends_on:
+      - ref('rpt_weekly')

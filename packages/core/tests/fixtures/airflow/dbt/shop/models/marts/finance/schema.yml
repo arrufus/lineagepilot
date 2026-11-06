@@ -1,0 +1,16 @@
+version: 2
+models:
+  - name: fct_orders
+    columns:
+      - name: order_id
+        data_tests: [not_null]
+      - name: customer_id
+        data_tests:
+          - relationships:
+              to: ref('dim_customers')
+              field: customer_id
+  - name: fct_revenue
+    latest_version: 2
+    versions:
+      - v: 1
+      - v: 2

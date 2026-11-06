@@ -76,6 +76,8 @@ skip_covered = true
 [tool.ruff]
 line-length = 100
 target-version = "py310"
+# DAG fixtures, including one that is deliberately not valid Python
+extend-exclude = ["tests/fixtures"]
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "B", "UP", "T20"]  # T20: no print(), it would corrupt LSP stdio
@@ -83,3 +85,5 @@ select = ["E", "F", "W", "I", "B", "UP", "T20"]  # T20: no print(), it would cor
 [tool.ruff.lint.per-file-ignores]
 # Benchmark snippets are long one-liners run in a subprocess
 "scripts/*" = ["E501"]
+# Ported from spike S3 with their assertions unchanged: they are the evidence that the port behaves
+"tests/airflow/test_*.py" = ["E501", "E741"]

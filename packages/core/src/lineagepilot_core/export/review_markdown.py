@@ -40,6 +40,7 @@ _ORIGINS = {
     "dag_static": "DAG file",
     "annotation": "annotation",
 }
+_AIRFLOW_KINDS = ("airflow_task", "airflow_dag")
 _BASELINES = {
     "baseline_manifest": "the baseline manifest",
     "catalog": "`catalog.json`",
@@ -170,15 +171,14 @@ def _downstream(review: dict[str, Any], row_limit: int) -> list[str]:
         lines += ["Nothing is known to be downstream of the changed nodes.", ""]
     for kind, (_, plural) in KIND_TITLES.items():
         nodes = [n for n in impacted if n["kind"] == kind]
-        if not nodes:
+        if not nodes or kind in _AIRFLOW_KINDS:
             continue
         lines += [f"#### {plural[0].upper()}{plural[1:]} ({len(nodes)})", ""]
         lines += ["| Name | Reached | Confidence | Evidence | Owner |", "|---|---|---|---|---|"]
         lines += [_impact_row(node) for node in nodes[:row_limit]]
         lines += _more(len(nodes), row_limit, plural)
         lines.append("")
-    if not review["airflow"]["analysed"]:
-        lines += ["#### Airflow tasks", "", "Airflow DAGs were not analysed in this version.", ""]
+    lines += _airflow(review, row_limit)
     owners = review["owners"]
     if owners:
         lines += ["#### Owners", "", "| Owner | Impacted |", "|---|---|"]
@@ -191,6 +191,64 @@ def _downstream(review: dict[str, Any], row_limit: int) -> list[str]:
         lines += _more(len(owners), row_limit, "owners")
         lines.append("")
     return lines
+
+
+def _airflow(review: dict[str, Any], row_limit: int) -> list[str]:
+    """The tasks by DAG, each with what it runs. A heuristic link is shown, with why it is one."""
+    summary = review["airflow"]
+    lines = ["#### Airflow tasks"]
+    if not summary["analysed"]:
+        reason = _plain(summary["reason"] or "they were not read")
+        return [*lines, "", f"Airflow DAGs were not analysed: {reason}", ""]
+    nodes = sorted(
+        (n for n in review["impacted"] if n["kind"] in _AIRFLOW_KINDS),
+        key=lambda n: (n["airflow"]["dag"] or "", n["kind"], n["name"]),
+    )
+    if nodes:
+        dags = {n["airflow"]["dag"] for n in nodes}
+        lines[0] += f" ({_count(len(nodes), 'task')} in {_count(len(dags), 'DAG')})"
+        lines += [
+            "",
+            "| DAG | Task | What it has to do with this | Confidence | Evidence | Owner |",
+        ]
+        lines += ["|---|---|---|---|---|---|"]
+        lines += [_airflow_row(node) for node in nodes[:row_limit]]
+        lines += _more(len(nodes), row_limit, "Airflow tasks")
+    else:
+        files = _count(summary["dagFiles"], "DAG file")
+        lines += ["", f"No task in the {files} read runs a changed or downstream node."]
+    if summary["opaqueTasks"]:
+        tasks = _count(summary["opaqueTasks"], "task")
+        lines += ["", f"{tasks} could not be read and do not mention dbt, so they are not listed."]
+    lines.append("")
+    return lines
+
+
+def _airflow_row(node: dict[str, Any]) -> str:
+    detail = node["airflow"]
+    is_whole_dag = node["kind"] == "airflow_dag"
+    task = "The whole DAG" if is_whole_dag else _cell_code(node["name"])
+    if detail["tasks"]:
+        shown = ", ".join(_cell_code(t) for t in detail["tasks"][:5])
+        more = len(detail["tasks"]) - 5 + detail["tasksMore"]
+        task += f". Derived: {shown}" + (f" and {more} more" if more > 0 else "")
+    parts = []
+    if detail["runs"]:
+        names = ", ".join(_cell_code(n) for n in detail["runs"][:5])
+        more = len(detail["runs"]) - 5 + detail["runsMore"]
+        how = ", ".join(_plain(h, 40) for h in detail["how"]) or "runs"
+        parts.append(f"{how}: {names}" + (f" and {more} more" if more > 0 else ""))
+    if detail["after"]:
+        parts.append("runs after " + ", ".join(_cell_code(n) for n in detail["after"][:5]))
+    origins = ", ".join(_ORIGINS.get(o, o) for o in node["origins"])
+    evidence = origins + (f" {_cell_code(node['file'])}" if node["file"] else "")
+    if detail["notes"]:
+        evidence += f": {_plain(detail['notes'][0], CELL_TEXT_LIMIT)}"
+    owner = _cell_code(node["owner"]) if node["owner"] else "No owner"
+    return (
+        f"| {_cell_code(detail['dag'] or '')} | {task} | {'; '.join(parts)} | "
+        f"{node['confidence']} | {evidence} | {owner} |"
+    )
 
 
 def _impact_row(node: dict[str, Any]) -> str:
@@ -273,6 +331,8 @@ def _title(kind: str) -> str:
 
 
 def _short_id(node_id: str) -> str:
+    if node_id.startswith("airflow:"):
+        return node_id.removeprefix("airflow:")
     return node_id.rsplit(".", 1)[-1] or node_id
 
 

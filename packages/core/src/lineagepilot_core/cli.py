@@ -1,4 +1,5 @@
-"""The headless entry point: ``lineagepilot index``, ``impact`` and ``review`` (tasks 1.8, 4.5).
+"""The headless entry point: ``lineagepilot index``, ``impact``, ``review`` and ``airflow``
+(tasks 1.8, 4.5, 5.3).
 
 Runs the same core as the language server, so CI can use it later (design section 8).
 Output is deterministic, as text or ``--json``. ``review`` prints the same Markdown as the
@@ -17,6 +18,10 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from lineagepilot_core import __version__
+from lineagepilot_core.airflow.categories import explanation, label
+from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
+from lineagepilot_core.airflow.link import link_airflow, mark_not_analysed
+from lineagepilot_core.airflow.workspace import default_workspace, scan_airflow, scan_workspace
 from lineagepilot_core.analysis.baseline import ManifestBaseline, load_baseline_manifest
 from lineagepilot_core.analysis.impact import Impact, impact
 from lineagepilot_core.analysis.review import baseline_inputs, review_changes
@@ -57,6 +62,19 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument("--json", action="store_true", help="machine-readable output")
         command.add_argument("-v", "--verbose", action="store_true", help="log progress to stderr")
 
+    def airflow_options(command: argparse.ArgumentParser) -> None:
+        command.add_argument(
+            "--workspace",
+            type=Path,
+            help="the folder DAG files are read from; default: the git repository, or the project",
+        )
+        command.add_argument(
+            "--dag-folder",
+            action="append",
+            metavar="FOLDER",
+            help=f"a folder or pattern in the workspace; default: {DEFAULT_DAG_FOLDERS[0]}",
+        )
+
     index = commands.add_parser("index", help="index the project and report its status")
     artifact_options(index)
 
@@ -71,6 +89,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     impact_command.add_argument("--max-depth", type=int, help="stop after this many steps")
     artifact_options(impact_command)
+    airflow_options(impact_command)
+    impact_command.add_argument("--no-airflow", action="store_true", help="do not read DAG files")
 
     review = commands.add_parser(
         "review", help="what the changes on this branch affect, as Markdown for a pull request"
@@ -89,6 +109,18 @@ def build_parser() -> argparse.ArgumentParser:
         "default: compare with catalog.json",
     )
     artifact_options(review)
+    airflow_options(review)
+    review.add_argument("--no-airflow", action="store_true", help="do not read DAG files")
+
+    airflow = commands.add_parser(
+        "airflow",
+        help="what the DAG files run; read as syntax only, never imported or executed",
+    )
+    airflow.add_argument("--project-dir", type=Path, help="default: every project in the workspace")
+    airflow.add_argument("--manifest", type=Path, help="default: <project>/target/manifest.json")
+    airflow.add_argument("--json", action="store_true", help="machine-readable output")
+    airflow.add_argument("-v", "--verbose", action="store_true", help="log progress to stderr")
+    airflow_options(airflow)
     return parser
 
 
@@ -103,6 +135,11 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
         stream=sys.stderr,
         format="%(levelname)s %(name)s: %(message)s",
     )
+
+    if args.command == "airflow":
+        scan = _airflow_scan(args)
+        _write(out, scan if args.json else _airflow_text(scan), args.json)
+        return EXIT_OK
 
     project = read_project(args.project_dir) if args.command == "review" else None
     manifest = args.manifest or (project.manifest_path if project else None)
@@ -124,6 +161,17 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
     if result.graph is None:
         _write(out, _index_json(result) if args.json else _index_text(result), args.json)
         return EXIT_UNKNOWN
+    # After the index, which has cached its snapshot: a DAG scan is never part of one
+    if args.no_airflow:
+        mark_not_analysed(result.graph, "--no-airflow was given")
+    else:
+        scan = scan_airflow(
+            args.project_dir,
+            args.workspace or default_workspace(args.project_dir),
+            args.dag_folder or DEFAULT_DAG_FOLDERS,
+            manifest=result.manifest_path,
+        )
+        link_airflow(result.graph, scan)
     if project is not None:
         return _review(args, project, result.graph, out)
     targets, problems = resolve_targets(result.graph, args.targets, args.project_dir)
@@ -133,6 +181,42 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
     found = impact(result.graph, targets, max_depth=args.max_depth)
     _write(out, _impact_json(found) if args.json else _impact_text(result.graph, found), args.json)
     return EXIT_OK
+
+
+def _airflow_scan(args: argparse.Namespace) -> dict[str, Any]:
+    folders = args.dag_folder or DEFAULT_DAG_FOLDERS
+    if args.project_dir is not None:
+        workspace = args.workspace or default_workspace(args.project_dir)
+        return scan_airflow(args.project_dir, workspace, folders, args.manifest)
+    return scan_workspace(args.workspace or Path("."), folders)
+
+
+def _airflow_text(scan: dict[str, Any]) -> str:
+    stats = scan["stats"]
+    lines = [
+        f"{stats['files_scanned']} DAG files in {', '.join(scan['folders']) or 'no folder found'}: "
+        f"{stats['dags']} DAGs, {stats['links_resolved']} tasks linked to dbt, "
+        f"{stats['links_unknown']} unknown"
+    ]
+    for link in scan["links"]:
+        if link["status"] != "resolved":
+            continue
+        name = link.get("task_id") or link.get("group_id") or "(the whole DAG)"
+        models = link["resolved_models"] or []
+        lines.append(
+            f"  {link['dag_id']}  {name}  {link['dbt_command']}  "
+            f"{len(models)} models  {link['confidence']}  {link['project_path']}"
+        )
+    if scan["unresolved"]:
+        lines.append(f"Unknowns ({len(scan['unresolved'])}):")
+        for found in scan["unresolved"]:
+            category = found["category"]
+            lines.append(
+                f"  {found['file']}:{found['line']}  {label(category)}: {found['reason']}. "
+                f"{explanation(category)}"
+            )
+    lines += [f"Problem: {problem}" for problem in scan["problems"]]
+    return "\n".join(lines)
 
 
 def _review(

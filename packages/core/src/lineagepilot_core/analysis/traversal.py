@@ -6,7 +6,8 @@ dbt source reads the table that a model, seed or snapshot builds, and both have 
 the junction counts as one step. Physical relations are never reported as reached.
 
 Downstream of a dbt node also includes the Airflow tasks that run it (``orchestrates``
-edges point from the task to the node).
+edges point from the task to the node), and downstream of a task the tasks that run after it.
+Upstream of a task are the nodes it runs and the tasks it waits for.
 
 Traversal is breadth first, keeps the smallest depth for each node, and visits each node
 once, so cycles (impossible in a dbt DAG, possible in a crafted manifest or among Airflow
@@ -92,11 +93,17 @@ def _node_steps(graph: MetadataGraph, node_id: str, direction: Direction) -> Ite
             yield Step(reader, edges)
         for edge in graph.in_edges(node_id, (EdgeKind.ORCHESTRATES,)):
             yield Step(edge.upstream, (edge,))
+        for edge in graph.out_edges(node_id, (EdgeKind.TASK_DEPENDS_ON,)):
+            yield Step(edge.downstream, (edge,))
     else:
         for edge in graph.in_edges(node_id, (EdgeKind.DEPENDS_ON,)):
             yield Step(edge.upstream, (edge,))
         for builder, edges in _junction(graph, node_id, direction):
             yield Step(builder, edges)
+        for edge in graph.out_edges(node_id, (EdgeKind.ORCHESTRATES,)):
+            yield Step(edge.downstream, (edge,))
+        for edge in graph.in_edges(node_id, (EdgeKind.TASK_DEPENDS_ON,)):
+            yield Step(edge.upstream, (edge,))
 
 
 def _column_steps(graph: MetadataGraph, column: str, direction: Direction) -> Iterator[Step]:

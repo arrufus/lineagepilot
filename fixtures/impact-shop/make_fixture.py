@@ -65,7 +65,9 @@ def keep(source: Path, destination: Path, project: Path) -> str:
 def main() -> None:
     with tempfile.TemporaryDirectory() as work:
         project = Path(work) / "impact_shop"
-        ignore = shutil.ignore_patterns("target", "changes", "make_fixture.py", "PROVENANCE.json")
+        ignore = shutil.ignore_patterns(
+            "target", "changes", "dags", "make_fixture.py", "PROVENANCE.json"
+        )
         shutil.copytree(HERE, project, ignore=ignore)
         database = Path(work) / "impact_shop.duckdb"
         (project / "profiles.yml").write_text(PROFILE.format(path=database), encoding="utf-8")

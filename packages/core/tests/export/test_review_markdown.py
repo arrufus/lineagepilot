@@ -15,6 +15,8 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from support import apply_rename, copy_impact_shop
 
+from lineagepilot_core.airflow.link import link_airflow
+from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.export.review_markdown import MAX_CHARS, render_markdown
 from lineagepilot_core.indexer import index_project
@@ -40,6 +42,7 @@ def root(tmp_path):
 
 def render(root, files=FILES, **kwargs):
     graph = index_project(root).graph
+    link_airflow(graph, scan_airflow(root, root))
     return review_changes(graph, files, read_project(root), base=BASE, outside_project=2, **kwargs)[
         "markdown"
     ]
@@ -59,12 +62,15 @@ def test_the_order_of_the_input_does_not_matter(root):
 _RENDER_SCRIPT = """
 import sys
 from pathlib import Path
+from lineagepilot_core.airflow.link import link_airflow
+from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
 root = Path(sys.argv[1])
 files = [ChangedFile(p, FileStatus.MODIFIED) for p in sys.argv[2:]]
 graph = index_project(root).graph
+link_airflow(graph, scan_airflow(root, root))
 sys.stdout.buffer.write(review_changes(graph, files, read_project(root))["markdown"].encode())
 """
 
@@ -145,7 +151,18 @@ def minimal(**overrides):
             }
         ],
         "owners": [{"owner": "o", "nodes": ["model.s.b"]}],
-        "airflow": {"analysed": True},
+        "airflow": {
+            "analysed": True,
+            "reason": None,
+            "dagFiles": 1,
+            "dags": 0,
+            "tasks": 0,
+            "links": 0,
+            "unknowns": 0,
+            "opaqueTasks": 0,
+            "folders": ["dags"],
+            "problems": [],
+        },
         "unknowns": [{"subject": "model.s.b", "reference": "r", "reason": "why"}],
         "otherFiles": [{"path": "README.md", "status": "modified"}],
         "outsideProject": 0,
@@ -282,7 +299,7 @@ def test_an_impossibly_long_review_is_still_cut_to_the_limit():
         ({"changedNodes": []}, "No changed file maps to a node."),
         ({"unknowns": []}, "### Unknowns (0)\n\nNone."),
         ({"otherFiles": [], "outsideProject": 1}, "1 file outside this dbt project"),
-        ({"airflow": {"analysed": False}}, "Airflow DAGs were not analysed"),
+        ({"airflow": {"analysed": False, "reason": "not yet"}}, "Airflow DAGs were not analysed"),
         ({"project": None}, "`dbt project`"),
     ],
 )  # fmt: skip

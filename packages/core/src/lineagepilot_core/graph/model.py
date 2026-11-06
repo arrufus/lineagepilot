@@ -196,6 +196,23 @@ class ColumnLineageStatus:
     reason: str | None = None
 
 
+@dataclass(frozen=True, slots=True)
+class AirflowSummary:
+    """What a DAG scan looked at and found (task 5.3). Not part of a snapshot."""
+
+    analysed: bool
+    reason: str | None = None  # why not, or why nothing was found
+    folders: tuple[str, ...] = ()
+    dag_files: int = 0
+    dags: int = 0  # those that touch this project
+    tasks: int = 0
+    links: int = 0
+    unknowns: int = 0
+    opaque_tasks: int = 0  # commands that cannot be read and do not mention dbt
+    annotation_file: str | None = None
+    problems: tuple[str, ...] = ()
+
+
 class GraphError(ValueError):
     """An operation that would make the graph inconsistent."""
 
@@ -223,6 +240,8 @@ class MetadataGraph:
         # its columns in the graph, which also hold what the catalog and the docs list: the
         # Change Impact Review compares this with a baseline. Absent when it cannot be known.
         self.output_columns: dict[str, list[str]] = {}
+        # What the last DAG scan found; None until one has been applied
+        self.airflow: AirflowSummary | None = None
 
     # Building
 
@@ -286,6 +305,19 @@ class MetadataGraph:
             )
         self._out[edge.upstream].remove(edge)
         self._in[edge.downstream].remove(edge)
+
+    def remove_node(self, node_id: str) -> None:
+        """Remove a node, with its edges. Its columns must be gone first."""
+        node = self.nodes.pop(node_id)
+        for edge in (*self._out.pop(node_id, ()), *self._in.pop(node_id, ())):
+            if self._edges.pop((edge.kind, edge.upstream, edge.downstream), None) is not None:
+                other = edge.downstream if edge.upstream == node_id else edge.upstream
+                for side in (self._in, self._out):
+                    if other in side and edge in side[other]:
+                        side[other].remove(edge)
+        for path in (node.file_path, node.patch_path):
+            if path:
+                self._files[_normalise_path(path)].discard(node_id)
 
     def remove_unresolved(self, subjects: Iterable[str], origin: Origin | None = None) -> None:
         """Drop the unresolved records of these subjects, optionally only from one origin."""

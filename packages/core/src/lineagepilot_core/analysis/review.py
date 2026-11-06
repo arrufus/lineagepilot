@@ -13,6 +13,10 @@ section 8, tasks 4.2 and 4.3).
    comparing names cannot rule out a change in how an unchanged column is computed.
 4. Group the result, with its evidence and owners, and list every unknown met on the way.
 
+Airflow tasks come through the ``orchestrates`` edges a DAG scan adds (task 5.3), grouped by DAG.
+Heuristic links are shown by default and labelled: most correct links are heuristic (spike S3), so
+hiding them would hide most of the real ones.
+
 A change to a properties file alone is listed but not followed downstream: it documents the
 data rather than changing it, and one file often documents dozens of models. That is said in
 the Unknowns section rather than left out.
@@ -30,6 +34,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from lineagepilot_core.airflow.link import AIRFLOW_KINDS
+from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import Impact, ImpactedNode, impact, weakest
 from lineagepilot_core.analysis.traversal import Granularity, Step
@@ -37,8 +43,10 @@ from lineagepilot_core.export.review_markdown import render_markdown
 from lineagepilot_core.graph.column_lineage import SQL_KINDS
 from lineagepilot_core.graph.ids import column_id, normalise_identifier, split_column_id
 from lineagepilot_core.graph.model import (
+    DBT_KINDS,
     ColumnLineageStatus,
     Confidence,
+    EdgeKind,
     MetadataGraph,
     Node,
     NodeKind,
@@ -53,6 +61,8 @@ TEXT_LIMIT = 4000
 MAX_SOURCE_BYTES = 5_000_000
 # How many steps into a node are kept as its evidence, the rest only counted
 MAX_EVIDENCE = 5
+# How many of the nodes a task runs, and the task ids Cosmos derives for them, are listed
+MAX_TASK_DETAIL = 20
 
 KIND_ORDER = ("model", "snapshot", "seed", "source", "exposure", "airflow_task", "airflow_dag")
 _PROJECT_FILES = frozenset(
@@ -228,7 +238,7 @@ def review_changes(
         "changedNodes": changed_nodes,
         "impacted": impacted,
         "owners": _owners(impacted),
-        "airflow": {"analysed": _airflow_analysed(graph)},
+        "airflow": summary_json(graph.airflow),
         "unknowns": _deduplicated(unknowns),
         "otherFiles": other_files,
         "outsideProject": outside_project,
@@ -260,11 +270,14 @@ class _Touched:
 
 
 def _nodes_for(graph: MetadataGraph, path: str, project: DbtProject | None) -> list[Node]:
-    nodes = graph.nodes_for_file(path)
+    # A DAG file in the project defines tasks, and its change is not followed: it is listed
+    nodes = [n for n in graph.nodes_for_file(path) if n.kind in DBT_KINDS]
     packages = (project.packages_path if project else "dbt_packages").rstrip("/") + "/"
     if not nodes and path.startswith(packages):
         package, _, inner = path[len(packages) :].partition("/")
-        nodes = [n for n in graph.nodes_for_file(inner) if n.package == package]
+        nodes = [
+            n for n in graph.nodes_for_file(inner) if n.package == package and n.kind in DBT_KINDS
+        ]
     return nodes
 
 
@@ -505,7 +518,10 @@ def _impacted_json(
     traced = by_column and hit.granularity is Granularity.COLUMN
     confidence = hit.confidence if traced else weakest(hit.confidence, Confidence.INFERRED)
     reason = hit.reason
-    if not traced and reason is None:
+    airflow = _airflow_detail(graph, node, hit) if node.kind in AIRFLOW_KINDS else None
+    if airflow is not None:
+        reason = None
+    elif not traced and reason is None:
         reason = (
             "depends on a changed model, but on none of the columns known to have changed"
             if columns_known
@@ -532,6 +548,42 @@ def _impacted_json(
         "reason": clip(reason),
         "via": via[:MAX_EVIDENCE],
         "viaMore": max(0, len(via) - MAX_EVIDENCE),
+        "airflow": airflow,
+    }
+
+
+def _airflow_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dict[str, Any]:
+    """What a task has to do with the change: the nodes it runs or reads, and the tasks it follows.
+
+    For Cosmos the file states one link for the whole group; the task ids here are derived from
+    the manifest, by the mapping in spike S3's README, so they are labelled as such in the UI.
+    """
+    runs: set[str] = set()
+    how: set[str] = set()
+    after: set[str] = set()
+    for origin, step in hit.via:
+        source = origin.partition("#")[0]
+        edge = step.edges[0]
+        if edge.kind is EdgeKind.ORCHESTRATES:
+            runs.add(source)
+            if edge.transformation:
+                how.add(edge.transformation)
+        else:
+            after.add(source)
+    properties = node.properties
+    derived = properties.get("tasks", {})
+    tasks = sorted({task for source in runs for task in derived.get(source, ())})
+    names = sorted(graph.nodes[source].name for source in runs)
+    return {
+        "dag": clip(properties.get("dag")),
+        "operator": clip(properties.get("operator")),
+        "how": sorted(clip(h) for h in how),
+        "runs": [clip(n) for n in names[:MAX_TASK_DETAIL]],
+        "runsMore": max(0, len(names) - MAX_TASK_DETAIL),
+        "tasks": [clip(t) for t in tasks[:MAX_TASK_DETAIL]],
+        "tasksMore": max(0, len(tasks) - MAX_TASK_DETAIL),
+        "after": sorted(clip(graph.nodes[source].name) for source in after)[:MAX_TASK_DETAIL],
+        "notes": [clip(n) for n in properties.get("notes", ())],
     }
 
 
@@ -592,12 +644,6 @@ def _owners(impacted: list[dict[str, Any]]) -> list[dict[str, Any]]:
     named = sorted(owner for owner in by_owner if owner is not None)
     order: list[str | None] = [*named, *([None] if None in by_owner else [])]
     return [{"owner": owner, "nodes": sorted(by_owner[owner])} for owner in order]
-
-
-def _airflow_analysed(graph: MetadataGraph) -> bool:
-    return any(
-        n.kind in (NodeKind.AIRFLOW_DAG, NodeKind.AIRFLOW_TASK) for n in graph.nodes.values()
-    )
 
 
 def _baseline_json(baseline: ManifestBaseline | None) -> dict[str, Any] | None:

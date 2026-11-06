@@ -1,0 +1,28 @@
+selectors:
+  - name: nightly
+    definition:
+      union:
+        - method: tag
+          value: daily
+        - method: path
+          value: models/reporting
+        - exclude:
+            - method: tag
+              value: deprecated
+  - name: finance_and_children
+    definition:
+      method: fqn
+      value: fct_orders
+      children: true
+  - name: core_not_python
+    definition:
+      intersection:
+        - "tag:core"
+        - method: config.materialized
+          value: table
+  - name: upstream_of_ltv
+    definition:
+      method: fqn
+      value: customer_ltv
+      parents: true
+      parents_depth: 2
