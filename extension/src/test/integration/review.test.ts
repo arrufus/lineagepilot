@@ -199,4 +199,29 @@ suite(`change impact review (${label})`, () => {
     }
     assert.equal(posted.length, before);
   });
+
+  test('usage counts: off, opening the review counts nothing; on, it counts; off again, they are forgotten', async () => {
+    const { usage } = await api();
+    const config = vscode.workspace.getConfiguration();
+    assert.equal(usage.isEnabled, false, 'the workspace settings turn counting on, and must not count');
+    await vscode.commands.executeCommand('lineagePilot.reviewChanges', root());
+    assert.deepEqual(usage.state().weeks, {});
+    await config.update(USAGE, true, vscode.ConfigurationTarget.Global);
+    try {
+      await until('counting to be on', 10_000, () => usage.isEnabled);
+      assert.equal(await vscode.commands.executeCommand('lineagePilot.reviewChanges', root()), panel, 'the same panel');
+      const week = () => Object.values(usage.state().weeks)[0];
+      await until('the review to be counted', 10_000, () => week()?.opened === 1);
+      assert.equal(week().days.length, 1);
+      assert.equal(week().copied, 0);
+      const text = await vscode.commands.executeCommand<string>('lineagePilot.copyUsageCounts');
+      assert.equal(await vscode.env.clipboard.readText(), text);
+      assert.match(text!, /^\| \d{4}-W\d{2} \(from \d{4}-\d{2}-\d{2}\) \| 1 \| 1 \| 0 \|$/m);
+      // Nothing about the project
+      assert.ok(!text!.includes(root()) && !/jaffle|orders|customers/i.test(text!), text);
+    } finally {
+      await config.update(USAGE, undefined, vscode.ConfigurationTarget.Global);
+    }
+    await until('the counts to be forgotten', 10_000, () => Object.keys(usage.state().weeks).length === 0);
+  });
 });

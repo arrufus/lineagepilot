@@ -167,11 +167,14 @@ export async function applySampleChange(root: string, bundled: string, now = Dat
   // The edited files are new and the manifest newer still, as after an edit and `dbt compile`
   for (const relative of [...sources, ...files.filter(isArtifact)]) {
     const when = new Date(isArtifact(relative) ? now : now - 1000);
-    // O_NOFOLLOW where there is one: the file was checked above, and must still not be a link
-    const flags = fs.constants.O_WRONLY | fs.constants.O_TRUNC | (fs.constants.O_NOFOLLOW ?? 0);
+    // The file was checked above; O_NOFOLLOW, where there is one, keeps it from becoming a link
+    // since. No O_TRUNC: without O_CREAT, Windows refuses it (EINVAL), so the file is cut to length
+    const flags = fs.constants.O_WRONLY | (fs.constants.O_NOFOLLOW ?? 0);
     const handle = await fs.promises.open(path.join(real, relative), flags);
     try {
-      await handle.writeFile(await fs.promises.readFile(path.join(change, relative)));
+      const data = await fs.promises.readFile(path.join(change, relative));
+      await handle.writeFile(data);  // from the start: the handle is new
+      await handle.truncate(data.length);
       await handle.utimes(when, when);
     } finally {
       await handle.close();

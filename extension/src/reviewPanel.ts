@@ -48,6 +48,7 @@ export class ReviewPanel implements vscode.Disposable {
   /** Every message sent to the webview (integration tests listen). */
   readonly onDidPost = this.posted.event;
   private ready = false;
+  private disposed = false;
   private runs = 0;
   private last: Run | undefined;
   private dirty = false;
@@ -267,12 +268,17 @@ export class ReviewPanel implements vscode.Disposable {
   }
 
   async post(message: ReviewHostMessage): Promise<boolean> {
+    // A review that finishes after the panel was closed has nowhere to go
+    if (this.disposed) {
+      return false;
+    }
     const checked = ReviewHostMessage.parse(message);
     this.posted.fire(checked);
     return this.panel.webview.postMessage(checked);
   }
 
   dispose(): void {
+    this.disposed = true;
     ReviewPanel.panels.delete(this.server.project.root);
     clearTimeout(this.debounce);
     this.repositoryWatch?.dispose();

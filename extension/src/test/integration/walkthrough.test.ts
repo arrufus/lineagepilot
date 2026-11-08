@@ -7,10 +7,7 @@ import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
-import type { ReviewPanel } from '../../reviewPanel';
-import { api, EXTENSION_ID, expectTrusted, label, readyServer, root, until } from './helpers';
-
-const USAGE = 'lineagePilot.usageCounts.enabled';
+import { api, EXTENSION_ID, expectTrusted, label, root } from './helpers';
 
 interface Step {
   id: string;
@@ -93,45 +90,15 @@ suite(`walkthrough and sample project (${label})`, () => {
   });
 });
 
+// Opening and copying the review are counted in review.test.ts, once the workspace is a repository:
+// the review asks VS Code's Git extension about the folder, and must not ask before then.
 suite(`usage counts (${label})`, () => {
-  let panel: ReviewPanel | undefined;
-
-  suiteTeardown(async () => {
-    await vscode.workspace.getConfiguration().update(USAGE, undefined, vscode.ConfigurationTarget.Global);
-    panel?.dispose();
-    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
-  });
-
-  test('a workspace cannot turn them on: nothing is counted', async function () {
-    this.timeout(120_000);
-    await readyServer();
+  test('a workspace cannot turn them on, so nothing is counted', async () => {
     const { usage } = await api();
     assert.equal(usage.isEnabled, false);
-    panel = await vscode.commands.executeCommand<ReviewPanel>('lineagePilot.reviewChanges', root());
-    assert.ok(panel);
+    await usage.record('opened');  // what opening the review does
+    await usage.record('day');
     assert.deepEqual(usage.state().weeks, {});
     assert.equal(await vscode.commands.executeCommand('lineagePilot.copyUsageCounts'), undefined);
-  });
-
-  test('turned on by the user, the review is counted; turned off, the counts are forgotten', async function () {
-    this.timeout(120_000);
-    const { usage } = await api();
-    const config = vscode.workspace.getConfiguration();
-    await config.update(USAGE, true, vscode.ConfigurationTarget.Global);
-    await until('counting to be on', 10_000, () => usage.isEnabled);
-    panel = await vscode.commands.executeCommand<ReviewPanel>('lineagePilot.reviewChanges', root());
-    const week = () => Object.values(usage.state().weeks)[0];
-    await until('the review to be counted', 10_000, () => week()?.opened === 1);
-    // Copying is counted in review.test.ts, where there is always a review to copy
-    assert.equal(week().days.length, 1);
-    assert.equal(week().copied, 0);
-    const text = await vscode.commands.executeCommand<string>('lineagePilot.copyUsageCounts');
-    assert.equal(await vscode.env.clipboard.readText(), text);
-    assert.match(text!, /^\| \d{4}-W\d{2} \(from \d{4}-\d{2}-\d{2}\) \| 1 \| 1 \| 0 \|$/m);
-    // Nothing about the project
-    assert.ok(!text!.includes(root()) && !text!.includes(path.basename(root())), text);
-    assert.ok(!/jaffle|orders|customers/i.test(text!), text);
-    await config.update(USAGE, false, vscode.ConfigurationTarget.Global);
-    await until('the counts to be forgotten', 10_000, () => Object.keys(usage.state().weeks).length === 0);
   });
 });
