@@ -433,7 +433,7 @@ Unless a panel retains its context, which costs memory, VS Code destroys a hidde
 | Setting scopes | Interpreter path, dbt executable and any future connection URL are **`machine`-scoped**, so workspace settings cannot set them. This closes the class of the server's Airflow `base_url` credential exfiltration (DCS-99m), where whoever chose the URL received the credential. The baseline manifest path is `resource`-scoped, because a team may keep one in the repository, and listed in `restrictedConfigurations`, so an untrusted workspace cannot choose it. |
 | Git | The extension only reads, through `vscode.git`, which VS Code turns off in Restricted Mode: the review then says it cannot tell what changed. `lineagepilot review` runs read-only git commands with arguments, never a shell. A `git` found inside the project is refused, a ref cannot be taken for an option, and `core.fsmonitor` is off. To check a changed file against the manifest the review reads it only if it is a regular file inside the project and under 5 MB: a repository can hold a symlink to `/dev/zero`, which reports size 0 and never ends. |
 | Secrets (post-MVP connectors) | Held only in VS Code SecretStorage, never in settings or environment variables. Each secret is bound to the host it was entered for. |
-| Network | No listener, stdio only. No outbound network in the MVP. Telemetry is off; if it is ever added, it must respect `vscode.env.isTelemetryEnabled`. |
+| Network | No listener, stdio only. No outbound network in the MVP. There is no telemetry (decision D-7). If it is ever added, it must respect `vscode.env.isTelemetryEnabled`. The beta's opt-in usage counts stay in the extension's storage until the user copies them: an application-scoped setting turns them on, which no workspace can set, and they hold no names, paths or contents. |
 | Code execution | DAG files are analysed with the AST only; user Python is never imported. Every integration test configuration, Restricted Mode included, has a DAG file that leaves a marker if it is ever imported or run. dbt runs only on an explicit user command in a trusted workspace. |
 | DAG files | Read as bytes, regular files inside the workspace only, under 2 MB. Strings and lists a file builds are capped, each file has a budget of evaluation steps, format strings cannot reach attributes or allocate memory, and no more than 5,000 files are read. A module is imported only from inside the workspace, as syntax. The scan runs in a child process with a time limit. Nothing about the machine reaches its result. |
 | Resource limits | Manifest size cap (configurable). Parsing runs in a worker with a per-statement time budget for sqlglot. Rule-pack regexes have a length cap and are evaluated with a timeout, or with `re2` if available. This closes the ReDoS class (DCS-61r). |
@@ -642,12 +642,19 @@ How the Airflow linkage is tested (Phase 5):
 | D-3 | **Static Airflow analysis plus annotation files in the MVP.** | Section 6.2. This is the wedge. |
 | D-4 | **Name: LineagePilot.** | Python packages `lineagepilot_core` and `lineagepilot_lsp`; CLI `lineagepilot`; settings prefix `lineagePilot.*`. Before the public release: run a trademark search, create the publisher ID, and keep "dbt" out of the name per dbt Labs' trademark guidelines. |
 
+### Decided (8 November 2026, for Phase 6)
+
+| # | Decision | Consequences |
+|---|---|---|
+| D-5 | **Licence: MIT**, for the extension, `lineagepilot_core` and `lineagepilot_lsp`. | `LICENSE` at the root and in each package. Open VSX accepts the VSIX, and `check_vsix.py --release` passes. The VSIX carries `THIRD_PARTY_NOTICES.md` for the npm and Python code it bundles. Any paid tier would be a separate product or service, such as the CI Action in the backlog. The business model stays undecided. |
+| D-7 | **No telemetry. Opt-in usage counts, shared by hand.** | Off by default. When the user turns it on in their own settings, the extension counts, by week and on the machine only, the days a dbt project was open and how often the review was opened and copied. **Copy Usage Counts** puts them on the clipboard for the beta's weekly check-in. Turning counting off deletes them, at once if the extension is running, or else when it next starts. The no-network promise holds. Gate G1 is scored from the check-ins, and the counts corroborate them ([beta.md](beta.md)). |
+| — | **The closed beta gets a VSIX from GitHub releases**, not from a registry. | The release pipeline builds and tests one VSIX on a tag and attaches it to a GitHub release. The Marketplace and Open VSX jobs stay off until the public release after G1 ([release.md](release.md)). |
+
 ### Open
 
 | # | Decision | Recommendation |
 |---|---|---|
 | D-2 | Python sidecar or TypeScript rewrite | **Python sidecar** (section 4.2). Spikes S1 and S2 confirm or overturn this at gate G0. |
-| D-5 | Licence and business model | Decide before the public release. The headless core makes a paid CI or team tier possible without a hosted catalog. |
 | D-6 | How far to support Fusion | Support Fusion manifests. Revisit Python-free operation if Fusion-only users are a large share of the beta. |
 
 ---

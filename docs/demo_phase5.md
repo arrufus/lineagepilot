@@ -66,7 +66,7 @@ cd "$REPO/packages/core" && uv sync --locked   # the CLI
 cd "$REPO/packages/lsp"  && uv sync --locked   # only for the check in step 4
 ```
 
-The last line of the VSIX check should be `VSIX check passed: universal, pure Python, expected contents, within budget`. Its warning that there is no licence is expected (decision D-5).
+The last line of the VSIX check should be `VSIX check passed: universal, pure Python, expected contents, within budget`.
 
 ### 2. Make the demo workspaces
 
@@ -482,4 +482,4 @@ That covers the workspaces, the profile and extensions, the build and the test f
 - **What if I change a DAG file?** It is read again within seconds, and the review shows the new links. The file itself is only listed under **Other changed files**: mapping it to its tasks is LP-o59.
 - **How big can it go?** At 5,000 models with 2,000 tasks, a warm start has its scan linked in about 2 to 3 seconds, and a review of 100 changed models takes about 100 ms. Peak server memory on Linux is 379 MB, within the 500 MB budget. On macOS it reads 511 to 608 MB, over budget (LP-dtt).
 - **Has this been tested on Windows?** As of 6 November 2026, partly. The core passed on Linux, macOS and Windows at the frozen commit, and the acceptance scenario's Airflow checks passed on all three on an earlier commit. On the final code it passes in a Linux container, on Python 3.10 and 3.13. The rest waits for CI to start again (LP-kf5).
-- **Can I install it?** Not yet from a marketplace: publishing waits for the licence decision (D-5). The VSIX from step 1 installs with `code --install-extension`.
+- **Can I install it?** Not from a marketplace yet. Beta teams get the VSIX from a GitHub release ([release.md](release.md)), and the public release follows Gate G1. The VSIX from step 1 installs with `code --install-extension`.

@@ -1,0 +1,29 @@
+name: Feedback
+description: An idea, a question, or something that could work better.
+title: "[feedback] "
+labels: ["beta", "feedback"]
+body:
+  - type: dropdown
+    id: area
+    attributes:
+      label: What is it about?
+      options:
+        - Change Impact Review
+        - Airflow linkage
+        - Lineage, CodeLens and hovers
+        - Lineage graph
+        - Setup, the walkthrough or the sample
+        - Something else
+    validations:
+      required: true
+  - type: textarea
+    id: what
+    attributes:
+      label: Your feedback
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: What would it change for your team?
+      description: For example, a check you would no longer do by hand, or a pull request you would review differently.

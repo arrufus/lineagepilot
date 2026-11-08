@@ -54,7 +54,7 @@ cd "$REPO/packages/core" && uv sync --locked # the CLI for Part 1
 cd "$REPO/packages/lsp"  && uv sync --locked # only for the check in step 4
 ```
 
-The last line of the VSIX check should be `VSIX check passed: universal, pure Python, expected contents, within budget`. Its warning that there is no licence is expected (decision D-5). `npm ci` reports advisories across all packages, including test and packaging tools that never ship. For what ships, `npm audit --omit=dev` should list only minimatch through vscode-languageclient (LP-dy1).
+The last line of the VSIX check should be `VSIX check passed: universal, pure Python, expected contents, within budget`. `npm ci` reports advisories across all packages, including test and packaging tools that never ship. For what ships, `npm audit --omit=dev` should list only minimatch through vscode-languageclient (LP-dy1).
 
 ### 2. Make the demo workspaces
 
@@ -410,5 +410,5 @@ Repeat preparation steps 2 and 3; the build from step 1 can be reused. Deleting 
 - **What about a changed macro?** The review lists it under Unknowns: which models call it is not worked out yet (LP-a04).
 - **And Airflow?** Cosmos `DbtDag` and `DbtTaskGroup`, dbt commands in `BashOperator`, `KubernetesPodOperator` and `DockerOperator`, and SQL operators are linked to models from the DAG files' syntax. DAG files are parsed, never imported or run. [demo_phase5.md](demo_phase5.md) shows it, and `corpus/README.md` has the miss rate on repositories the scanner had never seen: 84.0%.
 - **How big can a project be?** On a synthetic 5,000-model project: a model-level cold index takes 2.5 s, a warm start 0.5 s, and an impact query 3–5 ms ([core README](../packages/core/README.md#performance-budgets)). The server is still 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt).
-- **Can I install it?** Not yet from a marketplace: publishing waits for the licence decision (D-5). The VSIX from step 1 installs with `code --install-extension`.
+- **Can I install it?** Not from a marketplace yet. Beta teams get the VSIX from a GitHub release ([release.md](release.md)), and the public release follows Gate G1. The VSIX from step 1 installs with `code --install-extension`.
 - **Before showing this outside the team:** the jaffle-shop fixture has no licence, and LP-0tf replaces it before the repository goes public.

@@ -148,6 +148,13 @@ This is the differentiating feature, so it comes before Airflow linkage, which t
 
 **Gate G1** (four weeks into the beta): continue if at least half of the active beta users open the review weekly, at least 3 teams have pasted reviews into real pull requests, and at least one team reports it changed a decision. Otherwise pivot, for example to a CI-only product using the same core, or stop.
 
+Decided on 8 November 2026 (design section 15):
+- The closed beta gets the VSIX from GitHub releases of this repository. The Marketplace and Open VSX jobs are built but stay off until the public release after G1 ([release.md](release.md)).
+- The licence is MIT (D-5).
+- There is no telemetry: opt-in usage counts, kept on the user's machine, go into a weekly check-in by hand (D-7).
+
+Running the beta and scoring G1: [beta.md](beta.md).
+
 ---
 
 ## Legacy wind-down (parallel, in the data-capsule repository)

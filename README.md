@@ -5,6 +5,7 @@ A VS Code extension that shows, inside the editor, what a dbt change will break:
 - Design: [docs/design.md](docs/design.md)
 - Plan: [docs/implementation_plan.md](docs/implementation_plan.md)
 - Demo scripts: [docs/demo.md](docs/demo.md) (Phases 1–4) and [docs/demo_phase5.md](docs/demo_phase5.md) (Airflow linkage)
+- Releases: [docs/release.md](docs/release.md). The closed beta and Gate G1: [docs/beta.md](docs/beta.md)
 - Work items: `bd ready` (beads, prefix `LP`)
 
 ## Layout
@@ -17,8 +18,11 @@ extension/        the VS Code extension (Phase 2)
 protocol/         the lineage/* JSON Schema, its generator and contract examples
 fixtures/         dbt project workspaces for the core, server and extension tests
 corpus/           the held-out DAG corpus: labels, scorer and results (Phase 5)
-docs/             design, implementation plan and the rules reference
+docs/             design, plan, rules reference, demo scripts, release process and beta guide
+.github/          CI and release workflows, and the beta's issue forms
 ```
+
+LineagePilot is released under the [MIT licence](LICENSE).
 
 ## Where this came from
 
@@ -65,3 +69,22 @@ The exit criteria:
 
 At 5,000 models with 2,000 tasks linked, a warm start has its scan linked in 2.1 s on macOS and 2.8 s on Linux, and the server's peak on Linux is 379 MB, within its 500 MB budget. On macOS it reads 511 MB warm and 608 MB cold, over budget (LP-dtt). A changed DAG file is listed, not followed (LP-o59).
 
+
+Phase 6, beta and release (LP-7er), was built on 8 November 2026, after four decisions (design section 15):
+- the closed beta gets the VSIX from GitHub releases of this private repository, not from a marketplace;
+- the licence is MIT (D-5);
+- there is no telemetry (D-7). Instead, opt-in usage counts stay on the user's machine, and the user copies them into a weekly check-in.
+
+What was built:
+- **6.1**: an extension README for beta users, with installing, getting started, usage counts and troubleshooting. A **Get Started with LineagePilot** walkthrough of seven steps. A sample project, built into the VSIX from `fixtures/impact-shop`: **Open Sample Project** copies it, and **Apply the Sample Change** makes its prepared column rename, so the review can be tried with neither dbt nor Airflow installed.
+- **6.2**: the release workflow ([docs/release.md](docs/release.md)). A tag on `main` runs the three test workflows on the tagged commit and releases the VSIX they tested, with its SHA-256. It publishes to the Marketplace and Open VSX only when that is turned on and a reviewer approves. The VSIX carries `LICENSE` and `THIRD_PARTY_NOTICES.md`, and an npm or Python licence outside the allowed list fails the build.
+- **6.3**: the beta guide and how Gate G1 is scored ([docs/beta.md](docs/beta.md)), issue forms for bugs, feedback and the weekly check-in, and the usage counts.
+
+Tested locally, in the Linux container, with Python 3.10 and 3.13:
+- the extension's unit, view and integration tests pass in every configuration, trusted and in Restricted Mode;
+- extension coverage is 85.9% of lines (gate 75%);
+- the build-script tests pass, including one that follows the sample's walkthrough through `lineagepilot review`.
+
+**None of Phase 6 has run in CI** (LP-kf5): GitHub Actions still starts no jobs. So the release workflow has never run, and the extension has not been tested on macOS or Windows at this code.
+
+What is left is the owner's: the checklist in [docs/beta.md](docs/beta.md#before-the-first-invitation), then recruiting the teams and the four weeks of beta before Gate G1 (LP-7er.4). Setting up the registries for the public release is LP-2xl.
