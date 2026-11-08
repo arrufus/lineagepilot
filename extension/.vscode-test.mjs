@@ -70,6 +70,8 @@ function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
   fs.writeFileSync(path.join(dir, '.vscode', 'settings.json'), JSON.stringify({
     'lineagePilot.python.interpreterPath': planted,
     'lineagePilot.dbt.executablePath': plantedDbt,
+    // Only the user may turn usage counts on (task 6.3)
+    'lineagePilot.usageCounts.enabled': true,
     ...hostile,
   }, null, 2));
   // A rule pack that turns off a built-in rule: loaded only when the workspace is trusted

@@ -3,6 +3,8 @@ name = "lineagepilot-lsp"
 dynamic = ["version"]
 description = "LineagePilot language server: CodeLens, hover, diagnostics and lineage/* requests over lineagepilot_core, on stdio."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     "lineagepilot-core",

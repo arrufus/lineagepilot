@@ -2,6 +2,9 @@
 // workspace (design section 7). This file wires the language servers, commands, views and
 // status bar together.
 
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { pickSubcommand, refreshArtifacts, type RefreshOutcome, type Subcommand, SUBCOMMANDS } from './dbt';
@@ -10,10 +13,12 @@ import { LineagePanel, openLocation } from './panel';
 import { PROJECT_GLOB } from './projects';
 import type { ExportFormat, GraphNode, Location } from './protocol';
 import { ReviewPanel } from './reviewPanel';
+import { applySampleChange, type ApplyOutcome, copySample, isSample } from './sample';
 import type { ProjectServer } from './server';
 import { statusBar } from './status';
 import { AirflowTree } from './views/airflowTree';
 import { LineageTree, NodeItem } from './views/lineageTree';
+import { USAGE_SETTING, UsageCounts } from './usage';
 
 const GRAPH_FORMATS: { format: ExportFormat; label: string }[] = [
   { format: 'json', label: 'JSON' },
@@ -38,7 +43,11 @@ export interface LineagePilotApi {
   lineagePanel(root: string): LineagePanel | undefined;
   /** The project's open Change Impact Review. */
   reviewPanel(root: string): ReviewPanel | undefined;
+  /** The beta's usage counts (task 6.3). */
+  usage: UsageCounts;
 }
+
+type SampleOutcome = ApplyOutcome | { status: 'cancelled' } | { status: 'restricted' };
 
 export async function activate(context: vscode.ExtensionContext): Promise<LineagePilotApi> {
   const output = vscode.window.createOutputChannel('LineagePilot', { log: true });
@@ -81,7 +90,22 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
     }
   });
-  const timer = setInterval(updateStatus, STATUS_REFRESH_MS);
+  // Counted only when the user turned counting on in their own settings: an application-scoped
+  // setting, and only its user value is read, so no workspace can turn it on (design D-7)
+  const usage = new UsageCounts(context.globalState,
+    () => vscode.workspace.getConfiguration().inspect<boolean>(USAGE_SETTING)?.globalValue === true);
+  const countDay = () => {
+    if (vscode.window.state.focused && manager.list().length) {
+      void usage.record('day');
+    }
+  };
+  const countedPanels = new WeakSet<ReviewPanel>();
+  const updateSampleContext = () => void vscode.commands.executeCommand('setContext', 'lineagePilot.sampleOpen',
+    (vscode.workspace.workspaceFolders ?? []).some((folder) => isSample(folder.uri.fsPath)));
+  const timer = setInterval(() => {
+    updateStatus();
+    countDay();
+  }, STATUS_REFRESH_MS);
 
   const activeServer = async (): Promise<ProjectServer | undefined> => {
     const file = vscode.window.activeTextEditor?.document.uri;
@@ -184,7 +208,120 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
         void vscode.window.showInformationMessage('Open a workspace with a dbt project to review its changes.');
         return undefined;
       }
-      return ReviewPanel.show(context, server, output);
+      const panel = ReviewPanel.show(context, server, output);
+      void usage.record('opened');
+      if (!countedPanels.has(panel)) {
+        countedPanels.add(panel);
+        panel.onDidPost((message) => message.type === 'copied' && void usage.record('copied'));
+      }
+      return panel;
+    }),
+    vscode.commands.registerCommand('lineagePilot.copyUsageCounts', async (): Promise<string | undefined> => {
+      if (!usage.isEnabled) {
+        void vscode.window.showInformationMessage(
+          'Usage counts are off, so there is nothing to copy. Turned on, they count on this machine how often you '
+          + 'use the review, and nothing is sent anywhere.', 'Open Settings')
+          .then((choice) => choice && vscode.commands.executeCommand('workbench.action.openSettings', USAGE_SETTING));
+        return undefined;
+      }
+      const text = usage.summary(String(context.extension.packageJSON.version));
+      await vscode.env.clipboard.writeText(text);
+      const issues = (context.extension.packageJSON.bugs as { url?: string } | undefined)?.url;
+      void vscode.window.showInformationMessage('Copied your usage counts. Paste them into this week\'s check-in.',
+        ...(issues ? ['Open Check-in'] : []))
+        .then((choice) => {
+          if (choice && issues) {
+            void vscode.env.openExternal(vscode.Uri.parse(`${issues}/new?template=weekly_checkin.yml`));
+          }
+        });
+      return text;
+    }),
+    // For tests: a parent folder skips the dialog, and open=false leaves the window as it is
+    vscode.commands.registerCommand('lineagePilot.openSample', async (parent?: string, open = true): Promise<string | undefined> => {
+      if (typeof parent !== 'string') {
+        const picked = await vscode.window.showOpenDialog({
+          canSelectFolders: true, canSelectFiles: false, canSelectMany: false, defaultUri: vscode.Uri.file(os.homedir()),
+          title: 'Choose a folder for the LineagePilot sample project', openLabel: 'Copy the Sample Here',
+        });
+        if (!picked?.[0]) {
+          return undefined;
+        }
+        parent = picked[0].fsPath;
+      }
+      let folder: string;
+      try {
+        folder = await copySample(context.asAbsolutePath('sample'), parent);
+      } catch (error) {
+        void vscode.window.showErrorMessage(`LineagePilot could not copy its sample project: ${(error as Error).message}`);
+        return undefined;
+      }
+      output.info(`Copied the sample project to ${folder}`);
+      if (open !== false) {
+        await vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(folder),
+          { forceNewWindow: Boolean(vscode.workspace.workspaceFolders?.length) });
+      }
+      return folder;
+    }),
+    // For tests: a root skips the questions. Restricted Mode only reads the workspace, so it is refused
+    vscode.commands.registerCommand('lineagePilot.applySampleChange', async (root?: string): Promise<SampleOutcome> => {
+      const interactive = typeof root !== 'string';
+      if (!vscode.workspace.isTrusted) {
+        if (interactive) {
+          void vscode.window.showInformationMessage('Trust this folder to apply the sample change. In Restricted Mode '
+            + 'LineagePilot only reads the project, and the review needs Git, which Restricted Mode turns off.');
+        }
+        return { status: 'restricted' };
+      }
+      const candidates = [
+        ...(vscode.workspace.workspaceFolders ?? []).map((folder) => folder.uri.fsPath),
+        ...manager.list().map((server) => server.project.root),
+      ];
+      const sample = interactive ? candidates.find(isSample) : root;
+      if (!sample || !isSample(sample)) {
+        if (interactive) {
+          const choice = await vscode.window.showInformationMessage(
+            'Open the sample project first: LineagePilot makes this change only in a copy of its sample.',
+            'Open Sample Project');
+          if (choice) {
+            await vscode.commands.executeCommand('lineagePilot.openSample');
+          }
+        }
+        return { status: 'not-sample' };
+      }
+      if (interactive && !fs.existsSync(path.join(sample, '.git'))) {
+        const choice = await vscode.window.showWarningMessage(
+          'The review compares your work with the last commit, and this copy of the sample has none yet. '
+          + 'In Source Control, initialize a repository and commit everything, then apply the change.',
+          'Open Source Control', 'Apply Anyway');
+        if (choice !== 'Apply Anyway') {
+          if (choice) {
+            await vscode.commands.executeCommand('workbench.view.scm');
+          }
+          return { status: 'cancelled' };
+        }
+      }
+      const outcome = await applySampleChange(sample, context.asAbsolutePath('sample'));
+      if (outcome.status === 'modified' || outcome.status === 'unsafe') {
+        output.warn(`Did not apply the sample change in ${sample}: ${JSON.stringify(outcome)}`);
+      }
+      if (interactive && (outcome.status === 'modified' || outcome.status === 'unsafe')) {
+        void vscode.window.showWarningMessage(outcome.status === 'modified'
+          ? `LineagePilot did not apply the sample change: ${outcome.files.join(', ')} changed since the sample was `
+            + 'copied. Open Sample Project makes a fresh copy.'
+          : `LineagePilot did not apply the sample change: ${outcome.file} is a symbolic link, or is reached through one. `
+            + 'It writes only to the files of a copy of its sample.', 'Open Sample Project')
+          .then((choice) => choice && vscode.commands.executeCommand('lineagePilot.openSample'));
+      } else if (interactive && outcome.status === 'applied') {
+        await vscode.window.showTextDocument(vscode.Uri.file(path.join(sample, outcome.files.find((f) => f.endsWith('.sql')) ?? outcome.files[0])));
+        void vscode.window.showInformationMessage(
+          'Renamed order_total to total_usd in models/marts/orders.sql, and put the manifest dbt compile would write '
+          + 'in target/. Review Changes shows what the rename reaches.', 'Review Changes')
+          .then((choice) => choice && vscode.commands.executeCommand('lineagePilot.reviewChanges'));
+      } else if (interactive && outcome.status === 'already-applied') {
+        void vscode.window.showInformationMessage('The sample change is already made. Review Changes shows what it reaches.',
+          'Review Changes').then((choice) => choice && vscode.commands.executeCommand('lineagePilot.reviewChanges'));
+      }
+      return outcome;
     }),
     vscode.commands.registerCommand('lineagePilot.followEditor', () => {
       lineageTree.unpin();
@@ -236,8 +373,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       void lineageTree.showFile(editor?.document.uri);
       void airflowTree.showFile(editor?.document.uri);
     }),
-    vscode.workspace.onDidChangeWorkspaceFolders(() => void manager.rediscover()),
+    vscode.workspace.onDidChangeWorkspaceFolders(() => {
+      updateSampleContext();
+      void manager.rediscover();
+    }),
+    vscode.window.onDidChangeWindowState((state) => state.focused && countDay()),
     vscode.workspace.onDidChangeConfiguration((event) => {
+      // Turning counting off forgets what was counted
+      if (event.affectsConfiguration(USAGE_SETTING) && !usage.isEnabled) {
+        void usage.clear();
+      }
       if (event.affectsConfiguration('lineagePilot.python') || event.affectsConfiguration('lineagePilot.index')
           || event.affectsConfiguration('lineagePilot.airflow')) {
         void manager.restartAll();
@@ -252,8 +397,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   context.subscriptions.push(projectWatcher);
 
   updateStatus();
+  updateSampleContext();
+  if (!usage.isEnabled) {
+    void usage.clear();  // turned off while LineagePilot was not running
+  }
   await manager.start(true);
   updateStatus();
+  countDay();
   void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
   void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
   return {
@@ -263,6 +413,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     statusBarText: () => statusItem.text,
     lineagePanel: (root) => LineagePanel.forProject(root),
     reviewPanel: (root) => ReviewPanel.forProject(root),
+    usage,
   };
 }
 

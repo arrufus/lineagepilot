@@ -17,6 +17,10 @@ dist/
 # Bundled Python libraries are built from the lock file, never committed
 **/bundled/libs/
 
+# Built for the VSIX by extension/scripts: the sample from fixtures/impact-shop, and the notices
+extension/sample/
+extension/THIRD_PARTY_NOTICES.md
+
 # Spike working data: cloned repositories, generated dbt projects, large manifests
 work/
 

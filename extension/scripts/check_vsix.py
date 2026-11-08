@@ -3,9 +3,9 @@ and acceptable to both the VS Code Marketplace and Open VSX (task 2.7).
 
 Usage: python scripts/check_vsix.py dist/lineagepilot.vsix [--budget-mb 5] [--release]
 
-The same VSIX goes to both registries. Open VSX accepts only licensed extensions, and the
-licence (design decision D-5) is not chosen yet: until it is, that is reported as a warning,
-and as an error with --release.
+The same VSIX goes to both registries. Open VSX accepts only licensed extensions: a VSIX without
+a licence (design decision D-5 chose MIT) is reported as a warning, and as an error with --release,
+which the release workflow uses. Every walkthrough page package.json names must be in the VSIX.
 """
 
 from __future__ import annotations
@@ -27,7 +27,16 @@ BUDGET_MB = 5.0
 REQUIRED = [
     "extension/package.json",
     "extension/readme.md",  # vsce lower-cases it
+    "extension/changelog.md",
+    "extension/LICENSE.txt",  # vsce adds the extension
+    "extension/THIRD_PARTY_NOTICES.md",
     "extension/media/lineage.svg",
+    "extension/media/walkthrough/start.md",
+    "extension/sample/dbt_project.yml",
+    "extension/sample/.lineagepilot/sample.json",
+    "extension/sample/target/manifest.json",
+    "extension/sample/target/catalog.json",
+    "extension/sample/changes/rename-order-total/target/manifest.json",
     "extension/dist/extension.js",
     "extension/dist/webview/webview.js",
     "extension/dist/webview/webview.css",
@@ -68,8 +77,20 @@ def manifest_problems(package: dict) -> tuple[list[str], list[str]]:
     if not package.get("repository", {}).get("url"):
         errors.append("package.json has no repository URL")
     if package.get("license") in (None, "", "UNLICENSED"):
-        warnings.append("no licence: Open VSX will not accept the VSIX until one is chosen (decision D-5)")
+        warnings.append("no licence: Open VSX will not accept the VSIX without one (decision D-5)")
     return errors, warnings
+
+
+def walkthrough_media(package: dict) -> list[str]:
+    """The VSIX paths of every file the walkthroughs show."""
+    paths = []
+    for walkthrough in package.get("contributes", {}).get("walkthroughs", []):
+        for step in walkthrough.get("steps", []):
+            for kind in ("markdown", "image", "svg"):
+                media = step.get("media", {}).get(kind)
+                if isinstance(media, str):
+                    paths.append("extension/" + media.removeprefix("./"))
+    return paths
 
 
 def check(vsix: Path, budget_mb: float, release: bool = False) -> tuple[list[str], dict]:
@@ -81,7 +102,7 @@ def check(vsix: Path, budget_mb: float, release: bool = False) -> tuple[list[str
         unpacked = sum(info.file_size for info in archive.infolist())
     errors, warnings = manifest_problems(package)
     problems += errors + (warnings if release else [])
-    for name in REQUIRED:
+    for name in REQUIRED + walkthrough_media(package):
         if name not in names:
             problems.append(f"missing: {name}")
     for name in names:

@@ -3,6 +3,8 @@ name = "lineagepilot-core"
 dynamic = ["version"]
 description = "LineagePilot core: dbt and Airflow parsers, the metadata graph, analysis and exporters. Editor-agnostic and headless."
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.10"
 dependencies = [
     # S2 finding 9: the lineage API changed between majors, so stay on one.

@@ -14,6 +14,7 @@ import type { ReviewPanel } from '../../reviewPanel';
 import { api, expectTrusted, J, label, ran, readyServer, root, until } from './helpers';
 
 type Posted<T extends ReviewHostMessage['type']> = Extract<ReviewHostMessage, { type: T }>;
+const USAGE = 'lineagePilot.usageCounts.enabled';
 
 function git(...args: string[]): void {
   execFileSync('git', ['-c', 'user.name=t', '-c', 'user.email=t@example.com', ...args], { cwd: root(), stdio: 'pipe' });
@@ -130,14 +131,25 @@ suite(`change impact review (${label})`, () => {
   });
 
   test('Copy as Markdown copies the text the server rendered, and takes none from the page', async () => {
-    await vscode.env.clipboard.writeText('before');
-    const markdown = panel.latest!.markdown;
-    assert.match(markdown, /^## Change impact review: `jaffle_shop`/);
-    await panel.handle({ type: 'copyMarkdown', text: 'from the page' });
-    assert.equal(await vscode.env.clipboard.readText(), 'before', 'a message with text is malformed, so it is dropped');
-    await panel.handle({ type: 'copyMarkdown' });
-    assert.equal(await vscode.env.clipboard.readText(), markdown);
-    assert.equal(find('copied')?.characters, markdown.length);
+    // With usage counts on, the copy is counted (task 6.3), and only the one that copied
+    const { usage } = await api();
+    const config = vscode.workspace.getConfiguration();
+    await config.update(USAGE, true, vscode.ConfigurationTarget.Global);
+    try {
+      await until('counting to be on', 10_000, () => usage.isEnabled);
+      await vscode.env.clipboard.writeText('before');
+      const markdown = panel.latest!.markdown;
+      assert.match(markdown, /^## Change impact review: `jaffle_shop`/);
+      await panel.handle({ type: 'copyMarkdown', text: 'from the page' });
+      assert.equal(await vscode.env.clipboard.readText(), 'before', 'a message with text is malformed, so it is dropped');
+      await panel.handle({ type: 'copyMarkdown' });
+      assert.equal(await vscode.env.clipboard.readText(), markdown);
+      assert.equal(find('copied')?.characters, markdown.length);
+      await until('the copy to be counted', 10_000, () => Object.values(usage.state().weeks)[0]?.copied === 1);
+    } finally {
+      await config.update(USAGE, undefined, vscode.ConfigurationTarget.Global);
+    }
+    await until('the counts to be forgotten', 10_000, () => Object.keys(usage.state().weeks).length === 0);
   });
 
   test('a node opens its file beside the review, and in the lineage graph', async () => {

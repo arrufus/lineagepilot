@@ -5,10 +5,13 @@
   "version": "0.1.0",
   "publisher": "lineagepilot",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/arrufus/lineagepilot"
+  },
+  "bugs": {
+    "url": "https://github.com/arrufus/lineagepilot/issues"
   },
   "engines": {
     "vscode": "^1.93.0"
@@ -87,6 +90,12 @@
           "scope": "resource",
           "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. DAG files are only ever parsed, never imported or run."
         },
+        "lineagePilot.usageCounts.enabled": {
+          "type": "boolean",
+          "default": false,
+          "scope": "application",
+          "markdownDescription": "Count, on this machine only, the days you have a dbt project open and how often you open and copy the Change Impact Review, week by week, for the beta's weekly check-in. Nothing is ever sent: **LineagePilot: Copy Usage Counts** puts the counts on the clipboard for you to paste. They hold nothing about any project. Turning this off deletes them, at once if LineagePilot is running, or else when it next starts. Only your user settings can turn it on."
+        },
         "lineagePilot.trace.server": {
           "type": "string",
           "enum": [
@@ -163,6 +172,21 @@
         "category": "LineagePilot"
       },
       {
+        "command": "lineagePilot.openSample",
+        "title": "Open Sample Project",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.applySampleChange",
+        "title": "Apply the Sample Change",
+        "category": "LineagePilot"
+      },
+      {
+        "command": "lineagePilot.copyUsageCounts",
+        "title": "Copy Usage Counts",
+        "category": "LineagePilot"
+      },
+      {
         "command": "lineagePilot.openNode",
         "title": "Open",
         "category": "LineagePilot"
@@ -173,6 +197,10 @@
         {
           "command": "lineagePilot.refreshArtifacts",
           "when": "isWorkspaceTrusted"
+        },
+        {
+          "command": "lineagePilot.applySampleChange",
+          "when": "lineagePilot.sampleOpen"
         },
         {
           "command": "lineagePilot.followEditor",
@@ -243,22 +271,112 @@
         "view": "lineagePilot.airflow",
         "contents": "The Airflow DAGs and tasks that run the open model appear here. Open a workspace with a dbt project and DAG files. DAG files are only ever parsed, never imported or run."
       }
+    ],
+    "walkthroughs": [
+      {
+        "id": "lineagePilot.gettingStarted",
+        "title": "Get Started with LineagePilot",
+        "description": "See what a dbt change reaches, across models, exposures and Airflow tasks, from the artifacts already in your workspace.",
+        "steps": [
+          {
+            "id": "start",
+            "title": "Check that LineagePilot is running",
+            "description": "LineagePilot starts when you open a folder with a `dbt_project.yml`. Its language server needs Python 3.10 or later. The status bar shows the node count when it is ready, or **Lineage: no Python** when it found none.\n[Show Status](command:lineagePilot.showStatus)",
+            "media": {
+              "markdown": "media/walkthrough/start.md"
+            },
+            "completionEvents": [
+              "onCommand:lineagePilot.showStatus"
+            ]
+          },
+          {
+            "id": "artifacts",
+            "title": "Give it your dbt artifacts",
+            "description": "Lineage comes from `target/manifest.json`. Run `dbt compile` for column lineage and the review, and `dbt docs generate` for `catalog.json`. In a trusted workspace LineagePilot can run them for you.\n[Refresh dbt Artifacts](command:lineagePilot.refreshArtifacts)",
+            "media": {
+              "markdown": "media/walkthrough/artifacts.md"
+            },
+            "completionEvents": [
+              "onCommand:lineagePilot.refreshArtifacts"
+            ]
+          },
+          {
+            "id": "sample",
+            "title": "Or try the sample project",
+            "description": "A small dbt project with real artifacts, three Airflow DAG files and a prepared change. It needs neither dbt nor Airflow. LineagePilot copies it to a folder you choose and opens it.\n[Open Sample Project](command:lineagePilot.openSample)",
+            "media": {
+              "markdown": "media/walkthrough/sample.md"
+            },
+            "completionEvents": [
+              "onCommand:lineagePilot.openSample"
+            ]
+          },
+          {
+            "id": "lineage",
+            "title": "See what a model reaches as you edit",
+            "description": "Open a model. CodeLens counts what is downstream, hovers show each link and how it is known, and the Lineage view follows the open file. The graph shows it all, to the depth you choose.\n[Show Lineage Graph](command:lineagePilot.showLineage)",
+            "media": {
+              "markdown": "media/walkthrough/lineage.md"
+            },
+            "completionEvents": [
+              "onCommand:lineagePilot.showLineage",
+              "onCommand:lineagePilot.showImpact"
+            ]
+          },
+          {
+            "id": "review",
+            "title": "Review a change before you push",
+            "description": "**Review Changes** lists the models, exposures, Airflow tasks and owners your branch reaches, then what could not be checked. **Copy as Markdown** puts it in your pull request. In the sample, commit everything in Source Control first.\n[Apply the Sample Change](command:lineagePilot.applySampleChange)\n[Review Changes](command:lineagePilot.reviewChanges)",
+            "media": {
+              "markdown": "media/walkthrough/review.md"
+            },
+            "completionEvents": [
+              "onCommand:lineagePilot.reviewChanges"
+            ]
+          },
+          {
+            "id": "airflow",
+            "title": "Link your Airflow tasks",
+            "description": "LineagePilot reads DAG files as syntax, never importing or running them, and links their tasks to the models they run. What it cannot read is listed, and `.lineagepilot/airflow.yml` can answer it.\n[Open the Airflow View](command:lineagePilot.airflow.focus)",
+            "media": {
+              "markdown": "media/walkthrough/airflow.md"
+            },
+            "completionEvents": [
+              "onView:lineagePilot.airflow"
+            ]
+          },
+          {
+            "id": "beta",
+            "title": "Beta: share how often you use it",
+            "description": "Turned on, usage counts record on this machine the days you used LineagePilot and how often you opened and copied the review. Nothing is sent: you copy the counts into the weekly check-in yourself.\n[Turn On Usage Counts](command:workbench.action.openSettings?%5B%22lineagePilot.usageCounts.enabled%22%5D)\n[Copy Usage Counts](command:lineagePilot.copyUsageCounts)",
+            "media": {
+              "markdown": "media/walkthrough/beta.md"
+            },
+            "completionEvents": [
+              "onSettingChanged:lineagePilot.usageCounts.enabled",
+              "onCommand:lineagePilot.copyUsageCounts"
+            ]
+          }
+        ]
+      }
     ]
   },
   "scripts": {
     "generate-protocol": "python3 ../protocol/generate.py",
     "bundle-libs": "python3 scripts/bundle_libs.py",
+    "build-sample": "python3 scripts/build_sample.py",
+    "notices": "python3 scripts/third_party_notices.py",
     "typecheck": "tsc -p . --noEmit && tsc -p webview",
-    "compile": "npm run typecheck && node esbuild.mjs",
+    "compile": "npm run typecheck && node esbuild.mjs && python3 scripts/build_sample.py",
     "compile-tests": "tsc -p .",
-    "prepackage": "python3 scripts/bundle_libs.py --clean-only && npm run typecheck && node esbuild.mjs --production",
-    "package": "vsce package --no-dependencies --skip-license -o dist/lineagepilot.vsix",
+    "prepackage": "python3 scripts/bundle_libs.py --clean-only && npm run typecheck && node esbuild.mjs --production && python3 scripts/build_sample.py && python3 scripts/third_party_notices.py",
+    "package": "vsce package --no-dependencies -o dist/lineagepilot.vsix",
     "check-vsix": "python3 scripts/check_vsix.py dist/lineagepilot.vsix",
     "test:unit": "npm run compile-tests && mocha --ui tdd \"out/test/unit/**/*.test.js\"",
     "test:webview": "node scripts/build_webview_tests.mjs && mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\"",
     "test:webview-coverage": "node scripts/build_webview_tests.mjs && c8 --all --src out/webview-test --include \"out/webview-test/webview/src/**\" --include out/webview-test/src/webviewMessages.js --include out/webview-test/src/reviewMessages.js --exclude out/webview-test/webview/src/main.js --exclude out/webview-test/webview/src/review/main.js --reporter text-summary --reporter json-summary --reporter html --report-dir coverage-webview mocha --ui tdd --timeout 20000 --require out/webview-test/webview/test/setup.js --require out/webview-test/webview/test/cleanup.js \"out/webview-test/webview/test/*.test.js\" && node scripts/check_coverage.mjs coverage-webview/coverage-summary.json 75",
     "test:integration": "npm run compile-tests && npm run compile && vscode-test",
-    "test:coverage": "npm run compile-tests && node esbuild.mjs && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
+    "test:coverage": "npm run compile-tests && node esbuild.mjs && python3 scripts/build_sample.py && node scripts/coverage_shim.mjs && vscode-test --label coverage --coverage --coverage-output coverage && node scripts/check_coverage.mjs coverage/coverage-summary.json 75"
   },
   "dependencies": {
     "@dagrejs/dagre": "3.1.1",
