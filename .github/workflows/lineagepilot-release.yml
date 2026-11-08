@@ -1,0 +1,186 @@
+# Releases (task 6.2). Pushing a tag v<major>.<minor>.<patch> that is on main:
+#   1. checks the tag, extension/package.json and extension/CHANGELOG.md agree;
+#   2. runs the core, server and extension workflows on the tagged commit. The extension workflow
+#      builds the one universal VSIX and tests it on Linux, macOS and Windows;
+#   3. attaches that VSIX, with its SHA-256, to a GitHub release, a pre-release while the version
+#      is 0.x. During the closed beta this is how teams get it (docs/release.md);
+#   4. publishes the same VSIX to the VS Code Marketplace and Open VSX, but only when the
+#      repository variable LP_PUBLISH_REGISTRIES is 'true', and only after a reviewer approves the
+#      'registries' environment, which holds the tokens. It is unset until the public release.
+#
+# Nothing else publishes: a VSIX built anywhere but here never reaches a registry.
+name: lineagepilot-release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: read
+
+# One release per tag at a time, and never cancelled halfway through publishing
+concurrency:
+  group: lineagepilot-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.check.outputs.version }}
+      prerelease: ${{ steps.check.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      - name: The tagged commit is on main
+        run: |
+          git fetch --no-tags origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::$GITHUB_REF_NAME is not on main: release only what main has"
+            exit 1
+          fi
+      - name: The tag, package.json and CHANGELOG.md agree
+        id: check
+        working-directory: extension
+        run: python scripts/release_check.py --tag "$GITHUB_REF_NAME" --notes-out "$RUNNER_TEMP/notes.md" --github-output "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}/notes.md
+          if-no-files-found: error
+
+  core:
+    needs: verify
+    uses: ./.github/workflows/lineagepilot-core.yml
+
+  lsp:
+    needs: verify
+    uses: ./.github/workflows/lineagepilot-lsp.yml
+
+  extension:
+    needs: verify
+    uses: ./.github/workflows/lineagepilot-extension.yml
+
+  github-release:
+    needs: [verify, core, lsp, extension]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    outputs:
+      sha256: ${{ steps.name.outputs.sha256 }}
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      PRERELEASE: ${{ needs.verify.outputs.prerelease }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.13"
+      # The VSIX the extension workflow built and tested in this run, not a new one
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: extension-build
+          path: extension
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-notes
+          path: ${{ runner.temp }}
+      - name: The VSIX meets both registries' rules, licence included
+        run: python scripts/check_vsix.py dist/lineagepilot.vsix --release
+      - name: Name it for the version, with its SHA-256
+        id: name
+        run: |
+          mkdir -p release
+          cp dist/lineagepilot.vsix "release/lineagepilot-$VERSION.vsix"
+          (cd release && sha256sum "lineagepilot-$VERSION.vsix" > SHA256SUMS && cat SHA256SUMS)
+          echo "sha256=$(cut -d' ' -f1 release/SHA256SUMS)" >> "$GITHUB_OUTPUT"
+      - name: GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          flags=()
+          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
+          gh release create "$GITHUB_REF_NAME" --verify-tag "${flags[@]}" \
+            --title "LineagePilot $VERSION" --notes-file "$RUNNER_TEMP/notes.md" \
+            "release/lineagepilot-$VERSION.vsix" release/SHA256SUMS
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: release-vsix
+          path: extension/release
+          if-no-files-found: error
+
+  marketplace:
+    needs: [verify, github-release]
+    if: vars.LP_PUBLISH_REGISTRIES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: registries
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      RELEASED_SHA256: ${{ needs.github-release.outputs.sha256 }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      # vsce, at the version in package-lock.json. No install scripts: this job can read a token
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-vsix
+          path: extension/release
+      - name: Check the VSIX is the one released
+        run: echo "$RELEASED_SHA256  release/lineagepilot-$VERSION.vsix" | sha256sum --check
+      - name: Publish to the VS Code Marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+        run: npx vsce publish --packagePath "release/lineagepilot-$VERSION.vsix"
+
+  open-vsx:
+    needs: [verify, github-release]
+    if: vars.LP_PUBLISH_REGISTRIES == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: registries
+    env:
+      VERSION: ${{ needs.verify.outputs.version }}
+      RELEASED_SHA256: ${{ needs.github-release.outputs.sha256 }}
+    defaults:
+      run:
+        shell: bash
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+      # ovsx, at the version in package-lock.json. No install scripts: this job can read a token
+      - run: npm ci --ignore-scripts
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-vsix
+          path: extension/release
+      - name: Check the VSIX is the one released
+        run: echo "$RELEASED_SHA256  release/lineagepilot-$VERSION.vsix" | sha256sum --check
+      - name: Publish to Open VSX
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
+        run: npx ovsx publish "release/lineagepilot-$VERSION.vsix"

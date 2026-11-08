@@ -7,7 +7,11 @@ name: lineagepilot-extension
 
 on:
   workflow_dispatch:
+  # The release workflow runs this on the tagged commit, and releases the VSIX it built
+  workflow_call:
   push:
+    # Branches only: a release tag runs this through lineagepilot-release.yml instead
+    branches: ["**"]
     paths:
       - "extension/**"
       - "packages/**"

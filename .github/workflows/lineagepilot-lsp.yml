@@ -11,7 +11,16 @@ on:
         description: "Extra pytest arguments, for example -v -x -k test_name"
         required: false
         default: ""
+  # The release workflow runs this on the tagged commit
+  workflow_call:
+    inputs:
+      pytest-args:
+        type: string
+        required: false
+        default: ""
   push:
+    # Branches only: a release tag runs this through lineagepilot-release.yml instead
+    branches: ["**"]
     paths:
       - "packages/lsp/**"
       - "packages/core/**"

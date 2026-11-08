@@ -4,7 +4,11 @@ name: lineagepilot-core
 
 on:
   workflow_dispatch:
+  # The release workflow runs this on the tagged commit
+  workflow_call:
   push:
+    # Branches only: a release tag runs this through lineagepilot-release.yml instead
+    branches: ["**"]
     paths:
       - "packages/core/**"
       - "fixtures/**"
