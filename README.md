@@ -65,7 +65,12 @@ The exit criteria:
 - the full acceptance scenario passes in a real VS Code with the real `vscode.git`, on real dbt 1.12 artifacts: the review lists the downstream models, the exposure, the Airflow task and its owner, an unparseable model is under Unknowns, and Restricted Mode keeps lineage and refuses dbt. Its Airflow assertions passed in CI on Linux, macOS and Windows on an earlier commit (run 42236319899, where the only failures were three new tests with bugs of their own, since fixed); the whole scenario passes on the final code in the Linux container, on Python 3.10 and 3.13;
 - the miss rate on the held-out corpus is measured and reported, above.
 
-**CI is not complete, and the epic stays open for it** (LP-kf5). GitHub Actions stopped starting jobs on 6 November, with "recent account payments have failed or your spending limit needs to be increased". At the frozen commit `5a50fc8` the core passed on Linux, macOS and Windows with Python 3.10 and 3.13, the selector conformance job passed against real dbt 1.9 and 1.12 (run 42238432705), the server passed on Linux and macOS (run 42238432674), and the extension built and met its coverage gate (run 42238432678), but its test matrix never started. The commits after it have had no CI. Locally on the final code: the core and server suites pass on macOS with Python 3.10 and 3.13, and the extension's suite on Linux with both. Extension coverage is 85.3% of lines (gate 75%), the review page's view tests 99.5%, and the core 93.5% (gate 80%).
+**Phase 5 was completed on 8 November 2026**, once CI ran again. GitHub Actions had stopped starting jobs on 6 November over a billing problem (LP-kf5). On the final code, every workflow passes, with Python 3.10 and 3.13:
+- the core on Linux, macOS and Windows, with selector conformance against real dbt 1.9 and 1.12 (run 42496186004);
+- the server on Linux and macOS. On Windows it is tested through the extension workflow (LP-7t7) (run 42496185977);
+- the extension: its build and coverage gate, and the integration tests on the packaged VSIX on Linux, macOS and Windows, trusted and in Restricted Mode, the full acceptance scenario included (run 42501056229, at `95abc3a`).
+
+Locally: extension coverage is 85.9% of lines (gate 75%), the views 99.5%, and the core 93.5% (gate 80%).
 
 At 5,000 models with 2,000 tasks linked, a warm start has its scan linked in 2.1 s on macOS and 2.8 s on Linux, and the server's peak on Linux is 379 MB, within its 500 MB budget. On macOS it reads 511 MB warm and 608 MB cold, over budget (LP-dtt). A changed DAG file is listed, not followed (LP-o59).
 
@@ -85,6 +90,6 @@ Tested locally, in the Linux container, with Python 3.10 and 3.13:
 - extension coverage is 85.9% of lines (gate 75%);
 - the build-script tests pass, including one that follows the sample's walkthrough through `lineagepilot review`.
 
-**None of Phase 6 has run in CI** (LP-kf5): GitHub Actions still starts no jobs. So the release workflow has never run, and the extension has not been tested on macOS or Windows at this code.
+The same CI runs cover Phase 6's code on Linux, macOS and Windows. The first macOS and Windows runs found two faults, both fixed in `95abc3a`. **Apply the Sample Change** failed on Windows, which refuses to truncate a file it is not allowed to create. A test asked VS Code's Git extension about the workspace before it was a repository. **The release workflow has not run yet**: it runs on the first tag (LP-7er.2).
 
 What is left is the owner's: the checklist in [docs/beta.md](docs/beta.md#before-the-first-invitation), then recruiting the teams and the four weeks of beta before Gate G1 (LP-7er.4). Setting up the registries for the public release is LP-2xl.
