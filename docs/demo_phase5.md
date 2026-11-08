@@ -445,7 +445,16 @@ Close the demo windows, then make the workspaces again (Prepare step 2):
 rm -rf "$SHOP" "$CLONE" "$DEMO/PLANTED-DAG-RAN.txt"
 ```
 
-To remove everything, including the build and the profile, see `docs/demo_cleanup.sh --help`.
+## Clean up afterwards
+
+Close the demo windows, then list what this demo left behind, and remove it:
+
+```bash
+"$REPO/docs/demo_phase5_cleanup.sh"         # only lists
+"$REPO/docs/demo_phase5_cleanup.sh" --yes   # removes
+```
+
+That covers the workspaces, the profile and extensions, the build and the test folders. If the build is your working environment for this repository, add `--keep-build`: it includes `node_modules` and the packages' `.venv`s. If [demo.md](demo.md)'s files are still in `$DEMO`, the profile, the extensions and the build stay, because that demo needs them. `docs/demo_cleanup.sh` removes both demos. If you set `DEMO` to something other than `~/lp-demo`, pass it: `DEMO="$DEMO" "$REPO/docs/demo_phase5_cleanup.sh"`. See `--help` for the rest, including removing uv's Python 3.13.
 
 ## If something goes wrong
 
