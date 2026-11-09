@@ -136,10 +136,12 @@ def read_capped(path: str, cap: int, root: str) -> bytes | None:
             st = os.fstat(f.fileno())
             if not stat.S_ISREG(st.st_mode) or st.st_size > cap:
                 return None
-            data = f.read(cap + 1)
+            # The size fstat gave, and one more to see the file grew; reading the cap itself
+            # would allocate it for every file
+            data = f.read(st.st_size + 1)
     except (OSError, ValueError):
         return None
-    return None if len(data) > cap else data
+    return None if len(data) > st.st_size else data  # it grew while it was read
 
 
 def walk_inside(top: str, root: str) -> Iterator[tuple[str, list[str], list[str]]]:

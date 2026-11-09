@@ -78,3 +78,28 @@ def test_a_scan_over_the_cap_is_not_read(tmp_path, monkeypatch):
         airflow_scan._read(path)
     monkeypatch.setattr(airflow_scan, "MAX_SCAN_BYTES", 1000)
     assert airflow_scan._read(path) == {"links": ["x" * 100]}
+
+
+async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
+    """On Windows a scan cancelled mid-read could not delete its open output file, and the
+    PermissionError escaped stop(), so the server never finished shutting down."""
+    import asyncio
+
+    scanner = airflow_scan.AirflowScanner.__new__(airflow_scan.AirflowScanner)
+
+    async def fails_in_cleanup():
+        try:
+            await asyncio.sleep(10)
+        finally:
+            raise PermissionError("the file is in use")
+
+    scanner._task = asyncio.create_task(fails_in_cleanup())
+    await asyncio.sleep(0)
+    await scanner.stop()
+    assert scanner._task.done()
+
+
+def test_a_scan_is_read_by_its_size(tmp_path):
+    path = tmp_path / "scan.json"
+    path.write_text('{"links": []}')
+    assert airflow_scan._read(path) == {"links": []}
