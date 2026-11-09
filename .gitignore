@@ -35,3 +35,7 @@ work/
 # Test output
 coverage/
 coverage-webview/
+
+# Security-related files
+docs/security*/**
+docs/security*.md
