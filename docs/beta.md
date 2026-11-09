@@ -25,7 +25,7 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
 ## Before the first invitation
 
 - [ ] GitHub Actions runs again, and CI is green on `main` (LP-kf5). That also closes Phase 5 (LP-56q).
-- [ ] The labels and the tag ruleset in [release.md](release.md#before-the-first-beta-release) exist.
+- [ ] The labels in [release.md](release.md#before-the-first-beta-release) exist. Write access to the repository is yours alone.
 - [ ] `v0.1.0` is tagged and its release has the VSIX ([release.md](release.md#cutting-a-release)).
 - [ ] You have installed that VSIX yourself on a clean profile, and walked through **Get Started with LineagePilot** and the sample project.
 - [ ] **Decide what beta teams may read.** Read access to this repository is the whole repository: the source, the design and plan documents, the corpus, and `fixtures/jaffle-shop`, which has no licence (LP-0tf). If that is too much, release to a separate private repository that holds only releases and issues instead. The release workflow would then need a token that can write there.

@@ -18,7 +18,17 @@ How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are 
 
 2. **Add its section to `extension/CHANGELOG.md`**, headed `## 0.1.1`. Its text becomes the release notes, and the release fails without it.
 
-3. **Merge to `main`**, with CI green.
+3. **Merge to `main`, with CI green**, through a pull request:
+
+   ```bash
+   git add extension/package.json extension/package-lock.json extension/CHANGELOG.md
+   git commit -m "Release 0.1.1"
+   git push -u origin HEAD
+   gh pr create --base main --fill
+   gh pr checks --watch --fail-fast && gh pr merge --merge --delete-branch
+   ```
+
+   The `&&` is what makes it "CI green": `gh pr checks` fails if any check failed, and then nothing is merged. GitHub does not enforce it here. On its current plan this private repository can have no branch protection or rulesets, and auto-merge is off. Merge with `--merge`, not `--squash` or `--rebase`, so that step 4 has a merge commit to tag. If `gh pr checks` says no checks were reported, the workflows have not registered yet: wait a few seconds and run that line again.
 
 4. **Tag the merge commit on `main`, and push the tag**:
 
@@ -88,8 +98,8 @@ diff <(unzip -v dist/lineagepilot.vsix | awk 'NR > 3 {print $1, $7, $8}') \
 
 ### Before the first beta release
 
-- [ ] **GitHub Actions runs again** (LP-kf5): billing, under the account's **Billing and plans**. Until then, no workflow starts, this one included.
-- [ ] **Protect release tags**: in the repository's **Settings › Rules › Rulesets**, add a tag ruleset for `v*` that only you can create, update or delete. A tag is what releases.
+- [x] **GitHub Actions runs again** (LP-kf5): billing was fixed on 8 November 2026, under the account's **Billing and plans**. Without it no workflow starts, this one included.
+- [ ] **Keep write access to yourself.** A tag on `main` releases, and anyone who can push to this repository can push one. GitHub cannot restrict who creates tags here: rulesets and branch protection need GitHub Pro or a public repository. Until then, two things protect releases. Beta teams get the **Read** role only ([beta.md](beta.md#inviting-a-team)). The release workflow refuses a tag that is not on `main`. If you move to GitHub Pro, add the rulesets in the public-release list below now.
 - [ ] **Create the labels the beta's issue forms use**:
 
   ```bash
@@ -109,9 +119,12 @@ The Marketplace and Open VSX are public: anyone can find and install what is pub
 - [ ] **Trademark search for "LineagePilot"** (decision D-4), by someone qualified to do one. Keep "dbt" out of the name and the publisher, per dbt Labs' trademark guidelines.
 - [ ] **Marketplace publisher** `lineagepilot`, the `publisher` in `extension/package.json`. Create it at <https://marketplace.visualstudio.com/manage> with a Microsoft account that has two-factor authentication on. Then create an Azure DevOps personal access token with the **Marketplace › Manage** scope, for **All accessible organizations**. It lasts a year at most: note when it expires.
 - [ ] **Open VSX namespace** `lineagepilot`: sign in to <https://open-vsx.org> with GitHub (two-factor on), sign the Eclipse publisher agreement, create the namespace (`npx ovsx create-namespace lineagepilot -p <token>`), and claim it. The access token is on the same settings page.
-- [ ] **A GitHub environment called `registries`**, under **Settings › Environments**: add yourself as a required reviewer, allow only tags `v*` to deploy, and add the secrets `VSCE_PAT` and `OVSX_PAT`. The tokens live only there, so only an approved release job can read them.
+- [ ] **A GitHub environment called `registries`**, under **Settings › Environments**: add yourself as a required reviewer, allow only tags `v*` to deploy, and add the secrets `VSCE_PAT` and `OVSX_PAT`. The tokens live only there, so only an approved release job can read them. Create it after the repository is public. On a private repository, what an environment can enforce depends on the GitHub plan, and this repository's plan already refuses rulesets. Check that the required reviewer and the tag rule show as saved before you add the secrets.
 - [ ] **Set the repository variable** `LP_PUBLISH_REGISTRIES` to `true`, under **Settings › Secrets and variables › Actions › Variables**.
-- [ ] **Replace the jaffle-shop fixtures** (LP-0tf) and make the repository public, so that the README's links work for everyone.
+- [ ] **Replace the jaffle-shop fixtures** (LP-0tf) and make the repository public, so that the README's links work for everyone. Do this first: the rulesets and the environment depend on it.
+- [ ] **Rulesets**, under **Settings › Rules › Rulesets**, once the repository is public:
+  - a tag ruleset for `v*` that only you can create, update or delete;
+  - a branch ruleset for `main` that requires a pull request and the core, server, extension and secret-scan checks to pass. Step 3's `&&` is then enforced by GitHub as well.
 
 Marketplace pre-releases (`vsce publish --pre-release`, odd minor versions by convention) are not set up. Decide whether to use them before the first public release.
 
