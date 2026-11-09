@@ -9,9 +9,9 @@ import * as vscode from 'vscode';
 
 import { pickSubcommand, refreshArtifacts, type RefreshOutcome, type Subcommand, SUBCOMMANDS } from './dbt';
 import { ServerManager } from './manager';
-import { LineagePanel, openLocation } from './panel';
+import { inWorkspace, LineagePanel, openLocation } from './panel';
 import { PROJECT_GLOB } from './projects';
-import type { ExportFormat, GraphNode, Location } from './protocol';
+import type { ExportFormat, GraphNode } from './protocol';
 import { ReviewPanel } from './reviewPanel';
 import { applySampleChange, type ApplyOutcome, copySample, isSample } from './sample';
 import type { ProjectServer } from './server';
@@ -327,7 +327,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       lineageTree.unpin();
       void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
     }),
-    vscode.commands.registerCommand('lineagePilot.openNode', async (location: Location) => {
+    vscode.commands.registerCommand('lineagePilot.openNode', async (location: unknown) => {
+      if (!inWorkspace(location)) {
+        output.warn('LineagePilot was asked to open a location outside the workspace folders; refused');
+        return;
+      }
       await openLocation(location);
     }),
     vscode.commands.registerCommand('lineagePilot.refreshArtifacts',

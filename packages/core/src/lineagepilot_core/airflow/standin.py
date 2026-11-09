@@ -22,7 +22,9 @@ from typing import Any
 import yaml
 
 from lineagepilot_core.airflow.manifest import Manifest, manifest_from_dict
-from lineagepilot_core.airflow.safe_io import is_inside, read_capped
+from lineagepilot_core.airflow.safe_io import read_capped, resolve_inside, walk_inside
+from lineagepilot_core.parsers import safe_yaml
+from lineagepilot_core.parsers.safe_yaml import shown
 
 FILE_CAP = 2 * 1024 * 1024
 REF_RE = re.compile(
@@ -74,30 +76,34 @@ SKIP_DIRS = {
 }
 
 
-def _read(path: str) -> str:
-    data = read_capped(path, FILE_CAP)
+def _read(path: str, space: str) -> str:
+    data = read_capped(path, FILE_CAP, space)
     return data.decode("utf-8", errors="replace") if data is not None else ""
 
 
-def _load_yaml(path: str, notes: list[str], root: str) -> Any:
+def _load_yaml(path: str, notes: list[str], project_dir: str, space: str) -> Any:
     try:
-        return yaml.safe_load(_read(path))
-    except (yaml.YAMLError, RecursionError) as exc:
-        where = os.path.relpath(path, root).replace(os.sep, "/")
+        return safe_yaml.load(_read(path, space))
+    except yaml.YAMLError as exc:
+        where = os.path.relpath(path, project_dir).replace(os.sep, "/")
         notes.append(f"YAML not parsed ({where}): {type(exc).__name__}")
         return None
 
 
 def _inside_project(project_dir: str, folders: list[Any], notes: list[str]) -> list[str]:
-    """The folders from an untrusted dbt_project.yml that stay inside the project."""
-    root = os.path.realpath(project_dir)
+    """The real folders, from an untrusted dbt_project.yml, that stay inside the project. A path
+    is checked as a string before it is looked at (see ``safe_io.resolve_inside``)."""
     inside = []
     for folder in folders:
-        path = os.path.join(project_dir, str(folder))
-        if is_inside(os.path.realpath(path), root):
-            inside.append(path)
+        real = (
+            resolve_inside(os.path.join(project_dir, folder), project_dir)
+            if isinstance(folder, str) and folder
+            else None
+        )
+        if real is not None:
+            inside.append(real)
         else:
-            notes.append(f"{folder!r} in dbt_project.yml leaves the project; ignored")
+            notes.append(f"{shown(folder)} in dbt_project.yml leaves the project; ignored")
     return inside
 
 
@@ -114,8 +120,8 @@ def _literal_tags(text: str) -> list[str]:
     return [raw.strip("'\"")]
 
 
-def _walk(base: str, exts: tuple[str, ...]):
-    for dirpath, dirnames, filenames in os.walk(base):
+def _walk(base: str, exts: tuple[str, ...], space: str):
+    for dirpath, dirnames, filenames in walk_inside(base, space):
         dirnames[:] = sorted(d for d in dirnames if d not in SKIP_DIRS and not d.startswith("."))
         for fn in sorted(filenames):
             if fn.lower().endswith(exts):
@@ -143,12 +149,16 @@ def _folder_config(tree: Any, parts: list[str]) -> dict[str, Any]:
     return cfg
 
 
-def build_standin(project_dir: str) -> Manifest:
+def build_standin(project_dir: str, workspace: str | None = None) -> Manifest:
+    """An approximate manifest from the project's files. Only files inside ``workspace`` (by
+    default the project) are read: a model file may be a link anywhere."""
     notes: list[str] = []
-    proj_file = os.path.join(project_dir, "dbt_project.yml")
-    proj = _load_yaml(proj_file, notes, project_dir) if os.path.exists(proj_file) else None
+    folder_name = os.path.basename(os.path.normpath(project_dir))
+    project_dir = os.path.realpath(project_dir)
+    space = os.path.realpath(workspace) if workspace else project_dir
+    proj = _load_yaml(os.path.join(project_dir, "dbt_project.yml"), notes, project_dir, space)
     proj = proj if isinstance(proj, dict) else {}
-    name = str(proj.get("name") or os.path.basename(os.path.normpath(project_dir)))
+    name = proj.get("name") if isinstance(proj.get("name"), str) and proj["name"] else folder_name
     model_paths = _as_list(proj.get("model-paths") or proj.get("source-paths") or ["models"])
     seed_paths = _as_list(proj.get("seed-paths") or proj.get("data-paths") or ["seeds", "data"])
     snapshot_paths = _as_list(proj.get("snapshot-paths") or ["snapshots"])
@@ -179,12 +189,12 @@ def build_standin(project_dir: str) -> Manifest:
         by_name.setdefault(nm, uid)
 
     for base in _inside_project(project_dir, model_paths, notes):
-        for path in _walk(base, (".sql", ".py", ".yml", ".yaml")):
+        for path in _walk(base, (".sql", ".py", ".yml", ".yaml"), space):
             rel = os.path.relpath(path, project_dir).replace(os.sep, "/")
             if path.endswith((".yml", ".yaml")):
                 yml_files.append(path)
                 continue
-            text = JINJA_COMMENT_RE.sub("", _read(path))
+            text = JINJA_COMMENT_RE.sub("", _read(path, space))
             stem = os.path.splitext(os.path.basename(path))[0]
             dirs = os.path.relpath(os.path.dirname(path), base).replace(os.sep, "/")
             dir_parts = [] if dirs == "." else dirs.split("/")
@@ -215,7 +225,7 @@ def build_standin(project_dir: str) -> Manifest:
     for base in _inside_project(project_dir, seed_paths, notes):
         if not os.path.isdir(base):
             continue
-        for path in _walk(base, (".csv",)):
+        for path in _walk(base, (".csv",), space):
             rel = os.path.relpath(path, project_dir).replace(os.sep, "/")
             stem = os.path.splitext(os.path.basename(path))[0]
             dirs = os.path.relpath(os.path.dirname(path), base).replace(os.sep, "/")
@@ -227,8 +237,8 @@ def build_standin(project_dir: str) -> Manifest:
     for base in _inside_project(project_dir, snapshot_paths, notes):
         if not os.path.isdir(base):
             continue
-        for path in _walk(base, (".sql",)):
-            text = _read(path)
+        for path in _walk(base, (".sql",), space):
+            text = _read(path, space)
             rel = os.path.relpath(path, project_dir).replace(os.sep, "/")
             for m in SNAPSHOT_RE.finditer(text):
                 uid = f"snapshot.{name}.{m.group(1)}"
@@ -250,7 +260,7 @@ def build_standin(project_dir: str) -> Manifest:
         tuple[str, list[str], list[str]]
     ] = []  # (test name, depends on model names, ref targets)
     for path in yml_files:
-        doc = _load_yaml(path, notes, project_dir)
+        doc = _load_yaml(path, notes, project_dir, space)
         if not isinstance(doc, dict):
             continue
         rel = os.path.relpath(path, project_dir).replace(os.sep, "/")
@@ -352,7 +362,7 @@ def build_standin(project_dir: str) -> Manifest:
         notes.append(
             f"{dynamic_refs} model file(s) contain non-literal ref() calls; edges may be missing"
         )
-    if os.path.exists(os.path.join(project_dir, "packages.yml")) or os.path.exists(
+    if os.path.lexists(os.path.join(project_dir, "packages.yml")) or os.path.lexists(
         os.path.join(project_dir, "dependencies.yml")
     ):
         notes.append("project declares dbt packages; package models are not in the stand-in")

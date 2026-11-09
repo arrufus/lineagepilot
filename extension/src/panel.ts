@@ -4,7 +4,7 @@
 import * as vscode from 'vscode';
 
 import { isInside } from './interpreter';
-import type { Location, Status } from './protocol';
+import { Location, type Status } from './protocol';
 import type { ProjectServer } from './server';
 import {
   DEFAULT_SETTINGS, type Focus, HostMessage, ViewSettings, WebviewMessage,
@@ -24,6 +24,23 @@ export async function openLocation(
       location.range.end.line, location.range.end.character)
     : undefined;
   return vscode.window.showTextDocument(document, { ...options, selection: range, preview: true });
+}
+
+/** Whether a location is a file in one of the workspace's folders. The server's locations come from
+ * the project's manifest, which is untrusted, and a command can be run with any argument. */
+export function inWorkspace(location: unknown): location is Location {
+  const parsed = Location.safeParse(location);
+  if (!parsed.success) {
+    return false;
+  }
+  let uri: vscode.Uri;
+  try {
+    uri = vscode.Uri.parse(parsed.data.uri, true);
+  } catch {
+    return false;
+  }
+  return uri.scheme === 'file'
+    && (vscode.workspace.workspaceFolders ?? []).some((folder) => isInside(uri.fsPath, folder.uri.fsPath, process.platform));
 }
 
 /** Open a file a webview asked for: only file URIs inside the project. Never in the panel's own

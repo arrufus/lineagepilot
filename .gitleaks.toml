@@ -1,0 +1,19 @@
+# gitleaks configuration for the secret scan (.github/workflows/lineagepilot-secrets.yml, design
+# section 10). The built-in rules apply in full; the allowlist below is the only exception, and
+# each entry says why it is not a secret. Keep it narrow: a rule, a path and the shape of the match.
+[extend]
+useDefault = true
+
+# dbt's `unique_key` model config names a column, never a credential. The rule `generic-api-key`
+# fires on any key whose name contains "key" with a high-entropy value, and the synthetic
+# manifests (synth-24, generated for spike S2 and copied into the core's test fixtures) give
+# incremental models column names such as <model>_<n>_id. Allowed only for that rule, only in a
+# manifest.json under a test fixtures folder, and only when the value is a lower-case
+# snake_case identifier.
+[[allowlists]]
+description = "dbt unique_key column names in test fixture manifests"
+targetRules = ["generic-api-key"]
+condition = "AND"
+paths = ['''(^|/)tests/fixtures/(.+/)?manifest\.json$''']
+regexTarget = "match"
+regexes = ['''^unique_key["']?\s*[:=]\s*["'][a-z][a-z0-9_]*["']$''']

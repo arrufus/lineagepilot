@@ -1,5 +1,6 @@
-"""Check a packaged VSIX: universal, pure Python, only the files it should carry, within budget,
-and acceptable to both the VS Code Marketplace and Open VSX (task 2.7).
+"""Check a packaged VSIX: universal, pure Python, only the files it should carry (no pip
+direct_url.json, which records the build machine's paths), within budget, and acceptable to both
+the VS Code Marketplace and Open VSX (task 2.7).
 
 Usage: python scripts/check_vsix.py dist/lineagepilot.vsix [--budget-mb 5] [--release]
 
@@ -112,6 +113,9 @@ def check(vsix: Path, budget_mb: float, release: bool = False) -> tuple[list[str
             problems.append(f"bytecode cache: {name}")
         if any(name.startswith(prefix) for prefix in FORBIDDEN_PREFIXES) or name.endswith(FORBIDDEN_SUFFIXES):
             problems.append(f"should not be packaged: {name}")
+        if name.rsplit("/", 1)[-1] == "direct_url.json":
+            problems.append(f"build machine path: {name} records where pip installed it from "
+                            "(bundle_libs.py removes these)")
     if re.search(r"TargetPlatform=", manifest):
         problems.append("manifest declares a TargetPlatform; the VSIX must be universal")
     size_mb = vsix.stat().st_size / 1_000_000

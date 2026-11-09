@@ -66,12 +66,19 @@ jobs:
     needs: verify
     uses: ./.github/workflows/lineagepilot-extension.yml
 
+  secret-scan:
+    needs: verify
+    uses: ./.github/workflows/lineagepilot-secrets.yml
+
   github-release:
-    needs: [verify, core, lsp, extension]
+    needs: [verify, core, lsp, extension, secret-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
       contents: write
+      # Build provenance: a Sigstore certificate for this workflow run, and storing the attestation
+      id-token: write
+      attestations: write
     outputs:
       sha256: ${{ steps.name.outputs.sha256 }}
     env:
@@ -97,6 +104,12 @@ jobs:
           path: ${{ runner.temp }}
       - name: The VSIX meets both registries' rules, licence included
         run: python scripts/check_vsix.py dist/lineagepilot.vsix --release
+      # Its bytes depend only on its files and the tagged commit's time, so anyone can rebuild it
+      - name: The VSIX is normalised for the tagged commit
+        run: |
+          SOURCE_DATE_EPOCH="$(git log -1 --pretty=%ct)" \
+            python scripts/normalise_vsix.py dist/lineagepilot.vsix --out "$RUNNER_TEMP/normalised.vsix"
+          cmp dist/lineagepilot.vsix "$RUNNER_TEMP/normalised.vsix"
       - name: Name it for the version, with its SHA-256
         id: name
         run: |
@@ -104,6 +117,16 @@ jobs:
           cp dist/lineagepilot.vsix "release/lineagepilot-$VERSION.vsix"
           (cd release && sha256sum "lineagepilot-$VERSION.vsix" > SHA256SUMS && cat SHA256SUMS)
           echo "sha256=$(cut -d' ' -f1 release/SHA256SUMS)" >> "$GITHUB_OUTPUT"
+      # Signed SLSA build provenance for both files, so a user can check that this workflow built
+      # them from this tag (docs/release.md). GitHub offers attestations only in public
+      # repositories on this plan, so a release from the private beta repository has none.
+      - name: Attest build provenance
+        if: ${{ !github.event.repository.private }}
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: |
+            extension/release/lineagepilot-${{ needs.verify.outputs.version }}.vsix
+            extension/release/SHA256SUMS
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

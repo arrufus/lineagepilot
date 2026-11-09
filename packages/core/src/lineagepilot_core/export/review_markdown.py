@@ -56,7 +56,12 @@ _STATUSES = {
 }
 # Enough to stop text mid-line becoming markup, a link, HTML or a new table cell
 _ESCAPED = re.compile(r"([\\`*_\[\]<>|~&])")
-_MENTION = re.compile(r"(?<![\w`])([@#])(?=\w)")
+# Where GitHub starts a mention, an issue reference, an email link or a bare-URL link. Whatever
+# comes before: GitHub's word characters are ASCII only, and an escaped backtick is just text.
+_LINKING = re.compile(r"[@#](?=\w)|:(?=//)|(?i:www)(?=\.)")
+_ZERO_WIDTH_SPACE = "\u200b"
+# The last line when even the shortest lists do not fit
+_CUT = "...and the rest of the review, which is too long for a GitHub comment."
 # Control characters, keeping the whitespace that _flatten then folds. Also the characters that
 # reorder text when displayed (bidirectional controls), which could disguise a name.
 _CONTROL = re.compile(r"[\x00-\x08\x0e-\x1f\x7f-\x9f\u200e\u200f\u202a-\u202e\u2066-\u2069]")
@@ -67,7 +72,19 @@ def render_markdown(review: dict[str, Any]) -> str:
         text = _render(review, limit)
         if len(text) <= MAX_CHARS:
             return text
-    return text[: MAX_CHARS - 2] + "…\n"
+    return _cut(text)
+
+
+def _cut(text: str) -> str:
+    """The whole lines that fit, then a note that the rest is missing.
+
+    Each line is complete, with every code span closed, so a cut between lines cannot leave one
+    open; a cut inside a code span would turn the rest of its name into Markdown. The other
+    files' ``<details>`` comes last, so if it was started, it is closed again here.
+    """
+    close, end = "\n</details>\n", f"\n{_CUT}\n"
+    kept = text[: text.rfind("\n", 0, MAX_CHARS - len(close) - len(end)) + 1]
+    return kept + (close if "\n<details>" in kept else "") + end
 
 
 def _render(review: dict[str, Any], row_limit: int) -> str:
@@ -131,30 +148,34 @@ def _changed(review: dict[str, Any], row_limit: int) -> list[str]:
     if not nodes:
         return [*lines, "No changed file maps to a node.", ""]
     for node in nodes[:row_limit]:
-        files = ", ".join(_code(f["path"]) for f in node["files"])
+        files = _codes([f["path"] for f in node["files"]], row_limit)
         owner = f"; owner {_code(node['owner'])}" if node["owner"] else ""
-        status = _STATUSES.get(node["status"], node["status"])
+        status = _label(_STATUSES, node["status"])
         lines.append(f"- {_code(node['name'])} ({_title(node['kind'])}, {status}): {files}{owner}")
-        lines += [f"  - {line}" for line in _column_lines(node["columns"])]
+        lines += [f"  - {line}" for line in _column_lines(node["columns"], row_limit)]
     lines += _more(len(nodes), row_limit, "changed nodes")
     lines.append("")
     return lines
 
 
-def _column_lines(diff: dict[str, Any]) -> list[str]:
+def _column_lines(diff: dict[str, Any], row_limit: int) -> list[str]:
+    """What happened to a node's columns. A wide table's lists are cut like the rows are."""
     if diff["state"] == "unknown":
         return [f"Columns unknown: {_plain(diff['reason'])}"]
     if diff["state"] == "not_compared":
         return []
     lines = []
     if diff["removed"]:
-        lines.append(f"Removed: {_codes(diff['removed'])}")
+        lines.append(f"Removed: {_codes(diff['removed'], row_limit)}")
     if diff["added"]:
-        lines.append(f"Added: {_codes(diff['added'])}")
-    for change in diff["typeChanged"]:
+        lines.append(f"Added: {_codes(diff['added'], row_limit)}")
+    changes = diff["typeChanged"]
+    for change in changes[:row_limit]:
         before, after = _code(change["before"]), _code(change["after"])
         lines.append(f"Type of {_code(change['name'])}: {before} to {after}")
-    against = _BASELINES.get(diff["baseline"], diff["baseline"])
+    if len(changes) > row_limit:
+        lines.append(f"...and {len(changes) - row_limit} more type changes.")
+    against = _label(_BASELINES, diff["baseline"])
     if lines:
         lines.append(f"Compared with {against}.")
     else:
@@ -236,18 +257,20 @@ def _airflow_row(node: dict[str, Any]) -> str:
     if detail["runs"]:
         names = ", ".join(_cell_code(n) for n in detail["runs"][:5])
         more = len(detail["runs"]) - 5 + detail["runsMore"]
-        how = ", ".join(_plain(h, 40) for h in detail["how"]) or "runs"
+        how = ", ".join(_plain(h, 40) for h in detail["how"][:5]) or "runs"
+        if len(detail["how"]) > 5:
+            how += f" and {len(detail['how']) - 5} more"
         parts.append(f"{how}: {names}" + (f" and {more} more" if more > 0 else ""))
     if detail["after"]:
         parts.append("runs after " + ", ".join(_cell_code(n) for n in detail["after"][:5]))
-    origins = ", ".join(_ORIGINS.get(o, o) for o in node["origins"])
+    origins = ", ".join(_label(_ORIGINS, o) for o in node["origins"])
     evidence = origins + (f" {_cell_code(node['file'])}" if node["file"] else "")
     if detail["notes"]:
         evidence += f": {_plain(detail['notes'][0], CELL_TEXT_LIMIT)}"
     owner = _cell_code(node["owner"]) if node["owner"] else "No owner"
     return (
         f"| {_cell_code(detail['dag'] or '')} | {task} | {'; '.join(parts)} | "
-        f"{node['confidence']} | {evidence} | {owner} |"
+        f"{_plain(node['confidence'])} | {evidence} | {owner} |"
     )
 
 
@@ -263,14 +286,14 @@ def _impact_row(node: dict[str, Any]) -> str:
         reached = columns if node["reach"] == "column" else f"{reached}. {columns}"
     owner = _cell_code(node["owner"]) if node["owner"] else "No owner"
     return (
-        f"| {_cell_code(node['name'])} | {reached} | {node['confidence']} | "
+        f"| {_cell_code(node['name'])} | {reached} | {_plain(node['confidence'])} | "
         f"{_evidence(node)} | {owner} |"
     )
 
 
 def _evidence(node: dict[str, Any]) -> str:
     """Where the claim comes from: the kinds of evidence, and what it was reached from."""
-    origins = ", ".join(_ORIGINS.get(o, o) for o in node["origins"])
+    origins = ", ".join(_label(_ORIGINS, o) for o in node["origins"])
     via = node["via"]
     if not via:
         return origins
@@ -302,7 +325,7 @@ def _other_files(review: dict[str, Any], row_limit: int) -> list[str]:
         return []
     lines = [f"<details><summary>Other changed files ({len(files) + outside})</summary>", ""]
     for file in files[:row_limit]:
-        lines.append(f"- {_code(file['path'])} ({_STATUSES.get(file['status'], file['status'])})")
+        lines.append(f"- {_code(file['path'])} ({_label(_STATUSES, file['status'])})")
     lines += _more(len(files), row_limit, "files")
     if outside:
         lines.append(f"- {_count(outside, 'file')} outside this dbt project")
@@ -322,12 +345,17 @@ def _count(count: int, singular: str) -> str:
 
 
 def _of_kind(count: int, kind: str) -> str:
-    singular, plural = KIND_TITLES.get(kind, (kind, f"{kind}s"))
+    singular, plural = KIND_TITLES.get(kind) or (_plain(kind), _plain(f"{kind}s"))
     return f"{count} {singular if count == 1 else plural}"
 
 
 def _title(kind: str) -> str:
-    return KIND_TITLES.get(kind, (kind, kind))[0]
+    return KIND_TITLES[kind][0] if kind in KIND_TITLES else _plain(kind)
+
+
+def _label(labels: dict[str, str], value: str) -> str:
+    """Our words for a value we know. Any other value is not ours, so it is escaped like text."""
+    return labels[value] if value in labels else _plain(value)
 
 
 def _short_id(node_id: str) -> str:
@@ -342,8 +370,10 @@ def _short_ref(ref: str) -> str:
     return f"{_short_id(node_id)}.{column}" if sep else _short_id(node_id)
 
 
-def _codes(names: list[str]) -> str:
-    return ", ".join(_code(name) for name in names)
+def _codes(names: list[str], limit: int) -> str:
+    """The first names of a list as code spans, and how many more there are."""
+    shown = ", ".join(_code(name) for name in names[:limit])
+    return shown + (f" and {len(names) - limit} more" if len(names) > limit else "")
 
 
 def _flatten(text: str, limit: int) -> str:
@@ -355,6 +385,10 @@ def _flatten(text: str, limit: int) -> str:
 def _code(text: str, limit: int = NAME_LIMIT) -> str:
     """A code span: its content is shown exactly, and nothing in it is rendered or linked."""
     flat = _flatten(text, limit)
+    if not flat:
+        # Two backticks with nothing between them are not a span: they wait for the next two,
+        # which can be the opening of a later name's span, and that name is then Markdown
+        return "` `"
     run = max((len(r) for r in re.findall(r"`+", flat)), default=0)
     fence = "`" * (run + 1)
     pad = " " if flat.startswith("`") or flat.endswith("`") else ""
@@ -369,5 +403,5 @@ def _cell_code(text: str, limit: int = NAME_LIMIT) -> str:
 def _plain(text: str | None, limit: int = TEXT_LIMIT) -> str:
     """Text with its Markdown punctuation escaped, and nothing GitHub would link or mention."""
     flat = _flatten(text or "", limit)
-    flat = _MENTION.sub(lambda m: f"{m.group(1)}​", flat)
+    flat = _LINKING.sub(lambda m: m.group() + _ZERO_WIDTH_SPACE, flat)
     return _ESCAPED.sub(r"\\\1", flat)

@@ -8,7 +8,8 @@ path is resolved in this order:
 2. Through the annotation file's explicit path map (``inferred``, a person declared it).
 3. By its trailing path components against the projects in the workspace (``heuristic``).
 
-Nothing outside the workspace is ever read.
+Nothing outside the workspace is ever read, or even looked at: a path written in a DAG file is
+checked as a string before any filesystem call (see ``safe_io.resolve_inside``).
 """
 
 from __future__ import annotations
@@ -18,7 +19,13 @@ import posixpath
 from dataclasses import dataclass, field
 
 from lineagepilot_core.airflow.manifest import Manifest, ManifestError, load_manifest
-from lineagepilot_core.airflow.safe_io import is_absolute, is_inside, to_posix
+from lineagepilot_core.airflow.safe_io import (
+    is_absolute,
+    regular_file_inside,
+    resolve_inside,
+    to_posix,
+    walk_inside,
+)
 from lineagepilot_core.airflow.standin import build_standin
 
 SKIP_DIRS = {
@@ -87,7 +94,7 @@ class ProjectIndex:
     def _discover(self) -> list[str]:
         found: list[str] = []
         seen = 0
-        for dirpath, dirnames, filenames in os.walk(self.workspace):
+        for dirpath, dirnames, filenames in walk_inside(self.workspace, self.workspace):
             seen += 1
             if seen > MAX_DIRECTORIES:
                 self.problems.append(
@@ -106,14 +113,17 @@ class ProjectIndex:
         return to_posix(os.path.relpath(path, self.workspace))
 
     def is_project(self, path: str) -> bool:
-        return os.path.isfile(os.path.join(path, "dbt_project.yml"))
+        marker = os.path.join(path, "dbt_project.yml")
+        return regular_file_inside(marker, self.workspace) is not None
 
     def is_other_project(self, path: str) -> bool:
         return self.focus is not None and path != self.focus
 
     def _as_project(self, path: str) -> str | None:
-        real = os.path.realpath(path)
-        return real if is_inside(real, self.workspace) and self.is_project(real) else None
+        """A path from a DAG file, if it is a dbt project in the workspace. On Windows
+        ``//host/share`` is a UNC path, so it is checked as a string before anything else."""
+        real = resolve_inside(path, self.workspace)
+        return real if real is not None and self.is_project(real) else None
 
     def _mapped(self, path: str) -> tuple[str, str] | None:
         """The longest path-map prefix that applies: (the path in the workspace, the prefix)."""
@@ -175,29 +185,30 @@ class ProjectIndex:
         return self._manifests[project_dir]
 
     def load_declared(self, manifest_path: str) -> ManifestChoice:
-        real = os.path.realpath(manifest_path)
-        if not is_inside(real, self.workspace):
+        real = resolve_inside(manifest_path, self.workspace)
+        if real is None:
             reason = f"manifest {manifest_path} is outside the workspace"
             return ManifestChoice(None, None, "heuristic", reason=reason)
         try:
-            manifest = load_manifest(real)
+            manifest = load_manifest(real, root=self.workspace)
         except ManifestError as exc:
             reason = f"manifest {manifest_path}: {exc}"
             return ManifestChoice(None, None, "heuristic", reason=reason)
         return ManifestChoice(manifest, "dag_declared", "inferred")
 
     def _choose(self, project_dir: str) -> ManifestChoice:
-        path = self.manifests.get(project_dir) or os.path.join(
-            project_dir, "target", "manifest.json"
-        )
-        if os.path.isfile(path):
+        # The server's choice of manifest is the user's (a restricted setting); the default
+        # is a file in the repository, which may be a link anywhere
+        given = self.manifests.get(project_dir)
+        path = given or os.path.join(project_dir, "target", "manifest.json")
+        if os.path.isfile(path) if given else regular_file_inside(path, self.workspace):
             try:
-                manifest = load_manifest(path)
+                manifest = load_manifest(path, root=None if given else self.workspace)
             except ManifestError as exc:
                 return ManifestChoice(None, None, "heuristic", reason=str(exc))
             self.problems.extend(_drift(self.relative(project_dir), project_dir, manifest))
             return ManifestChoice(manifest, "target", "inferred")
-        manifest = build_standin(project_dir)
+        manifest = build_standin(project_dir, self.workspace)
         notes = ["no manifest: an approximate stand-in was built from the project's files"]
         return ManifestChoice(manifest, "stand_in", "heuristic", notes=notes + manifest.notes)
 
@@ -205,7 +216,9 @@ class ProjectIndex:
 def _drift(name: str, project_dir: str, manifest: Manifest) -> list[str]:
     """A cheap staleness check: model files on disk and in the manifest that do not agree."""
     on_disk: set[str] = set()
-    for dirpath, dirnames, filenames in os.walk(os.path.join(project_dir, "models")):
+    for dirpath, dirnames, filenames in walk_inside(
+        os.path.join(project_dir, "models"), project_dir
+    ):
         dirnames[:] = [d for d in dirnames if d not in SKIP_DIRS]
         for file in filenames:
             if file.endswith((".sql", ".py")):

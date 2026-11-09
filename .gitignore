@@ -5,6 +5,8 @@ __pycache__/
 *.pyc
 .pytest_cache/
 .coverage
+# Parallel-mode data files (.coverage.<hostname>.pid<n>.<random>): the name holds the machine's name
+.coverage.*
 htmlcov/
 
 # Node and the extension build
@@ -33,3 +35,7 @@ work/
 # Test output
 coverage/
 coverage-webview/
+
+# Security-related files
+docs/security*/**
+docs/security*.md

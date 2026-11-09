@@ -44,7 +44,10 @@ from lineagepilot_core.airflow.safe_io import (
     is_inside,
     is_regular_file,
     read_capped,
+    regular_file_inside,
+    resolve_inside,
     to_posix,
+    walk_inside,
 )
 from lineagepilot_core.airflow.selector import select as run_select
 from lineagepilot_core.airflow.shell import (
@@ -284,13 +287,14 @@ class ModuleLoader:
     def operators_in(self, path: str, name: str) -> set[str]:
         key = (path, name)
         if key not in self._operators:
-            self._operators[key] = _operators_defined_in(path, name)
+            self._operators[key] = _operators_defined_in(path, name, self.workspace)
         return self._operators[key]
 
     def find(self, module: str, from_file: str, level: int = 0) -> str | None:
         if not module and not level:
             return None
-        key = (module, os.path.dirname(os.path.realpath(from_file)), level)
+        # ``from_file`` is a FileScanner's path, already resolved inside the workspace
+        key = (module, os.path.dirname(from_file), level)
         if key not in self._find_cache:
             self._find_cache[key] = self._find(module, from_file, level)
         return self._find_cache[key]
@@ -301,7 +305,7 @@ class ModuleLoader:
             return None
         rel_parts = module.split(".") if module else []
         bases: list[str] = []
-        d = os.path.dirname(os.path.realpath(from_file))
+        d = os.path.dirname(from_file)
         if level:
             for _ in range(level - 1):
                 d = os.path.dirname(d)
@@ -318,8 +322,8 @@ class ModuleLoader:
         for base in bases:
             cand = os.path.join(base, *rel_parts)
             for path in (cand + ".py", os.path.join(cand, "__init__.py")):
-                real = os.path.realpath(path)
-                if is_regular_file(real) and is_inside(real, self.workspace):
+                real = regular_file_inside(path, self.workspace)
+                if real is not None:
                     return real
         return None
 
@@ -347,10 +351,11 @@ class FileScanner:
         emit: bool = True,
         import_depth: int = 0,
     ):
-        self.path = os.path.realpath(path)
-        # A symlink out of the workspace is reported where it is, not where it points
-        inside = is_inside(self.path, index.workspace)
-        self.rel = index.relative(self.path if inside else os.path.abspath(path))
+        # A symlink out of the workspace is reported where it is, not where it points, and is
+        # never followed: reading it fails, and says so
+        real = resolve_inside(os.path.abspath(path), index.workspace)
+        self.path = real or os.path.abspath(path)
+        self.rel = index.relative(self.path)
         self.index = index
         self.loader = loader
         self.emit = emit
@@ -2776,14 +2781,14 @@ class FileScanner:
                     "LoadMode.DBT_LS_FILE with a non-literal dbt_ls_path",
                 )
                 return None, project_dir
-            real = os.path.realpath(p)
-            if not is_regular_file(real) or not is_inside(real, self.index.workspace):
+            real = regular_file_inside(p, self.index.workspace)
+            if real is None:
                 self._why(
                     rec, UnknownCategory.NO_PROJECT, f"dbt ls file {p} not found in the workspace"
                 )
                 return None, project_dir
             try:
-                rows = load_dbt_ls_file(real)
+                rows = load_dbt_ls_file(real, self.index.workspace)
             except (OSError, ManifestError) as exc:
                 self._why(rec, UnknownCategory.NO_PROJECT, f"dbt ls file unreadable: {exc}")
                 return None, project_dir
@@ -2822,7 +2827,8 @@ class FileScanner:
                     if pd:
                         rec["project_path"] = self.index.relative(pd)
                 return None, project_dir
-            choice = self.index.load_declared(mp) if is_regular_file(mp) else None
+            declared = regular_file_inside(mp, self.index.workspace)
+            choice = self.index.load_declared(declared) if declared else None
             if choice is None or choice.manifest is None:
                 # remap a container path to the workspace project that owns it
                 parent = posixpath.dirname(mp)
@@ -2830,12 +2836,16 @@ class FileScanner:
                     posixpath.dirname(parent) if posixpath.basename(parent) == "target" else parent
                 )
                 pm = self.index.match(pdir)
-                if pm.path and os.path.isfile(
-                    os.path.join(pm.path, posixpath.basename(parent), posixpath.basename(mp))
-                ):
-                    choice = self.index.load_declared(
-                        os.path.join(pm.path, posixpath.basename(parent), posixpath.basename(mp))
+                remapped = (
+                    regular_file_inside(
+                        os.path.join(pm.path, posixpath.basename(parent), posixpath.basename(mp)),
+                        self.index.workspace,
                     )
+                    if pm.path
+                    else None
+                )
+                if remapped:
+                    choice = self.index.load_declared(remapped)
                     rec["notes"].append(f"manifest path {mp!r} remapped: {pm.note}")
                     rec["confidence"] = weakest(rec["confidence"], "heuristic")
                     project_dir = project_dir or pm.path
@@ -3065,10 +3075,10 @@ def _classify(fname: str) -> str | None:
     return None
 
 
-def _operators_defined_in(path: str, name: str) -> set[str]:
+def _operators_defined_in(path: str, name: str, workspace: str) -> set[str]:
     """Operator classes constructed inside definition ``name`` of a workspace module (AST only)."""
     found: set[str] = set()
-    data = read_capped(path, FILE_SIZE_CAP)
+    data = read_capped(path, FILE_SIZE_CAP, workspace)
     if data is None:
         return found
     try:
@@ -3108,6 +3118,26 @@ SKIP_SCAN_DIRS = {
 DEFAULT_DAG_FOLDERS = ("**/dags",)
 MAX_FOLDER_DEPTH = 6
 MAX_IGNORE_FILE = 100_000
+# A DAG folder pattern is a setting a workspace can choose, matched on every file event: enough
+# for any real layout, and a bound on the work (audit LP-SEC-05)
+MAX_FOLDER_PATTERN = 200
+MAX_FOLDER_WILDCARDS = 6
+
+
+def glob_match(relative: str, pattern: str) -> bool:
+    """``PurePosixPath(relative).match(pattern)``, in linear time: one ``fnmatch`` per component,
+    from the right. On Python 3.13 ``PurePath.match`` compiles a pattern such as ``*a*a*a*b`` to a
+    regular expression that backtracks, taking seconds on one long name; ``fnmatch`` does not."""
+    parts, wanted = PurePosixPath(relative).parts, PurePosixPath(pattern).parts
+    if not wanted:
+        return False
+    if PurePosixPath(pattern).is_absolute():
+        if len(wanted) != len(parts):
+            return False
+    elif len(wanted) > len(parts):
+        return False
+    pairs = zip(reversed(parts), reversed(wanted), strict=False)  # the path may be longer
+    return all(fnmatch.fnmatchcase(p, w) for p, w in pairs)
 
 
 @dataclass
@@ -3129,42 +3159,50 @@ class _Ignore:
             return True
         glob = self.glob.rstrip("/")
         if "/" in glob:
-            return PurePosixPath(relative).match(glob.lstrip("/"))
+            return glob_match(relative, glob.lstrip("/"))
         return any(fnmatch.fnmatchcase(part, glob) for part in relative.split("/"))
 
 
-def _airflowignore(folder: str, problems: list[str]) -> list[_Ignore]:
-    data = read_capped(os.path.join(folder, ".airflowignore"), MAX_IGNORE_FILE)
+def _airflowignore(folder: str, workspace: str, problems: list[str]) -> list[_Ignore]:
+    """The patterns of the folder's ``.airflowignore``, if it is a file inside the workspace. A
+    pattern is never echoed into ``problems``: the file may be a link to something private, and
+    what is reported reaches logs and pasted output (audit LP-SEC-01)."""
+    path = os.path.join(folder, ".airflowignore")
+    data = read_capped(path, MAX_IGNORE_FILE, workspace)
     if data is None:
         return []
+    where = to_posix(os.path.relpath(path, workspace))
     found: list[_Ignore] = []
-    for line in data.decode("utf-8", "replace").splitlines():
+    for number, line in enumerate(data.decode("utf-8", "replace").splitlines(), 1):
         line = line.split("#", 1)[0].strip()
         if not line or line.startswith("!"):
             continue
         try:
             regex: SafeRegex | None = SafeRegex(line)
-        except UnsafePattern as e:
+        except UnsafePattern:
             regex = None
-            problems.append(f".airflowignore: {line[:80]!r} is only read as a glob: {e}")
+            problems.append(
+                f"{where} line {number} is not a safe regular expression; it is only read as a glob"
+            )
         found.append(_Ignore(folder, regex, line))
     return found
 
 
 def resolve_dag_folders(workspace: str, patterns: Iterable[str]) -> list[str]:
     """The folders that exist for these patterns: a plain path (a single file will do), or a
-    pattern with ``*``, which is looked for up to a few levels down."""
+    pattern with ``*``, which is looked for up to a few levels down. Each is a real path inside
+    the workspace: a folder that is a link out of it is not followed."""
     workspace = os.path.realpath(workspace)
     found: list[str] = []
     wanted = [p for p in (clean_dag_folder(p) for p in patterns) if p]
     for pattern in wanted:
         if "*" not in pattern:
-            path = os.path.realpath(os.path.join(workspace, pattern))
-            if (os.path.isdir(path) or is_regular_file(path)) and is_inside(path, workspace):
+            path = resolve_inside(os.path.join(workspace, pattern), workspace)
+            if path is not None and (os.path.isdir(path) or is_regular_file(path)):
                 found.append(path)
             continue
         target = pattern[3:] if pattern.startswith("**/") else pattern
-        for dirpath, dirnames, _ in os.walk(workspace):
+        for dirpath, dirnames, _ in walk_inside(workspace, workspace):
             depth = (
                 0
                 if dirpath == workspace
@@ -3176,25 +3214,38 @@ def resolve_dag_folders(workspace: str, patterns: Iterable[str]) -> list[str]:
                     for d in dirnames
                     if d not in SKIP_SCAN_DIRS
                     and not d.startswith(".")
-                    and not os.path.isfile(os.path.join(dirpath, d, "dbt_project.yml"))
+                    and not _is_dbt_project(os.path.join(dirpath, d), workspace)
                 )
                 if depth < MAX_FOLDER_DEPTH
                 else []
             )
             for d in list(dirnames):
                 relative = to_posix(os.path.relpath(os.path.join(dirpath, d), workspace))
-                if PurePosixPath(relative).match(target):
-                    found.append(os.path.realpath(os.path.join(dirpath, d)))
+                if glob_match(relative, target):
+                    # A link to a folder is resolved here, and left out if it leads elsewhere
+                    real = resolve_inside(os.path.join(dirpath, d), workspace)
+                    if real is not None:
+                        found.append(real)
                     dirnames.remove(d)  # what is below it is scanned as part of it
     return sorted(set(found))
 
 
+def _is_dbt_project(folder: str, workspace: str) -> bool:
+    marker = os.path.join(folder, "dbt_project.yml")
+    return os.path.lexists(marker) and regular_file_inside(marker, workspace) is not None
+
+
 def clean_dag_folder(folder: Any) -> str | None:
-    """A relative folder or pattern, or None: a setting cannot point outside the workspace."""
+    """A relative folder or pattern, or None: a setting cannot point outside the workspace, and
+    a pattern is bounded in length and wildcards."""
     if not isinstance(folder, str):
         return None
     if folder.strip() in (".", "./"):
         return "."
+    if len(folder) > MAX_FOLDER_PATTERN or (
+        folder.count("*") + folder.count("?") > MAX_FOLDER_WILDCARDS
+    ):
+        return None
     posix = PurePosixPath(folder.strip().replace("\\", "/"))
     if not posix.parts or posix.is_absolute() or ".." in posix.parts or ":" in posix.parts[0]:
         return None
@@ -3210,31 +3261,33 @@ def in_dag_folder(relative: str, folders: Iterable[str]) -> bool:
                 return True
             continue
         target = folder[3:] if folder.startswith("**/") else folder
-        if any(p.parts and p.match(target) for p in parents):
+        if any(p.parts and glob_match(p.as_posix(), target) for p in parents):
             return True
     return False
 
 
 def discover_dag_files(
-    root: str, safe_mode: bool = True
+    root: str, safe_mode: bool = True, workspace: str | None = None
 ) -> tuple[list[str], list[dict[str, str]], list[str]]:
     """Python files Airflow would consider: its safe-mode heuristic, ``.airflowignore``, and no
-    dbt project folders, whose Python models are not DAGs."""
+    dbt project folders, whose Python models are not DAGs. Nothing outside ``workspace`` (by
+    default ``root``) is read or listed."""
     files: list[str] = []
     skipped: list[dict[str, str]] = []
     problems: list[str] = []
     root = os.path.realpath(root)
+    space = os.path.realpath(workspace) if workspace else root
     if os.path.isfile(root):
         return [root], [], []
     ignore: list[_Ignore] = []
-    for dirpath, dirnames, filenames in os.walk(root):
-        ignore.extend(_airflowignore(dirpath, problems))
+    for dirpath, dirnames, filenames in walk_inside(root, space):
+        ignore.extend(_airflowignore(dirpath, space, problems))
         keep = []
         for d in sorted(dirnames):
             full = os.path.join(dirpath, d)
             if d in SKIP_SCAN_DIRS or d.startswith("."):
                 continue
-            if os.path.isfile(os.path.join(full, "dbt_project.yml")):
+            if _is_dbt_project(full, space):
                 skipped.append(
                     {"path": to_posix(os.path.relpath(full, root)), "why": "dbt project directory"}
                 )
@@ -3255,7 +3308,7 @@ def discover_dag_files(
                 skipped.append({"path": relative, "why": ".airflowignore"})
                 continue
             if safe_mode:
-                head = read_capped(full, FILE_SIZE_CAP)
+                head = read_capped(full, FILE_SIZE_CAP, space)
                 if head is None:
                     # Over the cap, or not a regular file: FileScanner says which
                     files.append(full)
@@ -3299,7 +3352,7 @@ def scan_dags(
     skipped: list[dict[str, str]] = []
     problems: list[str] = []
     for folder in folders:
-        found, skips, ignored = discover_dag_files(folder, safe_mode)
+        found, skips, ignored = discover_dag_files(folder, safe_mode, ws)
         files.extend(found)
         prefix = "" if folder == ws else f"{index.relative(folder)}/"
         skipped.extend({**s, "path": f"{prefix}{s['path']}"} for s in skips)

@@ -72,6 +72,8 @@ function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
     'lineagePilot.dbt.executablePath': plantedDbt,
     // Only the user may turn usage counts on (task 6.3)
     'lineagePilot.usageCounts.enabled': true,
+    // Nor verbose logs, whose trace users are asked to paste into bug reports (audit H6)
+    'lineagePilot.trace.server': 'verbose',
     ...hostile,
   }, null, 2));
   // A rule pack that turns off a built-in rule: loaded only when the workspace is trusted

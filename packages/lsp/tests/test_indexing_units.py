@@ -187,7 +187,8 @@ def test_worker_reports_failures(tmp_path, monkeypatch, capsys):
 def test_worker_command_restores_the_server_path():
     cmd = worker.command("/py", {"a": 1})
     assert cmd[:3] == ["/py", "-I", "-c"]
-    assert json.loads(cmd[4]) == sys.path and json.loads(cmd[5]) == {"a": 1}
+    request = json.loads(cmd[5])
+    assert json.loads(cmd[4]) == sys.path and request.pop("memoryLimit") > 0 and request == {"a": 1}
 
 
 def python_cmd(code: str) -> list[str]:

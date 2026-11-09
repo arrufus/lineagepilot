@@ -2,7 +2,7 @@
   "name": "lineagepilot",
   "displayName": "LineagePilot",
   "description": "Lineage and change impact for your project's models, exposures and Airflow tasks, from the artifacts already in your workspace. No server, no account.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "publisher": "lineagepilot",
   "private": true,
   "license": "MIT",
@@ -104,8 +104,8 @@
             "verbose"
           ],
           "default": "off",
-          "scope": "window",
-          "description": "Log the messages between VS Code and the LineagePilot language server."
+          "scope": "machine",
+          "description": "Log the messages between VS Code and the LineagePilot language server. Machine-scoped, so workspace settings cannot turn it on."
         }
       }
     },

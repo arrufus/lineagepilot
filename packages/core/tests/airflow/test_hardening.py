@@ -203,11 +203,13 @@ class TestWhatIsRead:
     def test_read_capped_refuses_what_it_should(self, tmp_path):
         file = tmp_path / "a.txt"
         file.write_text("hello")
-        assert read_capped(str(file), 100) == b"hello"
-        assert read_capped(str(file), 1) is None
-        assert read_capped(str(tmp_path), 100) is None
-        assert read_capped(str(tmp_path / "missing"), 100) is None
+        root = str(tmp_path)
+        assert read_capped(str(file), 100, root) == b"hello"
+        assert read_capped(str(file), 1, root) is None
+        assert read_capped(str(tmp_path), 100, root) is None
+        assert read_capped(str(tmp_path / "missing"), 100, root) is None
         assert read_capped(str(file), 100, str(tmp_path / "elsewhere")) is None
+        assert read_capped("a.txt", 100, root) is None  # relative: the working directory's
 
     def test_a_folder_setting_cannot_leave_the_workspace(self, tmp_path):
         (tmp_path / "dags").mkdir()

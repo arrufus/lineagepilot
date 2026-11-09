@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.airflow.safe_io import is_regular_file, read_capped
+from lineagepilot_core.airflow.safe_io import is_regular_file, read_capped, regular_file_inside
 from lineagepilot_core.parsers import _json
 
 # As for the index: only stops a crafted file from exhausting memory
@@ -169,7 +169,15 @@ def manifest_from_dict(data: dict[str, Any], path: str | None = None) -> Manifes
     )
 
 
-def load_manifest(path: str, size_cap: int = DEFAULT_MANIFEST_CAP) -> Manifest:
+def load_manifest(
+    path: str, size_cap: int = DEFAULT_MANIFEST_CAP, root: str | None = None
+) -> Manifest:
+    """The manifest at ``path``, which must be a regular file inside ``root`` if one is given."""
+    if root is not None:
+        real = regular_file_inside(path, root)
+        if real is None:
+            raise ManifestError("the manifest is not a regular file in the workspace")
+        path = real
     if not is_regular_file(path):
         raise ManifestError("the manifest is not a regular file")
     if Path(path).stat().st_size > size_cap:
@@ -181,9 +189,12 @@ def load_manifest(path: str, size_cap: int = DEFAULT_MANIFEST_CAP) -> Manifest:
     return manifest_from_dict(data, path=path)
 
 
-def load_dbt_ls_file(path: str, size_cap: int = DEFAULT_MANIFEST_CAP) -> list[dict[str, Any]]:
-    """Read a ``dbt ls --output json`` file (one JSON object per line; log lines are skipped)."""
-    data = read_capped(path, size_cap)
+def load_dbt_ls_file(
+    path: str, root: str, size_cap: int = DEFAULT_MANIFEST_CAP
+) -> list[dict[str, Any]]:
+    """Read a ``dbt ls --output json`` file inside ``root`` (one JSON object per line; log lines
+    are skipped)."""
+    data = read_capped(path, size_cap, root)
     if data is None:
         raise ManifestError("the dbt ls file is not a regular file under the size limit")
     out: list[dict[str, Any]] = []

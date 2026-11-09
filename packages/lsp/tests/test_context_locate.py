@@ -125,6 +125,56 @@ def test_on_demand_needs_a_compiled_file_inside_the_project(model_graph, workspa
     assert f"{J}.orders" in on_demand._unavailable
 
 
+def test_a_slow_trace_costs_a_request_its_budget_and_no_more(model_graph, monkeypatch):
+    """Audit LP-SEC-05: sqlglot runs off the event loop, one model at a time."""
+    import threading
+    import time
+
+    from lineagepilot_lsp import context
+
+    graph, project = model_graph
+    release = threading.Event()
+    real_trace = context.trace
+
+    def slow_trace(*args):
+        release.wait(10)
+        return real_trace(*args)
+
+    monkeypatch.setattr(context, "trace", slow_trace)
+    on_demand = OnDemandColumns(graph, project, budget_s=0.1)
+    on_demand.start_request()
+    started = time.perf_counter()
+    assert on_demand.status(f"{J}.orders") is None
+    assert time.perf_counter() - started < 1
+    # Still tracing orders: nothing else is started meanwhile
+    on_demand.start_request()
+    assert on_demand.status(f"{J}.customers") is None
+    release.set()
+    for _ in range(100):
+        if f"{J}.orders" in on_demand._late:
+            break
+        time.sleep(0.05)
+    # The next request that asks gets the late result, with no budget left
+    on_demand._deadline = 0.0
+    assert on_demand.status(f"{J}.orders").state is LineageState.RESOLVED
+    assert on_demand.computed == 1
+
+
+def test_a_trace_that_fails_is_not_tried_again(model_graph, monkeypatch):
+    from lineagepilot_lsp import context
+
+    graph, project = model_graph
+
+    def broken(*args):
+        raise RecursionError
+
+    monkeypatch.setattr(context, "trace", broken)
+    on_demand = OnDemandColumns(graph, project)
+    on_demand.start_request()
+    assert on_demand.status(f"{J}.orders") is None
+    assert f"{J}.orders" in on_demand._unavailable
+
+
 def test_without_computing_columns_impact_uses_the_graph(model_graph):
     graph, project = model_graph
     ctx = GraphContext(graph, project)
@@ -186,3 +236,72 @@ def test_locator_caches_and_forgets(workspace):
 def test_clip():
     assert clip(None) is None and clip("short") == "short"
     assert clip("x" * 10, 5) == "xxxx…"
+
+
+# Audit LP-SEC-04: paths from the manifest stay inside the project, or for a DAG file the workspace
+
+
+def test_a_manifest_path_cannot_leave_the_project(tmp_path, workspace):
+    import os
+    import sys
+
+    outside = tmp_path / "secret"
+    outside.mkdir()
+    (outside / "schema.yml").write_text("models:\n  - name: stolen\n")
+    project = read_project(workspace)
+    locator = Locator(project, workspace)
+    model = Node("model.jaffle_shop.x", NodeKind.MODEL, "x", package="jaffle_shop")
+    escapes = [
+        "../secret/schema.yml",
+        str(outside / "schema.yml"),
+        "//evil-host/share/schema.yml",
+    ]
+    if sys.platform != "win32":
+        os.symlink(outside / "schema.yml", workspace / "models" / "linked.yml")
+        escapes.append("models/linked.yml")
+    for relative in escapes:
+        assert locator.file(model, relative) is None, relative
+    package = Node("model.evil.x", NodeKind.MODEL, "x", package="../../secret")
+    assert locator.file(package, "schema.yml") is None
+    assert locator.file(model, "models/marts/orders.yml") == workspace / "models/marts/orders.yml"
+
+
+def test_a_dag_file_may_be_outside_the_project_but_not_the_workspace(tmp_path, workspace):
+    (tmp_path / "dags").mkdir()
+    (tmp_path / "dags" / "d.py").write_text("# a DAG\n")
+    task = Node("airflow:d.t", NodeKind.AIRFLOW_TASK, "t")
+    inside = Locator(read_project(workspace), tmp_path)
+    assert inside.file(task, "../dags/d.py") == tmp_path / "dags" / "d.py"
+    assert inside.file(task, "../../etc/passwd") is None
+    # With no workspace, the project is the boundary
+    alone = Locator(read_project(workspace))
+    assert alone.file(task, "../dags/d.py") is None
+    # A project outside the workspace folder is its own workspace
+    elsewhere = Locator(read_project(workspace), tmp_path / "dags")
+    assert elsewhere.workspace == read_project(workspace).root
+
+
+def test_yaml_entries_bound_aliases():
+    import time
+
+    def aliased(models: int, columns: int) -> str:
+        names = "\n".join(f"      - name: c{i}" for i in range(columns))
+        return "x: &m\n  name: m\n  columns:\n" + names + "\nmodels:\n" + "  - *m\n" * models
+
+    # 2,000 uses of a model with 2,000 columns: refused, quickly, rather than walked
+    started = time.perf_counter()
+    assert yaml_entries(aliased(2000, 2000)).spans == {}
+    assert time.perf_counter() - started < 2
+    # Within the budget, each aliased node is read once
+    entries = yaml_entries(aliased(200, 200))
+    assert entries.get("models", "m") is not None
+    assert entries.get("models", "m", "columns", "c199") is not None
+
+
+def test_yaml_entries_survive_hostile_yaml():
+    lol = "a: &a [x, x, x, x, x, x, x, x, x]\n" + "".join(
+        f"{c}: &{c} [*{p}, *{p}, *{p}, *{p}, *{p}, *{p}, *{p}, *{p}, *{p}]\n"
+        for p, c in zip("abcdefgh", "bcdefghi", strict=True)
+    )
+    assert yaml_entries(lol).spans == {}
+    assert yaml_entries("models: " + "[" * 5000 + "]" * 5000).spans == {}

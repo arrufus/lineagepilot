@@ -62,13 +62,31 @@ jobs:
             --no-emit-package lineagepilot-core --format requirements-txt --no-header \
             -o ../../extension/work/requirements.lock)
           diff -u requirements.lock work/requirements.lock
-      - run: npm ci
+      # This job builds the VSIX that is released, so no install scripts run. The lockfile has
+      # two: esbuild's, run explicitly here, and @vscode/vsce-sign's, which only signing needs and
+      # which can download its binary without the lockfile's integrity check.
+      - run: npm ci --ignore-scripts
+      - run: npm rebuild esbuild
+      # What ships: high and critical fail
       - run: npm audit --omit=dev --audit-level=high
+      # The rest of the tree, which --omit=dev skips: the tools that build and publish the VSIX
+      # (vsce, ovsx, esbuild) fail on high, the test tools on critical (see the script)
+      - name: Audit the build, publish and test tools
+        run: |
+          mkdir -p work
+          npm audit --json --audit-level=none > work/npm-audit.json
+          python scripts/npm_audit_gate.py work/npm-audit.json
       - run: python scripts/bundle_libs.py
       - run: npm run test:unit
       - name: Lineage view tests (React Testing Library, gate 75%)
         run: npm run test:webview-coverage
+      # The commit's time, so the VSIX's bytes depend only on its sources: a rebuild of a tag with
+      # the same Node and Python gives the same file (docs/release.md)
+      - name: Reproducible build time
+        run: echo "SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)" >> "$GITHUB_ENV"
       - run: npm run package
+      - name: Normalise the VSIX (sorted entries, the commit's time, fixed modes)
+        run: python scripts/normalise_vsix.py dist/lineagepilot.vsix
       - run: python scripts/check_vsix.py dist/lineagepilot.vsix
       - name: Build script tests, including the real bundle and VSIX
         run: uv run --project ../packages/lsp --locked pytest --no-cov -p no:cacheprovider scripts/tests

@@ -24,7 +24,13 @@ CI fails when it is out of date.
    includes the Python 3.10 backports (exceptiongroup) that a 3.13 build would otherwise skip.
 5. lineagepilot-core and lineagepilot-lsp are built from packages/ with hatchling (no build
    isolation), checked to be py3-none-any, and installed like the rest.
-6. The result is checked (no compiled files, every WHEEL tag pure, every locked package present)
+6. pip writes a dist-info/direct_url.json for every package installed from a local wheel (ours
+   and PyYAML): it records the wheel's path in this script's temporary directory, which names
+   the build machine's temp folder and can include a username, and changes on every build. Each
+   one is deleted, with its line in that dist-info's RECORD. check_vsix.py fails if one ships.
+   The RECORD lines of the console scripts go too: bin/ is not bundled, and their hashes cover a
+   shebang naming the build venv. Two builds with the same Python then give the same bundle.
+7. The result is checked (no compiled files, every WHEEL tag pure, every locked package present)
    and BUNDLE.json records each package's version and hashes: the locked ones for third-party
    packages, the built wheel's for ours.
 """
@@ -32,6 +38,7 @@ CI fails when it is out of date.
 from __future__ import annotations
 
 import argparse
+import csv
 import hashlib
 import json
 import os
@@ -176,6 +183,9 @@ def build(out: Path) -> None:
     if (out / "bin").exists():
         shutil.rmtree(out / "bin")
     clean_pycache(out)
+    stripped = strip_build_paths(out)
+    print(f"removed this machine's paths (direct_url.json, console scripts) from {len(stripped)} "
+          f"packages: {', '.join(stripped) or 'none'}")
 
     problems = check_pure(out, packages + local)
     if problems:
@@ -195,6 +205,41 @@ def clean_pycache(directory: Path) -> int:
     for cache in caches:
         shutil.rmtree(cache)
     return len(caches)
+
+
+def strip_build_paths(libs: Path) -> list[str]:
+    """Remove what records the build machine's paths; return the dist-infos changed.
+
+    - dist-info/direct_url.json: pip records where a package was installed from (PEP 610). For a
+      local wheel that is a path in the build's temporary directory, machine-specific and
+      different on every build. The file is deleted.
+    - console scripts: pip installs them to bin/, which build() deletes, with a shebang naming the
+      build venv; RECORD keeps their hash as ../../bin/<name>, so it changes on every build.
+    Both lose their RECORD lines; every other line is kept byte for byte.
+    """
+    changed = []
+    for dist_info in sorted(p.parent for p in libs.glob("*.dist-info/RECORD")):
+        direct_url = dist_info / "direct_url.json"
+        had_direct_url = direct_url.exists()
+        if had_direct_url:
+            direct_url.unlink()
+        gone = f"{dist_info.name}/direct_url.json"
+        record = dist_info / "RECORD"
+        lines = record.read_text(encoding="utf-8").splitlines(keepends=True)
+        kept = [line for line in lines
+                if not line.strip() or not _built_here(next(csv.reader([line]))[0], gone)]
+        if kept != lines:
+            record.write_text("".join(kept), encoding="utf-8", newline="")
+        if had_direct_url or kept != lines:
+            changed.append(dist_info.name)
+    for direct_url in libs.glob("*.dist-info/direct_url.json"):  # a dist-info without a RECORD
+        direct_url.unlink()
+        changed.append(direct_url.parent.name)
+    return changed
+
+
+def _built_here(path: str, direct_url: str) -> bool:
+    return path == direct_url or path.startswith("../../bin/")
 
 
 def main() -> None:
