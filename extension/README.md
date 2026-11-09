@@ -89,9 +89,9 @@ The interpreter and dbt executable settings are machine-scoped: a workspace's `.
 | `lineagePilot.index.columnLineage` | `true` | Trace lineage column by column. |
 | `lineagePilot.index.maxArtifactMB` | `512` | Larger artifacts are not indexed. |
 | `lineagePilot.baseline.manifestPath` | empty | The manifest **Review Changes** compares columns with. Absolute, or relative to the dbt project. |
-| `lineagePilot.airflow.dagFolders` | `["**/dags"]` | Folders in the workspace that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. |
+| `lineagePilot.airflow.dagFolders` | `["**/dags"]` | Folders in the workspace that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. A folder that is a link out of the workspace is not read. |
 | `lineagePilot.usageCounts.enabled` | `false` | Count, on this machine only, how often you use the review, for the beta's check-in. User settings only. See [Usage counts](#usage-counts-beta). |
-| `lineagePilot.trace.server` | `off` | Log the messages to and from the language server. |
+| `lineagePilot.trace.server` | `off` | Log the messages to and from the language server. User settings only (in a remote window, the remote machine's). |
 
 ## Airflow
 

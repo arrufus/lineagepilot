@@ -1,7 +1,15 @@
 # Linux test image for the extension (from spike S1): Node 22, Xvfb and VS Code's Electron libraries, plus uv-managed
 # CPython 3.10 and 3.13. Runs the integration tests headless, so no window appears on a
 # developer's desktop (a focused test window can be reloaded by a stray keystroke).
-FROM node:22-bookworm
+#
+# The base image is pinned by digest: node:22.23.3-bookworm, pushed to Docker Hub on
+# 21 October 2026. The digest is the multi-platform index (linux/amd64 and linux/arm64 among
+# others), resolved from registry-1.docker.io. To move it, take a tag pushed at least two weeks
+# earlier and resolve its digest the same way:
+#   token=$(curl -fsSL "https://auth.docker.io/token?service=registry.docker.io&scope=repository:library/node:pull" | jq -r .token)
+#   curl -fsSI -H "Authorization: Bearer $token" -H "Accept: application/vnd.oci.image.index.v1+json" \
+#     https://registry-1.docker.io/v2/library/node/manifests/<tag> | grep -i docker-content-digest
+FROM node:22.23.3-bookworm@sha256:69a5713e7f4997e96d579aafd78734810e0dac0dd5ee4621d72c27a2891a4088
 
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
@@ -13,8 +21,18 @@ RUN apt-get update \
 # VS Code refuses to run as root without --no-sandbox, so tests run as the image's node user.
 USER node
 ENV UV_PYTHON_PREFERENCE=only-managed
+# uv 0.7.6, the version CI uses, as a wheel only and checked against PyPI's SHA-256 for each Linux
+# wheel of that release (x86_64 and aarch64, glibc and musl), so pip installs nothing else.
 RUN python3 -m venv /home/node/uvenv \
- && /home/node/uvenv/bin/pip install --no-cache-dir uv==0.7.6 \
+ && printf 'uv==0.7.6 --hash=sha256:%s --hash=sha256:%s --hash=sha256:%s --hash=sha256:%s\n' \
+      1f46cfd2de04dd261cc75158c293de64f99cc907ab0d395f3a0f97c94e7f076a \
+      310e488493d03a843b838e9301af1731b02bc93b14bcaa38c62d448cebbdca3c \
+      4cd32743d2c0c0b40ffbde48163ae2835353d319472aadabd71e9dcf98152e8b \
+      c44311ed1a32e397d81e346e7b868e4ae22f2df2e5ba601e055683fa4cc68323 \
+      > /home/node/uv-requirements.txt \
+ && /home/node/uvenv/bin/pip install --no-cache-dir --require-hashes --only-binary=:all: --no-deps \
+      -r /home/node/uv-requirements.txt \
+ && rm /home/node/uv-requirements.txt \
  && /home/node/uvenv/bin/uv python install 3.10 3.13
 ENV PATH=/home/node/uvenv/bin:$PATH
 # A named volume mounted here keeps the VS Code download between runs
