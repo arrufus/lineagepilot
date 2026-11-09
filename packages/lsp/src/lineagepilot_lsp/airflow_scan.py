@@ -25,6 +25,12 @@ logger = logging.getLogger(__name__)
 
 # Beyond this a scan is stopped and the review says it could not be read
 SCAN_TIMEOUT_S = 120.0
+# The scan is read into the server, which has a memory budget: about 30 MB at 5,000 models
+MAX_SCAN_BYTES = 128 * 2**20
+
+
+class ScanTooLarge(ValueError):
+    pass
 
 
 class AirflowStage(str, Enum):
@@ -124,11 +130,15 @@ class AirflowScanner:
         except OSError as e:
             problem = f"the reader could not start: {e}"
         else:
-            if found.get("event") != "airflow":
+            if exit_.over_memory:
+                problem = exit_.stopped("the reader")
+            elif found.get("event") != "airflow":
                 problem = str(found.get("message") or f"the reader stopped ({exit_.returncode})")
             else:
                 try:
                     scan = await asyncio.to_thread(_read, output)
+                except ScanTooLarge as e:
+                    problem = f"the scan could not be read: {e}"
                 except (OSError, ValueError) as e:
                     problem = f"the scan could not be read: {type(e).__name__}"
         finally:
@@ -144,4 +154,8 @@ class AirflowScanner:
 
 
 def _read(path: Path) -> dict[str, Any]:
-    return json.loads(path.read_bytes())
+    with path.open("rb") as f:
+        data = f.read(MAX_SCAN_BYTES + 1)
+    if len(data) > MAX_SCAN_BYTES:
+        raise ScanTooLarge(f"it is over {MAX_SCAN_BYTES // 2**20} MB")
+    return json.loads(data)

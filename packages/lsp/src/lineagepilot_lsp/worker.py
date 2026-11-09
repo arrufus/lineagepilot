@@ -38,6 +38,8 @@ from lineagepilot_core.analysis.baseline import load_baseline_manifest
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, IndexResult, index_project
 from lineagepilot_core.snapshot import SnapshotCache
 
+from lineagepilot_lsp import limits
+
 # Started as: python -I -c BOOTSTRAP <server's sys.path as JSON> <request as JSON>.
 # -I keeps the workspace, the user site-packages and PYTHON* variables off the path, as
 # for the server; the server's own path (bundled/libs first) is then restored exactly.
@@ -66,7 +68,21 @@ def interpreter() -> str:
 
 
 def command(python: str, request: dict[str, Any]) -> list[str]:
+    """How to start the child for ``request``, with its memory limit (see ``limits``)."""
+    size = request.get("maxArtifactBytes", DEFAULT_MAX_ARTIFACT_BYTES)
+    request = {"memoryLimit": limits.memory_limit(size), **request}
     return [python, "-I", "-c", BOOTSTRAP, json.dumps(sys.path), json.dumps(request)]
+
+
+def memory_limit_of(cmd: list[str]) -> int | None:
+    """The memory limit ``command`` put in a command line, for the server to watch."""
+    if len(cmd) != 6 or cmd[3] != BOOTSTRAP:
+        return None
+    try:
+        limit = json.loads(cmd[5]).get("memoryLimit")
+    except (ValueError, AttributeError):
+        return None
+    return limit if isinstance(limit, int) and limit > 0 else None
 
 
 def describe(result: IndexResult) -> dict[str, Any]:
@@ -109,6 +125,13 @@ def main(request: dict[str, Any], out: TextIO | None = None) -> int:
     def emit(event: dict[str, Any]) -> None:
         out.write(json.dumps(event) + "\n")
         out.flush()
+
+    if request.get("memoryLimit"):
+        how = limits.apply_in_child(int(request["memoryLimit"]))
+        if how:
+            logging.getLogger(__name__).info(
+                "Memory limited to %.1f GB by %s", request["memoryLimit"] / 2**30, how
+            )
 
     if request.get("task") == "baseline":
         try:

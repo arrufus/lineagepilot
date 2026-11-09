@@ -383,7 +383,12 @@ class LineagePilotServer(LanguageServer):
         self.context = (
             None
             if graph is None
-            else GraphContext(graph, self.project, lambda: index.columns is ColumnStage.COMPUTING)
+            else GraphContext(
+                graph,
+                self.project,
+                lambda: index.columns is ColumnStage.COMPUTING,
+                workspace=self.workspace_root,
+            )
         )
         if graph is not None:
             self.link_scan(graph)
@@ -656,7 +661,9 @@ class LineagePilotServer(LanguageServer):
         except OSError as e:
             problem = f"it could not be read: {e}"
         else:
-            if found.get("event") != "baseline":
+            if exit_.over_memory:
+                problem = exit_.stopped("the reader")
+            elif found.get("event") != "baseline":
                 problem = str(found.get("message") or f"the reader stopped ({exit_.returncode})")
         if problem is not None:
             return ManifestBaseline(name=path.name, error=problem)

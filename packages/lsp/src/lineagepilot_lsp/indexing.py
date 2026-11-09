@@ -34,7 +34,7 @@ from lineagepilot_core.snapshot import (
     snapshot_key,
 )
 
-from lineagepilot_lsp import worker
+from lineagepilot_lsp import limits, worker
 from lineagepilot_lsp.project import DbtProject
 
 logger = logging.getLogger(__name__)
@@ -61,10 +61,41 @@ class ColumnStage(str, Enum):
     OFF = "off"  # column lineage is turned off
 
 
+# How often the server looks at a child's memory
+MEMORY_POLL_S = 0.2
+
+
 @dataclass
 class WorkerExit:
     returncode: int | None
     stderr_tail: list[str] = field(default_factory=list)
+    # The server killed it for using more memory than its limit
+    over_memory: int | None = None
+
+    def stopped(self, what: str) -> str:
+        """Why a child gave no result, for a message."""
+        if self.over_memory:
+            return (
+                f"{what} used more than {self.over_memory / 2**30:.1f} GB of memory and was stopped"
+            )
+        detail = f" (exit code {self.returncode})" if self.returncode else ""
+        return f"{what} stopped without a result{detail}"
+
+
+async def _watch_memory(
+    pid: int, limit: int, kill: Callable[[], None], exceeded: list[int]
+) -> None:
+    """Kill the child once its resident memory passes ``limit`` (see ``limits``)."""
+    while True:
+        used = limits.resident_bytes(pid)
+        if used is None and not exceeded:
+            return  # not measurable here: the operating system's limit is the only one
+        if used is not None and used > limit:
+            logger.warning("A child used %.1f GB of memory, over its limit; stopped", used / 2**30)
+            exceeded.append(limit)
+            kill()
+            return
+        await asyncio.sleep(MEMORY_POLL_S)
 
 
 async def run_worker(
@@ -74,7 +105,8 @@ async def run_worker(
 ) -> WorkerExit:
     """Run the indexer and pass each event to ``on_event`` as it arrives.
 
-    Cancelling the caller kills the process.
+    Cancelling the caller kills the process. So does using more memory than the limit the
+    command carries (``worker.command``).
     """
     proc = await asyncio.create_subprocess_exec(
         *cmd,
@@ -84,6 +116,11 @@ async def run_worker(
         limit=EVENT_LINE_LIMIT,
     )
     tail: deque[str] = deque(maxlen=20)
+    exceeded: list[int] = []
+    limit = worker.memory_limit_of(cmd)
+    watch = (
+        asyncio.create_task(_watch_memory(proc.pid, limit, proc.kill, exceeded)) if limit else None
+    )
 
     async def drain() -> None:
         assert proc.stderr is not None
@@ -105,12 +142,15 @@ async def run_worker(
             if isinstance(event, dict):
                 await on_event(event)
         await stderr_task
-        return WorkerExit(await proc.wait(), list(tail))
+        returncode = await proc.wait()
+        return WorkerExit(returncode, list(tail), exceeded[0] if exceeded else None)
     finally:
         if proc.returncode is None:
             proc.kill()
             await proc.wait()
         stderr_task.cancel()
+        if watch is not None:
+            watch.cancel()
 
 
 def freeze_heap() -> None:
@@ -279,10 +319,7 @@ class ProjectIndex:
             self._fail(generation, f"the indexer could not run: {type(e).__name__}: {e}", [])
             return
         if generation == self.generation and self._finished != generation:
-            detail = f" (exit code {exit_.returncode})" if exit_.returncode else ""
-            self._fail(
-                generation, f"the indexer stopped without a result{detail}", exit_.stderr_tail
-            )
+            self._fail(generation, exit_.stopped("the indexer"), exit_.stderr_tail)
         logger.info("Index run %d took %.2f s", generation, time.perf_counter() - started)
 
     def _cached_snapshot(self) -> Path | None:

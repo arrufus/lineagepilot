@@ -4,6 +4,7 @@
 import { strict as assert } from 'assert';
 import { execFileSync } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as vscode from 'vscode';
 
@@ -61,6 +62,7 @@ suite(`interpreter (${label})`, () => {
     // Machine-scoped: VS Code drops the workspace's values (S1, finding 6)
     assert.equal(config.inspect('python.interpreterPath')?.workspaceValue, undefined);
     assert.equal(config.inspect('dbt.executablePath')?.workspaceValue, undefined);
+    assert.equal(config.inspect('trace.server')?.workspaceValue, undefined);
     assert.ok(!inside(server.status.server.executable, root()));
     // In a trusted workspace the Python extension runs the workspace's .venv to identify it;
     // what must never happen is LineagePilot probing it or starting its server with it.
@@ -101,6 +103,29 @@ suite('DAG files', () => {
     await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
     assert.ok(server.status.airflow.summary.dagFiles >= 1, 'no DAG file was read');
     assert.equal(ran('planted-dag-ran'), undefined, 'a DAG file was imported or run');
+  });
+});
+
+suite('opening files', () => {
+  test('Open Node opens files in the workspace only (audit LP-SEC-04)', async () => {
+    await readyServer();
+    const outsideDir = fs.mkdtempSync(path.join(os.tmpdir(), 'lp-outside-'));
+    const outsideFile = path.join(outsideDir, 'secret.sql');
+    fs.writeFileSync(outsideFile, 'select 1\n');
+    const opened = (file: string) => vscode.workspace.textDocuments.some((d) => d.uri.fsPath === file);
+    for (const location of [
+      { uri: vscode.Uri.file(outsideFile).toString(), range: null },
+      { uri: 'untitled:x', range: null },
+      { uri: 42 },
+      undefined,
+    ]) {
+      await vscode.commands.executeCommand('lineagePilot.openNode', location);
+    }
+    assert.equal(opened(outsideFile), false, 'a file outside the workspace was opened');
+    const inside = uri('models', 'marts', 'customers.yml');
+    await vscode.commands.executeCommand('lineagePilot.openNode', { uri: inside.toString(), range: null });
+    assert.equal(opened(inside.fsPath), true, 'a file in the workspace was not opened');
+    fs.rmSync(outsideDir, { recursive: true, force: true });
   });
 });
 

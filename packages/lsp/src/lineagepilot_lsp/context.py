@@ -7,14 +7,17 @@ the server builds a new context, so nothing derived from an old graph survives.
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from collections.abc import Callable
+from concurrent.futures import Future
+from concurrent.futures import TimeoutError as FutureTimeout
 from pathlib import Path
 from typing import Any
 
 from lineagepilot_core.analysis.impact import Impact, impact
 from lineagepilot_core.analysis.pii import PIIIndex, pii_index
-from lineagepilot_core.graph.column_lineage import SQL_KINDS, add_column_lineage, catalog_schema
+from lineagepilot_core.graph.column_lineage import SQL_KINDS, Traced, catalog_schema, record, trace
 from lineagepilot_core.graph.model import (
     ColumnLineageStatus,
     EdgeKind,
@@ -40,6 +43,43 @@ def clip(text: str | None, limit: int = TEXT_LIMIT) -> str | None:
     return text[: limit - 1] + "…"
 
 
+class _Tracer:
+    """Where on-demand SQL is traced: one model at a time, on a thread of its own.
+
+    sqlglot's cost on a crafted compiled file has no useful bound, and a request handler runs on
+    the server's event loop (audit LP-SEC-05). So a request waits for a trace only within its
+    budget; past it, the trace finishes in the background for a later request, and nothing else
+    is traced meanwhile. The thread is a daemon: one still tracing never holds up shutdown.
+    """
+
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._busy = False
+
+    def submit(self, work: Callable[[], Traced]) -> Future[Traced] | None:
+        """``work`` started on its own thread, or None if a trace is still running."""
+        with self._lock:
+            if self._busy:
+                return None
+            self._busy = True
+        future: Future[Traced] = Future()
+
+        def run() -> None:
+            try:
+                future.set_result(work())
+            except BaseException as e:  # reported to the waiting request, if any
+                future.set_exception(e)
+            finally:
+                with self._lock:
+                    self._busy = False
+
+        threading.Thread(target=run, name="lineagepilot-on-demand", daemon=True).start()
+        return future
+
+
+_TRACER = _Tracer()
+
+
 class OnDemandColumns:
     """Column lineage for one model at a time, before the indexer has computed it.
 
@@ -48,7 +88,8 @@ class OnDemandColumns:
     model's columns computes that model here, from its compiled file and a schema of its
     direct upstream relations (milliseconds), within a time budget per request. Past the
     budget, or without a compiled file, the model is left to the model-level fallback,
-    which the impact result marks as such.
+    which the impact result marks as such. The SQL is traced off the event loop
+    (``_Tracer``); the result is put in the graph here, on it.
     """
 
     def __init__(
@@ -60,6 +101,8 @@ class OnDemandColumns:
         self.computed = 0
         self._unavailable: set[str] = set()
         self._deadline = 0.0
+        # Traces that finished after their request stopped waiting: (SQL, result)
+        self._late: dict[str, tuple[str, Traced]] = {}
 
     def start_request(self) -> None:
         self._deadline = time.perf_counter() + self.budget_s
@@ -68,7 +111,11 @@ class OnDemandColumns:
         known = self.graph.column_lineage.get(node_id)
         if known is not None or node_id in self._unavailable:
             return known
-        if time.perf_counter() > self._deadline:
+        late = self._late.pop(node_id, None)
+        if late is not None:
+            return self._record(node_id, *late)
+        remaining = self._deadline - time.perf_counter()
+        if remaining <= 0:
             return None
         node = self.graph.nodes.get(node_id)
         sql = self._compiled(node) if node is not None and node.kind in SQL_KINDS else None
@@ -82,9 +129,30 @@ class OnDemandColumns:
             if relation:
                 upstream |= {n.id for n in self.graph.logical_nodes_for(relation)}
         schema = catalog_schema(self.graph, sorted(upstream))
-        add_column_lineage(self.graph, {node_id: sql}, [node_id], schema=schema)
+        adapter = self.graph.adapter_type
+        future = _TRACER.submit(lambda: trace(sql, schema, adapter))
+        if future is None:
+            return None  # another model is still being traced
+        try:
+            traced = future.result(timeout=remaining)
+        except FutureTimeout:
+            future.add_done_callback(lambda f: self._keep(node_id, sql, f))
+            return None
+        except Exception:
+            logger.exception("Column lineage for %s could not be computed", node_id)
+            self._unavailable.add(node_id)
+            return None
+        return self._record(node_id, sql, traced)
+
+    def _keep(self, node_id: str, sql: str, future: Future[Traced]) -> None:
+        """On the tracer's thread: a result for the next request that asks."""
+        if future.exception() is None:
+            self._late[node_id] = (sql, future.result())
+
+    def _record(self, node_id: str, sql: str, traced: Traced) -> ColumnLineageStatus:
+        status = record(self.graph, node_id, sql, traced)
         self.computed += 1
-        return self.graph.column_lineage[node_id]
+        return status
 
     def _compiled(self, node: Node) -> str | None:
         if not node.compiled_path:
@@ -106,10 +174,11 @@ class GraphContext:
         graph: MetadataGraph,
         project: DbtProject,
         columns_computing: Callable[[], bool] = lambda: False,
+        workspace: Path | None = None,
     ) -> None:
         self.graph = graph
         self.project = project
-        self.locator = Locator(project)
+        self.locator = Locator(project, workspace)
         self.on_demand = OnDemandColumns(graph, project)
         self._columns_computing = columns_computing
         self._pii: PIIIndex | None = None
