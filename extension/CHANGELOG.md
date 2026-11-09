@@ -2,7 +2,7 @@
 
 The versions of LineagePilot, newest first. Each release's entry is its release notes.
 
-## 0.1.0
+## 0.1.1
 
 The first beta, for teams invited to the closed beta.
 
