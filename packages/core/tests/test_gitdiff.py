@@ -168,7 +168,9 @@ def test_a_partial_clone_fetches_nothing(repo, tmp_path, monkeypatch, guard):
     (repo / "models" / "marts" / "orders.sql").write_text("select 1 as a\n")
     commit_all(repo)
     tree = git(repo, "rev-parse", "main:models/marts")
-    (repo / ".git" / "objects" / tree[:2] / tree[2:]).unlink()
+    lost = repo / ".git" / "objects" / tree[:2] / tree[2:]
+    lost.chmod(0o644)  # git writes objects read-only, which Windows will not delete
+    lost.unlink()
     trap = tmp_path / "trap"
     git(repo, "config", "core.repositoryformatversion", "1")
     git(repo, "config", "extensions.partialClone", "origin")
