@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 
 import type { RefreshOutcome } from '../../dbt';
 import { PROBE_SCRIPT } from '../../interpreter';
+import { inWorkspace } from '../../panel';
 import { api, codeOf, expectTrusted, label, ran, readyServer, root, until, uri } from './helpers';
 
 const expectedSource = process.env.LP_EXPECT_SOURCE;
@@ -122,9 +123,10 @@ suite('opening files', () => {
       await vscode.commands.executeCommand('lineagePilot.openNode', location);
     }
     assert.equal(opened(outsideFile), false, 'a file outside the workspace was opened');
-    const inside = uri('models', 'marts', 'customers.yml');
-    await vscode.commands.executeCommand('lineagePilot.openNode', { uri: inside.toString(), range: null });
-    assert.equal(opened(inside.fsPath), true, 'a file in the workspace was not opened');
+    // A file inside is allowed. Checked without opening it: later suites in this window (the
+    // panel's) depend on which editors are open, and features.test.ts opens one this way.
+    assert.equal(inWorkspace({ uri: uri('models', 'marts', 'customers.yml').toString(), range: null }), true);
+    assert.equal(inWorkspace({ uri: vscode.Uri.file(outsideFile).toString(), range: null }), false);
     fs.rmSync(outsideDir, { recursive: true, force: true });
   });
 });
