@@ -284,8 +284,13 @@ def test_a_huge_review_is_cut_to_fit_a_github_comment_and_says_so():
 
 
 def test_an_impossibly_long_review_is_still_cut_to_the_limit():
+    # Between lines, so no code span is cut open (LP-SEC-02), and it says so
     review = minimal(notes=["n" * 500] * 400)
-    assert len(render_markdown(review)) == MAX_CHARS
+    markdown = render_markdown(review)
+    assert MAX_CHARS - 600 < len(markdown) <= MAX_CHARS
+    assert markdown.endswith(
+        "\n\n...and the rest of the review, which is too long for a GitHub comment.\n"
+    )
 
 
 @pytest.mark.parametrize(

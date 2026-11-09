@@ -27,6 +27,8 @@ dev = [
     # Property tests for the exporters; pydot re-parses DOT output
     "hypothesis>=6.100",
     "pydot>=3.0",
+    # Re-parses the review's Markdown as CommonMark with tables, as GitHub reads it (LP-SEC-02)
+    "markdown-it-py>=3.0",
 ]
 # Kept out of `dev` so the auditor and its dependencies are not part of what it audits.
 audit = ["pip-audit>=2.7"]
