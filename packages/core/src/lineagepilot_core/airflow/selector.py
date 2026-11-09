@@ -215,33 +215,27 @@ def is_selected_node(
     return True
 
 
-def _glob_to_regex(pattern: str) -> re.Pattern[str]:
-    """Translate a pathlib-style glob (``*`` within a segment, ``**`` across segments)."""
-    out = []
-    i = 0
-    while i < len(pattern):
-        c = pattern[i]
-        if pattern.startswith("**", i):
-            out.append(".*")
-            i += 2
-            if i < len(pattern) and pattern[i] == "/":
-                i += 1
-            continue
-        if c == "*":
-            out.append("[^/]*")
-        elif c == "?":
-            out.append("[^/]")
-        elif c == "[":
-            j = pattern.find("]", i)
-            if j == -1:
-                out.append(re.escape(c))
+class _PathGlob:
+    """A ``path:`` selector's glob, matched one path component at a time: ``*``, ``?`` and
+    ``[...]`` within a component, ``**`` for any number of whole components, as pathlib's glob,
+    which dbt uses. A regular expression made from the whole pattern backtracked (``*a*a*a*b``
+    against one long path took seconds), and an invalid character class in it raised
+    ``re.error``, which lost the whole DAG file (audit LP-SEC-05). ``fnmatch`` does neither."""
+
+    def __init__(self, pattern: str) -> None:
+        self.parts = [p for p in pattern.split("/") if p not in ("", ".")]
+
+    def match(self, path: str) -> bool:
+        names = [n for n in path.split("/") if n]
+        reach = {0}  # how many of the path's components the pattern so far can have matched
+        for part in self.parts:
+            if part == "**":
+                reach = set(range(min(reach), len(names) + 1))
             else:
-                out.append("[" + pattern[i + 1 : j].replace("\\", "\\\\") + "]")
-                i = j
-        else:
-            out.append(re.escape(c))
-        i += 1
-    return re.compile("^" + "".join(out) + "$")
+                reach = {i + 1 for i in reach if i < len(names) and fnmatchcase(names[i], part)}
+            if not reach:
+                return False
+        return len(names) in reach
 
 
 def _norm_rel(p: str) -> str:
@@ -342,8 +336,8 @@ class SelectorEngine:
             sel = _norm_rel(v)
             if sel.startswith("/") or sel.startswith(".."):
                 raise UnsupportedSelector(f"path selector outside the project ({v!r})")
-            rx = _glob_to_regex(sel)
-            paths = {p for p in self._candidates() if rx.match(p)}
+            glob = _PathGlob(sel)
+            paths = {p for p in self._candidates() if glob.match(p)}
             out = set()
             for n in self._all():
                 ofp = _norm_rel(n.original_file_path)

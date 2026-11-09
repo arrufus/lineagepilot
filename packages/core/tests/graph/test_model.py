@@ -167,3 +167,32 @@ def test_remove_unresolved_by_subject_and_origin(graph):
     assert graph.unresolved == [from_manifest, elsewhere]
     graph.remove_unresolved(["model.p.b", "model.p.c"])
     assert graph.unresolved == []
+
+
+def test_many_pieces_of_evidence_on_one_edge_stay_cheap():
+    """Audit LP-SEC-05: a list search per piece made a DAG scan's links quadratic."""
+    import time
+
+    from lineagepilot_core.graph.model import Confidence, Evidence, Location, Origin
+
+    graph = MetadataGraph()
+    for name in ("a", "b"):
+        graph.add_node(Node(name, NodeKind.MODEL, name))
+
+    def piece(i: int) -> Evidence:
+        return Evidence(Origin.DAG_STATIC, Confidence.INFERRED, location=Location(f"d{i}.py", i))
+
+    started = time.perf_counter()
+    for _ in range(2):  # the second round adds nothing
+        for i in range(20_000):
+            graph.add_edge(EdgeKind.DEPENDS_ON, "a", "b", piece(i))
+    assert time.perf_counter() - started < 2
+    edge = graph.edge(EdgeKind.DEPENDS_ON, "a", "b")
+    assert len(edge.evidence) == 20_000
+    # Evidence appended directly, as a snapshot loads it, is still seen
+    edge.evidence.append(piece(-1))
+    graph.add_edge(EdgeKind.DEPENDS_ON, "a", "b", piece(-1))
+    assert len(edge.evidence) == 20_001
+    graph.remove_edge(edge)
+    graph.add_edge(EdgeKind.DEPENDS_ON, "a", "b", piece(1))
+    assert len(graph.edge(EdgeKind.DEPENDS_ON, "a", "b").evidence) == 1

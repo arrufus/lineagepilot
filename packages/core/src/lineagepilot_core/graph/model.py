@@ -43,6 +43,10 @@ DBT_KINDS = frozenset(
 )
 
 
+# Up to this many pieces of evidence on an edge, a list search is cheaper than a set
+_EVIDENCE_LIST = 8
+
+
 class EdgeKind(str, Enum):
     DEPENDS_ON = "depends_on"
     DERIVES = "derives"
@@ -231,6 +235,8 @@ class MetadataGraph:
         self.unresolved: list[Unresolved] = []
         self._columns_by_node: defaultdict[str, list[str]] = defaultdict(list)
         self._edges: dict[tuple[EdgeKind, str, str], Edge] = {}
+        # The evidence of an edge with many pieces, as a set, so adding one more stays cheap
+        self._evidence: dict[tuple[EdgeKind, str, str], set[Evidence]] = {}
         self._out: defaultdict[str, list[Edge]] = defaultdict(list)
         self._in: defaultdict[str, list[Edge]] = defaultdict(list)
         self._files: defaultdict[str, set[str]] = defaultdict(set)
@@ -290,8 +296,18 @@ class MetadataGraph:
             self._edges[key] = edge
             self._out[upstream].append(edge)
             self._in[downstream].append(edge)
-        elif evidence not in edge.evidence:
-            edge.evidence.append(evidence)
+        elif len(edge.evidence) < _EVIDENCE_LIST:
+            if evidence not in edge.evidence:
+                edge.evidence.append(evidence)
+        else:
+            # A list search for each would make many pieces on one edge quadratic: a DAG scan
+            # can link one task to one model many times (audit LP-SEC-05)
+            seen = self._evidence.get(key)
+            if seen is None or len(seen) != len(edge.evidence):  # appended to directly
+                seen = self._evidence[key] = set(edge.evidence)
+            if evidence not in seen:
+                seen.add(evidence)
+                edge.evidence.append(evidence)
         return edge
 
     def add_unresolved(self, record: Unresolved) -> None:
@@ -299,6 +315,7 @@ class MetadataGraph:
 
     def remove_edge(self, edge: Edge) -> None:
         key = (edge.kind, edge.upstream, edge.downstream)
+        self._evidence.pop(key, None)
         if self._edges.pop(key, None) is None:
             raise GraphError(
                 f"no such edge: {edge.kind.value} {edge.upstream} -> {edge.downstream}"
@@ -310,7 +327,9 @@ class MetadataGraph:
         """Remove a node, with its edges. Its columns must be gone first."""
         node = self.nodes.pop(node_id)
         for edge in (*self._out.pop(node_id, ()), *self._in.pop(node_id, ())):
-            if self._edges.pop((edge.kind, edge.upstream, edge.downstream), None) is not None:
+            key = (edge.kind, edge.upstream, edge.downstream)
+            self._evidence.pop(key, None)
+            if self._edges.pop(key, None) is not None:
                 other = edge.downstream if edge.upstream == node_id else edge.upstream
                 for side in (self._in, self._out):
                     if other in side and edge in side[other]:

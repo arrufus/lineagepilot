@@ -20,8 +20,8 @@ Phase 5 (task 5.2) extends the format:
 - ``acknowledged``: unknowns from the scanner that a person has answered, by ``file``, ``line``,
   ``dag_id`` or ``task_id``. An annotated task's own unknowns are answered without this.
 
-The file comes from the workspace, so it is size-capped, parsed with ``yaml.safe_load``, and what
-cannot be used is reported rather than dropped.
+The file comes from the workspace, so it is size-capped, parsed with ``safe_yaml.load`` (no alias
+bombs, no deep nesting), and what cannot be used is reported, cut short, rather than dropped.
 """
 
 from __future__ import annotations
@@ -34,7 +34,8 @@ from typing import Any
 import yaml
 
 from lineagepilot_core.graph.ids import airflow_task_id
-from lineagepilot_core.parsers import _json
+from lineagepilot_core.parsers import _json, safe_yaml
+from lineagepilot_core.parsers.safe_yaml import shown
 
 logger = logging.getLogger(__name__)
 
@@ -104,7 +105,7 @@ class DataFlowAnnotationLoader:
                 )
                 return False
             if path.suffix in (".yaml", ".yml"):
-                data = yaml.safe_load(path.read_text(encoding="utf-8"))
+                data = safe_yaml.load(path.read_text(encoding="utf-8"))
             elif path.suffix == ".json":
                 data = _json.load_file(path)
             else:
@@ -190,7 +191,7 @@ class DataFlowAnnotationLoader:
             if isinstance(prefix, str) and isinstance(target, str) and prefix and target:
                 self.path_map[prefix.rstrip("/") or "/"] = target
             else:
-                self.problems.append(f"path_map: {prefix!r} is not a path to a path; ignored")
+                self.problems.append(f"path_map: {shown(prefix)} is not a path to a path; ignored")
 
     def _parse_acknowledged(self, entries: Any) -> None:
         if entries is None:
@@ -203,7 +204,9 @@ class DataFlowAnnotationLoader:
             if keys:
                 self.acknowledged.append(keys)
             else:
-                self.problems.append(f"acknowledged: {entry!r} names no file, DAG or task; ignored")
+                self.problems.append(
+                    f"acknowledged: {shown(entry)} names no file, DAG or task; ignored"
+                )
 
     def get_annotation(self, task_id: str) -> DataFlowAnnotation | None:
         return self._annotations.get(task_id)

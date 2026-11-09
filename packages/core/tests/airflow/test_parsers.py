@@ -132,9 +132,11 @@ def test_dbt_ls_file(tmp_path):
     p.write_text(
         'log line\n{"unique_id": "model.p.a", "resource_type": "model"}\n{bad json\n{"no_id": 1}\n'
     )
-    assert [r["unique_id"] for r in load_dbt_ls_file(str(p))] == ["model.p.a"]
+    assert [r["unique_id"] for r in load_dbt_ls_file(str(p), str(tmp_path))] == ["model.p.a"]
     with pytest.raises(ManifestError):
-        load_dbt_ls_file(str(p), size_cap=1)
+        load_dbt_ls_file(str(p), str(tmp_path), size_cap=1)
+    with pytest.raises(ManifestError):
+        load_dbt_ls_file(str(p), str(tmp_path / "elsewhere"))
 
 
 # --- stand-in -----------------------------------------------------------------------------------

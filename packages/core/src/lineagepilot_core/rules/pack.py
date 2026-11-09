@@ -49,6 +49,8 @@ from typing import Any
 import yaml
 
 from lineagepilot_core.graph.model import Column, MetadataGraph, Node, NodeKind
+from lineagepilot_core.parsers import safe_yaml
+from lineagepilot_core.parsers.safe_yaml import shown
 from lineagepilot_core.rules.model import (
     NOT_APPLICABLE,
     PASS,
@@ -113,7 +115,7 @@ def load_rule_pack(path: str | Path, builtin_ids: set[str] | None = None) -> Rul
         if size > MAX_PACK_BYTES:
             pack.problems.append(f"{path}: larger than {MAX_PACK_BYTES // 1024} KB; not loaded")
             return pack
-        data = yaml.safe_load(path.read_text(encoding="utf-8"))
+        data = safe_yaml.load(path.read_text(encoding="utf-8"))
     except FileNotFoundError:
         return pack
     except (OSError, UnicodeDecodeError, yaml.YAMLError) as e:
@@ -133,9 +135,9 @@ def parse_rule_pack(
         return pack
 
     for key in sorted(set(data) - {"version", "disable", "severity", "rules"}, key=str):
-        pack.problems.append(f"{source}: unknown key {key!r} ignored")
+        pack.problems.append(f"{source}: unknown key {shown(key)} ignored")
     if data.get("version", 1) != 1:
-        pack.problems.append(f"{source}: version {data.get('version')!r} is not supported")
+        pack.problems.append(f"{source}: version {shown(data.get('version'))} is not supported")
         return pack
 
     disable = data.get("disable", [])
@@ -150,7 +152,9 @@ def parse_rule_pack(
             try:
                 pack.severities[str(rule_id)] = Severity(level)
             except ValueError:
-                pack.problems.append(f"{source}: severity of {rule_id}: {level!r} is not valid")
+                pack.problems.append(
+                    f"{source}: severity of {rule_id}: {shown(level)} is not valid"
+                )
     else:
         pack.problems.append(f"{source}: 'severity' must be a mapping of rule ID to severity")
 

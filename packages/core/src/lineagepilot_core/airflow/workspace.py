@@ -12,7 +12,12 @@ from pathlib import Path
 from typing import Any
 
 from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS, scan_dags
-from lineagepilot_core.airflow.safe_io import is_inside, to_posix
+from lineagepilot_core.airflow.safe_io import (
+    is_inside,
+    regular_file_inside,
+    resolve_inside,
+    to_posix,
+)
 from lineagepilot_core.parsers.data_flow_annotations import DataFlowAnnotationLoader
 
 ANNOTATION_FILE = ".lineagepilot/airflow.yml"
@@ -50,9 +55,13 @@ def scan_airflow(
     loader = DataFlowAnnotationLoader()
     annotation = os.path.join(root, ANNOTATION_FILE)
     file = None
-    if os.path.isfile(annotation):
-        loader.load_annotations(annotation)
+    # A link to a file outside the workspace is not read: what it holds would reach the review
+    real = regular_file_inside(annotation, space)
+    if real is not None:
+        loader.load_annotations(real)
         file = to_posix(os.path.relpath(annotation, space))
+    elif os.path.lexists(annotation):
+        loader.problems.append(f"{ANNOTATION_FILE} is not a regular file in the workspace")
     path_map, problems = _path_map(loader.path_map, root, space)
     manifests = {root: str(manifest)} if manifest else None
     result = scan_dags(space, dag_folders, manifests, path_map, focus_project=root)
@@ -68,12 +77,13 @@ def scan_airflow(
 
 
 def _path_map(entries: dict[str, str], root: str, space: str) -> tuple[dict[str, str], list[str]]:
-    """Each target is relative to the project, and must stay in the workspace."""
+    """Each target is relative to the project, and must stay in the workspace. It is checked as a
+    string first: on Windows a target of ``//host/share`` is a UNC path."""
     found: dict[str, str] = {}
     problems: list[str] = []
     for prefix, target in sorted(entries.items()):
-        path = os.path.realpath(os.path.join(root, target))
-        if is_inside(path, space):
+        path = resolve_inside(os.path.join(root, target), space)
+        if path is not None:
             found[prefix] = path
         else:
             problems.append(f"path_map: {prefix!r} leaves the workspace; ignored")

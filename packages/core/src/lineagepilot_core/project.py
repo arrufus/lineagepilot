@@ -1,8 +1,9 @@
 """A dbt project: where its artifacts and source files are.
 
 Read from ``dbt_project.yml``, which is untrusted input (design section 10): the file is
-size-capped and parsed with ``yaml.safe_load``, and every path in it must stay inside
-the project. A value that cannot be used falls back to dbt's default and is reported.
+size-capped and parsed with ``safe_yaml.load`` (no alias bombs, no deep nesting), and every
+path in it must stay inside the project. A value that cannot be used falls back to dbt's
+default and is reported, cut short.
 """
 
 from __future__ import annotations
@@ -13,6 +14,9 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 import yaml
+
+from lineagepilot_core.parsers import safe_yaml
+from lineagepilot_core.parsers.safe_yaml import shown
 
 PROJECT_FILE = "dbt_project.yml"
 MAX_PROJECT_FILE_BYTES = 1_000_000
@@ -96,7 +100,7 @@ def read_project(root: Path) -> DbtProject:
         if path.stat().st_size > MAX_PROJECT_FILE_BYTES:
             problems.append(f"{PROJECT_FILE} is larger than 1 MB; using dbt's defaults")
         else:
-            loaded = yaml.safe_load(path.read_text(encoding="utf-8"))
+            loaded = safe_yaml.load(path.read_text(encoding="utf-8"))
             if isinstance(loaded, dict):
                 data = loaded
             else:
@@ -147,15 +151,15 @@ def _inside(
 ) -> str | None:
     """``value`` as a relative path inside ``root``, or ``fallback`` with a problem noted."""
     if not isinstance(value, str) or not value.strip() or "{{" in value or "{%" in value:
-        problems.append(f"{key} {value!r} is not a plain relative path; ignored")
+        problems.append(f"{key} {shown(value)} is not a plain relative path; ignored")
         return fallback
     relative = PurePosixPath(value.strip().replace("\\", "/"))
     if relative.is_absolute() or (relative.parts and ":" in relative.parts[0]):
-        problems.append(f"{key} {value!r} is absolute; ignored")
+        problems.append(f"{key} {shown(value)} is absolute; ignored")
         return fallback
     base = root.resolve()
     resolved = (root / relative).resolve()
     if not resolved.is_relative_to(base):
-        problems.append(f"{key} {value!r} leaves the project; ignored")
+        problems.append(f"{key} {shown(value)} leaves the project; ignored")
         return fallback
     return resolved.relative_to(base).as_posix() or "."

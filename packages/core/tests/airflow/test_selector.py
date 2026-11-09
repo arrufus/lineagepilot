@@ -12,7 +12,7 @@ from lineagepilot_core.airflow.manifest import manifest_from_dict
 from lineagepilot_core.airflow.selector import (
     SelectorEngine,
     UnsupportedSelector,
-    _glob_to_regex,
+    _PathGlob,
     is_selected_node,
     leaf_wildcards,
     parse_spec,
@@ -181,16 +181,45 @@ def test_config_booleans_and_lists():
     assert select(m, ["config.missing:x"]).ids == set()
 
 
-def test_glob_translation():
-    rx = _glob_to_regex("models/**/stg_*.sql")
+def test_path_glob():
+    glob = _PathGlob("models/**/stg_*.sql")
     assert (
-        rx.match("models/a/b/stg_x.sql")
-        and rx.match("models/stg_x.sql")
-        and not rx.match("models/a/x.sql")
+        glob.match("models/a/b/stg_x.sql")
+        and glob.match("models/stg_x.sql")
+        and not glob.match("models/a/x.sql")
+        and not glob.match("models/a/bstg_x.sql")
     )
-    assert _glob_to_regex("m/[ab].sql").match("m/a.sql")
-    assert _glob_to_regex("m/[ab.sql").match("m/[ab.sql")
-    assert _glob_to_regex("m/?.sql").match("m/x.sql")
+    assert _PathGlob("m/[ab].sql").match("m/a.sql")
+    assert _PathGlob("m/[ab.sql").match("m/[ab.sql")
+    assert _PathGlob("m/?.sql").match("m/x.sql")
+    assert not _PathGlob("m/?.sql").match("m/x/y.sql")
+    assert _PathGlob("models/**").match("models/a/b.sql")
+    assert _PathGlob("**/b.sql").match("b.sql")
+
+
+def test_a_hostile_path_glob_is_fast_and_never_raises():
+    import time
+
+    path = "models/" + "a" * 250 + "/" + "a" * 250
+    started = time.perf_counter()
+    for pattern in ("*a*a*a*a*a*a*a*a*b", "**/**/**/**/**/*a*a*a*b", "**/" * 20 + "b"):
+        assert not _PathGlob(pattern).match(path)
+    assert time.perf_counter() - started < 1
+    assert not _PathGlob("m/[z-a].sql").match("m/a.sql")  # an empty range: no error
+    m = manifest_from_dict(
+        {
+            "nodes": {
+                "model.p.a": {
+                    "resource_type": "model",
+                    "name": "a",
+                    "fqn": ["p", "a"],
+                    "original_file_path": "models/a.sql",
+                    "package_name": "p",
+                }
+            }
+        }
+    )
+    assert select(m, ["path:models/[z-a]*"]).ids == set()
 
 
 def test_is_selected_node_edges():

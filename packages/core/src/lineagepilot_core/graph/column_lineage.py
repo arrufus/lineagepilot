@@ -18,6 +18,7 @@ from __future__ import annotations
 import hashlib
 import logging
 from collections.abc import Iterable, Mapping
+from dataclasses import dataclass
 from pathlib import Path
 
 from sqlglot.schema import MappingSchema
@@ -39,6 +40,7 @@ from lineagepilot_core.graph.model import (
 from lineagepilot_core.parsers.base import ParseResult
 from lineagepilot_core.parsers.sql_lineage import (
     MAX_SQL_CHARS,
+    SqlLineage,
     TableRef,
     build_schema,
     sql_column_lineage,
@@ -128,7 +130,6 @@ def add_column_lineage(
     has_catalog = any(n.in_catalog for n in graph.nodes.values())
     if schema is None and has_catalog:
         schema = catalog_schema(graph)
-    dialect = sqlglot_dialect(graph.adapter_type)
 
     statuses: dict[str, ColumnLineageStatus] = {}
     for node_id in node_ids:
@@ -137,35 +138,70 @@ def add_column_lineage(
             raise ValueError(
                 f"{node_id} is a {node.kind.value}; only models and snapshots have SQL"
             )
-        _clear(graph, node_id)
-
         text = sql.get(node_id)
-        if node.language == "python":
-            status = _unknown("Python models are not analysed")
-        elif not text:
-            status = _unknown("no compiled SQL; run dbt compile or dbt docs generate")
-        elif schema is None:
-            status = _unknown("no catalog.json; run dbt docs generate")
-        else:
-            status = _apply(graph, node_id, text, schema, dialect, max_chars)
-
-        graph.column_lineage[node_id] = status
-        if status.state is LineageState.UNKNOWN:
-            graph.add_unresolved(
-                Unresolved(
-                    subject=node_id,
-                    reference=_LINEAGE_REFERENCE,
-                    reason=status.reason or "unknown",
-                    evidence=_evidence(graph, node_id, text),
-                )
-            )
-            # Lineage needs the catalog; the names of what a model selects often do not
-            if text and node.language != "python":
-                names, _ = sql_output_columns(text, schema, dialect, max_chars)
-                if names:
-                    graph.output_columns[node_id] = names
-        statuses[node_id] = status
+        traced = (
+            trace(text, schema, graph.adapter_type, max_chars)
+            if text and node.language != "python"
+            else None
+        )
+        statuses[node_id] = record(graph, node_id, text, traced)
     return statuses
+
+
+@dataclass(frozen=True)
+class Traced:
+    """What sqlglot found in one node's SQL: ``lineage`` if there is a catalog to trace it
+    against, and the names it selects when the lineage is not known."""
+
+    lineage: SqlLineage | None
+    names: list[str] | None
+
+
+def trace(
+    sql: str, schema: MappingSchema | None, adapter_type: str | None, max_chars: int = MAX_SQL_CHARS
+) -> Traced:
+    """The slow part of column lineage for one node, and the only part that runs sqlglot. It
+    reads nothing but its arguments, so it can run on another thread (see ``record``)."""
+    dialect = sqlglot_dialect(adapter_type)
+    lineage = sql_column_lineage(sql, schema, dialect, max_chars) if schema is not None else None
+    names = None
+    if lineage is None or lineage.unknown:
+        # Lineage needs the catalog; the names of what a model selects often do not
+        names, _ = sql_output_columns(sql, schema, dialect, max_chars)
+    return Traced(lineage, names)
+
+
+def record(
+    graph: MetadataGraph, node_id: str, sql: str | None, traced: Traced | None
+) -> ColumnLineageStatus:
+    """Put one node's column lineage in the graph, replacing any earlier result. ``traced`` is
+    None for a node with no SQL to trace."""
+    node = graph.node(node_id)
+    _clear(graph, node_id)
+    if node.language == "python":
+        status = _unknown("Python models are not analysed")
+    elif not sql or traced is None:
+        status = _unknown("no compiled SQL; run dbt compile or dbt docs generate")
+    elif traced.lineage is None:
+        status = _unknown("no catalog.json; run dbt docs generate")
+    elif traced.lineage.unknown:
+        status = _unknown(traced.lineage.reason or "unknown")
+    else:
+        status = _record_lineage(graph, node_id, sql, traced.lineage)
+
+    graph.column_lineage[node_id] = status
+    if status.state is LineageState.UNKNOWN:
+        graph.add_unresolved(
+            Unresolved(
+                subject=node_id,
+                reference=_LINEAGE_REFERENCE,
+                reason=status.reason or "unknown",
+                evidence=_evidence(graph, node_id, sql),
+            )
+        )
+        if traced is not None and traced.names:
+            graph.output_columns[node_id] = traced.names
+    return status
 
 
 def _unknown(reason: str) -> ColumnLineageStatus:
@@ -200,17 +236,9 @@ def _evidence(graph: MetadataGraph, node_id: str, sql: str | None) -> Evidence:
     )
 
 
-def _apply(
-    graph: MetadataGraph,
-    node_id: str,
-    sql: str,
-    schema: MappingSchema,
-    dialect: str | None,
-    max_chars: int,
+def _record_lineage(
+    graph: MetadataGraph, node_id: str, sql: str, traced: SqlLineage
 ) -> ColumnLineageStatus:
-    traced = sql_column_lineage(sql, schema, dialect, max_chars)
-    if traced.unknown:
-        return _unknown(traced.reason or "unknown")
     graph.output_columns[node_id] = list(traced.columns)
 
     adapter = graph.adapter_type
