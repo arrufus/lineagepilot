@@ -1,14 +1,14 @@
 """A memory limit for the child processes that read the project (audit LP-SEC-05).
 
 The indexer, the DAG scan and the baseline reader parse files from the workspace, which is
-untrusted. Whatever they cost, they must not take the machine with them. Each child is limited
-twice:
+untrusted. Whatever they cost, they must not take the machine with them:
 
-- by the operating system, from inside the child (``apply_in_child``): ``RLIMIT_AS`` on Linux,
-  where an allocation past it raises ``MemoryError``; a Job Object with a process memory limit
-  on Windows. macOS does not enforce ``RLIMIT_AS``.
-- by the server, which watches the child's resident memory (``resident_bytes``) and kills it
-  past the limit: the only limit on macOS, and a second one on Linux.
+- On Linux the child limits itself (``apply_in_child``) with ``RLIMIT_AS``: an allocation past it
+  raises ``MemoryError``.
+- On every platform the server watches the child's memory (``resident_bytes``) and kills it past
+  the limit: the only limit on macOS, which does not enforce ``RLIMIT_AS``, and on Windows. A Job
+  Object would limit a Windows child too, but a child in one made the server's end-to-end tests
+  hang on Windows CI when it was killed, so the server's watch is used there instead.
 
 The limit scales with the artifact size limit, which the user sets and an untrusted workspace
 cannot raise: parsing a manifest takes many times its size (spike S2: about 1 GB at 5,000
@@ -30,8 +30,6 @@ MIN_LIMIT = 4 * 2**30
 PER_ARTIFACT_BYTE = 16
 # Of the machine's physical memory
 MAX_SHARE = 0.75
-
-_job: Any = None  # the Windows Job Object, held for the life of the process
 
 
 def physical_memory() -> int | None:
@@ -60,9 +58,6 @@ def apply_in_child(limit: int) -> str | None:
             soft = limit if hard == resource.RLIM_INFINITY else min(limit, hard)
             resource.setrlimit(resource.RLIMIT_AS, (soft, hard))
             return "RLIMIT_AS"
-        if sys.platform == "win32":
-            _windows_job(limit)
-            return "a Job Object"
     except (OSError, ValueError) as e:
         logger.warning("The memory limit could not be set: %s", e)
     return None
@@ -76,7 +71,9 @@ def resident_bytes(pid: int) -> int | None:
                 return int(f.read().split()[1]) * os.sysconf("SC_PAGE_SIZE")
         if sys.platform == "darwin":
             return _darwin_resident(pid)
-    except (OSError, ValueError, IndexError):
+        if sys.platform == "win32":
+            return _windows_private_bytes(pid)
+    except (OSError, ValueError, IndexError, AttributeError):
         return None
     return None
 
@@ -106,67 +103,45 @@ def _darwin_resident(pid: int) -> int | None:
 
 
 # Windows ---------------------------------------------------------------------------------------
-_JOB_OBJECT_LIMIT_PROCESS_MEMORY = 0x100
-_JOB_OBJECT_EXTENDED_LIMIT_INFORMATION = 9
+_PROCESS_QUERY_LIMITED_INFORMATION = 0x1000
+_PROCESS_VM_READ = 0x0010
 
 
-def _windows_job(limit: int) -> None:
+def _windows_private_bytes(pid: int) -> int | None:
+    """A process's private memory (what it has committed), from GetProcessMemoryInfo."""
     from ctypes import wintypes
 
-    class BasicLimits(ctypes.Structure):
+    class Counters(ctypes.Structure):
         _fields_ = [
-            ("PerProcessUserTimeLimit", ctypes.c_int64),
-            ("PerJobUserTimeLimit", ctypes.c_int64),
-            ("LimitFlags", wintypes.DWORD),
-            ("MinimumWorkingSetSize", ctypes.c_size_t),
-            ("MaximumWorkingSetSize", ctypes.c_size_t),
-            ("ActiveProcessLimit", wintypes.DWORD),
-            ("Affinity", ctypes.c_size_t),
-            ("PriorityClass", wintypes.DWORD),
-            ("SchedulingClass", wintypes.DWORD),
+            ("cb", wintypes.DWORD),
+            ("PageFaultCount", wintypes.DWORD),
+            ("PeakWorkingSetSize", ctypes.c_size_t),
+            ("WorkingSetSize", ctypes.c_size_t),
+            ("QuotaPeakPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaPeakNonPagedPoolUsage", ctypes.c_size_t),
+            ("QuotaNonPagedPoolUsage", ctypes.c_size_t),
+            ("PagefileUsage", ctypes.c_size_t),
+            ("PeakPagefileUsage", ctypes.c_size_t),
         ]
 
-    class IoCounters(ctypes.Structure):
-        _fields_ = [
-            (name, ctypes.c_uint64)
-            for name in ("Read", "Write", "Other", "ReadBytes", "WriteBytes", "OtherBytes")
-        ]
-
-    class ExtendedLimits(ctypes.Structure):
-        _fields_ = [
-            ("BasicLimitInformation", BasicLimits),
-            ("IoInfo", IoCounters),
-            ("ProcessMemoryLimit", ctypes.c_size_t),
-            ("JobMemoryLimit", ctypes.c_size_t),
-            ("PeakProcessMemoryUsed", ctypes.c_size_t),
-            ("PeakJobMemoryUsed", ctypes.c_size_t),
-        ]
-
-    global _job
     kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)  # type: ignore[attr-defined]
-    kernel32.CreateJobObjectW.argtypes = [ctypes.c_void_p, wintypes.LPCWSTR]
-    kernel32.CreateJobObjectW.restype = wintypes.HANDLE
-    kernel32.SetInformationJobObject.argtypes = [
-        wintypes.HANDLE,
-        ctypes.c_int,
-        ctypes.c_void_p,
-        wintypes.DWORD,
-    ]
-    kernel32.SetInformationJobObject.restype = wintypes.BOOL
-    kernel32.GetCurrentProcess.restype = wintypes.HANDLE
-    kernel32.AssignProcessToJobObject.argtypes = [wintypes.HANDLE, wintypes.HANDLE]
-    kernel32.AssignProcessToJobObject.restype = wintypes.BOOL
-    job = kernel32.CreateJobObjectW(None, None)
-    if not job:
-        raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
-    info = ExtendedLimits()
-    info.BasicLimitInformation.LimitFlags = _JOB_OBJECT_LIMIT_PROCESS_MEMORY
-    info.ProcessMemoryLimit = limit
-    if not kernel32.SetInformationJobObject(
-        job, _JOB_OBJECT_EXTENDED_LIMIT_INFORMATION, ctypes.byref(info), ctypes.sizeof(info)
-    ) or not kernel32.AssignProcessToJobObject(job, kernel32.GetCurrentProcess()):
-        raise ctypes.WinError(ctypes.get_last_error())  # type: ignore[attr-defined]
-    _job = job
+    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
+    kernel32.OpenProcess.restype = wintypes.HANDLE
+    kernel32.K32GetProcessMemoryInfo.argtypes = [wintypes.HANDLE, ctypes.c_void_p, wintypes.DWORD]
+    kernel32.K32GetProcessMemoryInfo.restype = wintypes.BOOL
+    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    handle = kernel32.OpenProcess(_PROCESS_QUERY_LIMITED_INFORMATION | _PROCESS_VM_READ, False, pid)
+    if not handle:
+        return None
+    try:
+        counters = Counters()
+        counters.cb = ctypes.sizeof(counters)
+        if not kernel32.K32GetProcessMemoryInfo(handle, ctypes.byref(counters), counters.cb):
+            return None
+        return int(counters.PagefileUsage)
+    finally:
+        kernel32.CloseHandle(handle)
 
 
 def _windows_physical_memory() -> int | None:

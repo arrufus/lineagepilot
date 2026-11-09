@@ -51,8 +51,8 @@ async def test_the_server_stops_a_child_that_uses_too_much_memory(monkeypatch):
 
 
 @pytest.mark.skipif(
-    not (sys.platform.startswith("linux") or sys.platform == "win32"),
-    reason="macOS does not enforce a memory limit on a process; the server's watch applies",
+    not sys.platform.startswith("linux"),
+    reason="only Linux limits the child itself; elsewhere the server's watch applies",
 )
 def test_the_operating_system_stops_an_allocation_past_the_limit():
     code = (
