@@ -76,6 +76,8 @@ One command checks a release, from a clone of this repository, with the GitHub C
 python extension/scripts/verify_release.py v0.1.1
 ```
 
+With no tag, it checks the release of the version in `extension/package.json`, the one just cut. It needs Python 3.10 or later; `uv run --no-project extension/scripts/verify_release.py` runs it with uv's own Python instead of the system's.
+
 It downloads the release into a temporary directory, so files from an earlier download do not get in its way, and checks that:
 - the release is published, not as a draft or a pre-release, and is the latest release;
 - the release workflow made it: its author is `github-actions[bot]`, rather than someone who uploaded a file;

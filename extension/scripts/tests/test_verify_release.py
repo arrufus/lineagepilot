@@ -414,6 +414,19 @@ def test_main_prints_the_report_and_exits_by_its_result(monkeypatch, capsys):
     assert "The release is NOT complete: 1 check failed." in capsys.readouterr().out
 
 
+def test_main_with_no_tag_checks_the_version_in_package_json(monkeypatch, capsys):
+    checked = []
+
+    def fake_assess(github, tag, workdir):
+        checked.append(tag)
+        return vr.Report(f"LineagePilot {tag}")
+
+    monkeypatch.setattr(vr, "assess", fake_assess)
+    version = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
+    assert vr.main([]) == 0 and checked == [f"v{version}"]
+    assert vr.main(["v0.0.9"]) == 0 and checked[-1] == "v0.0.9"
+
+
 def test_main_exits_2_when_it_cannot_ask_github(monkeypatch, capsys):
     class Broken(FakeGitHub):
         def repository(self):

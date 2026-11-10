@@ -2,8 +2,9 @@
 
 Usage, from a clone of the repository, with the GitHub CLI signed in to an account that can read it:
 
-    python extension/scripts/verify_release.py v0.1.1 [--repo arrufus/lineagepilot]
+    python extension/scripts/verify_release.py [v0.1.1] [--repo arrufus/lineagepilot]
 
+With no tag, it checks the release of the version in extension/package.json: the one just cut.
 It downloads the release into a temporary directory, so an earlier download gets in nobody's way,
 and checks that:
 - the release is published, not a draft or a pre-release, and is the repository's latest release;
@@ -34,6 +35,7 @@ from pathlib import Path
 
 from release_check import TAG
 
+ROOT = Path(__file__).resolve().parents[1]
 REPO = "arrufus/lineagepilot"
 WORKFLOW = "lineagepilot-release.yml"
 BOT = "github-actions[bot]"
@@ -331,12 +333,14 @@ def check_run(report: Report, github: GitHub, tag: str, vsix: str, sha256: str |
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
-    parser.add_argument("tag", help="the release's tag, for example v0.1.1")
+    parser.add_argument("tag", nargs="?",
+                        help="the release's tag, for example v0.1.1 (default: v<the version in extension/package.json>)")
     parser.add_argument("--repo", default=REPO, help=f"OWNER/REPO (default {REPO})")
     args = parser.parse_args(argv)
+    tag = args.tag or "v" + json.loads((ROOT / "package.json").read_text(encoding="utf-8"))["version"]
     with tempfile.TemporaryDirectory(prefix="lineagepilot-release-") as directory:
         try:
-            report = assess(GitHub(args.repo), args.tag, Path(directory))
+            report = assess(GitHub(args.repo), tag, Path(directory))
         except GhError as error:
             print(f"verify_release: could not ask GitHub: {error}", file=sys.stderr)
             return 2
