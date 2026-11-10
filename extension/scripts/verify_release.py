@@ -192,7 +192,7 @@ def job_problems(jobs: list[dict]) -> list[str]:
 def audience(repository: dict, url: str) -> str:
     if repository.get("private"):
         return (f"Who can download it: only people with access to the private repository {repository['full_name']}. "
-                "It is not public, by design during the closed beta. Invite a beta team with the Read role "
+                "It is not public, by design during the closed beta. Beta testers are invited as collaborators "
                 "(docs/beta.md, 'Inviting a team'); the link works for them once they accept. "
                 "Releases become public when the repository does, after Gate G1.")
     return f"Who can download it: anyone, from {url}"

@@ -15,7 +15,7 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
 
 | Question | Decision |
 |---|---|
-| How beta teams get it | A VSIX attached to a GitHub release of this private repository. Teams are invited as read-only collaborators. Nothing goes to the Marketplace or Open VSX before G1 ([release.md](release.md)). |
+| How beta teams get it | A VSIX attached to a GitHub release of this private repository. Each tester is invited as a collaborator, which on this repository means write access: GitHub has no Read role on a repository owned by a personal account (decided 10 November 2026, [Inviting a team](#inviting-a-team)). Nothing goes to the Marketplace or Open VSX before G1 ([release.md](release.md)). |
 | Licence (D-5) | MIT, for the extension, `lineagepilot_core` and `lineagepilot_lsp`. |
 | Telemetry (D-7) | None. Opt-in **usage counts**, kept on the user's machine and shared by hand in the weekly check-in. LineagePilot still makes no network connections. |
 | Feedback | GitHub issues, through three forms: bug report, feedback, and the weekly check-in. |
@@ -25,10 +25,10 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
 ## Before the first invitation
 
 - [x] GitHub Actions runs again, and CI is green on `main` (LP-kf5, 8 November 2026). That closed Phase 5 (LP-56q).
-- [ ] The labels in [release.md](release.md#before-the-first-beta-release) exist. Write access to the repository is yours alone.
+- [ ] The labels in [release.md](release.md#before-the-first-beta-release) exist.
 - [x] The first release, `v0.1.1`, is made (9 November 2026), and `python extension/scripts/verify_release.py v0.1.1` says it is complete ([release.md](release.md#checking-a-release)).
 - [ ] You have installed that VSIX yourself on a clean profile, and walked through **Get Started with LineagePilot** and the sample project.
-- [ ] **Decide what beta teams may read.** Read access to this repository is the whole repository: the source, the design and plan documents, the corpus, and `fixtures/jaffle-shop`, which has no licence (LP-0tf). If that is too much, release to a separate private repository that holds only releases and issues instead. The release workflow would then need a token that can write there.
+- [ ] **Decide what beta teams may read.** Access to this repository is the whole repository: the source, the design and plan documents, the corpus, and `fixtures/jaffle-shop`, which has no licence (LP-0tf). If that is too much, release to a separate private repository that holds only releases and issues instead, owned by an organization so that testers can have the Read role there. The release workflow would then need a token that can write there.
 - [ ] **Settle how criterion 1 is read** (below), before any check-in arrives.
 
 ## Recruiting
@@ -43,13 +43,15 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
 
 ## Inviting a team
 
-1. Add each person as a collaborator with the **Read** role: **Settings › Collaborators**, or
+1. Invite each person as a collaborator: **Settings › Collaborators › Add people**, or
 
    ```bash
-   gh api -X PUT repos/arrufus/lineagepilot/collaborators/<their-github-login> -f permission=pull
+   gh api -X PUT repos/arrufus/lineagepilot/collaborators/<their-github-login>
    ```
 
-   Read access is enough to download a release, open issues and read the code.
+   **A collaborator here has write access.** This repository is private and owned by a personal account, and GitHub offers such a repository no Read role: adding `-f permission=pull` fails with `Cannot assign <login> permission of read`. Read-only access needs a repository owned by an organization. With write access a tester can download releases and open issues, but can also push to `main` and push a `v*` tag, which publishes a release: nothing on this plan stops that. Invite only people you trust with it, and remove them when the beta ends.
+
+   The invitation reaches them by email and at <https://github.com/notifications>, and expires after 7 days.
 2. Send them the link to the latest release, <https://github.com/arrufus/lineagepilot/releases/latest>, and the extension's README section [Install the beta](../extension/README.md#install-the-beta). The link works for them once they have accepted the invitation. Until then GitHub shows them "Page not found", as it does to anyone without access to this private repository.
 3. Ask each person to turn on **usage counts** if they are willing: `lineagePilot.usageCounts.enabled` in their user settings. They are optional, and the check-in works without them.
 

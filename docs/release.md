@@ -129,7 +129,7 @@ diff <(unzip -v dist/lineagepilot.vsix | awk 'NR > 3 {print $1, $7, $8}') \
 ### Before the first beta release
 
 - [x] **GitHub Actions runs again** (LP-kf5): billing was fixed on 8 November 2026, under the account's **Billing and plans**. Without it no workflow starts, this one included.
-- [ ] **Keep write access to yourself.** A tag on `main` releases, and anyone who can push to this repository can push one. GitHub cannot restrict who creates tags here: rulesets and branch protection need GitHub Pro or a public repository. Until then, two things protect releases. Beta teams get the **Read** role only ([beta.md](beta.md#inviting-a-team)). The release workflow refuses a tag that is not on `main`. If you move to GitHub Pro, add the rulesets in the public-release list below now.
+- [ ] **Know who has write access.** A tag on `main` releases, and anyone who can push to this repository can push one. GitHub cannot restrict who creates tags here: rulesets and branch protection need GitHub Pro or a public repository. Beta testers are collaborators, and on a repository owned by a personal account a collaborator always has write access: there is no Read role ([beta.md](beta.md#inviting-a-team)). So invite only people you trust to release. The release workflow refuses a tag that is not on `main`, which stops a stray tag, not a collaborator who pushes to `main` first. For read-only testers, the repository, or a releases-only one, must belong to an organization. If you move to GitHub Pro, add the rulesets in the public-release list below now.
 - [ ] **Create the labels the beta's issue forms use**:
 
   ```bash
