@@ -5,7 +5,8 @@ Usage: python scripts/release_check.py --tag v0.1.0 [--notes-out notes.md] [--gi
 
 The tag must be v<version> with the version in package.json, which is major.minor.patch as both
 registries require, and CHANGELOG.md must have a "## <version>" section: its text becomes the
-release notes. A 0.x version is published as a pre-release on GitHub.
+release notes. No release is a GitHub pre-release: GitHub never makes a pre-release the latest
+release, so the newest release would have no stable link (LP-fzx).
 """
 
 from __future__ import annotations
@@ -46,11 +47,7 @@ def check(tag: str, package: dict, changelog: str) -> tuple[list[str], dict[str,
     notes = notes_for(changelog, version) if version else None
     if notes is None:
         problems.append(f"CHANGELOG.md has no section '## {version}' with text in it")
-    facts = {
-        "version": version,
-        "prerelease": "true" if version.startswith("0.") else "false",
-        "notes": notes or "",
-    }
+    facts = {"version": version, "notes": notes or ""}
     return problems, facts
 
 
@@ -58,7 +55,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.split("\n", 1)[0])
     parser.add_argument("--tag", required=True)
     parser.add_argument("--notes-out", type=Path, help="write the release notes here")
-    parser.add_argument("--github-output", type=Path, help="append version= and prerelease= here")
+    parser.add_argument("--github-output", type=Path, help="append version= here")
     args = parser.parse_args()
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
     changelog = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
@@ -69,9 +66,8 @@ def main() -> None:
         args.notes_out.write_text(facts["notes"] + "\n", encoding="utf-8")
     if args.github_output:
         with args.github_output.open("a", encoding="utf-8") as out:
-            out.write(f"version={facts['version']}\nprerelease={facts['prerelease']}\n")
-    print(f"release check passed: {args.tag} is version {facts['version']}"
-          + (" (pre-release)" if facts["prerelease"] == "true" else ""))
+            out.write(f"version={facts['version']}\n")
+    print(f"release check passed: {args.tag} is version {facts['version']}")
 
 
 if __name__ == "__main__":

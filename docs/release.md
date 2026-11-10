@@ -14,7 +14,7 @@ How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are 
    cd extension && npm version 0.1.1 --no-git-tag-version   # updates package.json and package-lock.json
    ```
 
-   Versions are `major.minor.patch`, as both registries require: no `-beta.1` suffix. While the version is `0.x`, the GitHub release is marked as a pre-release.
+   Versions are `major.minor.patch`, as both registries require: no `-beta.1` suffix. No release is a GitHub pre-release, even at `0.x`: GitHub never makes a pre-release the latest release, and the latest release's link is the one beta teams are given.
 
 2. **Add its section to `extension/CHANGELOG.md`**, headed `## 0.1.1`. Its text becomes the release notes, and the release fails without it.
 
@@ -38,6 +38,17 @@ How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are 
    git push origin v0.1.1
    ```
 
+5. **Check the release.** The run takes about 11 minutes. Watch it, then check what it made:
+
+   ```bash
+   gh run watch --exit-status "$(gh run list --workflow lineagepilot-release.yml --branch v0.1.1 --limit 1 --json databaseId --jq '.[0].databaseId')"
+   python extension/scripts/verify_release.py v0.1.1
+   ```
+
+   If `gh run watch` says `failed to get run: HTTP 404: Not Found`, the run has not registered yet: wait a few seconds and run that line again. `verify_release.py` prints one line per check, then **The release is complete.** or what is wrong ([Checking a release](#checking-a-release)).
+
+6. **Hand it out.** The link for beta teams is always <https://github.com/arrufus/lineagepilot/releases/latest>. The release is not public: this repository is private, so only you and the collaborators you invite can open it, and anyone else gets GitHub's "Page not found". That is by design for the closed beta: invite each team as in [beta.md](beta.md#inviting-a-team). Releases become public when the repository does, after Gate G1.
+
 The tag starts [`lineagepilot-release`](../.github/workflows/lineagepilot-release.yml):
 
 | Job | What it does |
@@ -45,7 +56,7 @@ The tag starts [`lineagepilot-release`](../.github/workflows/lineagepilot-releas
 | `verify` | The tagged commit is on `main`. The tag, `package.json` and `CHANGELOG.md` agree (`extension/scripts/release_check.py`). |
 | `core`, `lsp`, `extension` | The three CI workflows, on the tagged commit. `extension` builds the one universal VSIX, without npm install scripts, and normalises it so its bytes depend only on its files and the commit's time. Then it tests it on Linux, macOS and Windows with Python 3.10 and 3.13, trusted and in Restricted Mode. |
 | `secret-scan` | gitleaks over the whole git history ([`lineagepilot-secrets`](../.github/workflows/lineagepilot-secrets.yml), allowlist in [`.gitleaks.toml`](../.gitleaks.toml)). |
-| `github-release` | Checks that VSIX against both registries' rules, licence included (`check_vsix.py --release`), and that it is normalised for the tagged commit. Attests its build provenance and that of `SHA256SUMS` (public repository only, see below). Attaches it as `lineagepilot-<version>.vsix`, with `SHA256SUMS`, to a GitHub release with the changelog's notes. |
+| `github-release` | Checks that VSIX against both registries' rules, licence included (`check_vsix.py --release`), and that it is normalised for the tagged commit. Attests its build provenance and that of `SHA256SUMS` (public repository only, see below). Attaches it as `lineagepilot-<version>.vsix`, with `SHA256SUMS`, to a GitHub release, which becomes the latest release. Its notes are the changelog's, ending with the VSIX's SHA-256 and a link to the run. |
 | `marketplace`, `open-vsx` | Publish the same file, after checking its SHA-256. These run only when the repository variable `LP_PUBLISH_REGISTRIES` is `true`, and only after a reviewer approves the `registries` environment. |
 
 Nothing is published unless every test passes. The VSIX that is released is the one that was tested: it is built once, in the `extension` job, and never rebuilt.
@@ -55,32 +66,33 @@ Nothing is published unless every test passes. The VSIX that is released is the 
 - **`verify` fails**: fix the version or the changelog on `main`, delete the tag (`git push origin :v0.1.1 && git tag -d v0.1.1`), and tag again.
 - **A test fails**: no release was made. Fix it on `main`, then move the tag the same way.
 - **A publish job fails** after the GitHub release: re-run that job from the Actions page. It publishes the VSIX already released. Never publish a different file under the same version.
+- **`verify_release.py` fails** on a release the workflow made: it says which check failed. A pre-release is fixed by the command it prints. For anything else, do not hand the release out: fix the cause on `main` and release a new version. Never replace a released file.
 
 ### Checking a release
 
-`SHA256SUMS` shows that a download is complete, but it comes from the same GitHub release, so it cannot show who made the file. What can show that depends on whether the repository is public.
-
-**While the repository is private, as in the closed beta, a release has no attestation.** GitHub makes attestations only in public repositories on this account's plan (private ones need GitHub Enterprise Cloud), so the release workflow skips that step, and `gh attestation verify` fails with `HTTP 404: Not Found`. Check instead that the release workflow made the release and logged the file's hash:
+One command checks a release, from a clone of this repository, with the GitHub CLI signed in to an account that can read it:
 
 ```bash
-gh release download v0.1.1 --repo arrufus/lineagepilot     # the VSIX and SHA256SUMS
-sha256sum --check SHA256SUMS                               # shasum -a 256 --check, where there is no sha256sum
-gh api repos/arrufus/lineagepilot/releases/tags/v0.1.1 --jq .author.login
-gh run list --repo arrufus/lineagepilot --workflow lineagepilot-release.yml --branch v0.1.1
-gh run view <run-id> --repo arrufus/lineagepilot --log | grep "  lineagepilot-0.1.1.vsix"
+python extension/scripts/verify_release.py v0.1.1
 ```
 
-- The release's author must be `github-actions[bot]`: the workflow made it, rather than someone uploading a file.
-- `gh run list` gives the ID of the release run for the tag.
-- The last line must print the same hash as `SHA256SUMS`: the release job logged it as it named the file.
+It downloads the release into a temporary directory, so files from an earlier download do not get in its way, and checks that:
+- the release is published, not as a draft or a pre-release, and is the latest release;
+- the release workflow made it: its author is `github-actions[bot]`, rather than someone who uploaded a file;
+- it holds `lineagepilot-0.1.1.vsix` and `SHA256SUMS`, fully uploaded;
+- the VSIX downloaded whole: its SHA-256 is the one in `SHA256SUMS` and the one GitHub recorded on upload, and its `package.json` says 0.1.1;
+- the release run for the tag succeeded on the tagged commit, every job in it passed, and the release job logged the same SHA-256 as it named the file;
+- each file has a build provenance attestation, once the repository is public.
 
-Nothing here is signed. It rests on GitHub's records and on who has write access to the repository, so it is weaker than an attestation.
+It ends by saying who can download the release. It exits 0 if the release is complete, 1 if a check failed, and 2 if it could not ask GitHub, for example because `gh` is not signed in.
 
-**Once the repository is public, each release has a build provenance attestation.** It is signed with a short-lived Sigstore certificate issued to the release workflow's run, and it names the repository, the workflow, the tag and the commit:
+**What this shows.** `SHA256SUMS` and GitHub's recorded digest show that a download is complete, but they come from the same release, so they cannot show who made the file. **While the repository is private, as in the closed beta, a release has no attestation.** GitHub makes attestations only in public repositories on this account's plan (private ones need GitHub Enterprise Cloud), so the release workflow skips that step, and `gh attestation verify` fails with `HTTP 404: Not Found`. What ties the file to the workflow instead is the release's author and the hash in the release run's log. Nothing there is signed: it rests on GitHub's records and on who has write access to the repository, so it is weaker than an attestation.
+
+**Once the repository is public, each release has a build provenance attestation**, which `verify_release.py` checks. It is signed with a short-lived Sigstore certificate issued to the release workflow's run, and it names the repository, the workflow, the tag and the commit. Without a clone, check it with `gh` alone:
 
 ```bash
-gh release download v0.1.1 --repo arrufus/lineagepilot     # the VSIX and SHA256SUMS
-sha256sum --check SHA256SUMS
+gh release download v0.1.1 --repo arrufus/lineagepilot --dir lineagepilot-0.1.1 && cd lineagepilot-0.1.1
+sha256sum --check SHA256SUMS                               # shasum -a 256 --check, where there is no sha256sum
 gh attestation verify lineagepilot-0.1.1.vsix --repo arrufus/lineagepilot \
   --signer-workflow arrufus/lineagepilot/.github/workflows/lineagepilot-release.yml \
   --source-ref refs/tags/v0.1.1 --deny-self-hosted-runners

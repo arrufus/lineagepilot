@@ -217,9 +217,9 @@ CHANGELOG = """# Changelog
 def test_a_matching_tag_passes_and_gives_its_notes():
     problems, facts = release_check.check("v0.1.0", {"version": "0.1.0"}, CHANGELOG)
     assert problems == []
-    assert facts == {"version": "0.1.0", "prerelease": "true", "notes": "- First.\n- Still first."}
+    assert facts == {"version": "0.1.0", "notes": "- First.\n- Still first."}
     _, facts = release_check.check("v1.0.0", {"version": "1.0.0"}, "## 1.0.0\n\nDone.\n")
-    assert facts["prerelease"] == "false" and facts["notes"] == "Done."
+    assert facts["notes"] == "Done."
 
 
 @pytest.mark.parametrize(
@@ -247,7 +247,7 @@ def test_the_real_package_and_changelog_agree(tmp_path, monkeypatch, capsys):
     release_check.main()
     assert "release check passed" in capsys.readouterr().out
     assert notes.read_text(encoding="utf-8").strip()
-    assert output.read_text(encoding="utf-8") == f"version={version}\nprerelease={'true' if version.startswith('0.') else 'false'}\n"
+    assert output.read_text(encoding="utf-8") == f"version={version}\n"
     monkeypatch.setattr(sys, "argv", ["release_check.py", "--tag", "v99.0.0"])
     with pytest.raises(SystemExit, match="release check failed"):
         release_check.main()

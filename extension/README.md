@@ -30,7 +30,7 @@ LineagePilot runs in VS Code 1.93 or later, and in editors built on it, such as 
 
 The beta is not on the Marketplace or Open VSX. Each release is a `.vsix` file attached to a release of the LineagePilot repository on GitHub, which beta teams are invited to.
 
-1. Download `lineagepilot-<version>.vsix` from the newest release. Its SHA-256 is in `SHA256SUMS` beside it: `shasum -a 256 lineagepilot-<version>.vsix` on macOS and Linux, `Get-FileHash lineagepilot-<version>.vsix` in PowerShell.
+1. Download `lineagepilot-<version>.vsix` from the latest release, <https://github.com/arrufus/lineagepilot/releases/latest>, or with the GitHub CLI: `gh release download --repo arrufus/lineagepilot --pattern '*'`. Accept the invitation to the repository first: until then GitHub shows "Page not found". Its SHA-256 is in `SHA256SUMS` beside it: `shasum -a 256 lineagepilot-<version>.vsix` on macOS and Linux, `Get-FileHash lineagepilot-<version>.vsix` in PowerShell.
 2. In VS Code, open the Extensions view, then **…** › **Install from VSIX…**, and choose the file. Or, from a terminal: `code --install-extension lineagepilot-<version>.vsix`.
 3. To update, install the newer file the same way. The beta does not update itself.
 

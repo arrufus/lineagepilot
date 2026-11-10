@@ -24,9 +24,9 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
 
 ## Before the first invitation
 
-- [ ] GitHub Actions runs again, and CI is green on `main` (LP-kf5). That also closes Phase 5 (LP-56q).
+- [x] GitHub Actions runs again, and CI is green on `main` (LP-kf5, 8 November 2026). That closed Phase 5 (LP-56q).
 - [ ] The labels in [release.md](release.md#before-the-first-beta-release) exist. Write access to the repository is yours alone.
-- [ ] `v0.1.0` is tagged and its release has the VSIX ([release.md](release.md#cutting-a-release)).
+- [x] The first release, `v0.1.1`, is made (9 November 2026), and `python extension/scripts/verify_release.py v0.1.1` says it is complete ([release.md](release.md#checking-a-release)).
 - [ ] You have installed that VSIX yourself on a clean profile, and walked through **Get Started with LineagePilot** and the sample project.
 - [ ] **Decide what beta teams may read.** Read access to this repository is the whole repository: the source, the design and plan documents, the corpus, and `fixtures/jaffle-shop`, which has no licence (LP-0tf). If that is too much, release to a separate private repository that holds only releases and issues instead. The release workflow would then need a token that can write there.
 - [ ] **Settle how criterion 1 is read** (below), before any check-in arrives.
@@ -50,7 +50,7 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
    ```
 
    Read access is enough to download a release, open issues and read the code.
-2. Send them the link to the newest release, and the extension's README section [Install the beta](../extension/README.md#install-the-beta).
+2. Send them the link to the latest release, <https://github.com/arrufus/lineagepilot/releases/latest>, and the extension's README section [Install the beta](../extension/README.md#install-the-beta). The link works for them once they have accepted the invitation. Until then GitHub shows them "Page not found", as it does to anyone without access to this private repository.
 3. Ask each person to turn on **usage counts** if they are willing: `lineagePilot.usageCounts.enabled` in their user settings. They are optional, and the check-in works without them.
 
 ## Each week

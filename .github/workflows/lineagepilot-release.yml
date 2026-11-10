@@ -2,8 +2,9 @@
 #   1. checks the tag, extension/package.json and extension/CHANGELOG.md agree;
 #   2. runs the core, server and extension workflows on the tagged commit. The extension workflow
 #      builds the one universal VSIX and tests it on Linux, macOS and Windows;
-#   3. attaches that VSIX, with its SHA-256, to a GitHub release, a pre-release while the version
-#      is 0.x. During the closed beta this is how teams get it (docs/release.md);
+#   3. attaches that VSIX, with its SHA-256, to a GitHub release, which becomes the latest release.
+#      During the closed beta this is how teams get it (docs/release.md). The release notes end
+#      with a link to this run, and scripts/verify_release.py checks the release afterwards;
 #   4. publishes the same VSIX to the VS Code Marketplace and Open VSX, but only when the
 #      repository variable LP_PUBLISH_REGISTRIES is 'true', and only after a reviewer approves the
 #      'registries' environment, which holds the tokens. It is unset until the public release.
@@ -29,7 +30,6 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: ${{ steps.check.outputs.version }}
-      prerelease: ${{ steps.check.outputs.prerelease }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -83,7 +83,6 @@ jobs:
       sha256: ${{ steps.name.outputs.sha256 }}
     env:
       VERSION: ${{ needs.verify.outputs.version }}
-      PRERELEASE: ${{ needs.verify.outputs.prerelease }}
     defaults:
       run:
         shell: bash
@@ -127,13 +126,24 @@ jobs:
           subject-path: |
             extension/release/lineagepilot-${{ needs.verify.outputs.version }}.vsix
             extension/release/SHA256SUMS
+      # Not a pre-release: GitHub never makes a pre-release the latest release, so the newest
+      # would have no stable link (LP-fzx). The notes end with how to check this release.
       - name: GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
+          SHA256: ${{ steps.name.outputs.sha256 }}
         run: |
-          flags=()
-          if [ "$PRERELEASE" = "true" ]; then flags+=(--prerelease); fi
-          gh release create "$GITHUB_REF_NAME" --verify-tag "${flags[@]}" \
+          run_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+          docs_url="$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/blob/main/docs/release.md#checking-a-release"
+          cat >> "$RUNNER_TEMP/notes.md" <<EOF
+
+          ---
+
+          SHA-256 of \`lineagepilot-$VERSION.vsix\`: \`$SHA256\`
+
+          Built and tested by [release run $GITHUB_RUN_ID]($run_url), from commit $GITHUB_SHA. To check this release, from a clone of the repository: \`python extension/scripts/verify_release.py $GITHUB_REF_NAME\` ([how](${docs_url})).
+          EOF
+          gh release create "$GITHUB_REF_NAME" --verify-tag \
             --title "LineagePilot $VERSION" --notes-file "$RUNNER_TEMP/notes.md" \
             "release/lineagepilot-$VERSION.vsix" release/SHA256SUMS
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
