@@ -58,7 +58,25 @@ Nothing is published unless every test passes. The VSIX that is released is the 
 
 ### Checking a release
 
-`SHA256SUMS` shows that a download is complete, but it comes from the same GitHub release, so it cannot show who made the file. The build provenance attestation can: it is signed with a short-lived Sigstore certificate issued to the release workflow's run, and it names the repository, the workflow, the tag and the commit.
+`SHA256SUMS` shows that a download is complete, but it comes from the same GitHub release, so it cannot show who made the file. What can show that depends on whether the repository is public.
+
+**While the repository is private, as in the closed beta, a release has no attestation.** GitHub makes attestations only in public repositories on this account's plan (private ones need GitHub Enterprise Cloud), so the release workflow skips that step, and `gh attestation verify` fails with `HTTP 404: Not Found`. Check instead that the release workflow made the release and logged the file's hash:
+
+```bash
+gh release download v0.1.1 --repo arrufus/lineagepilot     # the VSIX and SHA256SUMS
+sha256sum --check SHA256SUMS                               # shasum -a 256 --check, where there is no sha256sum
+gh api repos/arrufus/lineagepilot/releases/tags/v0.1.1 --jq .author.login
+gh run list --repo arrufus/lineagepilot --workflow lineagepilot-release.yml --branch v0.1.1
+gh run view <run-id> --repo arrufus/lineagepilot --log | grep "  lineagepilot-0.1.1.vsix"
+```
+
+- The release's author must be `github-actions[bot]`: the workflow made it, rather than someone uploading a file.
+- `gh run list` gives the ID of the release run for the tag.
+- The last line must print the same hash as `SHA256SUMS`: the release job logged it as it named the file.
+
+Nothing here is signed. It rests on GitHub's records and on who has write access to the repository, so it is weaker than an attestation.
+
+**Once the repository is public, each release has a build provenance attestation.** It is signed with a short-lived Sigstore certificate issued to the release workflow's run, and it names the repository, the workflow, the tag and the commit:
 
 ```bash
 gh release download v0.1.1 --repo arrufus/lineagepilot     # the VSIX and SHA256SUMS
@@ -68,9 +86,7 @@ gh attestation verify lineagepilot-0.1.1.vsix --repo arrufus/lineagepilot \
   --source-ref refs/tags/v0.1.1 --deny-self-hosted-runners
 ```
 
-`gh attestation verify` fails unless an attestation for exactly these bytes was made by that workflow, run for that tag. `SHA256SUMS` is attested the same way.
-
-GitHub makes attestations only in public repositories on this account's plan (private ones need GitHub Enterprise Cloud), so the step is skipped while the repository is private: the closed beta's releases have no attestation, and `gh attestation verify` finds none for them. The first release after the repository goes public is the first one attested.
+`gh attestation verify` fails unless an attestation for exactly these bytes was made by that workflow, run for that tag. `SHA256SUMS` is attested the same way. The first release after the repository goes public is the first one attested.
 
 **Rebuilding a release.** The VSIX's bytes depend only on its files and the tagged commit's time. `scripts/bundle_libs.py` leaves out the paths pip records on the build machine, and `scripts/normalise_vsix.py` sorts the entries, sets every timestamp to `SOURCE_DATE_EPOCH` and fixes the file modes, copying each file's compressed bytes unchanged. Two builds on one platform with the same Node and Python versions give the same SHA-256 (checked on macOS arm64, with different directories, umasks and time zones). To rebuild a release, use Linux x64 as the release job does, with the Node 22 and Python 3.10 patch versions in the `extension` job's log (the Python one is also in `bundled/libs/BUNDLE.json`):
 
