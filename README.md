@@ -4,6 +4,7 @@ A VS Code extension that shows, inside the editor, what a dbt change will break:
 
 - Design: [docs/design.md](docs/design.md)
 - Plan: [docs/implementation_plan.md](docs/implementation_plan.md)
+- After the MVP, beyond dbt and Airflow (proposal, not approved): [docs/design_next_phase.md](docs/design_next_phase.md)
 - Demo scripts: [docs/demo.md](docs/demo.md) (Phases 1–4) and [docs/demo_phase5.md](docs/demo_phase5.md) (Airflow linkage)
 - Releases: [docs/release.md](docs/release.md). The closed beta and Gate G1: [docs/beta.md](docs/beta.md)
 - Work items: `bd ready` (beads, prefix `LP`)
