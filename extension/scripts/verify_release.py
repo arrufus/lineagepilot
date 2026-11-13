@@ -103,8 +103,17 @@ class GitHub:
 
     def job_log(self, job_id: int) -> str | None:
         """The job's log, or None once GitHub has deleted it."""
+        path = f"repos/{self.repo}/actions/jobs/{job_id}/logs"
         try:
-            return self.gh("api", f"repos/{self.repo}/actions/jobs/{job_id}/logs")
+            try:
+                return self.gh("api", path)
+            except GhError as error:
+                # Newer gh refuses to output a response holding terminal escape sequences, which
+                # a job log's colours are, unless allowed. The log is only searched here, never
+                # printed. Older gh does not know the flag, so it is passed only after a refusal.
+                if "--allow-escape-sequences" not in str(error):
+                    raise
+                return self.gh("api", "--allow-escape-sequences", path)
         except GhError as error:
             if error.missing:
                 return None
