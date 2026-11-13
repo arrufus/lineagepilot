@@ -1,0 +1,36 @@
+version: 2
+
+models:
+  - name: stg_customers
+    description: Customers as the sign-up form records them.
+    columns:
+      - name: customer_id
+        data_tests: [not_null, unique]
+      - name: customer_name
+        description: The name the customer gave when signing up.
+
+  - name: stg_orders
+    description: Orders as the till records them, money in dollars.
+    columns:
+      - name: order_id
+        data_tests: [not_null, unique]
+      - name: order_total
+        description: What the customer paid, tax included.
+
+  - name: stg_order_lines
+    description: One row per product on an order.
+    columns:
+      - name: order_line_id
+        data_tests: [not_null, unique]
+
+  - name: stg_products
+    description: The catalogue.
+    columns:
+      - name: product_sku
+        data_tests: [not_null, unique]
+
+  - name: stg_locations
+    description: The shop's branches.
+    columns:
+      - name: location_id
+        data_tests: [not_null, unique]

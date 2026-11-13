@@ -1,4 +1,4 @@
-// Integration tests in a real VS Code on a copy of the jaffle-shop fixture (task 2.4, Phase 2
+// Integration tests in a real VS Code on a copy of the pilot-shop fixture (task 2.4, Phase 2
 // exit). Run with `npx vscode-test --label <label>`:
 //
 //   trusted           a trusted workspace; the interpreter comes from the user setting
@@ -53,7 +53,7 @@ function recorder(file, name, then = '') {
     : script(file, `#!/bin/sh\necho "$@" >> "${path.join(markers, name)}"\n${then}\n`);
 }
 
-function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
+function workspace(label, hostile = {}, fixture = 'pilot-shop') {
   const dir = path.join(work, label, fixture);
   fs.cpSync(path.join(repo, 'fixtures', fixture), dir, { recursive: true });
   // Source files older than the manifest, so nothing is stale until a test makes it so
@@ -70,8 +70,6 @@ function workspace(label, hostile = {}, fixture = 'jaffle-shop') {
   fs.writeFileSync(path.join(dir, '.vscode', 'settings.json'), JSON.stringify({
     'lineagePilot.python.interpreterPath': planted,
     'lineagePilot.dbt.executablePath': plantedDbt,
-    // Only the user may turn usage counts on (task 6.3)
-    'lineagePilot.usageCounts.enabled': true,
     // Nor verbose logs, whose trace users are asked to paste into bug reports (audit H6)
     'lineagePilot.trace.server': 'verbose',
     ...hostile,

@@ -14,7 +14,7 @@ IMPACT_SHOP = Path(__file__).parents[3] / "fixtures" / "impact-shop"
 RENAME = IMPACT_SHOP / "changes" / "rename-order-total"
 
 # Real artifacts written by dbt (spike S2), as opposed to legacy-v11, which is hand-written
-REAL_PROJECTS = ("jaffle-1.12", "jaffle-fusion-2.0", "synth-24")
+REAL_PROJECTS = ("pilot-1.12", "pilot-fusion-2.0", "synth-24")
 
 
 @cache

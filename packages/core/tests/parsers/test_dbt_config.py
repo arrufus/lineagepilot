@@ -10,8 +10,8 @@ from support import DBT_FIXTURES
 from lineagepilot_core.parsers import DbtParserConfig, LayerPattern, PIIPattern
 from lineagepilot_core.parsers.dbt_config import DEFAULT_PII_PATTERNS
 
-MANIFEST_PATH = DBT_FIXTURES / "jaffle-1.12" / "manifest.json"
-CATALOG_PATH = DBT_FIXTURES / "jaffle-1.12" / "catalog.json"
+MANIFEST_PATH = DBT_FIXTURES / "pilot-1.12" / "manifest.json"
+CATALOG_PATH = DBT_FIXTURES / "pilot-1.12" / "catalog.json"
 
 
 class TestDbtParserConfig:

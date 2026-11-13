@@ -8,6 +8,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import { pickSubcommand, refreshArtifacts, type RefreshOutcome, type Subcommand, SUBCOMMANDS } from './dbt';
+import { forgetOldCounts } from './legacy';
 import { ServerManager } from './manager';
 import { inWorkspace, LineagePanel, openLocation } from './panel';
 import { PROJECT_GLOB } from './projects';
@@ -18,7 +19,6 @@ import type { ProjectServer } from './server';
 import { statusBar } from './status';
 import { AirflowTree } from './views/airflowTree';
 import { LineageTree, NodeItem } from './views/lineageTree';
-import { USAGE_SETTING, UsageCounts } from './usage';
 
 const GRAPH_FORMATS: { format: ExportFormat; label: string }[] = [
   { format: 'json', label: 'JSON' },
@@ -43,8 +43,6 @@ export interface LineagePilotApi {
   lineagePanel(root: string): LineagePanel | undefined;
   /** The project's open Change Impact Review. */
   reviewPanel(root: string): ReviewPanel | undefined;
-  /** The beta's usage counts (task 6.3). */
-  usage: UsageCounts;
 }
 
 type SampleOutcome = ApplyOutcome | { status: 'cancelled' } | { status: 'restricted' };
@@ -90,22 +88,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
     }
   });
-  // Counted only when the user turned counting on in their own settings: an application-scoped
-  // setting, and only its user value is read, so no workspace can turn it on (design D-7)
-  const usage = new UsageCounts(context.globalState,
-    () => vscode.workspace.getConfiguration().inspect<boolean>(USAGE_SETTING)?.globalValue === true);
-  const countDay = () => {
-    if (vscode.window.state.focused && manager.list().length) {
-      void usage.record('day');
-    }
-  };
-  const countedPanels = new WeakSet<ReviewPanel>();
   const updateSampleContext = () => void vscode.commands.executeCommand('setContext', 'lineagePilot.sampleOpen',
     (vscode.workspace.workspaceFolders ?? []).some((folder) => isSample(folder.uri.fsPath)));
-  const timer = setInterval(() => {
-    updateStatus();
-    countDay();
-  }, STATUS_REFRESH_MS);
+  const timer = setInterval(updateStatus, STATUS_REFRESH_MS);
 
   const activeServer = async (): Promise<ProjectServer | undefined> => {
     const file = vscode.window.activeTextEditor?.document.uri;
@@ -208,33 +193,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
         void vscode.window.showInformationMessage('Open a workspace with a dbt project to review its changes.');
         return undefined;
       }
-      const panel = ReviewPanel.show(context, server, output);
-      void usage.record('opened');
-      if (!countedPanels.has(panel)) {
-        countedPanels.add(panel);
-        panel.onDidPost((message) => message.type === 'copied' && void usage.record('copied'));
-      }
-      return panel;
-    }),
-    vscode.commands.registerCommand('lineagePilot.copyUsageCounts', async (): Promise<string | undefined> => {
-      if (!usage.isEnabled) {
-        void vscode.window.showInformationMessage(
-          'Usage counts are off, so there is nothing to copy. Turned on, they count on this machine how often you '
-          + 'use the review, and nothing is sent anywhere.', 'Open Settings')
-          .then((choice) => choice && vscode.commands.executeCommand('workbench.action.openSettings', USAGE_SETTING));
-        return undefined;
-      }
-      const text = usage.summary(String(context.extension.packageJSON.version));
-      await vscode.env.clipboard.writeText(text);
-      const issues = (context.extension.packageJSON.bugs as { url?: string } | undefined)?.url;
-      void vscode.window.showInformationMessage('Copied your usage counts. Paste them into this week\'s check-in.',
-        ...(issues ? ['Open Check-in'] : []))
-        .then((choice) => {
-          if (choice && issues) {
-            void vscode.env.openExternal(vscode.Uri.parse(`${issues}/new?template=weekly_checkin.yml`));
-          }
-        });
-      return text;
+      return ReviewPanel.show(context, server, output);
     }),
     // For tests: a parent folder skips the dialog, and open=false leaves the window as it is
     vscode.commands.registerCommand('lineagePilot.openSample', async (parent?: string, open = true): Promise<string | undefined> => {
@@ -381,12 +340,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
       updateSampleContext();
       void manager.rediscover();
     }),
-    vscode.window.onDidChangeWindowState((state) => state.focused && countDay()),
     vscode.workspace.onDidChangeConfiguration((event) => {
-      // Turning counting off forgets what was counted
-      if (event.affectsConfiguration(USAGE_SETTING) && !usage.isEnabled) {
-        void usage.clear();
-      }
       if (event.affectsConfiguration('lineagePilot.python') || event.affectsConfiguration('lineagePilot.index')
           || event.affectsConfiguration('lineagePilot.airflow')) {
         void manager.restartAll();
@@ -402,12 +356,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
 
   updateStatus();
   updateSampleContext();
-  if (!usage.isEnabled) {
-    void usage.clear();  // turned off while LineagePilot was not running
-  }
+  void forgetOldCounts(context.globalState);  // the usage counts 0.1.x kept, if any
   await manager.start(true);
   updateStatus();
-  countDay();
   void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
   void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
   return {
@@ -417,7 +368,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     statusBarText: () => statusItem.text,
     lineagePanel: (root) => LineagePanel.forProject(root),
     reviewPanel: (root) => ReviewPanel.forProject(root),
-    usage,
   };
 }
 

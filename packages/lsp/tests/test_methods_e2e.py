@@ -1,4 +1,4 @@
-"""Task 2.3 end to end: the lineage/* requests on the jaffle-shop fixture.
+"""Task 2.3 end to end: the lineage/* requests on the pilot-shop fixture.
 
 Every response is validated against the shared schema, as the extension does.
 """
@@ -15,7 +15,7 @@ from pygls.exceptions import JsonRpcException
 
 from lineagepilot_lsp import protocol
 
-J = "model.jaffle_shop"
+J = "model.pilot_shop"
 
 
 async def ready(start, **kwargs):
@@ -84,7 +84,7 @@ async def test_graph_upstream_crosses_the_physical_table(start, workspace):
         {"root": f"{J}.stg_orders", "direction": "upstream", "depth": 2, "granularity": "model"},
     )
     nodes = {n["id"]: n for n in result["nodes"]}
-    source, seed = "source.jaffle_shop.ecom.raw_orders", "seed.jaffle_shop.raw_orders"
+    source, seed = "source.pilot_shop.ecom.raw_orders", "seed.pilot_shop.raw_orders"
     assert (nodes[source]["depth"], nodes[seed]["depth"]) == (1, 2)
     sources = workspace / "models" / "staging" / "__sources.yml"
     line = line_of(sources, "- name: raw_orders")
@@ -216,7 +216,7 @@ async def test_requests_before_a_graph_is_loaded(start, workspace):
 async def test_export_formats(start):
     client = await ready(start)
     whole = await call(client, "lineage/export", {"format": "json"})
-    assert whole["filename"] == "jaffle_shop-lineage.json"
+    assert whole["filename"] == "pilot_shop-lineage.json"
     assert len(json.loads(whole["content"])["nodes"]) == whole["nodes"] > 20
 
     part = await call(
@@ -224,14 +224,14 @@ async def test_export_formats(start):
         "lineage/export",
         {"format": "mermaid", "root": f"{J}.orders", "direction": "downstream", "depth": 1},
     )
-    assert part["filename"] == "jaffle_shop-orders.mmd"
+    assert part["filename"] == "pilot_shop-orders.mmd"
     assert part["content"].startswith("flowchart") and part["nodes"] == 2 and part["edges"] == 1
 
     around = await call(client, "lineage/export", {"format": "dot", "root": f"{J}.orders"})
     assert around["nodes"] > part["nodes"]
 
     pii = await call(client, "lineage/export", {"format": "pii-csv"})
-    assert pii["filename"] == "jaffle_shop-pii-inventory.csv"
+    assert pii["filename"] == "pilot_shop-pii-inventory.csv"
     header = next(csv.reader(io.StringIO(pii["content"])))
     assert "column" in [h.lower() for h in header] or header
     markdown = await call(client, "lineage/export", {"format": "pii-markdown"})
@@ -248,7 +248,7 @@ async def test_nodes_for_file(start, workspace):
 
     assert await ids(workspace / "models" / "marts" / "orders.sql") == [f"{J}.orders"]
     assert await ids(workspace / "models" / "marts" / "orders.yml") == [f"{J}.orders"]
-    assert len(await ids(workspace / "models" / "staging" / "__sources.yml")) == 6
+    assert len(await ids(workspace / "models" / "staging" / "__sources.yml")) == 5
     assert await ids(workspace / "README.md") == []
     assert await ids(workspace.parent / "elsewhere.sql") == []
     assert await ids("untitled:Untitled-1") == []

@@ -55,13 +55,16 @@ def test_codelens_and_impact_bench(synth_graph):
     assert imp["worst_node"]["closure"] >= imp["median_model"]["closure"]
 
 
-def test_column_lineage_bench_on_jaffle():
-    m, _ = REAL_FIXTURES["jaffle-1.12"]
+def test_column_lineage_bench_on_pilot_shop():
+    m, _ = REAL_FIXTURES["pilot-1.12"]
     man = json.loads(m.read_bytes())
     res = B.bench_column_lineage(man, n=3, repeats=1, with_alternative=True)
     assert res["dialect"] == "duckdb" and len(res["models"]) == 3
-    # Finding: dbt-style "select * from final" gives a single '*' mapping.
-    assert all(r["star_only"] for r in res["models"])
+    # Finding: dbt-style "select * from final" gives a single '*' mapping. pilot-shop's customers
+    # ends with "select * from profiles"; its other marts name their columns.
+    star_only = {r["uid"]: r["star_only"] for r in res["models"]}
+    assert star_only["model.pilot_shop.customers"]
+    assert not star_only["model.pilot_shop.orders"]
     assert all("alt_sqlglot_lineage" in r for r in res["models"])
 
 
@@ -95,6 +98,6 @@ def test_snapshot_workers(tmp_path):
 def test_warm_refuses_stale_snapshot(tmp_path):
     m, c = REAL_FIXTURES["synth-24"]
     B.run_worker("snapshot-write", manifest=m, catalog=c, snapshot_dir=tmp_path)
-    other, _ = REAL_FIXTURES["jaffle-1.12"]
+    other, _ = REAL_FIXTURES["pilot-1.12"]
     with pytest.raises(RuntimeError, match="stale"):
         B.run_worker("warm", manifest=other, snapshot_dir=tmp_path, store="json", json_backend="stdlib")

@@ -12,7 +12,7 @@ const PAGE = {
   cspSource: 'https://file+.vscode-resource.vscode-cdn.net',
   scriptUri: 'https://file+.vscode-resource.vscode-cdn.net/ext/dist/webview/webview.js',
   styleUri: 'https://file+.vscode-resource.vscode-cdn.net/ext/dist/webview/webview.css',
-  title: 'Lineage: jaffle_shop',
+  title: 'Lineage: pilot_shop',
 };
 
 suite('webview page', () => {

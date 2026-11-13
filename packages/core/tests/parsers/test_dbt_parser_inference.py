@@ -90,28 +90,28 @@ class TestLayerInference:
         assert node(result, "fct_orders").layer == "gold"
 
     def test_meta_layer_wins(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        manifest["nodes"]["model.jaffle_shop.stg_orders"]["config"]["meta"] = {"layer": "Gold"}
+        manifest = manifest_of("pilot-1.12")
+        manifest["nodes"]["model.pilot_shop.stg_orders"]["config"]["meta"] = {"layer": "Gold"}
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert node(result, "stg_orders").layer == "gold"
 
     def test_layer_tag_wins_over_patterns(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        manifest["nodes"]["model.jaffle_shop.stg_orders"]["tags"] = ["Presentation"]
+        manifest = manifest_of("pilot-1.12")
+        manifest["nodes"]["model.pilot_shop.stg_orders"]["tags"] = ["Presentation"]
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert node(result, "stg_orders").layer == "gold"
 
     def test_windows_paths_match(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        stg = manifest["nodes"]["model.jaffle_shop.stg_orders"]
+        manifest = manifest_of("pilot-1.12")
+        stg = manifest["nodes"]["model.pilot_shop.stg_orders"]
         stg["name"] = "orders_cleaned"  # no name pattern, so only the path can decide
         stg["original_file_path"] = "models\\staging\\orders_cleaned.sql"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert node(result, "orders_cleaned").layer == "silver"
 
     def test_no_match_is_none(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        stg = manifest["nodes"]["model.jaffle_shop.stg_orders"]
+        manifest = manifest_of("pilot-1.12")
+        stg = manifest["nodes"]["model.pilot_shop.stg_orders"]
         stg["name"], stg["original_file_path"] = "orders_x", "models/misc/orders_x.sql"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert node(result, "orders_x").layer is None
@@ -125,9 +125,9 @@ class TestDomainInference:
         assert "core" in {d.name for d in result.domains}
 
     def test_domain_from_tag_then_path(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        manifest["nodes"]["model.jaffle_shop.orders"]["tags"] = ["Domain:Finance"]
-        manifest["nodes"]["model.jaffle_shop.customers"]["original_file_path"] = (
+        manifest = manifest_of("pilot-1.12")
+        manifest["nodes"]["model.pilot_shop.orders"]["tags"] = ["Domain:Finance"]
+        manifest["nodes"]["model.pilot_shop.customers"]["original_file_path"] = (
             "models/marts/_private/crm/customers.sql"
         )
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
@@ -135,8 +135,8 @@ class TestDomainInference:
         assert node(result, "customers").domain_name == "crm"
 
     def test_folder_that_is_not_a_name_is_ignored(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        manifest["nodes"]["model.jaffle_shop.orders"]["original_file_path"] = "models/v2/orders.sql"
+        manifest = manifest_of("pilot-1.12")
+        manifest["nodes"]["model.pilot_shop.orders"]["original_file_path"] = "models/v2/orders.sql"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert node(result, "orders").domain_name is None
 
@@ -166,8 +166,8 @@ class TestPIIDetection:
         assert not [c for c in result.columns if c.pii_detected_by == "pattern"]
 
     def test_pii_from_tags_and_untyped_flag(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        columns = manifest["nodes"]["model.jaffle_shop.customers"]["columns"]
+        manifest = manifest_of("pilot-1.12")
+        columns = manifest["nodes"]["model.pilot_shop.customers"]["columns"]
         columns["customer_id"]["tags"] = ["PII"]
         columns["customer_name"]["tags"] = ["pii:Name"]
         columns["customer_type"]["meta"] = {"pii": True, "pii_type": 7}
@@ -263,19 +263,19 @@ class TestLineageAndTags:
         assert all(tags[t] == "sensitivity" for t in tags if t.startswith("pii"))
 
     def test_domain_tag_category(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        manifest["nodes"]["model.jaffle_shop.orders"]["tags"] = ["domain:finance"]
+        manifest = manifest_of("pilot-1.12")
+        manifest["nodes"]["model.pilot_shop.orders"]["tags"] = ["domain:finance"]
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         assert {t.name: t.category for t in result.tags}["domain:finance"] == "domain"
 
 
 class TestRuleInputs:
     def test_layer_source_says_how_the_layer_was_decided(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
+        manifest = manifest_of("pilot-1.12")
         nodes = manifest["nodes"]
-        nodes["model.jaffle_shop.orders"]["config"]["meta"] = {"layer": "gold"}
-        nodes["model.jaffle_shop.customers"]["tags"] = ["mart"]
-        nodes["model.jaffle_shop.locations"]["original_file_path"] = "models/misc/locations.sql"
+        nodes["model.pilot_shop.orders"]["config"]["meta"] = {"layer": "gold"}
+        nodes["model.pilot_shop.customers"]["tags"] = ["mart"]
+        nodes["model.pilot_shop.locations"]["original_file_path"] = "models/misc/locations.sql"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
         sources = {n.name: n.layer_source for n in result.nodes if n.resource_type == "model"}
         assert sources["orders"] == "meta"
@@ -285,14 +285,14 @@ class TestRuleInputs:
         assert {n.layer_source for n in result.nodes if n.resource_type != "model"} == {"default"}
 
     def test_contract_primary_keys(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        orders = manifest["nodes"]["model.jaffle_shop.orders"]
+        manifest = manifest_of("pilot-1.12")
+        orders = manifest["nodes"]["model.pilot_shop.orders"]
         orders["constraints"] = [
             {"type": "primary_key", "columns": ["order_id", "location_id"]},
             {"type": "check", "expression": "order_total >= 0"},
             "not-a-constraint",
         ]
-        customers = manifest["nodes"]["model.jaffle_shop.customers"]
+        customers = manifest["nodes"]["model.pilot_shop.customers"]
         customers["columns"]["customer_id"]["constraints"] = [{"type": "primary_key"}]
         customers["constraints"] = "not-a-list"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})

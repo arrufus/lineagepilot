@@ -32,6 +32,6 @@ def parse(mods, manifest: Path, catalog: Path | None = None, cls=None):
 
 REAL_FIXTURES = {
     "synth-24": (FIX / "synth-24" / "manifest.json", FIX / "synth-24" / "catalog.json"),
-    "jaffle-1.12": (FIX / "jaffle-1.12" / "manifest.json", FIX / "jaffle-1.12" / "catalog.json"),
-    "jaffle-fusion-2.0": (FIX / "jaffle-fusion-2.0" / "manifest.json", None),
+    "pilot-1.12": (FIX / "pilot-1.12" / "manifest.json", FIX / "pilot-1.12" / "catalog.json"),
+    "pilot-fusion-2.0": (FIX / "pilot-fusion-2.0" / "manifest.json", None),
 }

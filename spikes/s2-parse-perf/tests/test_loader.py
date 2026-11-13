@@ -14,8 +14,8 @@ import asyncio, io, contextlib, json, sys
 from spike.loader import load_parsers, forbidden_loaded
 m = load_parsers()
 r = asyncio.run(m['dbt_parser'].DbtParser().parse({{
-    'manifest_path': {str(FIX / 'jaffle-1.12' / 'manifest.json')!r},
-    'catalog_path': {str(FIX / 'jaffle-1.12' / 'catalog.json')!r}}}))
+    'manifest_path': {str(FIX / 'pilot-1.12' / 'manifest.json')!r},
+    'catalog_path': {str(FIX / 'pilot-1.12' / 'catalog.json')!r}}}))
 with contextlib.redirect_stdout(io.StringIO()):
     m['sql_column_parser'].SQLColumnParser('duckdb').parse_select_statement('select a, b from t')
     m['sql_parser'].parse_sql('insert into x select * from y', dialect='duckdb')

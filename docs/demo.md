@@ -4,7 +4,7 @@ How to demonstrate LineagePilot from a checkout of this repository: what to prep
 
 **What the build contains.** Phases 0–5 are complete: the `lineagepilot_core` library and its CLI (Phase 1), the language server and the VS Code extension (Phase 2), the lineage graph (Phase 3), the Change Impact Review (Phase 4) and Airflow linkage (Phase 5). Part 4 below covers the graph and Part 6 the review; skip them to show only what Phase 2 delivered. Airflow linkage has its own script, [demo_phase5.md](demo_phase5.md).
 
-**The project you demo on** is `fixtures/jaffle-shop`: dbt Labs' sample project with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 13 models, 6 sources and 6 seeds, column lineage for every model, and no exposures. dbt does not need to be installed. Part 6 uses `fixtures/impact-shop`, a small project of our own with an exposure, owners and a model that cannot be parsed, and the artifacts real dbt wrote before and after a column rename.
+**The project you demo on** is `fixtures/pilot-shop`: a small shop written for this repository, with the `manifest.json` and `catalog.json` that dbt 1.12 built from it. It has 11 models, 5 sources and 5 seeds, column lineage for every model, semantic models and metrics, and no exposures or owners. dbt does not need to be installed. Part 6 uses `fixtures/impact-shop`, a small project of our own with an exposure, owners and a model that cannot be parsed, and the artifacts real dbt wrote before and after a column rename.
 
 | Part | What the audience sees | Phase | Time |
 |---|---|---|---|
@@ -62,15 +62,15 @@ Work on copies, never on `fixtures/`. The `touch` matters: without it, a copied 
 
 ```bash
 mkdir -p "$DEMO"
-cp -R "$REPO/fixtures/jaffle-shop" "$DEMO/jaffle-shop"
-touch "$DEMO/jaffle-shop/target/manifest.json"
+cp -R "$REPO/fixtures/pilot-shop" "$DEMO/pilot-shop"
+touch "$DEMO/pilot-shop/target/manifest.json"
 ```
 
 For Part 5, make a second copy that behaves like a hostile clone. Its `.vscode/settings.json` points LineagePilot's interpreter and dbt at scripts inside the repository, and those scripts leave a file behind if anything ever runs them. It also has a rule pack.
 
 ```bash
 CLONE="$DEMO/untrusted-clone"
-cp -R "$REPO/fixtures/jaffle-shop" "$CLONE"
+cp -R "$REPO/fixtures/pilot-shop" "$CLONE"
 touch "$CLONE/target/manifest.json"
 mkdir -p "$CLONE/.venv/bin" "$CLONE/.vscode" "$CLONE/.lineagepilot"
 for tool in python dbt; do
@@ -148,7 +148,7 @@ Before you start, open the standalone terminal with the variables above set, and
 
 ```bash
 alias lineagepilot="$REPO/packages/core/.venv/bin/lineagepilot"
-cd "$DEMO/jaffle-shop"
+cd "$DEMO/pilot-shop"
 ```
 
 ### Part 1: the core, from the command line (Phase 1)
@@ -162,14 +162,14 @@ cd "$DEMO/jaffle-shop"
    ```
 
    ```
-   Indexed jaffle_shop (dbt 1.12.6, manifest schema v12)
-     44 nodes: 13 model, 19 relation, 6 seed, 6 source
-     138 columns; 129 edges: 17 depends_on, 87 derives, 25 materialises
+   Indexed pilot_shop (dbt 1.12.6, manifest schema v12)
+     37 nodes: 11 model, 16 relation, 5 seed, 5 source
+     100 columns; 94 edges: 14 depends_on, 59 derives, 21 materialises
      0 unresolved references
-     Column lineage: 13 resolved
+     Column lineage: 11 resolved
    ```
 
-   > **Say:** 19 relations are the physical tables. Sources are linked to the seeds that build their tables, so lineage crosses from dbt's logical graph to the warehouse and back. 87 `derives` edges are column lineage, traced through the compiled SQL.
+   > **Say:** 16 relations are the physical tables. Sources are linked to the seeds that build their tables, so lineage crosses from dbt's logical graph to the warehouse and back. 59 `derives` edges are column lineage, traced through the compiled SQL.
 
 2. Run it again. The first line now ends `(from the snapshot cache)`, and the run is several times faster. Snapshots are keyed by the artifacts' sha256, so a changed manifest is never served from the cache.
 
@@ -180,11 +180,11 @@ cd "$DEMO/jaffle-shop"
    ```
 
    ```
-   Impact of model.jaffle_shop.stg_orders
+   Impact of model.pilot_shop.stg_orders
      3 impacted: 3 model
-       1  model        model.jaffle_shop.order_items  declared  model
-       1  model        model.jaffle_shop.orders       declared  model
-       2  model        model.jaffle_shop.customers    declared  model
+       1  model        model.pilot_shop.order_items  declared  model
+       1  model        model.pilot_shop.orders       declared  model
+       2  model        model.pilot_shop.customers    declared  model
    ```
 
 4. Now only one column:
@@ -194,10 +194,10 @@ cd "$DEMO/jaffle-shop"
    ```
 
    ```
-   Impact of model.jaffle_shop.stg_orders#order_total
+   Impact of model.pilot_shop.stg_orders#order_total
      2 impacted: 2 model
-       1  model        model.jaffle_shop.orders     inferred  column  [order_total]
-       2  model        model.jaffle_shop.customers  inferred  column  [lifetime_spend]
+       1  model        model.pilot_shop.orders     inferred  column  [order_total]
+       2  model        model.pilot_shop.customers  inferred  column  [lifetime_spend]
    ```
 
    > **Say:** At column level, `order_items` drops out: it doesn't use `order_total`. We also name the columns that are hit: `orders.order_total`, then `customers.lifetime_spend`. And it says *inferred*, because this comes from parsing SQL, not from something dbt declared.
@@ -212,19 +212,19 @@ cd "$DEMO/jaffle-shop"
 
    > **Say:** When we can't be precise, we widen the answer and say why. We never narrow it by guessing.
 
-6. Optional extras: `lineagepilot impact models/staging/stg_supplies.sql` takes a file and reports 4 models. `lineagepilot impact nope` exits with code 1 and `nope: no node, model or file by that name`. Add `--json` to any command for machine-readable output.
+6. Optional extras: `lineagepilot impact models/staging/stg_products.sql` takes a file and reports 4 models. `lineagepilot impact nope` exits with code 1 and `nope: no node, model or file by that name`. Add `--json` to any command for machine-readable output.
 
 ### Part 2: in the editor (Phase 2)
 
 Open the project in the demo profile:
 
 ```bash
-"$CODE" --user-data-dir "$DEMO/profile" --extensions-dir "$DEMO/extensions" "$DEMO/jaffle-shop"
+"$CODE" --user-data-dir "$DEMO/profile" --extensions-dir "$DEMO/extensions" "$DEMO/pilot-shop"
 ```
 
 When VS Code asks whether you trust the authors, choose **Yes, I trust the authors**. Leave the box that trusts the parent folder **unticked**, or Part 5's clone will be trusted too.
 
-1. **Status bar** (bottom left). It shows `Lineage: indexing…` briefly, then `Lineage: 44 nodes · manifest 2 days old`. The age counts from the manifest's own `generated_at`, 1 November 2026, so it reads in hours on 3 November and grows after that. Click it: **Show Status** lists the project, `ready`, `44 nodes · Python 3.13.11 · rules built-in and pack`, and **Show Output**.
+1. **Status bar** (bottom left). It shows `Lineage: indexing…` briefly, then `Lineage: 37 nodes · manifest 2 days old`. The age counts from the manifest's own `generated_at`, 13 November 2026, so it reads in hours that day and grows after that. Click it: **Show Status** lists the project, `ready`, `37 nodes · Python 3.13.11 · rules built-in and pack`, and **Show Output**.
 
    > **Say:** The language server is Python, bundled in the extension. It runs on an interpreter you already have, isolated with `python -I`, so nothing in your project can shadow its libraries.
 
@@ -237,12 +237,12 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 3. **Hovers.**
    - In `models/marts/orders.sql`, hover `ref('stg_orders')` (line 5). The card names `stg_orders` with its description, **Upstream** (1 direct): `raw_orders (source) · declared, manifest`, **Downstream** (2 direct), `In all downstream: 3 models` and `Column lineage: resolved`.
-   - In `models/staging/stg_orders.sql`, hover `source('ecom', 'raw_orders')` (line 5). Upstream is the `raw_orders` **seed**, `via table relation:jaffle.raw.raw_orders`: the source and the seed meet at the physical table.
+   - In `models/staging/stg_orders.sql`, hover `source('ecom', 'raw_orders')` (line 5). Upstream is the `raw_orders` **seed**, `via table relation:pilot.main_raw.raw_orders`: the source and the seed meet at the physical table.
    - In `models/marts/customers.sql`, hover `lifetime_spend` on line 26. It is **Derived from** `orders.order_total · aggregate · inferred, compiled sql`, and **Feeds** (0).
 
    > **Say:** Every link says how we know it: declared in the manifest, or inferred from compiled SQL. That is the evidence a reviewer needs before trusting an impact count.
 
-4. **Problems** (View → Problems). LineagePilot reports 126 findings on this project, from 18 built-in conformance and PII rules. Type `customers` in the Problems filter:
+4. **Problems** (View → Problems). LineagePilot reports 98 findings on this project, from 18 built-in conformance and PII rules. Type `customers` in the Problems filter:
    - `customers.sql`: **MED_001** (error), `customers (gold) sources from orders (gold), which violates the layer hierarchy`, and **MED_005**, a naming-convention warning.
    - `customers.yml`, on `customer_name`: **PII_001**, `PII indicator: PII column 'customer_name' (name) in gold model 'customers' is not masked`, and **PII_002**, `looks like name PII but is not tagged`.
    - **DBT_009**: `model 'customers' has no meta.owner and no group`. Every model in this project gets it.
@@ -268,23 +268,23 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
        require: {name_matches: '^mart_'}
    ```
 
-   The Problems panel updates without a restart. The findings drop from 126 to 70: the DBT_004 entries are gone, DBT_009 is now an error, and ACME_001 flags the 7 marts. Change `ACME_001` to `acme_1` and save. The pack file itself gets a warning, `'id' must be upper case letters, digits and _, starting with a letter`, and the rest of the pack still applies. Change it back afterwards.
+   The Problems panel updates without a restart. The findings drop from 98 to 55: the DBT_004 entries are gone, DBT_009 is now an error, and ACME_001 flags the 6 marts. Change `ACME_001` to `acme_1` and save. The pack file itself gets a warning, `'id' must be upper case letters, digits and _, starting with a letter`, and the rest of the pack still applies. Change it back afterwards.
 
    > **Say:** Packs are size-capped and validated, and their regular expressions are checked for catastrophic-backtracking shapes before use. They load only in a trusted workspace. Part 5 shows that.
 
-2. **Staleness.** In `models/staging/stg_orders.sql`, add a comment line and save. The status bar turns to a warning: `Lineage: 44 nodes · 1 file newer than the manifest`.
+2. **Staleness.** In `models/staging/stg_orders.sql`, add a comment line and save. The status bar turns to a warning: `Lineage: 37 nodes · 1 file newer than the manifest`.
 
    > **Say:** Lineage comes from dbt's artifacts, so we tell you when your edits have moved past them. Normally you run **LineagePilot: Refresh dbt Artifacts**, which runs `dbt parse`.
 
    This demo has no dbt profile. Remove the comment and save (the warning stays: the file is still newer than the manifest), then stand in for `dbt parse` from the terminal:
 
    ```bash
-   touch "$DEMO/jaffle-shop/target/manifest.json"
+   touch "$DEMO/pilot-shop/target/manifest.json"
    ```
 
    The server sees the manifest change and re-indexes (from the cache, since the content is unchanged), and the warning clears.
 
-3. **Exports.** Run **LineagePilot: Export Lineage Graph**, choose **Mermaid**, and save `jaffle_shop-lineage.mmd`. The notification says `Exported 25 nodes to jaffle_shop-lineage.mmd`: the models, seeds and sources, without the physical tables. Click **Open**: the models are grouped by layer. JSON, Graphviz DOT, GraphML and Cypher work the same way. Then run **LineagePilot: Export PII Inventory**, choose **Markdown**, open `jaffle_shop-pii-inventory.md`, and preview it (⇧⌘V, or Ctrl+Shift+V).
+3. **Exports.** Run **LineagePilot: Export Lineage Graph**, choose **Mermaid**, and save `pilot_shop-lineage.mmd`. The notification says `Exported 21 nodes to pilot_shop-lineage.mmd`: the models, seeds and sources, without the physical tables. Click **Open**: the models are grouped by layer. JSON, Graphviz DOT, GraphML and Cypher work the same way. Then run **LineagePilot: Export PII Inventory**, choose **Markdown**, open `pilot_shop-pii-inventory.md`, and preview it (⇧⌘V, or Ctrl+Shift+V).
 
    > **Say:** Every value is escaped for its format, and property tests re-parse each format to check that a model name can't inject anything.
 
@@ -296,7 +296,7 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 3. In the details panel, press **Impact**. The impact panel lists everything a change to `orders` could reach. Each entry is a link back into the graph.
 
-4. **Columns.** In the details panel, click the column `order_total` (or press **Columns** in the toolbar and pick it). The graph switches to column lineage. Upstream are `stg_orders.order_total`, then `raw_orders.order_total`; downstream is `customers.lifetime_spend`. Every edge is dashed, because column lineage is inferred from the compiled SQL. Press **Models** to go back.
+4. **Columns.** In the details panel, click the column `order_total` (or press **Columns** in the toolbar and pick it). The graph switches to column lineage. Upstream are `stg_orders.order_total`, then `raw_orders.subtotal_cents` and `raw_orders.tax_cents`, which it adds and converts from cents; downstream is `customers.lifetime_spend`. Every edge is dashed, because column lineage is inferred from the compiled SQL. Press **Models** to go back.
 
 5. **The controls.** Set **Depth** to 1, then press **+** on a node at the edge to load one more level. Try **Direction** (Upstream or Downstream only), **Layout** (top to bottom), the **Show** checkboxes that filter node kinds, and **Highlight…**: type `stg` to highlight the staging models. The search does not move the graph.
 
@@ -324,7 +324,7 @@ When VS Code asks whether you trust the authors, choose **Yes, I trust the autho
 
 2. Open `.vscode/settings.json` and show that it sets `lineagePilot.python.interpreterPath` and `lineagePilot.dbt.executablePath` to scripts in `.venv/bin`.
 
-3. The lineage still works: the status bar reads `Lineage: 44 nodes · …`, and CodeLens and hovers appear as before. **LineagePilot: Show Output** shows `Using Python 3.13.11 at … (setting)`: the user's interpreter, not the repository's.
+3. The lineage still works: the status bar reads `Lineage: 37 nodes · …`, and CodeLens and hovers appear as before. **LineagePilot: Show Output** shows `Using Python 3.13.11 at … (setting)`: the user's interpreter, not the repository's.
 
 4. Open `.lineagepilot/rules.yml`. It carries an information diagnostic: `Custom rules are not loaded in Restricted Mode; trust the workspace to use them.` The pack disables DBT_009, yet DBT_009 is still in the Problems panel.
 
@@ -400,7 +400,7 @@ Repeat preparation steps 2 and 3; the build from step 1 can be reused. Deleting 
 | `code` opens the folder in your usual VS Code, or ignores `--user-data-dir` | You ran it from VS Code's integrated terminal. Use a standalone terminal. |
 | Status bar: `Lineage: no Python` | Check `lineagePilot.python.interpreterPath` in the profile's settings. **LineagePilot: Show Output** lists every interpreter tried and why each was skipped. |
 | Status bar warns `N files newer than the manifest` right after opening | The copy's files are newer than its manifest: `touch target/manifest.json` in the project. |
-| Status bar: `Lineage: lineage unknown: …` | The manifest is missing or unreadable. Make the copy again from `fixtures/jaffle-shop`. |
+| Status bar: `Lineage: lineage unknown: …` | The manifest is missing or unreadable. Make the copy again from `fixtures/pilot-shop`. |
 | No CodeLens | Check that the editor's `editor.codeLens` setting is on and the file is under `models/`. |
 | Something else | **LineagePilot: Show Output** has the server's log. Set `lineagePilot.trace.server` to `messages` to log the protocol, and use **LineagePilot: Restart Language Server**. |
 
@@ -410,5 +410,4 @@ Repeat preparation steps 2 and 3; the build from step 1 can be reused. Deleting 
 - **What about a changed macro?** The review lists it under Unknowns: which models call it is not worked out yet (LP-a04).
 - **And Airflow?** Cosmos `DbtDag` and `DbtTaskGroup`, dbt commands in `BashOperator`, `KubernetesPodOperator` and `DockerOperator`, and SQL operators are linked to models from the DAG files' syntax. DAG files are parsed, never imported or run. [demo_phase5.md](demo_phase5.md) shows it, and `corpus/README.md` has the miss rate on repositories the scanner had never seen: 84.0%.
 - **How big can a project be?** On a synthetic 5,000-model project: a model-level cold index takes 2.5 s, a warm start 0.5 s, and an impact query 3–5 ms ([core README](../packages/core/README.md#performance-budgets)). The server is still 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt).
-- **Can I install it?** Not from a marketplace yet. Beta teams get the VSIX from a GitHub release ([release.md](release.md)), and the public release follows Gate G1. The VSIX from step 1 installs with `code --install-extension`.
-- **Before showing this outside the team:** the jaffle-shop fixture has no licence, and LP-0tf replaces it before the repository goes public.
+- **Can I install it?** Yes, from 0.2.0: search for LineagePilot in the VS Code Marketplace or Open VSX, or install the VSIX attached to each GitHub release ([release.md](release.md)). It is a Preview. The VSIX from step 1 installs with `code --install-extension`.

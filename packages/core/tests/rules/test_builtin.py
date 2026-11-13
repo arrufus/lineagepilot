@@ -1,4 +1,4 @@
-"""Each built-in rule, on small graphs, then all of them on jaffle-shop."""
+"""Each built-in rule, on small graphs, then all of them on pilot-shop."""
 
 from __future__ import annotations
 
@@ -276,21 +276,21 @@ class TestRemapped:
         assert check("DBT_010", g, "m.orphan").result is Result.FAIL
 
 
-def test_jaffle_shop_results():
-    graph = build_dbt_graph(DbtParser().parse(project_config("jaffle-1.12")))
+def test_pilot_shop_results():
+    graph = build_dbt_graph(DbtParser().parse(project_config("pilot-1.12")))
     evaluation = evaluate(graph)
     counts = {
         rule_id: {result.value: n for result, n in sorted(c.items(), key=lambda i: i[0].value)}
         for rule_id, c in evaluation.counts.items()
     }
     # Spot checks against the project, verified by hand
-    assert counts["DBT_002"] == {"fail": 4, "pass": 9}  # S2: 9 of 13 models are tested
-    assert counts["DBT_009"] == {"fail": 13}  # jaffle-shop sets no owners
-    assert counts["MED_001"] == {"fail": 2, "not_applicable": 6, "pass": 5}
+    assert counts["DBT_002"] == {"fail": 3, "pass": 8}  # 8 of 11 models are tested
+    assert counts["DBT_009"] == {"fail": 11}  # pilot-shop sets no owners
+    assert counts["MED_001"] == {"fail": 2, "not_applicable": 5, "pass": 4}
     failing = {f.subject for f in evaluation.findings if f.rule_id == "MED_001"}
-    assert failing == {"model.jaffle_shop.customers", "model.jaffle_shop.orders"}
+    assert failing == {"model.pilot_shop.customers", "model.pilot_shop.orders"}
     score = evaluation.score()
-    assert (score.passed, score.failed, score.coverage) == (84, 126, 100.0)
+    assert (score.passed, score.failed, score.coverage) == (64, 98, 100.0)
 
 
 def test_the_rules_documentation_is_up_to_date():

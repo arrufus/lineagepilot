@@ -2,7 +2,7 @@
 
 See what is upstream and downstream of the model you are editing, and what a change to it would reach, from the dbt artifacts already in your workspace. LineagePilot runs locally: no server, no account, no warehouse connection.
 
-> **Closed beta.** Version 0.1.0 is for the teams invited to the beta. See [Install the beta](#install-the-beta), and [Reporting a problem](#reporting-a-problem) for where feedback goes.
+> **Preview.** What LineagePilot shows is accurate as far as it goes, and it says where it could not tell: anything it cannot check is listed under **Unknowns**, never left out. The Airflow linkage is the part to judge carefully. On 106 task links in 17 repositories it had never seen, it linked 17 correctly and listed most of the rest as unknown; 2 were wrong, and it made no link where there was none. See [Airflow](#airflow).
 
 ## What you get
 
@@ -14,7 +14,7 @@ See what is upstream and downstream of the model you are editing, and what a cha
 - **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges (the view moves along with them), Enter for details, O to open.
 - **Change Impact Review** (**Review Changes**, or the compare icon on the Lineage view): what your branch and working tree change, against the merge-base with the default branch or a base you choose. It shows each changed model and its columns as a diff, then what that reaches, grouped by models, exposures, Airflow tasks and owners, each with how sure it is and what says so, then an **Unknowns** section for everything that could not be checked. **Copy as Markdown** puts it on the clipboard for your pull request; `lineagepilot review` prints the same text for the same inputs. See [Reviewing a change](#reviewing-a-change).
 - **Status bar**: node count and manifest age, or a warning when model files are newer than the manifest.
-- **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Review Changes, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output, Open Sample Project, Apply the Sample Change, Copy Usage Counts.
+- **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Review Changes, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output, Open Sample Project, Apply the Sample Change.
 
 ## Requirements
 
@@ -26,19 +26,23 @@ Large projects index in the background: the model-level lineage is ready in seco
 
 LineagePilot runs in VS Code 1.93 or later, and in editors built on it, such as Cursor, Windsurf and VSCodium. Where there is no Python extension, it finds Python on `PATH` or through the setting.
 
-## Install the beta
+## Install
 
-The beta is not on the Marketplace or Open VSX. Each release is a `.vsix` file attached to a release of the LineagePilot repository on GitHub, which beta teams are invited to.
+LineagePilot is on the **VS Code Marketplace** and **Open VSX**. Search the Extensions view for **LineagePilot**, or from a terminal:
 
-1. Download `lineagepilot-<version>.vsix` from the latest release, <https://github.com/arrufus/lineagepilot/releases/latest>, or with the GitHub CLI: `gh release download --repo arrufus/lineagepilot --pattern '*'`. Accept the invitation to the repository first: until then GitHub shows "Page not found". Its SHA-256 is in `SHA256SUMS` beside it: `shasum -a 256 lineagepilot-<version>.vsix` on macOS and Linux, `Get-FileHash lineagepilot-<version>.vsix` in PowerShell.
-2. In VS Code, open the Extensions view, then **…** › **Install from VSIX…**, and choose the file. Or, from a terminal: `code --install-extension lineagepilot-<version>.vsix`.
-3. To update, install the newer file the same way. The beta does not update itself.
+```
+code --install-extension lineagepilot.lineagepilot
+```
+
+Editors built on VS Code install it from whichever of the two they use.
+
+**Without a connection to either**, download `lineagepilot-<version>.vsix` from the latest release on GitHub, <https://github.com/arrufus/lineagepilot/releases/latest>. Its SHA-256 is in `SHA256SUMS` beside it: `shasum -a 256 lineagepilot-<version>.vsix` on macOS and Linux, `Get-FileHash lineagepilot-<version>.vsix` in PowerShell. Install it with **…** › **Install from VSIX…** in the Extensions view, or `code --install-extension lineagepilot-<version>.vsix`. An extension installed from a file does not update itself: install the newer file the same way.
 
 The same VSIX works on macOS, Linux and Windows: the language server is pure Python and ships inside it.
 
 ## Get started
 
-When it is installed, VS Code opens the **Get Started with LineagePilot** walkthrough. Open it again at any time with **Help** › **Welcome**, or **Welcome: Open Walkthrough…** in the Command Palette. It covers Python, your dbt artifacts, lineage, the review, Airflow and the beta's usage counts.
+When it is installed, VS Code opens the **Get Started with LineagePilot** walkthrough. Open it again at any time with **Help** › **Welcome**, or **Welcome: Open Walkthrough…** in the Command Palette. It covers Python, your dbt artifacts, the sample project, lineage, the review and Airflow.
 
 **No dbt project to hand?** **LineagePilot: Open Sample Project** copies a small project written for LineagePilot to a folder you choose and opens it. It has real dbt 1.12 artifacts, three Airflow DAG files and a prepared change, and needs neither dbt nor Airflow:
 
@@ -90,7 +94,6 @@ The interpreter and dbt executable settings are machine-scoped: a workspace's `.
 | `lineagePilot.index.maxArtifactMB` | `512` | Larger artifacts are not indexed. |
 | `lineagePilot.baseline.manifestPath` | empty | The manifest **Review Changes** compares columns with. Absolute, or relative to the dbt project. |
 | `lineagePilot.airflow.dagFolders` | `["**/dags"]` | Folders in the workspace that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. A folder that is a link out of the workspace is not read. |
-| `lineagePilot.usageCounts.enabled` | `false` | Count, on this machine only, how often you use the review, for the beta's check-in. User settings only. See [Usage counts](#usage-counts-beta). |
 | `lineagePilot.trace.server` | `off` | Log the messages to and from the language server. User settings only (in a remote window, the remote machine's). |
 
 ## Airflow
@@ -105,7 +108,7 @@ LineagePilot reads your DAG files as syntax, to work out which tasks run which m
 
 Links are labelled by how sure they are. **Most are `heuristic`**, because a path in a DAG file is usually a path inside a container, or depends on an environment variable's default. They are shown anyway, with the reason, because hiding them would hide most of the real ones.
 
-What cannot be read is listed as an unknown, at the line that caused it, rather than guessed: tasks built in a loop or a factory, from a `manifest.json` read when Airflow parses the file, by a wrapper class or a function imported from another file; selectors that need dbt's state; Jinja or shell variables; a remote manifest; a generated project; a DAG file that cannot load. `corpus/README.md` in the repository says how often the scanner gets it right on repositories it had never seen.
+What cannot be read is listed as an unknown, at the line that caused it, rather than guessed: tasks built in a loop or a factory, from a `manifest.json` read when Airflow parses the file, by a wrapper class or a function imported from another file; selectors that need dbt's state; Jinja or shell variables; a remote manifest; a generated project; a DAG file that cannot load. [corpus/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/README.md) says how often the scanner gets it right on repositories it had never seen, and why it misses.
 
 To answer an unknown, or to tell LineagePilot where a container path really is, put `.lineagepilot/airflow.yml` at the root of the dbt project:
 
@@ -129,18 +132,6 @@ acknowledged:                     # unknowns you have answered
 
 Put a rule pack in `.lineagepilot/rules.yml` at the root of the dbt project to add rules, turn built-in ones off or change their severity. Problems in the pack show in the Problems panel on the pack file. The built-in rules are listed in [rules.md](https://github.com/arrufus/lineagepilot/blob/main/docs/rules.md).
 
-## Usage counts (beta)
-
-The beta decides whether LineagePilot is worth carrying on with, and that depends on whether teams use the review week after week. Usage counts let you tell us how often you do, without LineagePilot sending anything.
-
-They are **off unless you turn them on**, with `lineagePilot.usageCounts.enabled` in your user settings. A workspace cannot turn them on. When they are on, LineagePilot counts on this machine, week by week:
-
-- the days on which you had a dbt project open with LineagePilot running;
-- how many times you opened the Change Impact Review;
-- how many times you copied it as Markdown.
-
-Nothing else is counted: no project, file, model or column names, and no contents. LineagePilot makes no network connections, so the counts never leave your machine unless you copy them. **LineagePilot: Copy Usage Counts** puts them on the clipboard as a small table, for you to read and paste into the weekly check-in issue. The last 12 weeks are kept. Turning the setting off deletes them, at once if LineagePilot is running, or else when it next starts.
-
 ## Troubleshooting
 
 **LineagePilot: Show Output** has the details behind every problem below. **LineagePilot: Show Status** lists each dbt project with its state, node count and Python.
@@ -153,7 +144,7 @@ The status bar:
 - **Lineage: … files newer than the manifest**: run **Refresh dbt Artifacts** (or `dbt parse`) so the lineage matches your edits.
 - **Lineage: index failed: …**: the output has the error. **LineagePilot: Restart Language Server** tries again.
 - **The language server keeps stopping**: once it has stopped more than 5 times in 3 minutes, it is not restarted automatically. Use **Restart Language Server**, and if it stops again, report it with the output (below).
-- **The language server speaks lineage protocol …**: the extension and its server come from different builds. Reinstall the VSIX.
+- **The language server speaks lineage protocol …**: the extension and its server come from different builds. Reinstall LineagePilot.
 
 In the editor:
 
@@ -170,13 +161,15 @@ In the review:
 
 ## Reporting a problem
 
-Open an issue in the LineagePilot repository on GitHub, which beta teams have access to. Its forms ask for what helps:
+Open an issue at <https://github.com/arrufus/lineagepilot/issues>. Its forms ask for what helps:
 
 - your LineagePilot, VS Code and Python versions, and your operating system;
 - the output of **LineagePilot: Show Output**. For a problem with a request, set `lineagePilot.trace.server` to `messages` first, and reproduce it;
 - the dbt version and manifest schema, from **Show Status**.
 
-The output and the trace can contain model names, paths and SQL from your project. Read them, and remove anything you cannot share, before you paste them.
+The output and the trace can contain model names, paths and SQL from your project. Read them, and remove anything you cannot share, before you paste them: issues are public.
+
+**A security problem** does not go in an issue. Report it privately, as [SECURITY.md](https://github.com/arrufus/lineagepilot/blob/main/SECURITY.md) describes.
 
 ## Licence
 

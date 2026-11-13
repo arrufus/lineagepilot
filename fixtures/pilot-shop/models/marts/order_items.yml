@@ -1,0 +1,14 @@
+models:
+  - name: order_items
+    description: One row per product on an order, priced.
+    columns:
+      - name: order_line_id
+        data_tests: [not_null, unique]
+      - name: order_id
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('orders')
+                field: order_id
+      - name: line_total
+        description: The quantity times the product's unit price, in dollars.

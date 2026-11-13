@@ -1,4 +1,4 @@
-"""Task 2.2 end to end: CodeLens, hover and diagnostics on the jaffle-shop fixture."""
+"""Task 2.2 end to end: CodeLens, hover and diagnostics on the pilot-shop fixture."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import time
 
 from lsprotocol import types
 
-J = "model.jaffle_shop"
+J = "model.pilot_shop"
 DOCS = "https://github.com/arrufus/lineagepilot/blob/main/docs/rules.md"
 
 
@@ -81,10 +81,10 @@ async def test_code_lens_on_yaml_entries(start, workspace):
     assert lens.range.start.line == line_of(orders_yml, "- name: orders")
     sources = workspace / "models" / "staging" / "__sources.yml"
     found = await lenses(client, sources)
-    assert len(found) == 6
+    assert len(found) == 5
     by_line = {lens.range.start.line: lens.command for lens in found}
     raw_orders = by_line[line_of(sources, "- name: raw_orders")]
-    assert list(raw_orders.arguments)[0] == "source.jaffle_shop.ecom.raw_orders"
+    assert list(raw_orders.arguments)[0] == "source.pilot_shop.ecom.raw_orders"
     assert raw_orders.title == "↓ 4 models"
 
 
@@ -149,7 +149,7 @@ async def test_hover_on_a_source_crosses_to_the_seed(start, workspace):
     client, _ = await ready(start)
     found = await hover(client, workspace / "models" / "staging" / "stg_orders.sql", 4, "source(")
     value = found.contents.value
-    assert value.startswith("### raw\\_orders") and "source · source\\.jaffle\\_shop" in value
+    assert value.startswith("### raw\\_orders") and "source · source\\.pilot\\_shop" in value
     assert "**raw\\_orders** (seed) · " in value and "via table relation:" in value
 
 
@@ -243,8 +243,8 @@ async def test_a_rule_pack_changes_the_diagnostics(start, workspace):
         "packLoaded": False,
         "restricted": False,
         "problems": [],
-        "findings": 126,
-        "score": 40.0,
+        "findings": 98,
+        "score": 39.51,
         "coverage": 100.0,
     }
     pack = workspace / ".lineagepilot" / "rules.yml"

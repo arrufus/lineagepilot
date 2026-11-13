@@ -155,6 +155,11 @@ Decided on 8 November 2026 (design section 15):
 
 Running the beta and scoring G1: [beta.md](beta.md).
 
+**Gate G1 passed on 13 November 2026**, by the product owner's judgment (LP-7er.4). No check-ins were filed as GitHub issues, so the scoring in [beta.md](beta.md) was not used. Decided the same day (design section 15):
+- The public release follows, before the next phase: 0.2.0, marked Preview on the Marketplace and Open VSX, with no pre-release channel. Its checklist is in [release.md](release.md#before-the-first-public-release-after-gate-g1) (LP-2xl).
+- The source goes public as a new repository, from a copy of this history with the unlicensed fixtures filtered out (LP-0tf). This repository becomes a private archive.
+- The usage counts, the walkthrough's beta step and the weekly check-in form are removed (D-7 revised). There is still no telemetry.
+
 ---
 
 ## Legacy wind-down (parallel, in the data-capsule repository)

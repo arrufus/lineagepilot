@@ -192,9 +192,7 @@ def job_problems(jobs: list[dict]) -> list[str]:
 def audience(repository: dict, url: str) -> str:
     if repository.get("private"):
         return (f"Who can download it: only people with access to the private repository {repository['full_name']}. "
-                "It is not public, by design during the closed beta. Beta testers are invited as collaborators "
-                "(docs/beta.md, 'Inviting a team'); the link works for them once they accept. "
-                "Releases become public when the repository does, after Gate G1.")
+                "Releases are public only from a public repository (docs/release.md, 'Publishing the source').")
     return f"Who can download it: anyone, from {url}"
 
 
@@ -317,8 +315,8 @@ def check_run(report: Report, github: GitHub, tag: str, vsix: str, sha256: str |
         report.add(True, f"all {len(jobs)} of its jobs passed or were not due: the core, server and extension "
                          "tests on every platform, the secret scan and the release")
     if skipped := [job["name"] for job in jobs if job["name"] in REGISTRY_JOBS and job["conclusion"] == "skipped"]:
-        report.add(None, f"not published to the Marketplace or Open VSX: {' and '.join(skipped)} stay off "
-                         "until the public release")
+        report.add(None, f"not published to the Marketplace or Open VSX: {' and '.join(skipped)} run only when "
+                         "the repository variable LP_PUBLISH_REGISTRIES is true")
     release_job = next((job for job in jobs if job["name"] == "github-release"), None)
     if release_job is None or sha256 is None:
         return

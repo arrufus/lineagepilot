@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: ecom
+    description: The shop's own systems, loaded as they are.
+    schema: main_raw
+    tables:
+      - name: raw_customers
+        description: Everyone who has signed up.
+      - name: raw_orders
+        description: Orders as the till records them.
+      - name: raw_order_lines
+        description: The products on each order.
+      - name: raw_products
+        description: The catalogue.
+      - name: raw_locations
+        description: The shop's branches.

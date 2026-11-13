@@ -83,8 +83,8 @@ class TestDbtManifestResolver:
 
     def test_load_real_manifest(self):
         resolver = DbtManifestResolver()
-        assert resolver.load_manifest(str(DBT_FIXTURES / "jaffle-1.12" / "manifest.json"))
-        assert len(resolver._models_cache) == 13
+        assert resolver.load_manifest(str(DBT_FIXTURES / "pilot-1.12" / "manifest.json"))
+        assert len(resolver._models_cache) == 11
 
     def test_load_missing_file(self):
         assert not DbtManifestResolver().load_manifest("/nonexistent/manifest.json")

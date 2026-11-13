@@ -31,7 +31,7 @@ from pytest_lsp.client import register_lsp_features
 from lineagepilot_lsp.server import converter
 
 REPO = Path(__file__).resolve().parents[3]
-FIXTURE = REPO / "fixtures" / "jaffle-shop"
+FIXTURE = REPO / "fixtures" / "pilot-shop"
 CORE_FIXTURES = REPO / "packages" / "core" / "tests" / "fixtures" / "dbt"
 WAIT_S = 60.0
 BUNDLED_SERVER = os.environ.get("LP_TEST_SERVER")
@@ -53,7 +53,7 @@ def age_sources(root: Path, seconds: float = 3600) -> None:
 
 @pytest.fixture
 def workspace(tmp_path) -> Path:
-    root = tmp_path / "jaffle-shop"
+    root = tmp_path / "pilot-shop"
     shutil.copytree(FIXTURE, root)
     age_sources(root)
     return root

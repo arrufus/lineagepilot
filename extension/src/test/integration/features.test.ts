@@ -16,9 +16,9 @@ suite('LineagePilot features', () => {
 
   test('the project is indexed, model level first and then columns', async () => {
     const server = await readyServer();
-    assert.equal(server.status.project.name, 'jaffle_shop');
+    assert.equal(server.status.project.name, 'pilot_shop');
     assert.ok((server.status.counts?.nodes ?? 0) > 20);
-    assert.deepEqual(server.status.columnStates, { resolved: 13, partial: 0, unknown: 0 });
+    assert.deepEqual(server.status.columnStates, { resolved: 11, partial: 0, unknown: 0 });
     assert.equal(server.status.artifacts.manifest?.schemaVersion, 12);
   });
 
@@ -47,7 +47,7 @@ suite('LineagePilot features', () => {
     assert.deepEqual(lens.command!.arguments, [`${J}.orders`, root()]);
     const sources = await vscode.workspace.openTextDocument(uri('models', 'staging', '__sources.yml'));
     const yaml = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', sources.uri);
-    assert.equal(yaml.filter((l) => l.command?.command === 'lineagePilot.showImpact').length, 6);
+    assert.equal(yaml.filter((l) => l.command?.command === 'lineagePilot.showImpact').length, 5);
   });
 
   test('hovering a ref() shows its lineage with evidence', async () => {
@@ -112,7 +112,7 @@ suite('LineagePilot features', () => {
   test('opening a node goes to its YAML entry', async () => {
     const server = await readyServer();
     const { nodes } = await server.request('lineage/graph', {
-      root: 'source.jaffle_shop.ecom.raw_orders', direction: 'downstream', depth: 1, granularity: 'model',
+      root: 'source.pilot_shop.ecom.raw_orders', direction: 'downstream', depth: 1, granularity: 'model',
     });
     const source = nodes.find((n) => n.side === 'root')!;
     await vscode.commands.executeCommand('lineagePilot.openNode', source.location);

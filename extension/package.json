@@ -2,10 +2,13 @@
   "name": "lineagepilot",
   "displayName": "LineagePilot",
   "description": "Lineage and change impact for your project's models, exposures and Airflow tasks, from the artifacts already in your workspace. No server, no account.",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "publisher": "lineagepilot",
   "private": true,
+  "preview": true,
+  "pricing": "Free",
   "license": "MIT",
+  "homepage": "https://github.com/arrufus/lineagepilot#readme",
   "repository": {
     "type": "git",
     "url": "https://github.com/arrufus/lineagepilot"
@@ -90,12 +93,6 @@
           "scope": "resource",
           "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. DAG files are only ever parsed, never imported or run."
         },
-        "lineagePilot.usageCounts.enabled": {
-          "type": "boolean",
-          "default": false,
-          "scope": "application",
-          "markdownDescription": "Count, on this machine only, the days you have a dbt project open and how often you open and copy the Change Impact Review, week by week, for the beta's weekly check-in. Nothing is ever sent: **LineagePilot: Copy Usage Counts** puts the counts on the clipboard for you to paste. They hold nothing about any project. Turning this off deletes them, at once if LineagePilot is running, or else when it next starts. Only your user settings can turn it on."
-        },
         "lineagePilot.trace.server": {
           "type": "string",
           "enum": [
@@ -179,11 +176,6 @@
       {
         "command": "lineagePilot.applySampleChange",
         "title": "Apply the Sample Change",
-        "category": "LineagePilot"
-      },
-      {
-        "command": "lineagePilot.copyUsageCounts",
-        "title": "Copy Usage Counts",
         "category": "LineagePilot"
       },
       {
@@ -343,18 +335,6 @@
             },
             "completionEvents": [
               "onView:lineagePilot.airflow"
-            ]
-          },
-          {
-            "id": "beta",
-            "title": "Beta: share how often you use it",
-            "description": "Turned on, usage counts record on this machine the days you used LineagePilot and how often you opened and copied the review. Nothing is sent: you copy the counts into the weekly check-in yourself.\n[Turn On Usage Counts](command:workbench.action.openSettings?%5B%22lineagePilot.usageCounts.enabled%22%5D)\n[Copy Usage Counts](command:lineagePilot.copyUsageCounts)",
-            "media": {
-              "markdown": "media/walkthrough/beta.md"
-            },
-            "completionEvents": [
-              "onSettingChanged:lineagePilot.usageCounts.enabled",
-              "onCommand:lineagePilot.copyUsageCounts"
             ]
           }
         ]

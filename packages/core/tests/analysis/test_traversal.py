@@ -1,4 +1,4 @@
-"""Traversal on hand-built graphs (edge cases) and on jaffle-shop (real lineage)."""
+"""Traversal on hand-built graphs (edge cases) and on pilot-shop (real lineage)."""
 
 from __future__ import annotations
 
@@ -151,17 +151,17 @@ def test_steps_are_exposed_for_callers(junction):
     assert list(steps(junction, "relation:db.raw.t", DOWN, Granularity.MODEL)) == []
 
 
-def test_jaffle_shop_lineage():
-    graph = build_dbt_graph(DbtParser().parse(project_config("jaffle-1.12")))
-    down = traverse(graph, ["seed.jaffle_shop.raw_customers"], DOWN)
+def test_pilot_shop_lineage():
+    graph = build_dbt_graph(DbtParser().parse(project_config("pilot-1.12")))
+    down = traverse(graph, ["seed.pilot_shop.raw_customers"], DOWN)
     assert [(r.ref, r.depth) for r in down.reached.values()] == [
-        ("seed.jaffle_shop.raw_customers", 0),
-        ("source.jaffle_shop.ecom.raw_customers", 1),
-        ("model.jaffle_shop.stg_customers", 2),
-        ("model.jaffle_shop.customers", 3),
+        ("seed.pilot_shop.raw_customers", 0),
+        ("source.pilot_shop.ecom.raw_customers", 1),
+        ("model.pilot_shop.stg_customers", 2),
+        ("model.pilot_shop.customers", 3),
     ]
-    up = traverse(graph, ["model.jaffle_shop.customers"], UP)
-    assert len(up.found()) == 17
+    up = traverse(graph, ["model.pilot_shop.customers"], UP)
+    assert len(up.found()) == 14
     assert {graph.node(r).kind for r in up.found()} == {
         NodeKind.MODEL,
         NodeKind.SOURCE,

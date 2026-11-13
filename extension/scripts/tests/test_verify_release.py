@@ -128,7 +128,8 @@ def test_a_complete_release_from_the_private_repository_passes(tmp_path):
                      "logged the same SHA-256"):
         assert expected in passed, expected
     assert notes(report) == [
-        "not published to the Marketplace or Open VSX: marketplace and open-vsx stay off until the public release",
+        "not published to the Marketplace or Open VSX: marketplace and open-vsx run only when the repository "
+        "variable LP_PUBLISH_REGISTRIES is true",
         "no attestation to check: GitHub makes them only in public repositories on this plan",
     ]
     assert github.attested == []

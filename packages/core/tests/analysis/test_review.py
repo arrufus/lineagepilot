@@ -553,9 +553,9 @@ def test_the_source_hash_means_the_same_on_dbt_core_and_fusion():
     # the two engines read the same customers.sql to the same raw_code
     hashes = {
         index_project(DBT_FIXTURES / name, manifest=DBT_FIXTURES / name / "manifest.json")
-        .graph.nodes["model.jaffle_shop.customers"]
+        .graph.nodes["model.pilot_shop.customers"]
         .source_sha256
-        for name in ("jaffle-1.12", "jaffle-fusion-2.0")
+        for name in ("pilot-1.12", "pilot-fusion-2.0")
     }
     assert len(hashes) == 1 and None not in hashes
 

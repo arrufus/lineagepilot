@@ -26,7 +26,7 @@ DECLARED = Evidence(Origin.MANIFEST, Confidence.DECLARED)
 INFERRED = Evidence(Origin.COMPILED_SQL, Confidence.INFERRED)
 GUESSED = Evidence(Origin.DAG_STATIC, Confidence.HEURISTIC)
 RESOLVED = ColumnLineageStatus(LineageState.RESOLVED)
-JAFFLE = "model.jaffle_shop"
+PILOT = "model.pilot_shop"
 
 
 @pytest.fixture
@@ -176,27 +176,27 @@ def test_sources_reading_a_changed_table(graph):
 
 
 @pytest.fixture(scope="module")
-def jaffle():
-    result = DbtParser().parse(project_config("jaffle-1.12"))
+def pilot():
+    result = DbtParser().parse(project_config("pilot-1.12"))
     graph = build_dbt_graph(result)
     add_column_lineage(graph, compiled_sql(result))
     return graph
 
 
-def test_jaffle_column_impact_is_precise(jaffle):
+def test_pilot_column_impact_is_precise(pilot):
     """order_items does not use order_total, so it is not impacted (checked by hand)."""
-    result = impact(jaffle, [f"{JAFFLE}.stg_orders#order_total"])
+    result = impact(pilot, [f"{PILOT}.stg_orders#order_total"])
     assert {n.id: n.columns for n in result.nodes.values()} == {
-        f"{JAFFLE}.orders": [f"{JAFFLE}.orders#order_total"],
-        f"{JAFFLE}.customers": [f"{JAFFLE}.customers#lifetime_spend"],
+        f"{PILOT}.orders": [f"{PILOT}.orders#order_total"],
+        f"{PILOT}.customers": [f"{PILOT}.customers#lifetime_spend"],
     }
     assert result.unknowns == []
 
 
-def test_jaffle_lineage_computed_on_demand_is_followed(jaffle):
+def test_pilot_lineage_computed_on_demand_is_followed(pilot):
     """The language server computes models on demand while the indexer is still busy:
     the derives edges a callback adds must be followed in the same query."""
-    result = DbtParser().parse(project_config("jaffle-1.12"))
+    result = DbtParser().parse(project_config("pilot-1.12"))
     graph = build_dbt_graph(result)
     sql = compiled_sql(result)
 
@@ -205,21 +205,21 @@ def test_jaffle_lineage_computed_on_demand_is_followed(jaffle):
             add_column_lineage(graph, sql, [node_id])
         return graph.column_lineage[node_id]
 
-    target = f"{JAFFLE}.stg_orders#order_total"
+    target = f"{PILOT}.stg_orders#order_total"
     found = impact(graph, [target], column_lineage=on_demand)
-    expected = impact(jaffle, [target])
+    expected = impact(pilot, [target])
     assert {n.id: (n.columns, n.granularity) for n in found.nodes.values()} == {
         n.id: (n.columns, n.granularity) for n in expected.nodes.values()
     }
 
 
-def test_jaffle_model_impact(jaffle):
-    result = impact(jaffle, [f"{JAFFLE}.stg_orders"])
-    assert set(result.nodes) == {f"{JAFFLE}.orders", f"{JAFFLE}.order_items", f"{JAFFLE}.customers"}
+def test_pilot_model_impact(pilot):
+    result = impact(pilot, [f"{PILOT}.stg_orders"])
+    assert set(result.nodes) == {f"{PILOT}.orders", f"{PILOT}.order_items", f"{PILOT}.customers"}
     assert {n.confidence for n in result.nodes.values()} == {Confidence.DECLARED}
 
 
-def test_jaffle_seed_change_reaches_marts_through_the_source(jaffle):
-    result = impact(jaffle, ["seed.jaffle_shop.raw_orders"])
-    assert result.nodes["source.jaffle_shop.ecom.raw_orders"].depth == 1
-    assert f"{JAFFLE}.customers" in result.nodes
+def test_pilot_seed_change_reaches_marts_through_the_source(pilot):
+    result = impact(pilot, ["seed.pilot_shop.raw_orders"])
+    assert result.nodes["source.pilot_shop.ecom.raw_orders"].depth == 1
+    assert f"{PILOT}.customers" in result.nodes

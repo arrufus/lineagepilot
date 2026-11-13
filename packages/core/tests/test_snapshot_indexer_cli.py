@@ -65,20 +65,20 @@ class TestSnapshot:
         assert_same(graph, load_snapshot(path))
 
     def test_round_trip_keeps_unresolved_and_hostile_text(self, write_json, manifest_of):
-        manifest = manifest_of("jaffle-1.12")
-        node = manifest["nodes"]["model.jaffle_shop.customers"]
+        manifest = manifest_of("pilot-1.12")
+        node = manifest["nodes"]["model.pilot_shop.customers"]
         node["description"] = 'quote " back\\slash \ud800 lone surrogate é\n'
-        node["depends_on"]["nodes"].append("metric.jaffle_shop.revenue")
+        node["depends_on"]["nodes"].append("metric.pilot_shop.revenue")
         graph = build_dbt_graph(DbtParser().parse({"manifest_path": str(write_json(manifest))}))
         restored = from_dict(json.loads(json.dumps(to_dict(graph))))
         assert_same(graph, restored)
         assert (
             restored.unresolved
-            and restored.node("model.jaffle_shop.customers").description == (node["description"])
+            and restored.node("model.pilot_shop.customers").description == (node["description"])
         )
 
     def test_writes_are_atomic(self, tmp_path, monkeypatch):
-        graph = full_graph("jaffle-1.12")
+        graph = full_graph("pilot-1.12")
         path = tmp_path / "graph.json"
         save_snapshot(graph, path)
         before = path.read_bytes()
@@ -106,7 +106,7 @@ class TestSnapshot:
             from_dict(data)
 
     def test_tampered_snapshots_are_refused(self):
-        data = to_dict(full_graph("jaffle-1.12"))
+        data = to_dict(full_graph("pilot-1.12"))
         broken_edge = json.loads(json.dumps(data))
         broken_edge["edges"][0][1] = "model.p.ghost"
         no_evidence = json.loads(json.dumps(data))
@@ -120,7 +120,7 @@ class TestSnapshot:
                 from_dict(tampered)
 
     def test_from_dict_leaves_the_caller_s_data_alone_unless_consuming(self):
-        data = to_dict(full_graph("jaffle-1.12"))
+        data = to_dict(full_graph("pilot-1.12"))
         from_dict(data)
         assert data["columns"] and data["edges"]
         from_dict(data, consume=True)
@@ -151,7 +151,7 @@ class TestSnapshot:
 
 class TestCache:
     def test_get_put_and_prune(self, tmp_path):
-        graph = full_graph("jaffle-1.12")
+        graph = full_graph("pilot-1.12")
         cache = SnapshotCache(tmp_path, keep=2)
         assert cache.get("a1") is None
         for key in ("a1", "b2", "c3"):
@@ -176,7 +176,7 @@ def project(tmp_path):
     target = tmp_path / "project" / "target"
     target.mkdir(parents=True)
     for name in ("manifest.json", "catalog.json"):
-        shutil.copy(DBT_FIXTURES / "jaffle-1.12" / name, target / name)
+        shutil.copy(DBT_FIXTURES / "pilot-1.12" / name, target / name)
     return tmp_path / "project"
 
 
@@ -193,7 +193,7 @@ class TestIndexer:
         cache = SnapshotCache(tmp_path / "cache")
         cold = index_project(project, cache=cache)
         assert (cold.status, cold.from_cache) == (IndexStatus.OK, False)
-        assert cold.project_name == "jaffle_shop" and cold.schema_version == 12
+        assert cold.project_name == "pilot_shop" and cold.schema_version == 12
         assert set(cold.seconds) == {"parse", "graph", "column_lineage", "snapshot", "total"}
         assert cold.snapshot.is_file()
 
@@ -204,7 +204,7 @@ class TestIndexer:
             cold.snapshot,
         )
         assert (warm.project_name, warm.dbt_version, warm.schema_version) == (
-            "jaffle_shop",
+            "pilot_shop",
             "1.12.6",
             12,
         )
@@ -248,13 +248,13 @@ class TestIndexer:
         [(from_cache, snapshot, lineage)] = stages
         assert not from_cache and lineage == {}
         assert snapshot.is_file() and snapshot != full.snapshot
-        assert len(full.graph.column_lineage) == 13
+        assert len(full.graph.column_lineage) == 11
 
         # A model-level snapshot alone is served first, then column lineage is computed
         full.snapshot.unlink()
         again = index_project(project, cache=cache, on_model_graph=on_model_graph)
         assert stages[1][:2] == (True, snapshot)
-        assert not again.from_cache and len(again.graph.column_lineage) == 13
+        assert not again.from_cache and len(again.graph.column_lineage) == 11
 
         # With the full graph cached there is no model stage
         index_project(project, cache=cache, on_model_graph=on_model_graph)
@@ -288,13 +288,13 @@ class TestIndexer:
         """Without compiled_code, lineage reads target/compiled under the project."""
         manifest_path = project / "target" / "manifest.json"
         manifest = json.loads(manifest_path.read_text())
-        node = manifest["nodes"]["model.jaffle_shop.stg_orders"]
+        node = manifest["nodes"]["model.pilot_shop.stg_orders"]
         compiled = project / node["compiled_path"]
         compiled.parent.mkdir(parents=True, exist_ok=True)
         compiled.write_text(node.pop("compiled_code"))
         manifest_path.write_text(json.dumps(manifest))
         result = index_project(project)
-        assert result.graph.column_lineage["model.jaffle_shop.stg_orders"].state.value == "resolved"
+        assert result.graph.column_lineage["model.pilot_shop.stg_orders"].state.value == "resolved"
 
 
 def run(*argv) -> tuple[int, str]:
@@ -306,8 +306,8 @@ class TestCli:
     def test_index_text_and_cache(self, project):
         code, out = run("index", "--project-dir", str(project))
         assert code == 0
-        assert out.splitlines()[0] == "Indexed jaffle_shop (dbt 1.12.6, manifest schema v12)"
-        assert "Column lineage: 13 resolved" in out
+        assert out.splitlines()[0] == "Indexed pilot_shop (dbt 1.12.6, manifest schema v12)"
+        assert "Column lineage: 11 resolved" in out
         assert (project / "target" / ".lineagepilot").is_dir()
         code, out = run("index", "--project-dir", str(project))
         assert "(from the snapshot cache)" in out.splitlines()[0]
@@ -318,11 +318,11 @@ class TestCli:
         assert (code, data["status"], data["project"], data["from_cache"]) == (
             0,
             "ok",
-            "jaffle_shop",
+            "pilot_shop",
             False,
         )
-        assert data["stats"]["node_kinds"]["model"] == 13
-        assert data["column_lineage"] == {"resolved": 13}
+        assert data["stats"]["node_kinds"]["model"] == 11
+        assert data["column_lineage"] == {"resolved": 11}
         assert not (project / "target" / ".lineagepilot").exists()
 
     def test_index_unknown(self, tmp_path):
@@ -345,9 +345,9 @@ class TestCli:
         )
         assert code == 0
         lines = out.splitlines()
-        assert lines[0] == "Impact of model.jaffle_shop.stg_orders#order_total"
+        assert lines[0] == "Impact of model.pilot_shop.stg_orders#order_total"
         assert lines[1] == "  2 impacted: 2 model"
-        assert "model.jaffle_shop.orders" in lines[2] and "[order_total]" in lines[2]
+        assert "model.pilot_shop.orders" in lines[2] and "[order_total]" in lines[2]
 
     def test_impact_json_by_file(self, project):
         code, out = run(
@@ -361,10 +361,10 @@ class TestCli:
             "--no-cache",
         )
         data = json.loads(out)
-        assert code == 0 and data["targets"] == ["model.jaffle_shop.stg_orders"]
+        assert code == 0 and data["targets"] == ["model.pilot_shop.stg_orders"]
         assert {n["id"] for n in data["nodes"]} == {
-            "model.jaffle_shop.orders",
-            "model.jaffle_shop.order_items",
+            "model.pilot_shop.orders",
+            "model.pilot_shop.order_items",
         }
         assert data["truncated"] is True
 
@@ -382,11 +382,11 @@ class TestCli:
     def test_impact_reports_unknowns(self, project):
         manifest = project / "target" / "manifest.json"
         data = json.loads(manifest.read_text())
-        data["nodes"]["model.jaffle_shop.orders"]["depends_on"]["nodes"].append("metric.x.y")
+        data["nodes"]["model.pilot_shop.orders"]["depends_on"]["nodes"].append("metric.x.y")
         manifest.write_text(json.dumps(data))
         code, out = run("impact", "stg_orders", "--project-dir", str(project), "--no-cache")
         assert "Unknowns (1):" in out
-        assert "model.jaffle_shop.orders: metric.x.y: metric nodes are not indexed" in out
+        assert "model.pilot_shop.orders: metric.x.y: metric nodes are not indexed" in out
 
     def test_impact_problems(self, project, tmp_path):
         code, out = run(
@@ -395,7 +395,7 @@ class TestCli:
         assert code == 1
         assert out.splitlines() == [
             "nope: no node, model or file by that name",
-            "stg_orders#nope: model.jaffle_shop.stg_orders has no column 'nope'",
+            "stg_orders#nope: model.pilot_shop.stg_orders has no column 'nope'",
         ]
         code, out = run("impact", "x", "--project-dir", str(tmp_path), "--no-cache", "--json")
         assert code == 1 and json.loads(out)["status"] == "unknown"
@@ -413,16 +413,16 @@ def test_resolve_targets_by_absolute_path_and_ambiguous_names(project, monkeypat
     graph = index_project(project).graph
     absolute = str((project / "models" / "staging" / "stg_orders.sql").resolve())
     monkeypatch.chdir(project)
-    assert resolve_targets(graph, [absolute], project)[0] == ["model.jaffle_shop.stg_orders"]
+    assert resolve_targets(graph, [absolute], project)[0] == ["model.pilot_shop.stg_orders"]
     assert resolve_targets(graph, ["models/staging/stg_orders.sql"], project)[0] == [
-        "model.jaffle_shop.stg_orders"
+        "model.pilot_shop.stg_orders"
     ]
     # raw_customers names a seed and a source
     ids, problems = resolve_targets(graph, ["raw_customers", "raw_customers#id"], project)
-    assert ids == ["seed.jaffle_shop.raw_customers", "source.jaffle_shop.ecom.raw_customers"]
+    assert ids == ["seed.pilot_shop.raw_customers", "source.pilot_shop.ecom.raw_customers"]
     assert problems == [
         "raw_customers#id: raw_customers names 2 nodes: "
-        "seed.jaffle_shop.raw_customers, source.jaffle_shop.ecom.raw_customers"
+        "seed.pilot_shop.raw_customers, source.pilot_shop.ecom.raw_customers"
     ]
 
 
