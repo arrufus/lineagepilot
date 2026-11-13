@@ -28,7 +28,7 @@ How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are 
    gh pr checks --watch --fail-fast && gh pr merge --merge --delete-branch
    ```
 
-   The `&&` is what makes it "CI green": `gh pr checks` fails if any check failed, and then nothing is merged. GitHub does not enforce it here. On its current plan this private repository can have no branch protection or rulesets, and auto-merge is off. Merge with `--merge`, not `--squash` or `--rebase`, so that step 4 has a merge commit to tag. If `gh pr checks` says no checks were reported, the workflows have not registered yet: wait a few seconds and run that line again.
+   The `&&` is what makes it "CI green": `gh pr checks` fails if any check failed, and then nothing is merged. GitHub enforces only part of it: the `main` ruleset requires a pull request and the secret scan, but not the core, server and extension checks, which run only when their paths change (checklist item 7 below). Auto-merge is off. Merge with `--merge`, not `--squash` or `--rebase`, so that step 4 has a merge commit to tag: the ruleset allows no other method. If `gh pr checks` says no checks were reported, the workflows have not registered yet: wait a few seconds and run that line again.
 
 4. **Tag the merge commit on `main`, and push the tag**:
 
@@ -152,7 +152,7 @@ Work through these in order:
    ```
 
    Then, under GitHub's **Settings › Emails**, turn on **Keep my email addresses private** and **Block command line pushes that expose my email**. The git identity was set on 13 November 2026; the two GitHub settings are still to do.
-4. [ ] **Move the source to the new repository**. Sub-steps 1–4 and 6 were done on 13 November 2026: 80 commits, with a tree identical to the archive's `main`. Sub-step 4 started the core, server, extension and S1 workflows by hand (`gh workflow run <file> --repo arrufus/lineagepilot --ref main`): their path filters did not match the first push to an empty repository, and only the secret scan started by itself.
+4. [x] **Move the source to the new repository**. Done on 13 November 2026: 80 commits, with a tree identical to the archive's `main`, public the same afternoon after a last check of every ref for personal addresses, jaffle-shop paths and secrets. Sub-step 4 started the core, server, extension and S1 workflows by hand (`gh workflow run <file> --repo arrufus/lineagepilot --ref main`): their path filters did not match the first push to an empty repository, and only the secret scan started by itself.
    1. Rename this one: `gh repo rename lineagepilot-private --repo arrufus/lineagepilot`. GitHub redirects the old name to it until another repository takes the name, which the next step does. So point this clone at the new name straight away: `git remote set-url origin https://github.com/arrufus/lineagepilot-private.git` ([Publishing the source](#publishing-the-source), step 1).
    2. Create the new one, private for now: `gh repo create arrufus/lineagepilot --private`.
    3. Push the filtered history to it, as in [Publishing the source](#publishing-the-source).
@@ -167,12 +167,12 @@ Work through these in order:
    7. Turn on private vulnerability reporting, which `SECURITY.md` points to: **Settings › Code security › Private vulnerability reporting**, or `gh api -X PUT repos/arrufus/lineagepilot/private-vulnerability-reporting`. GitHub offers it to public repositories only: on the private repository the API answers 404 (checked 13 November 2026).
 5. [ ] **Marketplace publisher** `lineagepilot`, the `publisher` in `extension/package.json`. Create it at <https://marketplace.visualstudio.com/manage> with a Microsoft account that has two-factor authentication on. Then create an Azure DevOps personal access token with the **Marketplace › Manage** scope, for **All accessible organizations**. It lasts a year at most: note when it expires.
 6. [ ] **Open VSX namespace** `lineagepilot`: sign in to <https://open-vsx.org> with GitHub (two-factor on), sign the Eclipse publisher agreement, create the namespace (`npx ovsx create-namespace lineagepilot -p <token>`), and claim it. The access token is on the same settings page.
-7. [ ] **Protect the new, public repository** (audit H8 and H9, LP-qy0.9):
+7. [ ] **Protect the new, public repository** (audit H8 and H9, LP-qy0.9). All of it was set up on 13 November 2026 except the two secrets, which only you can add:
    - **A GitHub environment called `registries`**, under **Settings › Environments**: add yourself as a required reviewer, allow only tags `v*` to deploy, and add the secrets `VSCE_PAT` and `OVSX_PAT`. The tokens live only there, so only an approved release job can read them. Check that the required reviewer and the tag rule show as saved before you add the secrets.
    - **Set the repository variable** `LP_PUBLISH_REGISTRIES` to `true`, under **Settings › Secrets and variables › Actions › Variables**.
    - **Rulesets**, under **Settings › Rules › Rulesets**:
-     - a tag ruleset for `v*` that only you can create, update or delete;
-     - a branch ruleset for `main` that requires a pull request and the core, server, extension and secret-scan checks to pass. Step 3's `&&` is then enforced by GitHub as well.
+     - a tag ruleset for `v*` (**Release tags**) that only you can create, update or delete: it blocks all three, and the repository admin role bypasses it;
+     - a branch ruleset for `main` that blocks deletion and force pushes, requires a pull request merged with a merge commit, and requires the secret scan's `gitleaks` check, from GitHub Actions, to pass. It does not require the core, server and extension checks. Their workflows run only when their paths change, and GitHub would hold a pull request that touches none of them forever, waiting for checks that never come. Their job names (`test (ubuntu-latest, 3.13)`, `lint-and-audit`) are also shared between workflows, so a required name could be met by the wrong one. Requiring them needs one job that always runs and reports their result: until then, step 3's `&&` is what holds them.
    - **Workflows from forks**: under **Settings › Actions › General**, require approval for workflows from fork pull requests by all outside contributors, so a stranger's pull request runs nothing until you have read it.
 8. [ ] **Confirm that the leaked Snowflake key was rotated** (DCS-hov, in data-capsule's tracker), as the security audit asks before a public release (LP-qy0.9).
 9. [ ] **Remove the beta collaborators** from the private archive ([beta.md](beta.md#after-g1)). None are added to the new repository.
