@@ -386,6 +386,25 @@ def test_gh_wrapper_commands(monkeypatch, tmp_path):
     assert github.attestation(tmp_path / VSIX, TAG) is None
 
 
+def test_job_log_allows_escape_sequences_only_when_gh_refuses_them(monkeypatch):
+    # gh 2.103 refuses a log with the runner's colours in it unless --allow-escape-sequences is
+    # given; older gh does not know the flag, so the first call never passes it
+    path = f"repos/{REPO}/actions/jobs/5/logs"
+    refusal = (f"gh api {path}: the response contains terminal escape sequences; "
+               "pass --allow-escape-sequences to output it anyway\n")
+    calls = []
+
+    def fake_run(args, **kwargs):
+        calls.append(args)
+        if "--allow-escape-sequences" in args:
+            return subprocess.CompletedProcess(args, 0, "\x1b[36mlog text\x1b[0m", "")
+        return subprocess.CompletedProcess(args, 1, "", refusal)
+
+    monkeypatch.setattr(vr.subprocess, "run", fake_run)
+    assert vr.GitHub(REPO).job_log(5) == "\x1b[36mlog text\x1b[0m"
+    assert calls == [["gh", "api", path], ["gh", "api", "--allow-escape-sequences", path]]
+
+
 def test_no_gh_installed_is_an_error_not_a_crash(monkeypatch):
     def missing(args, **kwargs):
         raise FileNotFoundError("gh")
