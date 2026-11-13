@@ -1,0 +1,21 @@
+name: pilot_shop
+version: "1.0.0"
+config-version: 2
+profile: pilot_shop
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+
+seeds:
+  pilot_shop:
+    +schema: raw
+
+models:
+  pilot_shop:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

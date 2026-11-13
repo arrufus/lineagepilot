@@ -1,0 +1,21 @@
+semantic_models:
+  - name: locations
+    description: The shop's branches, for metrics by branch.
+    model: ref('locations')
+    defaults:
+      agg_time_dimension: opened_on
+    entities:
+      - name: location
+        type: primary
+        expr: location_id
+    dimensions:
+      - name: branch_name
+        type: categorical
+      - name: opened_on
+        type: time
+        type_params:
+          time_granularity: day
+    measures:
+      - name: average_tax_rate
+        expr: tax_rate
+        agg: average

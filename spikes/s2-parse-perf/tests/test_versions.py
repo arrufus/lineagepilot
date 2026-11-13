@@ -18,7 +18,7 @@ def test_core_and_fusion_both_report_v12():
     for name, (m, _) in REAL_FIXTURES.items():
         meta = json.loads(m.read_bytes())["metadata"]
         assert V.schema_number(meta["dbt_schema_version"]) == 12, name
-    fusion = json.loads(REAL_FIXTURES["jaffle-fusion-2.0"][0].read_bytes())["metadata"]
+    fusion = json.loads(REAL_FIXTURES["pilot-fusion-2.0"][0].read_bytes())["metadata"]
     assert fusion["dbt_version"].startswith("2.")
 
 
@@ -32,8 +32,8 @@ def test_parser_checks_on_real_fixtures():
 
 def test_fusion_columns_lack_data_type():
     """Fusion manifests carry no column data_type; Core 1.12 includes the key (null unless declared)."""
-    fus = V.key_profile(json.loads(REAL_FIXTURES["jaffle-fusion-2.0"][0].read_bytes()))
-    core = V.key_profile(json.loads(REAL_FIXTURES["jaffle-1.12"][0].read_bytes()))
+    fus = V.key_profile(json.loads(REAL_FIXTURES["pilot-fusion-2.0"][0].read_bytes()))
+    core = V.key_profile(json.loads(REAL_FIXTURES["pilot-1.12"][0].read_bytes()))
     assert "data_type" in core["column"] and "data_type" not in fus["column"]
     assert "compiled_code" in core["model"]
 

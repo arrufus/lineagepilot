@@ -81,7 +81,7 @@ def test_an_intact_newer_schema_parses_with_a_warning(write_json, manifest_of):
 
 
 def test_a_missing_schema_version_parses_with_a_warning(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
+    manifest = manifest_of("pilot-1.12")
     del manifest["metadata"]["dbt_schema_version"]
     result = parse_manifest(write_json, manifest)
     assert not result.has_errors
@@ -104,7 +104,7 @@ def test_an_older_schema_parses_with_a_warning():
     [
         (lambda m: m.pop("parent_map"), "'parent_map' is missing"),
         (
-            lambda m: m["parent_map"].update({"model.jaffle_shop.customers": []}),
+            lambda m: m["parent_map"].update({"model.pilot_shop.customers": []}),
             "disagrees with 'parent_map' for 1 nodes",
         ),
         (
@@ -116,7 +116,7 @@ def test_an_older_schema_parses_with_a_warning():
     ],
 )
 def test_newer_schema_structural_checks(write_json, manifest_of, change, problem):
-    manifest = manifest_of("jaffle-1.12")
+    manifest = manifest_of("pilot-1.12")
     manifest["metadata"]["dbt_schema_version"] = V.format(13)
     change(manifest)
     result = parse_manifest(write_json, manifest)
@@ -125,7 +125,7 @@ def test_newer_schema_structural_checks(write_json, manifest_of, change, problem
 
 
 def test_supported_schema_skips_the_newer_schema_checks(manifest_of):
-    manifest = manifest_of("jaffle-1.12")
+    manifest = manifest_of("pilot-1.12")
     manifest.pop("parent_map")
     assert structural_problems(manifest, SchemaSupport.SUPPORTED) == []
     assert structural_problems(manifest, SchemaSupport.NEWER) == ["'parent_map' is missing"]
@@ -179,14 +179,14 @@ def test_missing_manifest_path_is_an_error():
 
 
 def test_parse_accepts_a_config_object():
-    config = DbtParserConfig(manifest_path=DBT_FIXTURES / "jaffle-1.12" / "manifest.json")
-    assert len(DbtParser().parse(config).nodes) == 25
+    config = DbtParserConfig(manifest_path=DBT_FIXTURES / "pilot-1.12" / "manifest.json")
+    assert len(DbtParser().parse(config).nodes) == 21
 
 
 def test_validate_config():
     parser = DbtParser()
     assert parser.validate_config({}) == ["manifest_path is required"]
-    assert parser.validate_config(project_config("jaffle-1.12")) == []
+    assert parser.validate_config(project_config("pilot-1.12")) == []
     assert "Invalid configuration" in parser.validate_config({"manifest_path": None})[0]
     assert parser.source_type == "dbt"
 
@@ -194,15 +194,15 @@ def test_validate_config():
 def test_unreadable_catalog_is_a_warning(write_json, tmp_path):
     catalog = tmp_path / "catalog.json"
     catalog.write_text("{not json")
-    result = DbtParser().parse({**project_config("jaffle-1.12"), "catalog_path": str(catalog)})
+    result = DbtParser().parse({**project_config("pilot-1.12"), "catalog_path": str(catalog)})
     assert not result.has_errors
     assert "Invalid JSON" in errors(result, ParseErrorSeverity.WARNING)[0]
-    assert len(result.nodes) == 25
+    assert len(result.nodes) == 21
 
 
 def test_catalog_that_is_not_an_object_is_a_warning(write_json):
     catalog = write_json([1, 2], name="catalog.json")
-    result = DbtParser().parse({**project_config("jaffle-1.12"), "catalog_path": str(catalog)})
+    result = DbtParser().parse({**project_config("pilot-1.12"), "catalog_path": str(catalog)})
     assert not result.has_errors
     assert "not a JSON object" in errors(result, ParseErrorSeverity.WARNING)[0]
 
@@ -211,26 +211,26 @@ def test_catalog_that_is_not_an_object_is_a_warning(write_json):
 
 
 def test_a_malformed_node_costs_only_that_node(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
-    del manifest["nodes"]["model.jaffle_shop.stg_customers"]["name"]
-    manifest["nodes"]["model.jaffle_shop.orders"]["columns"] = {"x": None, "y": [1]}
-    manifest["nodes"]["model.jaffle_shop.stg_orders"]["tags"] = "not-a-list"
-    manifest["nodes"]["model.jaffle_shop.stg_products"]["config"]["meta"] = {"layer": 3}
-    manifest["sources"]["source.jaffle_shop.ecom.raw_orders"] = ["not", "an", "object"]
+    manifest = manifest_of("pilot-1.12")
+    del manifest["nodes"]["model.pilot_shop.stg_customers"]["name"]
+    manifest["nodes"]["model.pilot_shop.orders"]["columns"] = {"x": None, "y": [1]}
+    manifest["nodes"]["model.pilot_shop.stg_orders"]["tags"] = "not-a-list"
+    manifest["nodes"]["model.pilot_shop.stg_products"]["config"]["meta"] = {"layer": 3}
+    manifest["sources"]["source.pilot_shop.ecom.raw_orders"] = ["not", "an", "object"]
     result = parse_manifest(write_json, manifest)
 
     assert not result.has_errors
     warnings = errors(result, ParseErrorSeverity.WARNING)
     assert len(warnings) == 2
-    assert "model.jaffle_shop.stg_customers" in warnings[0] and "'name'" in warnings[0]
-    assert "source.jaffle_shop.ecom.raw_orders" in warnings[1]
+    assert "model.pilot_shop.stg_customers" in warnings[0] and "'name'" in warnings[0]
+    assert "source.pilot_shop.ecom.raw_orders" in warnings[1]
     ids = {n.unique_id for n in result.nodes}
-    assert len(ids) == 23
-    assert {"model.jaffle_shop.orders", "model.jaffle_shop.stg_orders"} <= ids
+    assert len(ids) == 19
+    assert {"model.pilot_shop.orders", "model.pilot_shop.stg_orders"} <= ids
     # Edges into the two lost nodes are kept as unresolved, never dropped
     assert {(u.node_id, u.reference) for u in result.unresolved} == {
-        ("model.jaffle_shop.customers", "model.jaffle_shop.stg_customers"),
-        ("model.jaffle_shop.stg_orders", "source.jaffle_shop.ecom.raw_orders"),
+        ("model.pilot_shop.customers", "model.pilot_shop.stg_customers"),
+        ("model.pilot_shop.stg_orders", "source.pilot_shop.ecom.raw_orders"),
     }
 
 
@@ -244,21 +244,21 @@ def test_a_malformed_exposure_costs_only_that_exposure(write_json, manifest_of):
 
 
 def test_unresolved_dependencies_are_recorded_with_a_reason(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
-    deps = manifest["nodes"]["model.jaffle_shop.customers"]["depends_on"]["nodes"]
-    deps += ["model.jaffle_shop.ghost", "metric.jaffle_shop.revenue", deps[0]]
+    manifest = manifest_of("pilot-1.12")
+    deps = manifest["nodes"]["model.pilot_shop.customers"]["depends_on"]["nodes"]
+    deps += ["model.pilot_shop.ghost", "metric.pilot_shop.revenue", deps[0]]
     result = parse_manifest(write_json, manifest)
     unresolved = {(u.node_id, u.reference): u.reason for u in result.unresolved}
     assert unresolved == {
-        ("model.jaffle_shop.customers", "model.jaffle_shop.ghost"): (
+        ("model.pilot_shop.customers", "model.pilot_shop.ghost"): (
             "not found among the parsed nodes"
         ),
-        ("model.jaffle_shop.customers", "metric.jaffle_shop.revenue"): (
+        ("model.pilot_shop.customers", "metric.pilot_shop.revenue"): (
             "metric nodes are not indexed"
         ),
     }
     # The duplicated dependency gives one edge
-    upstream = [e for e in result.edges if e.downstream_id == "model.jaffle_shop.customers"]
+    upstream = [e for e in result.edges if e.downstream_id == "model.pilot_shop.customers"]
     assert len(upstream) == len({e.upstream_id for e in upstream}) == 2
 
 
@@ -266,18 +266,18 @@ def test_unresolved_dependencies_are_recorded_with_a_reason(write_json, manifest
     ("raw", "version"), [(2, "2"), (2.0, "2"), (2.5, "2.5"), ("3", "3"), (True, None), (None, None)]
 )
 def test_model_versions_are_normalised(write_json, manifest_of, raw, version):
-    manifest = manifest_of("jaffle-1.12")
-    manifest["nodes"]["model.jaffle_shop.customers"]["version"] = raw
+    manifest = manifest_of("pilot-1.12")
+    manifest["nodes"]["model.pilot_shop.customers"]["version"] = raw
     result = parse_manifest(write_json, manifest)
-    customers = next(n for n in result.nodes if n.unique_id == "model.jaffle_shop.customers")
+    customers = next(n for n in result.nodes if n.unique_id == "model.pilot_shop.customers")
     assert customers.version == version
 
 
 def test_patch_path_without_a_project_prefix_is_kept(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
-    manifest["nodes"]["model.jaffle_shop.customers"]["patch_path"] = "models/x.yml"
+    manifest = manifest_of("pilot-1.12")
+    manifest["nodes"]["model.pilot_shop.customers"]["patch_path"] = "models/x.yml"
     result = parse_manifest(write_json, manifest)
-    customers = next(n for n in result.nodes if n.unique_id == "model.jaffle_shop.customers")
+    customers = next(n for n in result.nodes if n.unique_id == "model.pilot_shop.customers")
     assert customers.patch_path == "models/x.yml"
 
 

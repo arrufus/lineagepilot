@@ -162,7 +162,7 @@ def test_worker_reports_the_model_graph_then_the_full_graph(tmp_path):
     model, done = events(out)
     assert (model["event"], done["event"], done["status"]) == ("model", "done", "ok")
     assert Path(model["snapshot"]).is_file() and Path(done["snapshot"]).is_file()
-    assert done["projectName"] == "jaffle_shop" and done["schemaVersion"] == 12
+    assert done["projectName"] == "pilot_shop" and done["schemaVersion"] == 12
 
 
 def test_worker_reports_unknown(tmp_path):
@@ -429,7 +429,7 @@ async def test_a_current_snapshot_is_loaded_without_the_indexer(tmp_path, monkey
     index.start()
     await index.wait()
     assert index.state is IndexState.READY and index.result["fromCache"]
-    assert index.columns is ColumnStage.DONE and index.result["projectName"] == "jaffle_shop"
+    assert index.columns is ColumnStage.DONE and index.result["projectName"] == "pilot_shop"
     # The previous graph was let go before the cached one loaded
     assert released == [None]
 

@@ -105,21 +105,21 @@ def test_column_tests_come_from_test_nodes(project):
             expected[(subject, node["column_name"].lower())] += 1
     tested = {(c.node_id, c.name.lower()): c.test_count for c in result.columns if c.has_tests}
     assert tested == dict(expected)
-
-
-def test_jaffle_shop_tested_model_count_matches_s2():
-    """S2: 9 of the 13 jaffle-shop models have tests."""
-    for name in ("jaffle-1.12", "jaffle-fusion-2.0"):
+def test_pilot_shop_tested_model_count_is_the_same_on_both_engines():
+    """8 of the 11 pilot-shop models have tests, on dbt Core and on Fusion (S2 found this on jaffle-shop)."""
+def test_pilot_shop_tested_model_count_matches_s2():
+    """S2: 9 of the 13 pilot-shop models have tests."""
+    for name in ("pilot-1.12", "pilot-fusion-2.0"):
         models = [n for n in parse(name).nodes if n.resource_type == "model"]
-        assert (len(models), sum(m.has_tests for m in models)) == (13, 9), name
+        assert (len(models), sum(m.has_tests for m in models)) == (11, 8), name
 
 
 def test_test_types_name_the_generic_tests():
-    customers = next(n for n in parse("jaffle-1.12").nodes if n.name == "customers")
+    customers = next(n for n in parse("pilot-1.12").nodes if n.name == "customers")
     assert customers.test_types == ["accepted_values", "expression_is_true", "not_null", "unique"]
     customer_id = next(
         c
-        for c in parse("jaffle-1.12").columns
+        for c in parse("pilot-1.12").columns
         if c.node_id == customers.unique_id and c.name == "customer_id"
     )
     assert customer_id.test_types == ["not_null", "unique"]
@@ -203,8 +203,8 @@ def test_owner_and_group_come_from_the_manifest(project):
 
 
 def test_catalog_supplies_column_types():
-    with_catalog = parse("jaffle-1.12")
-    without = parse("jaffle-1.12", catalog=False)
+    with_catalog = parse("pilot-1.12")
+    without = parse("pilot-1.12", catalog=False)
     typed = [c for c in with_catalog.columns if c.data_type]
     assert typed and len(typed) == len(with_catalog.columns)
     assert len(with_catalog.columns) > len(without.columns)  # undocumented columns
@@ -212,7 +212,7 @@ def test_catalog_supplies_column_types():
 
 def test_fusion_and_core_agree_on_the_graph():
     """Same project, two engines: same nodes, edges and tests (S2, Fusion outcome)."""
-    core, fusion = parse("jaffle-1.12", catalog=False), parse("jaffle-fusion-2.0")
+    core, fusion = parse("pilot-1.12", catalog=False), parse("pilot-fusion-2.0")
 
     def shape(r: ParseResult) -> tuple[Any, ...]:
         return (

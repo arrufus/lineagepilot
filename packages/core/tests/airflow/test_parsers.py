@@ -112,19 +112,19 @@ def test_old_manifest_without_project_name():
         {
             "metadata": {},
             "nodes": {
-                "model.jaffle.a": {
+                "model.pilot.a": {
                     "resource_type": "model",
                     "tags": "single",
-                    "fqn": ["jaffle", "a"],
+                    "fqn": ["pilot", "a"],
                     "original_file_path": "models/a.sql",
                 },
-                "seed.jaffle.s": {"original_file_path": "data/s.csv"},
+                "seed.pilot.s": {"original_file_path": "data/s.csv"},
             },
         }
     )
-    assert m.project_name == "jaffle"
-    assert m.nodes["model.jaffle.a"].tags == ["single"]
-    assert m.nodes["seed.jaffle.s"].resource_type == "seed"
+    assert m.project_name == "pilot"
+    assert m.nodes["model.pilot.a"].tags == ["single"]
+    assert m.nodes["seed.pilot.s"].resource_type == "seed"
 
 
 def test_dbt_ls_file(tmp_path):

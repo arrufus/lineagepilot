@@ -50,7 +50,7 @@ Phase 2, the language server ([packages/lsp](packages/lsp/README.md)) and the ex
 - the Restricted Mode tests prove that dbt cannot run and that workspace settings cannot change the interpreter, the dbt executable or the artifact size limit;
 - extension coverage is 84.8% of lines (gate 75%).
 
-Open items from Phase 2: the server stays 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt); the server's own unit tests hang on Windows CI, though the server is tested on Windows through the extension workflow (LP-7t7); Open VSX accepts only licensed extensions, so publishing waits for decision D-5; the jaffle-shop fixtures need replacing before the repository goes public (LP-0tf).
+Open items from Phase 2: the server stays 15% over its 500 MB budget after a cold index of 5,000 models (LP-dtt); the server's own unit tests hang on Windows CI, though the server is tested on Windows through the extension workflow (LP-7t7).
 
 Phase 3, the lineage graph webview (LP-b7z), was completed on 4 November 2026: the graph in model and column modes, with depth, direction, filters, search, auto-layout and lazy expansion, its details, impact and settings panels, VS Code theming and keyboard navigation. Its exit criteria are met:
 - React Testing Library coverage of the view is 99.3% of lines (gate 75%);

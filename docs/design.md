@@ -598,7 +598,7 @@ The legacy server and dashboard stay frozen in the data-capsule repository, in `
 
 How the extension is tested (Phase 2):
 - **Unit tests** use mocha in plain Node for the modules that do not import `vscode`: interpreter resolution, PATH lookup, restart backoff, the status bar, project discovery and the zod validators against the shared contract examples.
-- **Integration tests** run with `@vscode/test-cli` in a real VS Code on a copy of `fixtures/jaffle-shop`, in four configurations: trusted with the interpreter from the setting, Restricted Mode, Python from `PATH`, and Python from the Python extension. Every workspace is hostile: its `.vscode/settings.json` points the interpreter and dbt at planted scripts that record if they ever run.
+- **Integration tests** run with `@vscode/test-cli` in a real VS Code on a copy of `fixtures/pilot-shop`, a small project of our own, in four configurations: trusted with the interpreter from the setting, Restricted Mode, Python from `PATH`, and Python from the Python extension. Every workspace is hostile: its `.vscode/settings.json` points the interpreter and dbt at planted scripts that record if they ever run.
 - **Restricted Mode**: `@vscode/test-electron` always passes `--disable-workspace-trust`, which makes every workspace trusted. The restricted configuration starts VS Code through a small wrapper that drops that argument.
 - **Coverage**: unit and integration tests run together in one VS Code against the source build, so V8 coverage maps back to `src/*.ts`.
 - **Locally**, the integration tests run headless in a Linux container (`extension/docker/`). A test window on a developer's desktop takes focus, and a stray keystroke can reload it, which ends the run.
@@ -616,7 +616,7 @@ How the Change Impact Review is tested (Phase 4):
 - **In the core**, on those artifacts: the mapping, every baseline and its fallbacks, staleness, and the aggregation. A golden file pins the Markdown; other tests reverse the input, change the hash seed across processes and check that nothing about the machine gets in. Git is exercised on real repositories.
 - **Over stdio**, the panel's request and `lineagepilot review` run on the same repository and must agree, Markdown and JSON.
 - **In the page**, React Testing Library drives it against a fake extension that validates every message with the extension's own schemas.
-- **In VS Code**, against the real `vscode.git`: the `review` configuration runs the acceptance scenario on `fixtures/impact-shop`, and the other configurations run the panel's wiring on `fixtures/jaffle-shop`, including that Restricted Mode has no git and says so.
+- **In VS Code**, against the real `vscode.git`: the `review` configuration runs the acceptance scenario on `fixtures/impact-shop`, and the other configurations run the panel's wiring on `fixtures/pilot-shop`, including that Restricted Mode has no git and says so.
 
 How the Airflow linkage is tested (Phase 5):
 - **On fixtures written for it**, one DAG file per pattern, from spike S3, with its tests kept as they were: they are the evidence that the port behaves. New tests cover what a crafted workspace can do, each named unknown category, SQL operators, owners, annotations and the path map.

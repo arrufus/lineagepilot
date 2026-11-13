@@ -76,7 +76,7 @@ def test_manifest_evidence_names_the_artifact_and_the_file(project):
 
 
 def test_parse_records_artifact_hashes():
-    result = DbtParser().parse(project_config("jaffle-1.12"))
+    result = DbtParser().parse(project_config("pilot-1.12"))
     for path, digest in (
         (result.manifest_path, result.manifest_sha256),
         (result.catalog_path, result.catalog_sha256),
@@ -95,36 +95,36 @@ def test_versioned_models_materialise_different_relations():
 
 def test_a_source_and_a_model_on_one_table_reconcile(write_json, manifest_of):
     """Review finding F09: two logical nodes on one physical table meet at one relation."""
-    manifest = manifest_of("jaffle-1.12")
-    source = manifest["sources"]["source.jaffle_shop.ecom.raw_orders"]
-    source["relation_name"] = manifest["nodes"]["model.jaffle_shop.orders"]["relation_name"].upper()
+    manifest = manifest_of("pilot-1.12")
+    source = manifest["sources"]["source.pilot_shop.ecom.raw_orders"]
+    source["relation_name"] = manifest["nodes"]["model.pilot_shop.orders"]["relation_name"].upper()
     result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
     graph = build_dbt_graph(result)
-    relation = graph.node("model.jaffle_shop.orders").relation_id
+    relation = graph.node("model.pilot_shop.orders").relation_id
     assert {n.id for n in graph.logical_nodes_for(relation)} == {
-        "model.jaffle_shop.orders",
-        "source.jaffle_shop.ecom.raw_orders",
+        "model.pilot_shop.orders",
+        "source.pilot_shop.ecom.raw_orders",
     }
 
 
 def test_snowflake_folds_column_names_to_upper(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
+    manifest = manifest_of("pilot-1.12")
     manifest["metadata"]["adapter_type"] = "snowflake"
     graph = build_dbt_graph(DbtParser().parse({"manifest_path": str(write_json(manifest))}))
-    ids = {c.id for c in graph.columns_of("model.jaffle_shop.customers")}
-    assert "model.jaffle_shop.customers#CUSTOMER_ID" in ids
-    assert graph.node("model.jaffle_shop.customers").relation_id == "relation:jaffle.main.customers"
+    ids = {c.id for c in graph.columns_of("model.pilot_shop.customers")}
+    assert "model.pilot_shop.customers#CUSTOMER_ID" in ids
+    assert graph.node("model.pilot_shop.customers").relation_id == "relation:pilot.main.customers"
     assert graph.adapter_type == "snowflake"
 
 
 def test_unresolved_records_carry_evidence(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
-    manifest["nodes"]["model.jaffle_shop.customers"]["depends_on"]["nodes"].append(
-        "metric.jaffle_shop.revenue"
+    manifest = manifest_of("pilot-1.12")
+    manifest["nodes"]["model.pilot_shop.customers"]["depends_on"]["nodes"].append(
+        "metric.pilot_shop.revenue"
     )
     graph = build_dbt_graph(DbtParser().parse({"manifest_path": str(write_json(manifest))}))
-    (record,) = graph.unresolved_for("model.jaffle_shop.customers")
-    assert record.reference == "metric.jaffle_shop.revenue"
+    (record,) = graph.unresolved_for("model.pilot_shop.customers")
+    assert record.reference == "metric.pilot_shop.revenue"
     assert record.reason == "metric nodes are not indexed"
     assert record.evidence.location.path == "models/marts/customers.sql"
 
@@ -151,12 +151,12 @@ def test_columns_that_collide_under_case_rules_are_unresolved():
 
 
 def test_files_map_to_their_nodes():
-    graph = build("jaffle-1.12")
+    graph = build("pilot-1.12")
     assert [n.id for n in graph.nodes_for_file("models/marts/customers.sql")] == [
-        "model.jaffle_shop.customers"
+        "model.pilot_shop.customers"
     ]
     documented = {n.id for n in graph.nodes_for_file("models/marts/customers.yml")}
-    assert "model.jaffle_shop.customers" in documented
+    assert "model.pilot_shop.customers" in documented
     assert {n.kind for n in graph.nodes_for_file("models/staging/__sources.yml")} == {
         NodeKind.SOURCE
     }
@@ -176,16 +176,16 @@ def test_stats_on_synth():
 
 
 def test_catalog_presence_is_recorded():
-    graph = build("jaffle-1.12")
-    catalog = json.loads((DBT_FIXTURES / "jaffle-1.12" / "catalog.json").read_bytes())
+    graph = build("pilot-1.12")
+    catalog = json.loads((DBT_FIXTURES / "pilot-1.12" / "catalog.json").read_bytes())
     catalogued = set(catalog["nodes"]) | set(catalog["sources"])
     for node in graph.nodes.values():
         if node.kind is not NodeKind.RELATION:
             assert node.in_catalog is (node.id in catalogued), node.id
     assert all(c.in_catalog for c in graph.columns.values())
-    assert not any(c.in_catalog for c in build("jaffle-1.12", catalog=False).columns.values())
-    customers = graph.node("model.jaffle_shop.customers")
+    assert not any(c.in_catalog for c in build("pilot-1.12", catalog=False).columns.values())
+    customers = graph.node("model.pilot_shop.customers")
     assert (customers.language, customers.compiled_path) == (
         "sql",
-        "target/compiled/jaffle_shop/models/marts/customers.sql",
+        "target/compiled/pilot_shop/models/marts/customers.sql",
     )

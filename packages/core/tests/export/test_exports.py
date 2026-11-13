@@ -98,46 +98,46 @@ def test_xml_text_drops_what_xml_cannot_carry():
 
 
 @pytest.fixture(scope="module")
-def jaffle():
-    result = DbtParser().parse(project_config("jaffle-1.12"))
+def pilot():
+    result = DbtParser().parse(project_config("pilot-1.12"))
     graph = build_dbt_graph(result)
     add_column_lineage(graph, compiled_sql(result))
     return graph
 
 
-def test_graph_view_of_the_whole_project(jaffle):
-    view = graph_view(jaffle)
+def test_graph_view_of_the_whole_project(pilot):
+    view = graph_view(pilot)
     assert {n.kind for n in view.nodes} == {"model", "seed", "source"}
     assert {e.kind for e in view.edges} == {"depends_on"}
-    assert len(view.edges) == 17
+    assert len(view.edges) == 14
 
 
-def test_graph_view_scope_columns_and_relations(jaffle):
-    scope = ["model.jaffle_shop.customers", "model.jaffle_shop.stg_customers"]
-    view = graph_view(jaffle, scope, columns=True, relations=True)
+def test_graph_view_scope_columns_and_relations(pilot):
+    scope = ["model.pilot_shop.customers", "model.pilot_shop.stg_customers"]
+    view = graph_view(pilot, scope, columns=True, relations=True)
     kinds = {e.kind for e in view.edges}
     assert kinds == {"depends_on", "derives", "has_column", "materialises"}
     assert {n.kind for n in view.nodes} == {"model", "column", "relation"}
     derives = [e for e in view.edges if e.kind == "derives"]
     assert (
-        "model.jaffle_shop.stg_customers#customer_id",
-        "model.jaffle_shop.customers#customer_id",
+        "model.pilot_shop.stg_customers#customer_id",
+        "model.pilot_shop.customers#customer_id",
     ) in {(e.upstream, e.downstream) for e in derives}
     with pytest.raises(KeyError):
-        graph_view(jaffle, ["model.jaffle_shop.nope"])
+        graph_view(pilot, ["model.pilot_shop.nope"])
 
 
 @pytest.mark.parametrize("fmt", list(ExportFormat))
-def test_every_format_is_deterministic(jaffle, fmt):
-    view = graph_view(jaffle)
+def test_every_format_is_deterministic(pilot, fmt):
+    view = graph_view(pilot)
     first = export_graph(view, fmt)
-    assert first == export_graph(graph_view(jaffle), fmt.value)
+    assert first == export_graph(graph_view(pilot), fmt.value)
     assert first.endswith("\n")
     assert fmt.extension
 
 
-def test_json_export_shape(jaffle):
-    data = json.loads(export_graph(graph_view(jaffle), ExportFormat.JSON))
+def test_json_export_shape(pilot):
+    data = json.loads(export_graph(graph_view(pilot), ExportFormat.JSON))
     assert (data["format"], data["version"]) == ("lineagepilot-graph", 1)
     assert data["nodes"][0].keys() == {
         "id",
@@ -156,8 +156,8 @@ def test_cypher_skips_unknown_kinds():
 
 
 def test_pii_inventory_exports(write_json, manifest_of):
-    manifest = manifest_of("jaffle-1.12")
-    staging = manifest["nodes"]["model.jaffle_shop.stg_customers"]["columns"]
+    manifest = manifest_of("pilot-1.12")
+    staging = manifest["nodes"]["model.pilot_shop.stg_customers"]["columns"]
     staging["customer_name"] = {"name": "customer_name", "meta": {"pii": "name"}}
     graph = build_dbt_graph(DbtParser().parse({"manifest_path": str(write_json(manifest))}))
     index = pii_index(graph)
@@ -166,7 +166,7 @@ def test_pii_inventory_exports(write_json, manifest_of):
         '"node","column","pii_types","basis","confidence","severity","masked","layer","origins"'
     )
     assert (
-        '"model.jaffle_shop.stg_customers","customer_name","name","tag","declared","high","no",'
+        '"model.pilot_shop.stg_customers","customer_name","name","tag","declared","high","no",'
         '"silver",""' in csv_text
     )
     markdown = pii_inventory_markdown(graph, index)
@@ -174,7 +174,7 @@ def test_pii_inventory_exports(write_json, manifest_of):
     assert "not verified exposure" in markdown
     assert "| name |" in markdown
     # customers is downstream of the PII and its column lineage was never computed
-    assert "model.jaffle\\_shop.customers: column lineage not computed" in markdown
+    assert "model.pilot\\_shop.customers: column lineage not computed" in markdown
 
 
 def test_an_empty_inventory():

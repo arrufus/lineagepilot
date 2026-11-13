@@ -8,7 +8,7 @@ import type { Status } from '../../protocol';
 import type { ProjectServer } from '../../server';
 
 export const EXTENSION_ID = 'lineagepilot.lineagepilot';
-export const J = 'model.jaffle_shop';
+export const J = 'model.pilot_shop';
 export const label = process.env.LP_LABEL ?? 'trusted';
 export const expectTrusted = process.env.LP_EXPECT_TRUSTED !== '0';
 const markers = process.env.LP_MARKERS ?? '';

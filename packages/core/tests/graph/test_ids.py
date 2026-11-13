@@ -36,8 +36,8 @@ def test_normalise_identifier(name, adapter, quoted, expected):
     ("relation_name", "parts"),
     [
         (
-            '"jaffle"."raw"."raw_customers"',
-            [("jaffle", True), ("raw", True), ("raw_customers", True)],
+            '"pilot"."raw"."raw_customers"',
+            [("pilot", True), ("raw", True), ("raw_customers", True)],
         ),
         ("analytics.dbt.customers", [("analytics", False), ("dbt", False), ("customers", False)]),
         ("`proj`.`ds`.`tbl`", [("proj", True), ("ds", True), ("tbl", True)]),

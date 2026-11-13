@@ -1,0 +1,70 @@
+models:
+  - name: orders
+    description: One row per order, with how much was on it.
+    columns:
+      - name: order_id
+        description: The till's order number.
+        data_tests: [not_null, unique]
+      - name: customer_id
+        data_tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('stg_customers')
+                field: customer_id
+      - name: order_total
+        description: What the customer paid, tax included, in dollars.
+      - name: item_count
+        description: How many items were on the order.
+
+semantic_models:
+  - name: orders
+    description: Orders, for metrics on revenue and volume.
+    model: ref('orders')
+    defaults:
+      agg_time_dimension: ordered_at
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+    dimensions:
+      - name: ordered_at
+        type: time
+        type_params:
+          time_granularity: day
+    measures:
+      - name: order_total
+        agg: sum
+      - name: order_count
+        expr: 1
+        agg: sum
+
+metrics:
+  - name: revenue
+    label: Revenue
+    type: simple
+    type_params:
+      measure: order_total
+  - name: orders_placed
+    label: Orders placed
+    type: simple
+    type_params:
+      measure: order_count
+
+unit_tests:
+  - name: orders_count_items_and_drinks
+    model: orders
+    given:
+      - input: ref('stg_orders')
+        rows:
+          - {order_id: 1, customer_id: 7, order_total: 6.5}
+      - input: ref('order_items')
+        rows:
+          - {order_id: 1, quantity: 2, is_drink: true}
+          - {order_id: 1, quantity: 1, is_drink: false}
+    expect:
+      rows:
+        - {order_id: 1, line_count: 2, item_count: 3, drink_count: 2}

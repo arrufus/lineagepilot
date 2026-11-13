@@ -65,7 +65,7 @@ suite('lineage graph panel', () => {
     const answer = await until('the webview to ask for the graph of orders', 90_000,
       () => find('graphResult', (m) => m.result.root === `${J}.orders` && m.id < 9000));
     assert.ok(answer.result.nodes.some((n) => n.name === 'stg_orders'));
-    assert.equal(panel.panel.title, 'Lineage: jaffle_shop');
+    assert.equal(panel.panel.title, 'Lineage: pilot_shop');
   });
 
   test('the page allows only its own script, by nonce, and its own files', () => {
@@ -105,8 +105,8 @@ suite('lineage graph panel', () => {
   test('clicking a node in the graph previews its file and range beside the graph', async () => {
     // Exit criterion: the node's location comes from the graph the webview was given, and a
     // click previews it (preserveFocus), keeping the keyboard in the graph
-    const sources = await graph('source.jaffle_shop.ecom.raw_orders', 1);
-    const source = nodeIn(sources, 'source.jaffle_shop.ecom.raw_orders');
+    const sources = await graph('source.pilot_shop.ecom.raw_orders', 1);
+    const source = nodeIn(sources, 'source.pilot_shop.ecom.raw_orders');
     assert.ok(source.location?.range, 'a source has a range in its YAML file');
     await panel.handle({ type: 'openFile', location: source.location, preserveFocus: true });
     const editor = await until('the YAML entry to open', 30_000, () =>

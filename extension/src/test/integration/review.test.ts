@@ -101,7 +101,7 @@ suite(`change impact review (${label})`, () => {
     assert.equal(answer.result.base?.ref, 'main');
     assert.match(answer.result.base?.commit ?? '', /^[0-9a-f]{40}$/);
     assert.equal(answer.result.summary.changedFiles, 0);
-    assert.equal(panel.panel.title, 'Change impact: jaffle_shop');
+    assert.equal(panel.panel.title, 'Change impact: pilot_shop');
     const { html, options } = panel.panel.webview;
     assert.match(html, /<script nonce="[^"]+" src="[^"]+\/dist\/webview\/review\.js"><\/script>/);
     assert.doesNotMatch(html, /unsafe-eval/);
@@ -132,7 +132,7 @@ suite(`change impact review (${label})`, () => {
   test('Copy as Markdown copies the text the server rendered, and takes none from the page', async () => {
     await vscode.env.clipboard.writeText('before');
     const markdown = panel.latest!.markdown;
-    assert.match(markdown, /^## Change impact review: `jaffle_shop`/);
+    assert.match(markdown, /^## Change impact review: `pilot_shop`/);
     await panel.handle({ type: 'copyMarkdown', text: 'from the page' });
     assert.equal(await vscode.env.clipboard.readText(), 'before', 'a message with text is malformed, so it is dropped');
     await panel.handle({ type: 'copyMarkdown' });

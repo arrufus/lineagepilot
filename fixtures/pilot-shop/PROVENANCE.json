@@ -1,0 +1,10 @@
+{
+ "about": "A small dbt project of our own for the language server and extension tests, and the source of the core's pilot-1.12 and pilot-fusion-2.0 artifacts. Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
+ "licence": "Written for this repository; not derived from jaffle-shop.",
+ "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+ "steps": "seed, run, test, docs generate; macros emptied. The seed data is in make_fixture.py and is not kept here.",
+ "sha256": {
+  "target/manifest.json": "5d4a8b19f3358a99fb73dbdeea4b78993d8532ce4081b6a85dde00e034f5329d",
+  "target/catalog.json": "9e82ad4f44a21c8953a3ac9d42688ee5001bfce23800aa35291847d09242650a"
+ }
+}

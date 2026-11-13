@@ -1,0 +1,66 @@
+models:
+  - name: customers
+    description: One row per customer, with what they have spent.
+    data_tests:
+      - expression_is_true:
+          arguments:
+            expression: "lifetime_spend >= 0"
+    columns:
+      - name: customer_id
+        data_tests: [not_null, unique]
+      - name: customer_name
+        description: The name the customer gave when signing up.
+      - name: lifetime_spend
+        description: Everything the customer has paid, tax included, in dollars.
+      - name: customer_type
+        description: Whether the customer has ordered more than once.
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: ["new", "regular"]
+
+semantic_models:
+  - name: customers
+    description: Customers, for metrics split by what kind of customer they are.
+    model: ref('customers')
+    defaults:
+      agg_time_dimension: first_ordered_at
+    entities:
+      - name: customer
+        type: primary
+        expr: customer_id
+    dimensions:
+      - name: customer_type
+        type: categorical
+      - name: first_ordered_at
+        type: time
+        type_params:
+          time_granularity: day
+    measures:
+      - name: lifetime_spend
+        agg: sum
+      - name: customer_count
+        expr: customer_id
+        agg: count_distinct
+
+metrics:
+  - name: customers_served
+    label: Customers served
+    type: simple
+    type_params:
+      measure: customer_count
+  - name: spend_per_customer
+    label: Spend per customer
+    type: ratio
+    type_params:
+      numerator: revenue
+      denominator: customers_served
+
+saved_queries:
+  - name: revenue_by_customer_type
+    description: Revenue, split by new and regular customers.
+    query_params:
+      metrics:
+        - revenue
+      group_by:
+        - "Dimension('customer__customer_type')"

@@ -70,7 +70,7 @@ if [ -d "$DEMO" ]; then
     [ -e "$entry" ] || continue
     case ${entry##*/} in
       airflow-shop | airflow-clone | profile | extensions | PLANTED-DAG-RAN.txt | .DS_Store) ;;
-      jaffle-shop | untrusted-clone | impact-shop | PLANTED-RAN.txt | jaffle_shop-*)
+      pilot-shop | untrusted-clone | impact-shop | PLANTED-RAN.txt | pilot_shop-*)
         demo_md_files="$demo_md_files ${entry##*/}" ;;
       *) die "$(show "$entry") is not something the demos make; move it out of $(show "$DEMO") first" ;;
     esac

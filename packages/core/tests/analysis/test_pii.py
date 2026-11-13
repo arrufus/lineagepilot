@@ -187,23 +187,23 @@ def test_trace_reports_unknown_downstream(graph):
         trace_pii(graph, "nope#x")
 
 
-def test_jaffle_seed_pii_reaches_the_mart_through_the_source(write_json, manifest_of):
+def test_pilot_seed_pii_reaches_the_mart_through_the_source(write_json, manifest_of):
     """A tag on the seed's column flows across the physical table to the source."""
-    manifest = manifest_of("jaffle-1.12")
-    seed = manifest["nodes"]["seed.jaffle_shop.raw_customers"]
+    manifest = manifest_of("pilot-1.12")
+    seed = manifest["nodes"]["seed.pilot_shop.raw_customers"]
     seed["columns"]["name"] = {"name": "name", "meta": {"pii": "name"}, "tags": []}
-    config = project_config("jaffle-1.12")
+    config = project_config("pilot-1.12")
     config["manifest_path"] = str(write_json(manifest))
     result = DbtParser().parse(config)
     graph = build_dbt_graph(result)
     add_column_lineage(graph, compiled_sql(result))
     index = pii_index(graph)
-    origin = "seed.jaffle_shop.raw_customers#name"
-    source = index.indicators["source.jaffle_shop.ecom.raw_customers#name"]
+    origin = "seed.pilot_shop.raw_customers#name"
+    source = index.indicators["source.pilot_shop.ecom.raw_customers#name"]
     assert (source.basis, source.origins) == (PIIBasis.LINEAGE, (origin,))
-    mart = index.indicators["model.jaffle_shop.customers#customer_name"]
+    mart = index.indicators["model.pilot_shop.customers#customer_name"]
     assert origin in mart.origins and mart.basis is PIIBasis.PATTERN
-    assert trace_pii(graph, "model.jaffle_shop.customers#customer_name").origins == [
-        "model.jaffle_shop.stg_customers#customer_name",
+    assert trace_pii(graph, "model.pilot_shop.customers#customer_name").origins == [
+        "model.pilot_shop.stg_customers#customer_name",
         origin,
     ]

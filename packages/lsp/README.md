@@ -36,7 +36,7 @@ uv run --locked ruff check . && uv run --locked ruff format --check .
 python ../../protocol/generate.py --check        # after changing protocol/lineage-protocol.schema.json
 ```
 
-The end-to-end tests start the server with `python -I -m lineagepilot_lsp` and talk to it over stdio with pytest-lsp, on a copy of `fixtures/jaffle-shop`, and for the Change Impact Review on `fixtures/impact-shop`. To run them against the VSIX's bundled server on interpreters with nothing installed:
+The end-to-end tests start the server with `python -I -m lineagepilot_lsp` and talk to it over stdio with pytest-lsp, on a copy of `fixtures/pilot-shop`, and for the Change Impact Review on `fixtures/impact-shop`. To run them against the VSIX's bundled server on interpreters with nothing installed:
 
 ```bash
 LP_TEST_SERVER=../../extension/bundled/tool/lsp_server.py LP_TEST_PYTHONS=/path/to/python3.10:/path/to/python3.13 \

@@ -25,9 +25,9 @@ async def test_indexes_on_start_model_graph_first(start):
 
     status = await client.ready()
     assert status["state"] == "ready" and status["columnLineage"] == "done"
-    assert status["project"]["name"] == "jaffle_shop"
+    assert status["project"]["name"] == "pilot_shop"
     assert status["counts"]["nodes"] == EXPECTED["nodes"]
-    assert status["columnStates"] == {"resolved": 13, "partial": 0, "unknown": 0}
+    assert status["columnStates"] == {"resolved": 11, "partial": 0, "unknown": 0}
     assert status["artifacts"]["manifest"]["dbtVersion"] == "1.12.6"
     assert status["artifacts"]["manifest"]["schemaVersion"] == 12
     assert status["artifacts"]["catalog"]["exists"] is True

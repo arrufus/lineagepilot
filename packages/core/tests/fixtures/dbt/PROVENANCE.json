@@ -1,30 +1,5 @@
 {
- "about": "Real dbt artifacts for lineagepilot_core tests, copied on 2026-11-02. The first three come from spike S2 (spikes/s2-parse-perf/tests/fixtures, where scripts/make_fixtures.py regenerates them). legacy-v11 is data-capsule's hand-written backend fixture, kept only as an older-schema input. Do not edit these files: tests mutate copies in memory.",
- "jaffle-1.12": {
-  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
-  "sha": "7be2c5838dbdeca8e915d4e46db70e910753d7f6",
-  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
-  "steps": "deps, seed, run, docs generate",
-  "manifest_bytes": 194425,
-  "macros": "emptied",
-  "copied_from": "spikes/s2-parse-perf/tests/fixtures/jaffle-1.12",
-  "sha256": {
-   "catalog.json": "23eb068ef1aeba450c852adc15e79f0b663ce98960df91f158e5dd6617f29c41",
-   "manifest.json": "949ca7ee4b954744073f7ea9e7b7ce0b5fc082acf9c13893dbf7b52b781b71d0"
-  }
- },
- "jaffle-fusion-2.0": {
-  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
-  "sha": "5beb145b00f5465ec759cfcdd9745e858818cf95",
-  "dbt": "2.0.9 (Fusion), in Docker",
-  "steps": "deps, seed, compile",
-  "manifest_bytes": 207867,
-  "macros": "emptied",
-  "copied_from": "spikes/s2-parse-perf/tests/fixtures/jaffle-fusion-2.0",
-  "sha256": {
-   "manifest.json": "d857106d4c1cc8063883d96eaca1ac7af6070cc4c1b758f79ef4b720489cda31"
-  }
- },
+ "about": "Real dbt artifacts for lineagepilot_core tests. synth-24 comes from spike S2 (spikes/s2-parse-perf/tests/fixtures, copied on 2026-11-02, where scripts/make_fixtures.py regenerates it). pilot-1.12 and pilot-fusion-2.0 are built from fixtures/pilot-shop by its make_fixture.py; on 13 November 2026 they replaced copies of dbt-labs/jaffle-shop, which has no licence (beads LP-0tf). legacy-v11 is data-capsule's hand-written backend fixture, kept only as an older-schema input. Do not edit these files: tests mutate copies in memory.",
  "synth-24": {
   "generator": "scripts/gen_project.py --models 24 --seed 3",
   "dbt": "1.12.6 + dbt-duckdb 1.11.1",
@@ -35,6 +10,25 @@
   "sha256": {
    "catalog.json": "59560a8d38f4b23f64c28daf0ce7ca73337f2e5615143b39dc45e5d0e80e3ae8",
    "manifest.json": "a19b258fa9232541e1084edeaac78b36e193127332f99d22ea5042442c1dc3d9"
+  }
+ },
+ "pilot-1.12": {
+  "source": "fixtures/pilot-shop (make_fixture.py)",
+  "licence": "Written for this repository; not derived from jaffle-shop.",
+  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
+  "steps": "seed, run, test, docs generate; macros emptied",
+  "sha256": {
+   "catalog.json": "9e82ad4f44a21c8953a3ac9d42688ee5001bfce23800aa35291847d09242650a",
+   "manifest.json": "5d4a8b19f3358a99fb73dbdeea4b78993d8532ce4081b6a85dde00e034f5329d"
+  }
+ },
+ "pilot-fusion-2.0": {
+  "source": "fixtures/pilot-shop (make_fixture.py --fusion)",
+  "licence": "Written for this repository; not derived from jaffle-shop.",
+  "dbt": "2.0.9 (Fusion), in Docker",
+  "steps": "seed, compile; macros emptied",
+  "sha256": {
+   "manifest.json": "7216e48af41e819c1f223f95a27d5118de07639d6d79d672980166c119c36be2"
   }
  },
  "legacy-v11": {

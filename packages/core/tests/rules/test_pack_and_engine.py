@@ -407,7 +407,7 @@ class TestEngine:
         assert all(f.evidence.location is None for f in stg)  # no file at all
 
     def test_findings_carry_manifest_evidence(self):
-        graph = build_dbt_graph(DbtParser().parse(project_config("jaffle-1.12")))
+        graph = build_dbt_graph(DbtParser().parse(project_config("pilot-1.12")))
         evaluation = evaluate(graph)
         assert evaluation.findings
         for finding in evaluation.findings:

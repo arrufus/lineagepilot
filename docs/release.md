@@ -142,7 +142,7 @@ Gate G1 passed on 13 November 2026. The source goes public as a **new** reposito
 
 Work through these in order:
 
-1. [ ] **Replace the jaffle-shop fixtures** (LP-0tf) with a project of our own, on `main` here, with CI green. History filter: see 'Publishing the source' below.
+1. [ ] **Replace the jaffle-shop fixtures** (LP-0tf) with a project of our own, on `main` here, with CI green. Done on branch `release/own-fixtures`: `fixtures/pilot-shop`, written for this repository, with its artifacts built by `make_fixture.py` on dbt 1.12.6 and Fusion 2.0.9. Tick this when it is merged. The older copies stay in this repository's history, which is why the source moves ([Publishing the source](#publishing-the-source)).
 2. [ ] **Trademark search for "LineagePilot"** (decision D-4), by someone qualified to do one. Keep "dbt" out of the name and the publisher, per dbt Labs' trademark guidelines.
 3. [ ] **Keep your personal email address out of what you publish.** Set git's identity to your GitHub noreply address, in this clone and globally, before any commit or tag for the new repository (an annotated tag records its tagger's address too):
 
@@ -153,7 +153,7 @@ Work through these in order:
 
    Then, under GitHub's **Settings › Emails**, turn on **Keep my email addresses private** and **Block command line pushes that expose my email**.
 4. [ ] **Move the source to the new repository**:
-   1. Rename this one: `gh repo rename lineagepilot-private --repo arrufus/lineagepilot`. GitHub redirects the old name to it until another repository takes the name, which the next step does.
+   1. Rename this one: `gh repo rename lineagepilot-private --repo arrufus/lineagepilot`. GitHub redirects the old name to it until another repository takes the name, which the next step does. So point this clone at the new name straight away: `git remote set-url origin https://github.com/arrufus/lineagepilot-private.git` ([Publishing the source](#publishing-the-source), step 1).
    2. Create the new one, private for now: `gh repo create arrufus/lineagepilot --private`.
    3. Push the filtered history to it, as in [Publishing the source](#publishing-the-source).
    4. Let CI run there, and check that every workflow passes on `main`. Secrets, variables, environments and settings do not move with the history: the new repository starts with none.
@@ -185,7 +185,61 @@ Then **cut 0.2.0** in the new repository, as in [Cutting a release](#cutting-a-r
 
 ### Publishing the source
 
-TODO(parent): filter-repo steps
+The new repository gets `main` only, with every commit rewritten so that:
+- the five folders that held copies of dbt-labs/jaffle-shop are gone from all of history, not just from the latest commit (LP-0tf);
+- every author and committer address is the GitHub noreply address.
+
+The `v0.1.1` tag and its release stay in the private archive. The first release in the new repository is 0.2.0.
+
+1. **Point this clone at the archive first.** Once the new repository takes the name `arrufus/lineagepilot`, a clone whose `origin` still says that name would push to it, and this clone's history holds the jaffle-shop files. So, straight after renaming:
+
+   ```bash
+   git remote set-url origin https://github.com/arrufus/lineagepilot-private.git
+   ```
+
+   Work on the public repository from a fresh clone of it, never from this one.
+
+2. **Make the filtered copy**, from a clone of `main` alone in an empty folder. The mailmap is built from the history itself, so no address is written here:
+
+   ```bash
+   WORK=$(mktemp -d) && cd "$WORK"
+   git clone --no-local --single-branch --branch main --no-tags \
+     https://github.com/arrufus/lineagepilot-private.git lineagepilot
+   cd lineagepilot
+   git log --format='%ae%n%ce' | sort -u \
+     | grep -v -e '@users\.noreply\.github\.com$' -e '^noreply@github\.com$' \
+     | sed 's/.*/Rotimi Ademola <30685928+arrufus@users.noreply.github.com> <&>/' > ../mailmap
+   uvx --from git-filter-repo git-filter-repo --force --mailmap ../mailmap --invert-paths \
+     --path fixtures/jaffle-shop/ \
+     --path packages/core/tests/fixtures/dbt/jaffle-1.12/ \
+     --path packages/core/tests/fixtures/dbt/jaffle-fusion-2.0/ \
+     --path spikes/s2-parse-perf/tests/fixtures/jaffle-1.12/ \
+     --path spikes/s2-parse-perf/tests/fixtures/jaffle-fusion-2.0/
+   ```
+
+   `noreply@github.com` is left alone: it is GitHub's own address, as committer of commits made on github.com.
+
+3. **Check it before pushing.** Each of these must print what its comment says:
+
+   ```bash
+   git log --all --format= --name-only | grep -c -i -E 'jaffle-shop/|jaffle-1\.12/|jaffle-fusion-2\.0/'   # 0
+   git log --all --format='%ae%n%ce' | sort -u                     # only noreply addresses
+   git log --all -p --format='%an %ae %cn %ce %B' \
+     | grep -c -F -f <(sed -E 's/.*<([^>]*)>$/\1/' ../mailmap)     # 0: no old address in any file or message
+   git tag | wc -l                                                 # 0
+   git status --short && git log --oneline -1                      # clean, at the tip of main
+   ```
+
+4. **Push `main`, and nothing else.** Pushing a `v*` tag starts the release workflow, so no tag goes until the repository is ready for 0.2.0:
+
+   ```bash
+   git remote add origin https://github.com/arrufus/lineagepilot.git
+   git push -u origin main
+   ```
+
+5. **Work from a fresh clone** of `arrufus/lineagepilot` from now on, with the noreply address set in it (step 3 of the checklist above).
+
+This was rehearsed on 13 November 2026 on a scratch copy: all 75 commits survived, no jaffle-shop path and no personal address remained, and `v0.1.1`'s tagger was mapped too (the steps above leave tags out altogether).
 
 ---
 

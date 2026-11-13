@@ -6,20 +6,18 @@
   "manifest_bytes": 551185,
   "macros": "emptied"
  },
- "jaffle-1.12": {
-  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
-  "sha": "7be2c5838dbdeca8e915d4e46db70e910753d7f6",
-  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
-  "steps": "deps, seed, run, docs generate",
-  "manifest_bytes": 194425,
-  "macros": "emptied"
+ "pilot-1.12": {
+  "copied_from": "packages/core/tests/fixtures/dbt/pilot-1.12 (fixtures/pilot-shop/make_fixture.py)",
+  "note": "Replaced the jaffle-shop copies on 13 November 2026: jaffle-shop has no licence (beads LP-0tf). The spike's results under results/ were measured on jaffle-shop and are kept as they were.",
+  "sha256": {
+   "catalog.json": "9e82ad4f44a21c8953a3ac9d42688ee5001bfce23800aa35291847d09242650a",
+   "manifest.json": "5d4a8b19f3358a99fb73dbdeea4b78993d8532ce4081b6a85dde00e034f5329d"
+  }
  },
- "jaffle-fusion-2.0": {
-  "repo": "https://github.com/dbt-labs/jaffle-shop.git",
-  "sha": "5beb145b00f5465ec759cfcdd9745e858818cf95",
-  "dbt": "2.0.9 (Fusion), in Docker",
-  "steps": "deps, seed, compile",
-  "manifest_bytes": 207867,
-  "macros": "emptied"
+ "pilot-fusion-2.0": {
+  "copied_from": "packages/core/tests/fixtures/dbt/pilot-fusion-2.0 (make_fixture.py --fusion)",
+  "sha256": {
+   "manifest.json": "7216e48af41e819c1f223f95a27d5118de07639d6d79d672980166c119c36be2"
+  }
  }
 }

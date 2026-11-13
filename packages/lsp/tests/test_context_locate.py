@@ -13,7 +13,7 @@ from lineagepilot_lsp.context import GraphContext, OnDemandColumns, clip
 from lineagepilot_lsp.locate import Locator, entry_key, yaml_entries
 from lineagepilot_lsp.project import read_project
 
-J = "model.jaffle_shop"
+J = "model.pilot_shop"
 
 # YAML positions
 
@@ -119,7 +119,7 @@ def test_on_demand_needs_a_compiled_file_inside_the_project(model_graph, workspa
     assert on_demand.status(f"{J}.customers") is None
     graph.nodes[f"{J}.locations"].compiled_path = None
     assert on_demand.status(f"{J}.locations") is None
-    assert on_demand.status("seed.jaffle_shop.raw_orders") is None  # no SQL
+    assert on_demand.status("seed.pilot_shop.raw_orders") is None  # no SQL
     assert on_demand.computed == 0
     # Remembered: the next request does not try again
     assert f"{J}.orders" in on_demand._unavailable
@@ -220,7 +220,7 @@ def test_a_column_without_documentation_opens_its_model(model_graph, workspace):
         "uri": (workspace / "models" / "marts" / "locations.sql").as_uri(),
         "range": None,
     }
-    assert ctx.location("model.jaffle_shop.nothing") is None
+    assert ctx.location("model.pilot_shop.nothing") is None
 
 
 def test_locator_caches_and_forgets(workspace):
@@ -250,7 +250,7 @@ def test_a_manifest_path_cannot_leave_the_project(tmp_path, workspace):
     (outside / "schema.yml").write_text("models:\n  - name: stolen\n")
     project = read_project(workspace)
     locator = Locator(project, workspace)
-    model = Node("model.jaffle_shop.x", NodeKind.MODEL, "x", package="jaffle_shop")
+    model = Node("model.pilot_shop.x", NodeKind.MODEL, "x", package="pilot_shop")
     escapes = [
         "../secret/schema.yml",
         str(outside / "schema.yml"),

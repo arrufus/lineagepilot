@@ -1,0 +1,5526 @@
+{
+ "child_map": {
+  "metric.pilot_shop.customers_served": [
+   "metric.pilot_shop.spend_per_customer"
+  ],
+  "metric.pilot_shop.orders_placed": [],
+  "metric.pilot_shop.revenue": [
+   "metric.pilot_shop.spend_per_customer",
+   "saved_query.pilot_shop.revenue_by_customer_type"
+  ],
+  "metric.pilot_shop.spend_per_customer": [],
+  "model.pilot_shop.customers": [
+   "semantic_model.pilot_shop.customers",
+   "test.pilot_shop.accepted_values_customers_customer_type__new__regular.e92a6eff42",
+   "test.pilot_shop.expression_is_true_customers_lifetime_spend_0.9121318d22",
+   "test.pilot_shop.not_null_customers_customer_id.5c9bf9911d",
+   "test.pilot_shop.unique_customers_customer_id.c5af1ff4b1"
+  ],
+  "model.pilot_shop.locations": [
+   "semantic_model.pilot_shop.locations"
+  ],
+  "model.pilot_shop.metricflow_time_spine": [],
+  "model.pilot_shop.order_items": [
+   "model.pilot_shop.orders",
+   "test.pilot_shop.not_null_order_items_order_line_id.1213fe6f8c",
+   "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8",
+   "test.pilot_shop.unique_order_items_order_line_id.8ac1bbf942"
+  ],
+  "model.pilot_shop.orders": [
+   "model.pilot_shop.customers",
+   "semantic_model.pilot_shop.orders",
+   "test.pilot_shop.not_null_orders_customer_id.c5f02694af",
+   "test.pilot_shop.not_null_orders_order_id.cf6c17daed",
+   "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8",
+   "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16",
+   "test.pilot_shop.unique_orders_order_id.fed79b3a6e",
+   "unit_test.pilot_shop.orders.orders_count_items_and_drinks"
+  ],
+  "model.pilot_shop.products": [],
+  "model.pilot_shop.stg_customers": [
+   "model.pilot_shop.customers",
+   "test.pilot_shop.not_null_stg_customers_customer_id.e2cfb1f9aa",
+   "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16",
+   "test.pilot_shop.unique_stg_customers_customer_id.c7614daada"
+  ],
+  "model.pilot_shop.stg_locations": [
+   "model.pilot_shop.locations",
+   "test.pilot_shop.not_null_stg_locations_location_id.3d237927d2",
+   "test.pilot_shop.unique_stg_locations_location_id.2e2fc58ecc"
+  ],
+  "model.pilot_shop.stg_order_lines": [
+   "model.pilot_shop.order_items",
+   "test.pilot_shop.not_null_stg_order_lines_order_line_id.52b511774a",
+   "test.pilot_shop.unique_stg_order_lines_order_line_id.b8e1ca931e"
+  ],
+  "model.pilot_shop.stg_orders": [
+   "model.pilot_shop.order_items",
+   "model.pilot_shop.orders",
+   "test.pilot_shop.not_null_stg_orders_order_id.81cfe2fe64",
+   "test.pilot_shop.unique_stg_orders_order_id.e3b841c71a"
+  ],
+  "model.pilot_shop.stg_products": [
+   "model.pilot_shop.order_items",
+   "model.pilot_shop.products",
+   "test.pilot_shop.not_null_stg_products_product_sku.ae077a8c6f",
+   "test.pilot_shop.unique_stg_products_product_sku.ad8bf684d5"
+  ],
+  "saved_query.pilot_shop.revenue_by_customer_type": [],
+  "seed.pilot_shop.raw_customers": [],
+  "seed.pilot_shop.raw_locations": [],
+  "seed.pilot_shop.raw_order_lines": [],
+  "seed.pilot_shop.raw_orders": [],
+  "seed.pilot_shop.raw_products": [],
+  "semantic_model.pilot_shop.customers": [
+   "metric.pilot_shop.customers_served"
+  ],
+  "semantic_model.pilot_shop.locations": [],
+  "semantic_model.pilot_shop.orders": [
+   "metric.pilot_shop.orders_placed",
+   "metric.pilot_shop.revenue"
+  ],
+  "source.pilot_shop.ecom.raw_customers": [
+   "model.pilot_shop.stg_customers"
+  ],
+  "source.pilot_shop.ecom.raw_locations": [
+   "model.pilot_shop.stg_locations"
+  ],
+  "source.pilot_shop.ecom.raw_order_lines": [
+   "model.pilot_shop.stg_order_lines"
+  ],
+  "source.pilot_shop.ecom.raw_orders": [
+   "model.pilot_shop.stg_orders"
+  ],
+  "source.pilot_shop.ecom.raw_products": [
+   "model.pilot_shop.stg_products"
+  ],
+  "test.pilot_shop.accepted_values_customers_customer_type__new__regular.e92a6eff42": [],
+  "test.pilot_shop.expression_is_true_customers_lifetime_spend_0.9121318d22": [],
+  "test.pilot_shop.not_null_customers_customer_id.5c9bf9911d": [],
+  "test.pilot_shop.not_null_order_items_order_line_id.1213fe6f8c": [],
+  "test.pilot_shop.not_null_orders_customer_id.c5f02694af": [],
+  "test.pilot_shop.not_null_orders_order_id.cf6c17daed": [],
+  "test.pilot_shop.not_null_stg_customers_customer_id.e2cfb1f9aa": [],
+  "test.pilot_shop.not_null_stg_locations_location_id.3d237927d2": [],
+  "test.pilot_shop.not_null_stg_order_lines_order_line_id.52b511774a": [],
+  "test.pilot_shop.not_null_stg_orders_order_id.81cfe2fe64": [],
+  "test.pilot_shop.not_null_stg_products_product_sku.ae077a8c6f": [],
+  "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8": [],
+  "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16": [],
+  "test.pilot_shop.unique_customers_customer_id.c5af1ff4b1": [],
+  "test.pilot_shop.unique_order_items_order_line_id.8ac1bbf942": [],
+  "test.pilot_shop.unique_orders_order_id.fed79b3a6e": [],
+  "test.pilot_shop.unique_stg_customers_customer_id.c7614daada": [],
+  "test.pilot_shop.unique_stg_locations_location_id.2e2fc58ecc": [],
+  "test.pilot_shop.unique_stg_order_lines_order_line_id.b8e1ca931e": [],
+  "test.pilot_shop.unique_stg_orders_order_id.e3b841c71a": [],
+  "test.pilot_shop.unique_stg_products_product_sku.ad8bf684d5": [],
+  "unit_test.pilot_shop.orders.orders_count_items_and_drinks": []
+ },
+ "disabled": {},
+ "docs": {
+  "doc.dbt.__overview__": {
+   "block_contents": "### Welcome!\n\nWelcome to the auto-generated documentation for your dbt project!\n\n### Navigation\n\nYou can use the `Project` and `Database` navigation tabs on the left side of the window to explore the models\nin your project.\n\n#### Project Tab\nThe `Project` tab mirrors the directory structure of your dbt project. In this tab, you can see all of the\nmodels defined in your dbt project, as well as models imported from dbt packages.\n\n#### Database Tab\nThe `Database` tab also exposes your models, but in a format that looks more like a database explorer. This view\nshows relations (tables and views) grouped into database schemas. Note that ephemeral models are _not_ shown\nin this interface, as they do not exist in the database.\n\n### Graph Exploration\nYou can click the blue icon on the bottom-right corner of the page to view the lineage graph of your models.\n\nOn model pages, you'll see the immediate parents and children of the model you're exploring. By clicking the `Expand`\nbutton at the top-right of this lineage pane, you'll be able to see all of the models that are used to build,\nor are built from, the model you're exploring.\n\nOnce expanded, you'll be able to use the `--select` and `--exclude` model selection syntax to filter the\nmodels in the graph. For more information on model selection, check out the [dbt docs](https://docs.getdbt.com/docs/model-selection-syntax).\n\nNote that you can also right-click on models to interactively filter and explore the graph.\n\n---\n\n### More information\n\n- [What is dbt](https://docs.getdbt.com/docs/introduction)?\n- Read the [dbt viewpoint](https://docs.getdbt.com/docs/viewpoint)\n- [Installation](https://docs.getdbt.com/docs/installation)\n- Join the [dbt Community](https://www.getdbt.com/community/) for questions and discussion",
+   "name": "__overview__",
+   "original_file_path": "docs/overview.md",
+   "package_name": "dbt",
+   "path": "overview.md",
+   "resource_type": "doc",
+   "unique_id": "doc.dbt.__overview__"
+  }
+ },
+ "exposures": {},
+ "functions": {},
+ "group_map": {},
+ "groups": {},
+ "macros": {},
+ "metadata": {
+  "adapter_type": "duckdb",
+  "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
+  "dbt_version": "1.12.6",
+  "env": {},
+  "generated_at": "2026-11-13T12:02:00.014320Z",
+  "invocation_id": "5bb0429b-ee27-46d3-a318-1136eccab96a",
+  "invocation_started_at": "2026-11-13T12:01:55.359292+00:00",
+  "project_id": "cf07ceaeef47013907250f4a0b5615e7",
+  "project_name": "pilot_shop",
+  "quoting": {
+   "column": null,
+   "database": true,
+   "identifier": true,
+   "schema": true
+  },
+  "run_started_at": "2026-11-13T12:01:55.359516+00:00",
+  "send_anonymous_usage_stats": false,
+  "user_id": null
+ },
+ "metrics": {
+  "metric.pilot_shop.customers_served": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.1159492,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.pilot_shop.customers"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "customers_served"
+   ],
+   "group": null,
+   "label": "Customers served",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "customers_served",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/customers.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "customer_count"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "customer_count"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.pilot_shop.customers_served",
+   "unrendered_config": {}
+  },
+  "metric.pilot_shop.orders_placed": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.149676,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "orders_placed"
+   ],
+   "group": null,
+   "label": "Orders placed",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "orders_placed",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/orders.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "order_count"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "order_count"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.pilot_shop.orders_placed",
+   "unrendered_config": {}
+  },
+  "metric.pilot_shop.revenue": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.149339,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "revenue"
+   ],
+   "group": null,
+   "label": "Revenue",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "revenue",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/orders.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "order_total"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "order_total"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.pilot_shop.revenue",
+   "unrendered_config": {}
+  },
+  "metric.pilot_shop.spend_per_customer": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.117124,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "metric.pilot_shop.revenue",
+     "metric.pilot_shop.customers_served"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "spend_per_customer"
+   ],
+   "group": null,
+   "label": "Spend per customer",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "spend_per_customer",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/customers.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "ratio",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": {
+     "alias": null,
+     "filter": null,
+     "name": "customers_served",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "order_total"
+     },
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "customer_count"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": null,
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": {
+     "alias": null,
+     "filter": null,
+     "name": "revenue",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "window": null
+   },
+   "unique_id": "metric.pilot_shop.spend_per_customer",
+   "unrendered_config": {}
+  }
+ },
+ "nodes": {
+  "model.pilot_shop.customers": {
+   "access": "protected",
+   "alias": "customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "cdc02c7efa9dd1c613f1fce5666a0f82d0d81c8540efb40e4302fba9c727f3d1",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "customer_name": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The name the customer gave when signing up.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_name",
+     "quote": null,
+     "tags": []
+    },
+    "customer_type": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "Whether the customer has ordered more than once.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_type",
+     "quote": null,
+     "tags": []
+    },
+    "lifetime_spend": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "Everything the customer has paid, tax included, in dollars.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "lifetime_spend",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "with signed_up as (\n\n    -- Everyone who has signed up, whether or not they have ordered\n\n    select * from \"pilot\".\"main\".\"stg_customers\"\n\n),\n\nspending as (\n\n    select\n        customer_id,\n        count(distinct order_id) > 1 as has_ordered_again,\n        count(distinct order_id) as order_count,\n        min(ordered_at) as first_ordered_at,\n        sum(order_total) as total_spent\n    from \"pilot\".\"main\".\"orders\"\n    group by customer_id\n\n),\n\nprofiles as (\n\n    select\n        signed_up.*,\n        coalesce(spending.total_spent, 0) as lifetime_spend,\n        coalesce(spending.order_count, 0) as order_count,\n        spending.first_ordered_at,\n        case when spending.has_ordered_again then 'regular' else 'new' end as customer_type\n    from signed_up\n    left join spending on spending.customer_id = signed_up.customer_id\n\n)\n\nselect * from profiles",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/customers.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.081418,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.stg_customers",
+     "model.pilot_shop.orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "One row per customer, with what they have spent.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "customers",
+   "original_file_path": "models/marts/customers.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/marts/customers.yml",
+   "path": "marts/customers.sql",
+   "primary_key": [
+    "customer_id"
+   ],
+   "raw_code": "with signed_up as (\n\n    -- Everyone who has signed up, whether or not they have ordered\n\n    select * from {{ ref('stg_customers') }}\n\n),\n\nspending as (\n\n    select\n        customer_id,\n        count(distinct order_id) > 1 as has_ordered_again,\n        count(distinct order_id) as order_count,\n        min(ordered_at) as first_ordered_at,\n        sum(order_total) as total_spent\n    from {{ ref('orders') }}\n    group by customer_id\n\n),\n\nprofiles as (\n\n    select\n        signed_up.*,\n        coalesce(spending.total_spent, 0) as lifetime_spend,\n        coalesce(spending.order_count, 0) as order_count,\n        spending.first_ordered_at,\n        case when spending.has_ordered_again then 'regular' else 'new' end as customer_type\n    from signed_up\n    left join spending on spending.customer_id = signed_up.customer_id\n\n)\n\nselect * from profiles",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"pilot\".\"main\".\"customers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.customers",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.locations": {
+   "access": "protected",
+   "alias": "locations",
+   "build_path": null,
+   "checksum": {
+    "checksum": "a82b4c2d607f82dabe7ebf0dcc19ad1ab02cbe4659ae4645d151496ca8c10b9a",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "-- The shop's branches, as the semantic layer sees them.\n\nselect\n    location_id,\n    branch_name,\n    tax_rate,\n    opened_on\nfrom \"pilot\".\"main\".\"stg_locations\"",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/locations.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571315.899956,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.stg_locations"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "locations"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "locations",
+   "original_file_path": "models/marts/locations.sql",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "marts/locations.sql",
+   "primary_key": [],
+   "raw_code": "-- The shop's branches, as the semantic layer sees them.\n\nselect\n    location_id,\n    branch_name,\n    tax_rate,\n    opened_on\nfrom {{ ref('stg_locations') }}",
+   "refs": [
+    {
+     "name": "stg_locations",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"pilot\".\"main\".\"locations\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.locations",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.metricflow_time_spine": {
+   "access": "protected",
+   "alias": "metricflow_time_spine",
+   "build_path": null,
+   "checksum": {
+    "checksum": "8b53e00006ca0c40a5177ddda31fd8fcb3c5079cdcb6a029dc8a53850539f771",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "-- One row per day, which MetricFlow needs to put metrics on a time axis.\n\nwith recursive days as (\n\n    select cast('2024-01-01' as date) as date_day\n    union all\n    select cast(date_day + interval 1 day as date) from days\n    where date_day < cast('2026-12-31' as date)\n\n)\n\nselect date_day from days",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/metricflow_time_spine.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571315.898444,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": []
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "metricflow_time_spine"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "metricflow_time_spine",
+   "original_file_path": "models/marts/metricflow_time_spine.sql",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "marts/metricflow_time_spine.sql",
+   "primary_key": [],
+   "raw_code": "-- One row per day, which MetricFlow needs to put metrics on a time axis.\n\nwith recursive days as (\n\n    select cast('2024-01-01' as date) as date_day\n    union all\n    select cast(date_day + interval 1 day as date) from days\n    where date_day < cast('2026-12-31' as date)\n\n)\n\nselect date_day from days",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"metricflow_time_spine\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.metricflow_time_spine",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.order_items": {
+   "access": "protected",
+   "alias": "order_items",
+   "build_path": null,
+   "checksum": {
+    "checksum": "7cb89c8cd6c99eb66e1a01a28b3d78fd6d662ee0990beab212ccfb7ebe724d0f",
+    "name": "sha256"
+   },
+   "columns": {
+    "line_total": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The quantity times the product's unit price, in dollars.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "line_total",
+     "quote": null,
+     "tags": []
+    },
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_line_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_line_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- One row per product on an order, priced, with when the order was placed.\n\nwith lines as (\n\n    select * from \"pilot\".\"main\".\"stg_order_lines\"\n\n),\n\nplaced as (\n\n    select order_id, ordered_at from \"pilot\".\"main\".\"stg_orders\"\n\n),\n\nproducts as (\n\n    select * from \"pilot\".\"main\".\"stg_products\"\n\n)\n\nselect\n    lines.order_line_id,\n    lines.order_id,\n    placed.ordered_at,\n    lines.product_sku,\n    products.category,\n    products.is_drink,\n    lines.quantity,\n    lines.quantity * products.unit_price as line_total\nfrom lines\ninner join placed on placed.order_id = lines.order_id\ninner join products on products.product_sku = lines.product_sku",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/order_items.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.16165,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.stg_order_lines",
+     "model.pilot_shop.stg_orders",
+     "model.pilot_shop.stg_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "One row per product on an order, priced.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "order_items"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "order_items",
+   "original_file_path": "models/marts/order_items.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/marts/order_items.yml",
+   "path": "marts/order_items.sql",
+   "primary_key": [
+    "order_line_id"
+   ],
+   "raw_code": "-- One row per product on an order, priced, with when the order was placed.\n\nwith lines as (\n\n    select * from {{ ref('stg_order_lines') }}\n\n),\n\nplaced as (\n\n    select order_id, ordered_at from {{ ref('stg_orders') }}\n\n),\n\nproducts as (\n\n    select * from {{ ref('stg_products') }}\n\n)\n\nselect\n    lines.order_line_id,\n    lines.order_id,\n    placed.ordered_at,\n    lines.product_sku,\n    products.category,\n    products.is_drink,\n    lines.quantity,\n    lines.quantity * products.unit_price as line_total\nfrom lines\ninner join placed on placed.order_id = lines.order_id\ninner join products on products.product_sku = lines.product_sku",
+   "refs": [
+    {
+     "name": "stg_order_lines",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"pilot\".\"main\".\"order_items\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.order_items",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.orders": {
+   "access": "protected",
+   "alias": "orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "46460a2f2c7755d7bb122ccee2d7323745ca3319662e419bf46edfd92e685a28",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "item_count": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "How many items were on the order.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "item_count",
+     "quote": null,
+     "tags": []
+    },
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The till's order number.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_total": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "What the customer paid, tax included, in dollars.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_total",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- One row per order, with how much was on it.\n\nwith placed as (\n\n    select * from \"pilot\".\"main\".\"stg_orders\"\n\n),\n\nbaskets as (\n\n    select\n        order_id,\n        count(*) as line_count,\n        sum(quantity) as item_count,\n        sum(case when is_drink then quantity else 0 end) as drink_count\n    from \"pilot\".\"main\".\"order_items\"\n    group by order_id\n\n)\n\nselect\n    placed.*,\n    coalesce(baskets.line_count, 0) as line_count,\n    coalesce(baskets.item_count, 0) as item_count,\n    coalesce(baskets.drink_count, 0) as drink_count\nfrom placed\nleft join baskets on baskets.order_id = placed.order_id",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/orders.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.144862,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.stg_orders",
+     "model.pilot_shop.order_items"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "One row per order, with how much was on it.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "orders",
+   "original_file_path": "models/marts/orders.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/marts/orders.yml",
+   "path": "marts/orders.sql",
+   "primary_key": [
+    "order_id"
+   ],
+   "raw_code": "-- One row per order, with how much was on it.\n\nwith placed as (\n\n    select * from {{ ref('stg_orders') }}\n\n),\n\nbaskets as (\n\n    select\n        order_id,\n        count(*) as line_count,\n        sum(quantity) as item_count,\n        sum(case when is_drink then quantity else 0 end) as drink_count\n    from {{ ref('order_items') }}\n    group by order_id\n\n)\n\nselect\n    placed.*,\n    coalesce(baskets.line_count, 0) as line_count,\n    coalesce(baskets.item_count, 0) as item_count,\n    coalesce(baskets.drink_count, 0) as drink_count\nfrom placed\nleft join baskets on baskets.order_id = placed.order_id",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "order_items",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"pilot\".\"main\".\"orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.orders",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.products": {
+   "access": "protected",
+   "alias": "products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "8606152b5e24095e4318b7a24c5fcb3da26e8c9d0e9b3fda08e0ac78a0f71ac8",
+    "name": "sha256"
+   },
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "-- What the shop sells, as the catalogue lists it.\n\nselect * from \"pilot\".\"main\".\"stg_products\"",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/products.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "table",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571315.89601,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.stg_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "products"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "products",
+   "original_file_path": "models/marts/products.sql",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "marts/products.sql",
+   "primary_key": [],
+   "raw_code": "-- What the shop sells, as the catalogue lists it.\n\nselect * from {{ ref('stg_products') }}",
+   "refs": [
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": "\"pilot\".\"main\".\"products\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.products",
+   "unrendered_config": {
+    "materialized": "table"
+   },
+   "version": null
+  },
+  "model.pilot_shop.stg_customers": {
+   "access": "protected",
+   "alias": "stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "996652b0a1af0c6dc7f0831da57ab83ee9a6d070af4694fa02074837b19e8075",
+    "name": "sha256"
+   },
+   "columns": {
+    "customer_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_id",
+     "quote": null,
+     "tags": []
+    },
+    "customer_name": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "The name the customer gave when signing up.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "customer_name",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- Customers as the sign-up form records them.\n\nwith signups as (\n\n    select * from \"pilot\".\"main_raw\".\"raw_customers\"\n\n)\n\nselect\n    id as customer_id,\n    name as customer_name,\n    cast(signed_up_on as date) as signed_up_on\nfrom signups",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/stg_customers.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.010127,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.pilot_shop.ecom.raw_customers"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "Customers as the sign-up form records them.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "stg_customers"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_customers",
+   "original_file_path": "models/staging/stg_customers.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/staging/staging.yml",
+   "path": "staging/stg_customers.sql",
+   "primary_key": [
+    "customer_id"
+   ],
+   "raw_code": "-- Customers as the sign-up form records them.\n\nwith signups as (\n\n    select * from {{ source('ecom', 'raw_customers') }}\n\n)\n\nselect\n    id as customer_id,\n    name as customer_name,\n    cast(signed_up_on as date) as signed_up_on\nfrom signups",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"stg_customers\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "ecom",
+     "raw_customers"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.stg_customers",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "model.pilot_shop.stg_locations": {
+   "access": "protected",
+   "alias": "stg_locations",
+   "build_path": null,
+   "checksum": {
+    "checksum": "84aae82bd7bae45551c23ba6490940a9303afd3739ef2aaa0b15b569dfba6bc2",
+    "name": "sha256"
+   },
+   "columns": {
+    "location_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "location_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- The shop's branches, and the sales tax each one charges.\n\nwith branches as (\n\n    select * from \"pilot\".\"main_raw\".\"raw_locations\"\n\n)\n\nselect\n    id as location_id,\n    branch_name,\n    tax_rate,\n    cast(opened_on as date) as opened_on\nfrom branches",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/stg_locations.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.011332,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.pilot_shop.ecom.raw_locations"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "The shop's branches.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "stg_locations"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_locations",
+   "original_file_path": "models/staging/stg_locations.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/staging/staging.yml",
+   "path": "staging/stg_locations.sql",
+   "primary_key": [
+    "location_id"
+   ],
+   "raw_code": "-- The shop's branches, and the sales tax each one charges.\n\nwith branches as (\n\n    select * from {{ source('ecom', 'raw_locations') }}\n\n)\n\nselect\n    id as location_id,\n    branch_name,\n    tax_rate,\n    cast(opened_on as date) as opened_on\nfrom branches",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"stg_locations\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "ecom",
+     "raw_locations"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.stg_locations",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "model.pilot_shop.stg_order_lines": {
+   "access": "protected",
+   "alias": "stg_order_lines",
+   "build_path": null,
+   "checksum": {
+    "checksum": "9faf29653c39bc700a4bdf47ebbbd45e991d0eff2acbc76f5338d5d8cd521d65",
+    "name": "sha256"
+   },
+   "columns": {
+    "order_line_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_line_id",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- What each order contained: one row per product on an order.\n\nwith lines as (\n\n    select * from \"pilot\".\"main_raw\".\"raw_order_lines\"\n\n)\n\nselect\n    id as order_line_id,\n    order_id,\n    product_sku,\n    quantity\nfrom lines",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/stg_order_lines.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.01087,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "source.pilot_shop.ecom.raw_order_lines"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "One row per product on an order.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "stg_order_lines"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_order_lines",
+   "original_file_path": "models/staging/stg_order_lines.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/staging/staging.yml",
+   "path": "staging/stg_order_lines.sql",
+   "primary_key": [
+    "order_line_id"
+   ],
+   "raw_code": "-- What each order contained: one row per product on an order.\n\nwith lines as (\n\n    select * from {{ source('ecom', 'raw_order_lines') }}\n\n)\n\nselect\n    id as order_line_id,\n    order_id,\n    product_sku,\n    quantity\nfrom lines",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"stg_order_lines\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "ecom",
+     "raw_order_lines"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.stg_order_lines",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "model.pilot_shop.stg_orders": {
+   "access": "protected",
+   "alias": "stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "da0988bc5bd35eaebfe952f943d769ca8a0e7d6da459bdb12c97b74d80d303dc",
+    "name": "sha256"
+   },
+   "columns": {
+    "order_id": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_id",
+     "quote": null,
+     "tags": []
+    },
+    "order_total": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "What the customer paid, tax included.",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "order_total",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- Orders as the till records them: one row per order, money in dollars.\n\nwith till as (\n\n    select * from \"pilot\".\"main_raw\".\"raw_orders\"\n\n)\n\nselect\n    id as order_id,\n    customer_id,\n    location_id,\n    cast(ordered_at as timestamp) as ordered_at,\n    \n    (subtotal_cents / 100.0)\n as subtotal,\n    \n    (tax_cents / 100.0)\n as tax_paid,\n    \n    ((subtotal_cents + tax_cents) / 100.0)\n as order_total\nfrom till",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/stg_orders.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.010616,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.pilot_shop.cents_to_dollars"
+    ],
+    "nodes": [
+     "source.pilot_shop.ecom.raw_orders"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "Orders as the till records them, money in dollars.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "stg_orders"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_orders",
+   "original_file_path": "models/staging/stg_orders.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/staging/staging.yml",
+   "path": "staging/stg_orders.sql",
+   "primary_key": [
+    "order_id"
+   ],
+   "raw_code": "-- Orders as the till records them: one row per order, money in dollars.\n\nwith till as (\n\n    select * from {{ source('ecom', 'raw_orders') }}\n\n)\n\nselect\n    id as order_id,\n    customer_id,\n    location_id,\n    cast(ordered_at as timestamp) as ordered_at,\n    {{ cents_to_dollars('subtotal_cents') }} as subtotal,\n    {{ cents_to_dollars('tax_cents') }} as tax_paid,\n    {{ cents_to_dollars('(subtotal_cents + tax_cents)') }} as order_total\nfrom till",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"stg_orders\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "ecom",
+     "raw_orders"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.stg_orders",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "model.pilot_shop.stg_products": {
+   "access": "protected",
+   "alias": "stg_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "b9f15278b184cca82ba7bae1d8ad7a105b9ca254f8baf9fb9e18a8811a1a4041",
+    "name": "sha256"
+   },
+   "columns": {
+    "product_sku": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": null,
+     "meta": {},
+     "name": "product_sku",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- The catalogue: one row per product the shop sells.\n\nwith catalogue as (\n\n    select * from \"pilot\".\"main_raw\".\"raw_products\"\n\n)\n\nselect\n    sku as product_sku,\n    title as product_title,\n    category,\n    category = 'drink' as is_drink,\n    \n    (unit_price_cents / 100.0)\n as unit_price\nfrom catalogue",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/stg_products.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.0110981,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.pilot_shop.cents_to_dollars"
+    ],
+    "nodes": [
+     "source.pilot_shop.ecom.raw_products"
+    ]
+   },
+   "deprecation_date": null,
+   "description": "The catalogue.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "stg_products"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "stg_products",
+   "original_file_path": "models/staging/stg_products.sql",
+   "package_name": "pilot_shop",
+   "patch_path": "pilot_shop://models/staging/staging.yml",
+   "path": "staging/stg_products.sql",
+   "primary_key": [
+    "product_sku"
+   ],
+   "raw_code": "-- The catalogue: one row per product the shop sells.\n\nwith catalogue as (\n\n    select * from {{ source('ecom', 'raw_products') }}\n\n)\n\nselect\n    sku as product_sku,\n    title as product_title,\n    category,\n    category = 'drink' as is_drink,\n    {{ cents_to_dollars('unit_price_cents') }} as unit_price\nfrom catalogue",
+   "refs": [],
+   "relation_name": "\"pilot\".\"main\".\"stg_products\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [
+    [
+     "ecom",
+     "raw_products"
+    ]
+   ],
+   "tags": [],
+   "time_spine": null,
+   "unique_id": "model.pilot_shop.stg_products",
+   "unrendered_config": {
+    "materialized": "view"
+   },
+   "version": null
+  },
+  "seed.pilot_shop.raw_customers": {
+   "alias": "raw_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "7f9b3b1bbebc0fd40394ddb976571da51f339c37925db4268a26011457d0aa7c",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1794571315.9478981,
+   "database": "pilot",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "pilot_shop",
+    "raw_customers"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_customers",
+   "original_file_path": "seeds/raw_customers.csv",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "raw_customers.csv",
+   "raw_code": "",
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_customers\"",
+   "resource_type": "seed",
+   "root_path": "/project/pilot_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.pilot_shop.raw_customers",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "seed.pilot_shop.raw_locations": {
+   "alias": "raw_locations",
+   "build_path": null,
+   "checksum": {
+    "checksum": "d2a6f1396995d2be3b112659bdfe0c59560e37598236e1594eeb40735b46c53f",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1794571315.949997,
+   "database": "pilot",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "pilot_shop",
+    "raw_locations"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_locations",
+   "original_file_path": "seeds/raw_locations.csv",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "raw_locations.csv",
+   "raw_code": "",
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_locations\"",
+   "resource_type": "seed",
+   "root_path": "/project/pilot_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.pilot_shop.raw_locations",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "seed.pilot_shop.raw_order_lines": {
+   "alias": "raw_order_lines",
+   "build_path": null,
+   "checksum": {
+    "checksum": "7e383d2af02c30f0a63f90b09fe2c9a32e515921b4b51ff1d4f4761c017f262f",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1794571315.948721,
+   "database": "pilot",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "pilot_shop",
+    "raw_order_lines"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_order_lines",
+   "original_file_path": "seeds/raw_order_lines.csv",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "raw_order_lines.csv",
+   "raw_code": "",
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_order_lines\"",
+   "resource_type": "seed",
+   "root_path": "/project/pilot_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.pilot_shop.raw_order_lines",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "seed.pilot_shop.raw_orders": {
+   "alias": "raw_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "ead6b7c37eb689c6d5f35e21916530a10a782cefaea13e33a873e8aba5f03c60",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1794571315.949375,
+   "database": "pilot",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "pilot_shop",
+    "raw_orders"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_orders",
+   "original_file_path": "seeds/raw_orders.csv",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "raw_orders.csv",
+   "raw_code": "",
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_orders\"",
+   "resource_type": "seed",
+   "root_path": "/project/pilot_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.pilot_shop.raw_orders",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "seed.pilot_shop.raw_products": {
+   "alias": "raw_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "ac995ea90671a1508a47c9ac65a34d3c834508ddf469890f4821c58d776420e1",
+    "name": "sha256"
+   },
+   "columns": {},
+   "config": {
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "delimiter": ",",
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "lookback": 1,
+    "materialized": "seed",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quote_columns": null,
+    "quoting": {},
+    "schema": "raw",
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "created_at": 1794571315.9506009,
+   "database": "pilot",
+   "depends_on": {
+    "macros": []
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "fqn": [
+    "pilot_shop",
+    "raw_products"
+   ],
+   "group": null,
+   "meta": {},
+   "name": "raw_products",
+   "original_file_path": "seeds/raw_products.csv",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "raw_products.csv",
+   "raw_code": "",
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_products\"",
+   "resource_type": "seed",
+   "root_path": "/project/pilot_shop",
+   "schema": "main_raw",
+   "tags": [],
+   "unique_id": "seed.pilot_shop.raw_products",
+   "unrendered_config": {
+    "schema": "raw"
+   }
+  },
+  "test.pilot_shop.accepted_values_customers_customer_type__new__regular.e92a6eff42": {
+   "alias": "accepted_values_customers_customer_type__new__regular",
+   "attached_node": "model.pilot_shop.customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_type",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nwith all_values as (\n\n    select\n        customer_type as value_field,\n        count(*) as n_records\n\n    from \"pilot\".\"main\".\"customers\"\n    group by customer_type\n\n)\n\nselect *\nfrom all_values\nwhere value_field not in (\n    'new','regular'\n)\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/customers.yml/accepted_values_customers_customer_type__new__regular.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.082795,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_accepted_values",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.customers",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "accepted_values_customers_customer_type__new__regular"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "accepted_values_customers_customer_type__new__regular",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "accepted_values_customers_customer_type__new__regular.sql",
+   "raw_code": "{{ test_accepted_values(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_type",
+     "model": "{{ get_where_subquery(ref('customers')) }}",
+     "values": [
+      "new",
+      "regular"
+     ]
+    },
+    "name": "accepted_values",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.accepted_values_customers_customer_type__new__regular.e92a6eff42",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.expression_is_true_customers_lifetime_spend_0.9121318d22": {
+   "alias": "expression_is_true_customers_lifetime_spend_0",
+   "attached_node": "model.pilot_shop.customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": null,
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n\nselect *\nfrom \"pilot\".\"main\".\"customers\"\nwhere not (lifetime_spend >= 0)\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/customers.yml/expression_is_true_customers_lifetime_spend_0.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.088971,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.pilot_shop.test_expression_is_true",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.customers",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "expression_is_true_customers_lifetime_spend_0"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "expression_is_true_customers_lifetime_spend_0",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "expression_is_true_customers_lifetime_spend_0.sql",
+   "raw_code": "{{ test_expression_is_true(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "expression": "lifetime_spend >= 0",
+     "model": "{{ get_where_subquery(ref('customers')) }}"
+    },
+    "name": "expression_is_true",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.expression_is_true_customers_lifetime_spend_0.9121318d22",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_customers_customer_id.5c9bf9911d": {
+   "alias": "not_null_customers_customer_id",
+   "attached_node": "model.pilot_shop.customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect customer_id\nfrom \"pilot\".\"main\".\"customers\"\nwhere customer_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/customers.yml/not_null_customers_customer_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.081743,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.customers",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "not_null_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_customers_customer_id",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_customers_customer_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('customers')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_customers_customer_id.5c9bf9911d",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_order_items_order_line_id.1213fe6f8c": {
+   "alias": "not_null_order_items_order_line_id",
+   "attached_node": "model.pilot_shop.order_items",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_line_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect order_line_id\nfrom \"pilot\".\"main\".\"order_items\"\nwhere order_line_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/order_items.yml/not_null_order_items_order_line_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.161932,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.order_items"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.order_items",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "not_null_order_items_order_line_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_order_items_order_line_id",
+   "original_file_path": "models/marts/order_items.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_order_items_order_line_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "order_items",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_line_id",
+     "model": "{{ get_where_subquery(ref('order_items')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_order_items_order_line_id.1213fe6f8c",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_orders_customer_id.c5f02694af": {
+   "alias": "not_null_orders_customer_id",
+   "attached_node": "model.pilot_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect customer_id\nfrom \"pilot\".\"main\".\"orders\"\nwhere customer_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/orders.yml/not_null_orders_customer_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.146229,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "not_null_orders_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_orders_customer_id",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_orders_customer_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_orders_customer_id.c5f02694af",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_orders_order_id.cf6c17daed": {
+   "alias": "not_null_orders_order_id",
+   "attached_node": "model.pilot_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect order_id\nfrom \"pilot\".\"main\".\"orders\"\nwhere order_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/orders.yml/not_null_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.145182,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "not_null_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_orders_order_id",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_orders_order_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_orders_order_id.cf6c17daed",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_stg_customers_customer_id.e2cfb1f9aa": {
+   "alias": "not_null_stg_customers_customer_id",
+   "attached_node": "model.pilot_shop.stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect customer_id\nfrom \"pilot\".\"main\".\"stg_customers\"\nwhere customer_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/not_null_stg_customers_customer_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.046438,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_customers",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "not_null_stg_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_customers_customer_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_stg_customers_customer_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('stg_customers')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_stg_customers_customer_id.e2cfb1f9aa",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_stg_locations_location_id.3d237927d2": {
+   "alias": "not_null_stg_locations_location_id",
+   "attached_node": "model.pilot_shop.stg_locations",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "location_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect location_id\nfrom \"pilot\".\"main\".\"stg_locations\"\nwhere location_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/not_null_stg_locations_location_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.050561,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_locations"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_locations",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "not_null_stg_locations_location_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_locations_location_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_stg_locations_location_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_locations",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "location_id",
+     "model": "{{ get_where_subquery(ref('stg_locations')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_stg_locations_location_id.3d237927d2",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_stg_order_lines_order_line_id.52b511774a": {
+   "alias": "not_null_stg_order_lines_order_line_id",
+   "attached_node": "model.pilot_shop.stg_order_lines",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_line_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect order_line_id\nfrom \"pilot\".\"main\".\"stg_order_lines\"\nwhere order_line_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/not_null_stg_order_lines_order_line_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.048661,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_order_lines"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_order_lines",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "not_null_stg_order_lines_order_line_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_order_lines_order_line_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_stg_order_lines_order_line_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_order_lines",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_line_id",
+     "model": "{{ get_where_subquery(ref('stg_order_lines')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_stg_order_lines_order_line_id.52b511774a",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_stg_orders_order_id.81cfe2fe64": {
+   "alias": "not_null_stg_orders_order_id",
+   "attached_node": "model.pilot_shop.stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect order_id\nfrom \"pilot\".\"main\".\"stg_orders\"\nwhere order_id is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/not_null_stg_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.0476851,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_orders",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "not_null_stg_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_orders_order_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_stg_orders_order_id.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('stg_orders')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_stg_orders_order_id.81cfe2fe64",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.not_null_stg_products_product_sku.ae077a8c6f": {
+   "alias": "not_null_stg_products_product_sku",
+   "attached_node": "model.pilot_shop.stg_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "product_sku",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\n\n\nselect product_sku\nfrom \"pilot\".\"main\".\"stg_products\"\nwhere product_sku is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/not_null_stg_products_product_sku.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.049608,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_not_null",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_products"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_products",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "not_null_stg_products_product_sku"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "not_null_stg_products_product_sku",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "not_null_stg_products_product_sku.sql",
+   "raw_code": "{{ test_not_null(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "product_sku",
+     "model": "{{ get_where_subquery(ref('stg_products')) }}"
+    },
+    "name": "not_null",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.not_null_stg_products_product_sku.ae077a8c6f",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8": {
+   "alias": "relationships_order_items_order_id__order_id__ref_orders_",
+   "attached_node": "model.pilot_shop.order_items",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nwith child as (\n    select order_id as from_field\n    from \"pilot\".\"main\".\"order_items\"\n    where order_id is not null\n),\n\nparent as (\n    select order_id as to_field\n    from \"pilot\".\"main\".\"orders\"\n)\n\nselect\n    from_field\n\nfrom child\nleft join parent\n    on child.from_field = parent.to_field\n\nwhere parent.to_field is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/order_items.yml/relationships_order_items_order_id__order_id__ref_orders_.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.1629179,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_relationships",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.orders",
+     "model.pilot_shop.order_items"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.order_items",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "relationships_order_items_order_id__order_id__ref_orders_"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "relationships_order_items_order_id__order_id__ref_orders_",
+   "original_file_path": "models/marts/order_items.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "relationships_order_items_order_id__order_id__ref_orders_.sql",
+   "raw_code": "{{ test_relationships(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "order_items",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "field": "order_id",
+     "model": "{{ get_where_subquery(ref('order_items')) }}",
+     "to": "ref('orders')"
+    },
+    "name": "relationships",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16": {
+   "alias": "relationships_orders_0389c224a99a98c0b58aedb753f052f0",
+   "attached_node": "model.pilot_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nwith child as (\n    select customer_id as from_field\n    from \"pilot\".\"main\".\"orders\"\n    where customer_id is not null\n),\n\nparent as (\n    select customer_id as to_field\n    from \"pilot\".\"main\".\"stg_customers\"\n)\n\nselect\n    from_field\n\nfrom child\nleft join parent\n    on child.from_field = parent.to_field\n\nwhere parent.to_field is null\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/orders.yml/relationships_orders_0389c224a99a98c0b58aedb753f052f0.sql",
+   "config": {
+    "alias": "relationships_orders_0389c224a99a98c0b58aedb753f052f0",
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.146742,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_relationships",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_customers",
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "relationships_orders_customer_id__customer_id__ref_stg_customers_"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "relationships_orders_customer_id__customer_id__ref_stg_customers_",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "relationships_orders_0389c224a99a98c0b58aedb753f052f0.sql",
+   "raw_code": "{{ test_relationships(**_dbt_generic_test_kwargs) }}{{ config(alias=\"relationships_orders_0389c224a99a98c0b58aedb753f052f0\") }}",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    },
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "field": "customer_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}",
+     "to": "ref('stg_customers')"
+    },
+    "name": "relationships",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16",
+   "unrendered_config": {
+    "alias": "relationships_orders_0389c224a99a98c0b58aedb753f052f0"
+   }
+  },
+  "test.pilot_shop.unique_customers_customer_id.c5af1ff4b1": {
+   "alias": "unique_customers_customer_id",
+   "attached_node": "model.pilot_shop.customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    customer_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"customers\"\nwhere customer_id is not null\ngroup by customer_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/customers.yml/unique_customers_customer_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.082299,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.customers",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "unique_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_customers_customer_id",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_customers_customer_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('customers')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_customers_customer_id.c5af1ff4b1",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_order_items_order_line_id.8ac1bbf942": {
+   "alias": "unique_order_items_order_line_id",
+   "attached_node": "model.pilot_shop.order_items",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_line_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    order_line_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"order_items\"\nwhere order_line_id is not null\ngroup by order_line_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/order_items.yml/unique_order_items_order_line_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.162441,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.order_items"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.order_items",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "unique_order_items_order_line_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_order_items_order_line_id",
+   "original_file_path": "models/marts/order_items.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_order_items_order_line_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "order_items",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_line_id",
+     "model": "{{ get_where_subquery(ref('order_items')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_order_items_order_line_id.8ac1bbf942",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_orders_order_id.fed79b3a6e": {
+   "alias": "unique_orders_order_id",
+   "attached_node": "model.pilot_shop.orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    order_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"orders\"\nwhere order_id is not null\ngroup by order_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/marts/orders.yml/unique_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.145746,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.orders",
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "unique_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_orders_order_id",
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_orders_order_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('orders')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_orders_order_id.fed79b3a6e",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_stg_customers_customer_id.c7614daada": {
+   "alias": "unique_stg_customers_customer_id",
+   "attached_node": "model.pilot_shop.stg_customers",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "customer_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    customer_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"stg_customers\"\nwhere customer_id is not null\ngroup by customer_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/unique_stg_customers_customer_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.047154,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_customers"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_customers",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "unique_stg_customers_customer_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_customers_customer_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_stg_customers_customer_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "customer_id",
+     "model": "{{ get_where_subquery(ref('stg_customers')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_stg_customers_customer_id.c7614daada",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_stg_locations_location_id.2e2fc58ecc": {
+   "alias": "unique_stg_locations_location_id",
+   "attached_node": "model.pilot_shop.stg_locations",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "location_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    location_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"stg_locations\"\nwhere location_id is not null\ngroup by location_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/unique_stg_locations_location_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.051036,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_locations"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_locations",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "unique_stg_locations_location_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_locations_location_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_stg_locations_location_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_locations",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "location_id",
+     "model": "{{ get_where_subquery(ref('stg_locations')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_stg_locations_location_id.2e2fc58ecc",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_stg_order_lines_order_line_id.b8e1ca931e": {
+   "alias": "unique_stg_order_lines_order_line_id",
+   "attached_node": "model.pilot_shop.stg_order_lines",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_line_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    order_line_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"stg_order_lines\"\nwhere order_line_id is not null\ngroup by order_line_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/unique_stg_order_lines_order_line_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.0491378,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_order_lines"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_order_lines",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "unique_stg_order_lines_order_line_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_order_lines_order_line_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_stg_order_lines_order_line_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_order_lines",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_line_id",
+     "model": "{{ get_where_subquery(ref('stg_order_lines')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_stg_order_lines_order_line_id.b8e1ca931e",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_stg_orders_order_id.e3b841c71a": {
+   "alias": "unique_stg_orders_order_id",
+   "attached_node": "model.pilot_shop.stg_orders",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "order_id",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    order_id as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"stg_orders\"\nwhere order_id is not null\ngroup by order_id\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/unique_stg_orders_order_id.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.048179,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_orders"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_orders",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "unique_stg_orders_order_id"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_orders_order_id",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_stg_orders_order_id.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "order_id",
+     "model": "{{ get_where_subquery(ref('stg_orders')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_stg_orders_order_id.e3b841c71a",
+   "unrendered_config": {}
+  },
+  "test.pilot_shop.unique_stg_products_product_sku.ad8bf684d5": {
+   "alias": "unique_stg_products_product_sku",
+   "attached_node": "model.pilot_shop.stg_products",
+   "build_path": null,
+   "checksum": {
+    "checksum": "",
+    "name": "none"
+   },
+   "column_name": "product_sku",
+   "columns": {},
+   "compiled": true,
+   "compiled_code": "\n    \n    \n\nselect\n    product_sku as unique_field,\n    count(*) as n_records\n\nfrom \"pilot\".\"main\".\"stg_products\"\nwhere product_sku is not null\ngroup by product_sku\nhaving count(*) > 1\n\n\n",
+   "compiled_path": "target/compiled/pilot_shop/models/staging/staging.yml/unique_stg_products_product_sku.sql",
+   "config": {
+    "alias": null,
+    "database": null,
+    "enabled": true,
+    "error_if": "!= 0",
+    "fail_calc": "count(*)",
+    "group": null,
+    "limit": null,
+    "materialized": "test",
+    "meta": {},
+    "schema": "dbt_test__audit",
+    "severity": "ERROR",
+    "sql_header": null,
+    "static_analysis": null,
+    "store_failures": null,
+    "store_failures_as": null,
+    "tags": [],
+    "warn_if": "!= 0",
+    "where": null
+   },
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794571316.050081,
+   "database": "pilot",
+   "depends_on": {
+    "macros": [
+     "macro.dbt.test_unique",
+     "macro.dbt.get_where_subquery"
+    ],
+    "nodes": [
+     "model.pilot_shop.stg_products"
+    ]
+   },
+   "description": "",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "file_key_name": "models.stg_products",
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "unique_stg_products_product_sku"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "meta": {},
+   "metrics": [],
+   "name": "unique_stg_products_product_sku",
+   "original_file_path": "models/staging/staging.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "unique_stg_products_product_sku.sql",
+   "raw_code": "{{ test_unique(**_dbt_generic_test_kwargs) }}",
+   "refs": [
+    {
+     "name": "stg_products",
+     "package": null,
+     "version": null
+    }
+   ],
+   "relation_name": null,
+   "resource_type": "test",
+   "schema": "main_dbt_test__audit",
+   "sources": [],
+   "tags": [],
+   "test_metadata": {
+    "kwargs": {
+     "column_name": "product_sku",
+     "model": "{{ get_where_subquery(ref('stg_products')) }}"
+    },
+    "name": "unique",
+    "namespace": null
+   },
+   "unique_id": "test.pilot_shop.unique_stg_products_product_sku.ad8bf684d5",
+   "unrendered_config": {}
+  }
+ },
+ "parent_map": {
+  "metric.pilot_shop.customers_served": [
+   "semantic_model.pilot_shop.customers"
+  ],
+  "metric.pilot_shop.orders_placed": [
+   "semantic_model.pilot_shop.orders"
+  ],
+  "metric.pilot_shop.revenue": [
+   "semantic_model.pilot_shop.orders"
+  ],
+  "metric.pilot_shop.spend_per_customer": [
+   "metric.pilot_shop.customers_served",
+   "metric.pilot_shop.revenue"
+  ],
+  "model.pilot_shop.customers": [
+   "model.pilot_shop.orders",
+   "model.pilot_shop.stg_customers"
+  ],
+  "model.pilot_shop.locations": [
+   "model.pilot_shop.stg_locations"
+  ],
+  "model.pilot_shop.metricflow_time_spine": [],
+  "model.pilot_shop.order_items": [
+   "model.pilot_shop.stg_order_lines",
+   "model.pilot_shop.stg_orders",
+   "model.pilot_shop.stg_products"
+  ],
+  "model.pilot_shop.orders": [
+   "model.pilot_shop.order_items",
+   "model.pilot_shop.stg_orders"
+  ],
+  "model.pilot_shop.products": [
+   "model.pilot_shop.stg_products"
+  ],
+  "model.pilot_shop.stg_customers": [
+   "source.pilot_shop.ecom.raw_customers"
+  ],
+  "model.pilot_shop.stg_locations": [
+   "source.pilot_shop.ecom.raw_locations"
+  ],
+  "model.pilot_shop.stg_order_lines": [
+   "source.pilot_shop.ecom.raw_order_lines"
+  ],
+  "model.pilot_shop.stg_orders": [
+   "source.pilot_shop.ecom.raw_orders"
+  ],
+  "model.pilot_shop.stg_products": [
+   "source.pilot_shop.ecom.raw_products"
+  ],
+  "saved_query.pilot_shop.revenue_by_customer_type": [
+   "metric.pilot_shop.revenue"
+  ],
+  "seed.pilot_shop.raw_customers": [],
+  "seed.pilot_shop.raw_locations": [],
+  "seed.pilot_shop.raw_order_lines": [],
+  "seed.pilot_shop.raw_orders": [],
+  "seed.pilot_shop.raw_products": [],
+  "semantic_model.pilot_shop.customers": [
+   "model.pilot_shop.customers"
+  ],
+  "semantic_model.pilot_shop.locations": [
+   "model.pilot_shop.locations"
+  ],
+  "semantic_model.pilot_shop.orders": [
+   "model.pilot_shop.orders"
+  ],
+  "source.pilot_shop.ecom.raw_customers": [],
+  "source.pilot_shop.ecom.raw_locations": [],
+  "source.pilot_shop.ecom.raw_order_lines": [],
+  "source.pilot_shop.ecom.raw_orders": [],
+  "source.pilot_shop.ecom.raw_products": [],
+  "test.pilot_shop.accepted_values_customers_customer_type__new__regular.e92a6eff42": [
+   "model.pilot_shop.customers"
+  ],
+  "test.pilot_shop.expression_is_true_customers_lifetime_spend_0.9121318d22": [
+   "model.pilot_shop.customers"
+  ],
+  "test.pilot_shop.not_null_customers_customer_id.5c9bf9911d": [
+   "model.pilot_shop.customers"
+  ],
+  "test.pilot_shop.not_null_order_items_order_line_id.1213fe6f8c": [
+   "model.pilot_shop.order_items"
+  ],
+  "test.pilot_shop.not_null_orders_customer_id.c5f02694af": [
+   "model.pilot_shop.orders"
+  ],
+  "test.pilot_shop.not_null_orders_order_id.cf6c17daed": [
+   "model.pilot_shop.orders"
+  ],
+  "test.pilot_shop.not_null_stg_customers_customer_id.e2cfb1f9aa": [
+   "model.pilot_shop.stg_customers"
+  ],
+  "test.pilot_shop.not_null_stg_locations_location_id.3d237927d2": [
+   "model.pilot_shop.stg_locations"
+  ],
+  "test.pilot_shop.not_null_stg_order_lines_order_line_id.52b511774a": [
+   "model.pilot_shop.stg_order_lines"
+  ],
+  "test.pilot_shop.not_null_stg_orders_order_id.81cfe2fe64": [
+   "model.pilot_shop.stg_orders"
+  ],
+  "test.pilot_shop.not_null_stg_products_product_sku.ae077a8c6f": [
+   "model.pilot_shop.stg_products"
+  ],
+  "test.pilot_shop.relationships_order_items_order_id__order_id__ref_orders_.a799023ee8": [
+   "model.pilot_shop.order_items",
+   "model.pilot_shop.orders"
+  ],
+  "test.pilot_shop.relationships_orders_customer_id__customer_id__ref_stg_customers_.918495ce16": [
+   "model.pilot_shop.orders",
+   "model.pilot_shop.stg_customers"
+  ],
+  "test.pilot_shop.unique_customers_customer_id.c5af1ff4b1": [
+   "model.pilot_shop.customers"
+  ],
+  "test.pilot_shop.unique_order_items_order_line_id.8ac1bbf942": [
+   "model.pilot_shop.order_items"
+  ],
+  "test.pilot_shop.unique_orders_order_id.fed79b3a6e": [
+   "model.pilot_shop.orders"
+  ],
+  "test.pilot_shop.unique_stg_customers_customer_id.c7614daada": [
+   "model.pilot_shop.stg_customers"
+  ],
+  "test.pilot_shop.unique_stg_locations_location_id.2e2fc58ecc": [
+   "model.pilot_shop.stg_locations"
+  ],
+  "test.pilot_shop.unique_stg_order_lines_order_line_id.b8e1ca931e": [
+   "model.pilot_shop.stg_order_lines"
+  ],
+  "test.pilot_shop.unique_stg_orders_order_id.e3b841c71a": [
+   "model.pilot_shop.stg_orders"
+  ],
+  "test.pilot_shop.unique_stg_products_product_sku.ad8bf684d5": [
+   "model.pilot_shop.stg_products"
+  ],
+  "unit_test.pilot_shop.orders.orders_count_items_and_drinks": [
+   "model.pilot_shop.orders"
+  ]
+ },
+ "saved_queries": {
+  "saved_query.pilot_shop.revenue_by_customer_type": {
+   "config": {
+    "cache": {
+     "enabled": false
+    },
+    "enabled": true,
+    "export_as": null,
+    "group": null,
+    "meta": {},
+    "schema": null
+   },
+   "created_at": 1794571316.144432,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "metric.pilot_shop.revenue"
+    ]
+   },
+   "description": "Revenue, split by new and regular customers.",
+   "exports": [],
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "revenue_by_customer_type"
+   ],
+   "group": null,
+   "label": null,
+   "metadata": null,
+   "name": "revenue_by_customer_type",
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/customers.yml",
+   "query_params": {
+    "group_by": [
+     "Dimension('customer__customer_type')"
+    ],
+    "limit": null,
+    "metrics": [
+     "revenue"
+    ],
+    "order_by": [],
+    "where": null
+   },
+   "refs": [],
+   "resource_type": "saved_query",
+   "tags": [],
+   "unique_id": "saved_query.pilot_shop.revenue_by_customer_type",
+   "unrendered_config": {}
+  }
+ },
+ "selectors": {},
+ "semantic_models": {
+  "semantic_model.pilot_shop.customers": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.1362848,
+   "defaults": {
+    "agg_time_dimension": "first_ordered_at"
+   },
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.customers"
+    ]
+   },
+   "description": "Customers, for metrics split by what kind of customer they are.",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "customer_type",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "first_ordered_at",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "customer_id",
+     "label": null,
+     "name": "customer",
+     "role": null,
+     "type": "primary"
+    }
+   ],
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "customers"
+   ],
+   "group": null,
+   "label": null,
+   "measures": [
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": null,
+     "label": null,
+     "name": "lifetime_spend",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "count_distinct",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "customer_id",
+     "label": null,
+     "name": "customer_count",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "model": "ref('customers')",
+   "name": "customers",
+   "node_relation": {
+    "alias": "customers",
+    "database": "pilot",
+    "relation_name": "\"pilot\".\"main\".\"customers\"",
+    "schema_name": "main"
+   },
+   "original_file_path": "models/marts/customers.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/customers.yml",
+   "primary_entity": null,
+   "refs": [
+    {
+     "name": "customers",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "semantic_model",
+   "unique_id": "semantic_model.pilot_shop.customers",
+   "unrendered_config": {}
+  },
+  "semantic_model.pilot_shop.locations": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.16117,
+   "defaults": {
+    "agg_time_dimension": "opened_on"
+   },
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.locations"
+    ]
+   },
+   "description": "The shop's branches, for metrics by branch.",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "branch_name",
+     "type": "categorical",
+     "type_params": null
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "opened_on",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "location_id",
+     "label": null,
+     "name": "location",
+     "role": null,
+     "type": "primary"
+    }
+   ],
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "locations"
+   ],
+   "group": null,
+   "label": null,
+   "measures": [
+    {
+     "agg": "average",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "tax_rate",
+     "label": null,
+     "name": "average_tax_rate",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "model": "ref('locations')",
+   "name": "locations",
+   "node_relation": {
+    "alias": "locations",
+    "database": "pilot",
+    "relation_name": "\"pilot\".\"main\".\"locations\"",
+    "schema_name": "main"
+   },
+   "original_file_path": "models/marts/locations.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/locations.yml",
+   "primary_entity": null,
+   "refs": [
+    {
+     "name": "locations",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "semantic_model",
+   "unique_id": "semantic_model.pilot_shop.locations",
+   "unrendered_config": {}
+  },
+  "semantic_model.pilot_shop.orders": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794571316.150233,
+   "defaults": {
+    "agg_time_dimension": "ordered_at"
+   },
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "Orders, for metrics on revenue and volume.",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "ordered_at",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "order_id",
+     "label": null,
+     "name": "order",
+     "role": null,
+     "type": "primary"
+    },
+    {
+     "config": {
+      "meta": {}
+     },
+     "description": null,
+     "expr": "customer_id",
+     "label": null,
+     "name": "customer",
+     "role": null,
+     "type": "foreign"
+    }
+   ],
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "orders"
+   ],
+   "group": null,
+   "label": null,
+   "measures": [
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": null,
+     "label": null,
+     "name": "order_total",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {}
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "1",
+     "label": null,
+     "name": "order_count",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "model": "ref('orders')",
+   "name": "orders",
+   "node_relation": {
+    "alias": "orders",
+    "database": "pilot",
+    "relation_name": "\"pilot\".\"main\".\"orders\"",
+    "schema_name": "main"
+   },
+   "original_file_path": "models/marts/orders.yml",
+   "package_name": "pilot_shop",
+   "path": "marts/orders.yml",
+   "primary_entity": null,
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "semantic_model",
+   "unique_id": "semantic_model.pilot_shop.orders",
+   "unrendered_config": {}
+  }
+ },
+ "sources": {
+  "source.pilot_shop.ecom.raw_customers": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.1708622,
+   "database": "pilot",
+   "description": "Everyone who has signed up.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "ecom",
+    "raw_customers"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_customers",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_customers",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_customers\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "The shop's own systems, loaded as they are.",
+   "source_meta": {},
+   "source_name": "ecom",
+   "tags": [],
+   "unique_id": "source.pilot_shop.ecom.raw_customers",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  },
+  "source.pilot_shop.ecom.raw_locations": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.171861,
+   "database": "pilot",
+   "description": "The shop's branches.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "ecom",
+    "raw_locations"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_locations",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_locations",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_locations\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "The shop's own systems, loaded as they are.",
+   "source_meta": {},
+   "source_name": "ecom",
+   "tags": [],
+   "unique_id": "source.pilot_shop.ecom.raw_locations",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  },
+  "source.pilot_shop.ecom.raw_order_lines": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.171545,
+   "database": "pilot",
+   "description": "The products on each order.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "ecom",
+    "raw_order_lines"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_order_lines",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_order_lines",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_order_lines\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "The shop's own systems, loaded as they are.",
+   "source_meta": {},
+   "source_name": "ecom",
+   "tags": [],
+   "unique_id": "source.pilot_shop.ecom.raw_order_lines",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  },
+  "source.pilot_shop.ecom.raw_orders": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.171387,
+   "database": "pilot",
+   "description": "Orders as the till records them.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "ecom",
+    "raw_orders"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_orders",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_orders",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_orders\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "The shop's own systems, loaded as they are.",
+   "source_meta": {},
+   "source_name": "ecom",
+   "tags": [],
+   "unique_id": "source.pilot_shop.ecom.raw_orders",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  },
+  "source.pilot_shop.ecom.raw_products": {
+   "columns": {},
+   "config": {
+    "enabled": true,
+    "event_time": null,
+    "freshness": {
+     "error_after": {
+      "count": null,
+      "period": null
+     },
+     "filter": null,
+     "warn_after": {
+      "count": null,
+      "period": null
+     }
+    },
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.1717079,
+   "database": "pilot",
+   "description": "The catalogue.",
+   "doc_blocks": [],
+   "external": null,
+   "fqn": [
+    "pilot_shop",
+    "staging",
+    "ecom",
+    "raw_products"
+   ],
+   "freshness": {
+    "error_after": {
+     "count": null,
+     "period": null
+    },
+    "filter": null,
+    "warn_after": {
+     "count": null,
+     "period": null
+    }
+   },
+   "identifier": "raw_products",
+   "loaded_at_field": null,
+   "loaded_at_query": null,
+   "loader": "",
+   "meta": {},
+   "name": "raw_products",
+   "original_file_path": "models/staging/__sources.yml",
+   "package_name": "pilot_shop",
+   "patch_path": null,
+   "path": "models/staging/__sources.yml",
+   "quoting": {
+    "column": null,
+    "database": null,
+    "identifier": null,
+    "schema": null
+   },
+   "relation_name": "\"pilot\".\"main_raw\".\"raw_products\"",
+   "resource_type": "source",
+   "schema": "main_raw",
+   "source_description": "The shop's own systems, loaded as they are.",
+   "source_meta": {},
+   "source_name": "ecom",
+   "tags": [],
+   "unique_id": "source.pilot_shop.ecom.raw_products",
+   "unrendered_config": {
+    "loaded_at_field": null,
+    "loaded_at_query": null,
+    "meta": {},
+    "tags": []
+   },
+   "unrendered_database": null,
+   "unrendered_schema": "main_raw"
+  }
+ },
+ "unit_tests": {
+  "unit_test.pilot_shop.orders.orders_count_items_and_drinks": {
+   "checksum": "b14247e513da894f10ef1d353f7983d07d92de7c0a03ff8218e64dda9be31513",
+   "config": {
+    "enabled": true,
+    "meta": {},
+    "static_analysis": null,
+    "tags": []
+   },
+   "created_at": 1794571316.160251,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.pilot_shop.orders"
+    ]
+   },
+   "description": "",
+   "expect": {
+    "fixture": null,
+    "format": "dict",
+    "rows": [
+     {
+      "drink_count": 2,
+      "item_count": 3,
+      "line_count": 2,
+      "order_id": 1
+     }
+    ]
+   },
+   "fqn": [
+    "pilot_shop",
+    "marts",
+    "orders",
+    "orders_count_items_and_drinks"
+   ],
+   "given": [
+    {
+     "fixture": null,
+     "format": "dict",
+     "input": "ref('stg_orders')",
+     "rows": [
+      {
+       "customer_id": 7,
+       "order_id": 1,
+       "order_total": 6.5
+      }
+     ]
+    },
+    {
+     "fixture": null,
+     "format": "dict",
+     "input": "ref('order_items')",
+     "rows": [
+      {
+       "is_drink": true,
+       "order_id": 1,
+       "quantity": 2
+      },
+      {
+       "is_drink": false,
+       "order_id": 1,
+       "quantity": 1
+      }
+     ]
+    }
+   ],
+   "model": "orders",
+   "name": "orders_count_items_and_drinks",
+   "original_file_path": "models/marts/orders.yml",
+   "overrides": null,
+   "package_name": "pilot_shop",
+   "path": "marts/orders.yml",
+   "resource_type": "unit_test",
+   "schema": "main",
+   "unique_id": "unit_test.pilot_shop.orders.orders_count_items_and_drinks",
+   "version": null,
+   "versions": null
+  }
+ }
+}
