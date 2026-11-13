@@ -142,7 +142,7 @@ Gate G1 passed on 13 November 2026. The source goes public as a **new** reposito
 
 Work through these in order:
 
-1. [ ] **Replace the jaffle-shop fixtures** (LP-0tf) with a project of our own, on `main` here, with CI green. Done on branch `release/own-fixtures`: `fixtures/pilot-shop`, written for this repository, with its artifacts built by `make_fixture.py` on dbt 1.12.6 and Fusion 2.0.9. Tick this when it is merged. The older copies stay in this repository's history, which is why the source moves ([Publishing the source](#publishing-the-source)).
+1. [x] **Replace the jaffle-shop fixtures** (LP-0tf) with a project of our own, with CI green. Done on 13 November 2026 (pull request #2 in the archive): `fixtures/pilot-shop`, written for this repository, with its artifacts built by `make_fixture.py` on dbt 1.12.6 and Fusion 2.0.9. The older copies stay in the archive's history, which is why the source moved ([Publishing the source](#publishing-the-source)).
 2. [ ] **Trademark search for "LineagePilot"** (decision D-4), by someone qualified to do one. Keep "dbt" out of the name and the publisher, per dbt Labs' trademark guidelines.
 3. [ ] **Keep your personal email address out of what you publish.** Set git's identity to your GitHub noreply address, in this clone and globally, before any commit or tag for the new repository (an annotated tag records its tagger's address too):
 
@@ -151,20 +151,20 @@ Work through these in order:
    git config --global user.email 30685928+arrufus@users.noreply.github.com
    ```
 
-   Then, under GitHub's **Settings › Emails**, turn on **Keep my email addresses private** and **Block command line pushes that expose my email**.
-4. [ ] **Move the source to the new repository**:
+   Then, under GitHub's **Settings › Emails**, turn on **Keep my email addresses private** and **Block command line pushes that expose my email**. The git identity was set on 13 November 2026; the two GitHub settings are still to do.
+4. [ ] **Move the source to the new repository**. Sub-steps 1–4 and 6 were done on 13 November 2026: 80 commits, with a tree identical to the archive's `main`. Sub-step 4 started the core, server, extension and S1 workflows by hand (`gh workflow run <file> --repo arrufus/lineagepilot --ref main`): their path filters did not match the first push to an empty repository, and only the secret scan started by itself.
    1. Rename this one: `gh repo rename lineagepilot-private --repo arrufus/lineagepilot`. GitHub redirects the old name to it until another repository takes the name, which the next step does. So point this clone at the new name straight away: `git remote set-url origin https://github.com/arrufus/lineagepilot-private.git` ([Publishing the source](#publishing-the-source), step 1).
    2. Create the new one, private for now: `gh repo create arrufus/lineagepilot --private`.
    3. Push the filtered history to it, as in [Publishing the source](#publishing-the-source).
    4. Let CI run there, and check that every workflow passes on `main`. Secrets, variables, environments and settings do not move with the history: the new repository starts with none.
-   5. Turn on private vulnerability reporting, which `SECURITY.md` points to: **Settings › Code security › Private vulnerability reporting**, or `gh api -X PUT repos/arrufus/lineagepilot/private-vulnerability-reporting`.
-   6. Create the label the feedback form uses. `bug` exists already in a new repository:
+   5. Create the label the feedback form uses. `bug` exists already in a new repository:
 
       ```bash
       gh label create feedback --repo arrufus/lineagepilot --color c5def5 --description "An idea, a question or something that could be better"
       ```
 
-   7. Make it public: `gh repo edit arrufus/lineagepilot --visibility public --accept-visibility-change-consequences`. The READMEs' links then work for everyone, releases get build provenance attestations, and the rulesets and environment below can be enforced.
+   6. Make it public: `gh repo edit arrufus/lineagepilot --visibility public --accept-visibility-change-consequences`. The READMEs' links then work for everyone, releases get build provenance attestations, and the rulesets and environment below can be enforced.
+   7. Turn on private vulnerability reporting, which `SECURITY.md` points to: **Settings › Code security › Private vulnerability reporting**, or `gh api -X PUT repos/arrufus/lineagepilot/private-vulnerability-reporting`. GitHub offers it to public repositories only: on the private repository the API answers 404 (checked 13 November 2026).
 5. [ ] **Marketplace publisher** `lineagepilot`, the `publisher` in `extension/package.json`. Create it at <https://marketplace.visualstudio.com/manage> with a Microsoft account that has two-factor authentication on. Then create an Azure DevOps personal access token with the **Marketplace › Manage** scope, for **All accessible organizations**. It lasts a year at most: note when it expires.
 6. [ ] **Open VSX namespace** `lineagepilot`: sign in to <https://open-vsx.org> with GitHub (two-factor on), sign the Eclipse publisher agreement, create the namespace (`npx ovsx create-namespace lineagepilot -p <token>`), and claim it. The access token is on the same settings page.
 7. [ ] **Protect the new, public repository** (audit H8 and H9, LP-qy0.9):
