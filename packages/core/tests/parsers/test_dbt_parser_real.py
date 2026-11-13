@@ -105,8 +105,12 @@ def test_column_tests_come_from_test_nodes(project):
             expected[(subject, node["column_name"].lower())] += 1
     tested = {(c.node_id, c.name.lower()): c.test_count for c in result.columns if c.has_tests}
     assert tested == dict(expected)
+
+
 def test_pilot_shop_tested_model_count_is_the_same_on_both_engines():
-    """8 of the 11 pilot-shop models have tests, on dbt Core and on Fusion (S2 found this on jaffle-shop)."""
+    """8 of the 11 pilot-shop models have tests, on both engines (S2 found this on jaffle-shop)."""
+
+
 def test_pilot_shop_tested_model_count_matches_s2():
     """S2: 9 of the 13 pilot-shop models have tests."""
     for name in ("pilot-1.12", "pilot-fusion-2.0"):

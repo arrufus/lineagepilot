@@ -1,3 +1,10 @@
 
 # Use bd merge for beads JSONL files
 .beads/issues.jsonl merge=beads
+
+# dbt artifacts in the test fixtures are pinned by SHA-256 in their PROVENANCE.json, and tests
+# check those hashes: check them out byte for byte, with LF, on every platform. Model and YAML
+# files keep the default, so Windows checks them out with CRLF, as the staleness tests intend.
+fixtures/**/target/*.json text eol=lf
+packages/core/tests/fixtures/**/*.json text eol=lf
+spikes/s2-parse-perf/tests/fixtures/**/*.json text eol=lf

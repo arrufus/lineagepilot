@@ -319,9 +319,7 @@ class TestCompiledSql:
 
     def test_unreadable_and_missing_files_are_skipped(self, tmp_path):
         result, _ = graph_of("pilot-1.12")
-        a, b = (
-            n for n in result.nodes if n.unique_id in (f"{PILOT}.customers", f"{PILOT}.orders")
-        )
+        a, b = (n for n in result.nodes if n.unique_id in (f"{PILOT}.customers", f"{PILOT}.orders"))
         a.compiled_code = b.compiled_code = None
         bad = tmp_path / a.compiled_path
         bad.parent.mkdir(parents=True)
