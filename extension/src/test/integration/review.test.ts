@@ -131,7 +131,11 @@ suite(`change impact review (${label})`, () => {
 
   test('Copy as Markdown copies the text the server rendered, and takes none from the page', async () => {
     await vscode.env.clipboard.writeText('before');
-    const markdown = panel.latest!.markdown;
+    // The review renders again when the DAG scan comes in, and a copy takes the newest text, so
+    // take the text once the scan is in: the workspace's one DAG file is always read
+    const review = await until('the DAG files to be read', 60_000, () =>
+      panel.latest?.airflow.analysed ? panel.latest : undefined);
+    const markdown = review.markdown;
     assert.match(markdown, /^## Change impact review: `pilot_shop`/);
     await panel.handle({ type: 'copyMarkdown', text: 'from the page' });
     assert.equal(await vscode.env.clipboard.readText(), 'before', 'a message with text is malformed, so it is dropped');
