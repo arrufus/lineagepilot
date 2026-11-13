@@ -1,12 +1,14 @@
 name: Bug report
 description: Something in LineagePilot does not work as it should.
 title: "[bug] "
-labels: ["beta", "bug"]
+labels: ["bug"]
 body:
   - type: markdown
     attributes:
       value: |
-        Thank you for reporting it. The output and the trace can contain model names, paths and SQL from your project: read them, and remove anything you cannot share, before you paste them.
+        Thank you for reporting it. Issues are public. The output and the trace can contain model names, paths and SQL from your project: read them, and remove anything you cannot share, before you paste them.
+
+        A security problem does not go here: report it privately, as SECURITY.md in the repository describes.
   - type: textarea
     id: what
     attributes:
@@ -28,7 +30,7 @@ body:
     id: version
     attributes:
       label: LineagePilot version
-      placeholder: "0.1.0"
+      placeholder: "0.2.0"
     validations:
       required: true
   - type: input

@@ -1,2 +1,6 @@
-# The beta's feedback goes through these forms (task 6.3): see docs/beta.md
+# Bugs and feedback go through these forms. Security problems are reported privately: see SECURITY.md.
 blank_issues_enabled: false
+contact_links:
+  - name: Report a security problem
+    url: https://github.com/arrufus/lineagepilot/security/advisories/new
+    about: Privately, through GitHub's private vulnerability reporting. Please do not open a public issue.

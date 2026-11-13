@@ -1,12 +1,20 @@
 # LineagePilot
 
-A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models, exposures, and the Airflow tasks that run them.
+A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models, exposures, and the Airflow tasks that run them. It reads the dbt artifacts already in your workspace, and needs no server, no account and no warehouse connection.
+
+**Install** it from the VS Code Marketplace or Open VSX: search the Extensions view for **LineagePilot**, or run `code --install-extension lineagepilot.lineagepilot`. Each release's VSIX is also on [GitHub releases](https://github.com/arrufus/lineagepilot/releases/latest). The [extension's README](extension/README.md) covers using it.
+
+**It is a Preview.** What it cannot check, it lists under **Unknowns** rather than leaving out. The Airflow linkage is the part to judge carefully: on repositories it had never seen, it linked 17 of 106 tasks and listed most of the rest as unknown ([corpus/README.md](corpus/README.md)).
+
+**Problems and ideas** go in [GitHub issues](https://github.com/arrufus/lineagepilot/issues). **Security problems** do not: report them privately, as [SECURITY.md](SECURITY.md) describes.
+
+## For contributors
 
 - Design: [docs/design.md](docs/design.md)
 - Plan: [docs/implementation_plan.md](docs/implementation_plan.md)
 - After the MVP, beyond dbt and Airflow (proposal, not approved): [docs/design_next_phase.md](docs/design_next_phase.md)
 - Demo scripts: [docs/demo.md](docs/demo.md) (Phases 1–4) and [docs/demo_phase5.md](docs/demo_phase5.md) (Airflow linkage)
-- Releases: [docs/release.md](docs/release.md). The closed beta and Gate G1: [docs/beta.md](docs/beta.md)
+- Releases: [docs/release.md](docs/release.md). The closed beta and Gate G1, now closed: [docs/beta.md](docs/beta.md)
 - Work items: `bd ready` (beads, prefix `LP`)
 
 ## Layout
@@ -20,7 +28,7 @@ protocol/         the lineage/* JSON Schema, its generator and contract examples
 fixtures/         dbt project workspaces for the core, server and extension tests
 corpus/           the held-out DAG corpus: labels, scorer and results (Phase 5)
 docs/             design, plan, rules reference, demo scripts, release process and beta guide
-.github/          CI and release workflows, and the beta's issue forms
+.github/          CI and release workflows, and the issue forms
 ```
 
 LineagePilot is released under the [MIT licence](LICENSE).
@@ -93,4 +101,4 @@ Tested locally, in the Linux container, with Python 3.10 and 3.13:
 
 The same CI runs cover Phase 6's code on Linux, macOS and Windows. The first macOS and Windows runs found two faults, both fixed in `95abc3a`. **Apply the Sample Change** failed on Windows, which refuses to truncate a file it is not allowed to create. A test asked VS Code's Git extension about the workspace before it was a repository. The release workflow made the first beta release, v0.1.1, on 9 November 2026 (run 42700988466). `extension/scripts/verify_release.py` checks a release in one command ([docs/release.md](docs/release.md#checking-a-release)). It found that v0.1.1 was marked as a pre-release, so the repository had no latest release for beta teams to be sent to; no release is a pre-release now (LP-fzx).
 
-What is left is the owner's: the checklist in [docs/beta.md](docs/beta.md#before-the-first-invitation), then recruiting the teams and the four weeks of beta before Gate G1 (LP-7er.4). Setting up the registries for the public release is LP-2xl.
+**Gate G1 passed on 13 November 2026**, by the product owner's judgment (LP-7er.4, [docs/beta.md](docs/beta.md)). The first public release, 0.2.0, follows: a Preview on the Marketplace and Open VSX, from a public repository ([docs/release.md](docs/release.md#before-the-first-public-release-after-gate-g1), LP-2xl). It removes what existed only for the beta: the usage counts and **Copy Usage Counts**, the walkthrough's beta step (it now has six) and the weekly check-in issue form. There is still no telemetry (D-7).

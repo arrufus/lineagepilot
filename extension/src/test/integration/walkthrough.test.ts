@@ -1,6 +1,5 @@
-// The first-run walkthrough, the sample project and the beta's usage counts, in a real VS Code
-// (tasks 6.1 and 6.3), trusted and in Restricted Mode. Every test workspace's settings turn usage
-// counts on (.vscode-test.mjs): only the user's own settings may do that.
+// The first-run walkthrough and the sample project, in a real VS Code (task 6.1), trusted and in
+// Restricted Mode.
 import { strict as assert } from 'assert';
 import * as fs from 'fs';
 import * as os from 'os';
@@ -90,15 +89,3 @@ suite(`walkthrough and sample project (${label})`, () => {
   });
 });
 
-// Opening and copying the review are counted in review.test.ts, once the workspace is a repository:
-// the review asks VS Code's Git extension about the folder, and must not ask before then.
-suite(`usage counts (${label})`, () => {
-  test('a workspace cannot turn them on, so nothing is counted', async () => {
-    const { usage } = await api();
-    assert.equal(usage.isEnabled, false);
-    await usage.record('opened');  // what opening the review does
-    await usage.record('day');
-    assert.deepEqual(usage.state().weeks, {});
-    assert.equal(await vscode.commands.executeCommand('lineagePilot.copyUsageCounts'), undefined);
-  });
-});

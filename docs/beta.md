@@ -1,5 +1,7 @@
 # The closed beta and Gate G1
 
+> **The beta is closed. Gate G1 passed on 13 November 2026**, by the product owner's judgment (LP-7er.4). No check-ins were filed as GitHub issues and the beta labels were never created, so the tally and scoring below were not used. The public release follows ([release.md](release.md#before-the-first-public-release-after-gate-g1)). It removed the usage counts, the walkthrough's beta step and the weekly check-in form that this guide describes, and it is published from a new repository, so beta collaborators on this one are not carried over: remove them as [After G1](#after-g1) says. The rest of this document is the record of how the beta was meant to run.
+
 How to run the four-week closed beta (task 6.3, LP-7er.3), and how its result decides Gate G1 (LP-7er.4). It is written for the product owner, who recruits the teams. Spike S4 was waived, so there is no pool of interviewees to start from.
 
 **Gate G1**, four weeks into the beta, carries on only if all three of these hold:

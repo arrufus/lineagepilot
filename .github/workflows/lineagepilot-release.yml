@@ -3,11 +3,11 @@
 #   2. runs the core, server and extension workflows on the tagged commit. The extension workflow
 #      builds the one universal VSIX and tests it on Linux, macOS and Windows;
 #   3. attaches that VSIX, with its SHA-256, to a GitHub release, which becomes the latest release.
-#      During the closed beta this is how teams get it (docs/release.md). The release notes end
-#      with a link to this run, and scripts/verify_release.py checks the release afterwards;
+#      It is also the offline install (docs/release.md). The release notes end with a link to
+#      this run, and scripts/verify_release.py checks the release afterwards;
 #   4. publishes the same VSIX to the VS Code Marketplace and Open VSX, but only when the
 #      repository variable LP_PUBLISH_REGISTRIES is 'true', and only after a reviewer approves the
-#      'registries' environment, which holds the tokens. It is unset until the public release.
+#      'registries' environment, which holds the tokens. The public repository sets it.
 #
 # Nothing else publishes: a VSIX built anywhere but here never reaches a registry.
 name: lineagepilot-release
@@ -118,7 +118,7 @@ jobs:
           echo "sha256=$(cut -d' ' -f1 release/SHA256SUMS)" >> "$GITHUB_OUTPUT"
       # Signed SLSA build provenance for both files, so a user can check that this workflow built
       # them from this tag (docs/release.md). GitHub offers attestations only in public
-      # repositories on this plan, so a release from the private beta repository has none.
+      # repositories on this plan, so a release from a private repository has none.
       - name: Attest build provenance
         if: ${{ !github.event.repository.private }}
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
