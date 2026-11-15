@@ -2,7 +2,7 @@
 
 How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are built and published by CI only. A VSIX built anywhere else is for testing and never reaches a user.
 
-**After Gate G1**, which passed on 13 November 2026, a release goes to the VS Code Marketplace and Open VSX as well as to GitHub releases, once the checklist in [Before the first public release](#before-the-first-public-release-after-gate-g1) is done. Until then the Marketplace and Open VSX jobs stay off, and a release is only a `.vsix` attached to a GitHub release, as it was during the closed beta ([beta.md](beta.md)).
+**After Gate G1**, which passed on 13 November 2026, a release goes to the VS Code Marketplace and Open VSX as well as to GitHub releases. The first was 0.2.0, on both registries since 15 November 2026 ([Before the first public release](#before-the-first-public-release-after-gate-g1)). During the closed beta a release was only a `.vsix` attached to a GitHub release ([beta.md](beta.md)).
 
 ---
 
@@ -47,7 +47,7 @@ How a version of the extension reaches users (task 6.2, LP-7er.2). Releases are 
 
    If `gh run watch` says `failed to get run: HTTP 404: Not Found`, the run has not registered yet: wait a few seconds and run that line again. With the registries on, the run stops before `marketplace` and `open-vsx` until you approve the `registries` deployment on the run's page, and `gh run watch` waits with it. `verify_release.py` prints one line per check, then **The release is complete.** or what is wrong ([Checking a release](#checking-a-release)).
 
-6. **Check that it reached users.** The Marketplace checks a new version before it lists it, which can take some minutes. Then it is at <https://marketplace.visualstudio.com/items?itemName=lineagepilot.lineagepilot> and <https://open-vsx.org/extension/lineagepilot/lineagepilot>, and editors offer it as an update. The VSIX is always at <https://github.com/arrufus/lineagepilot/releases/latest>. While a repository is private, only you and the collaborators you invite can open its releases, and anyone else gets GitHub's "Page not found": that is how the closed beta worked ([beta.md](beta.md#inviting-a-team)).
+6. **Check that it reached users.** The Marketplace checks a new version before it lists it, which can take some minutes. Then it is at <https://marketplace.visualstudio.com/items?itemName=lineagepilot.lineagepilot> and <https://open-vsx.org/extension/lineagepilot/lineagepilot>, and editors offer it as an update. The VSIX is always at <https://github.com/arrufus/lineagepilot/releases/latest>.
 
 The tag starts [`lineagepilot-release`](../.github/workflows/lineagepilot-release.yml):
 
@@ -57,7 +57,7 @@ The tag starts [`lineagepilot-release`](../.github/workflows/lineagepilot-releas
 | `core`, `lsp`, `extension` | The three CI workflows, on the tagged commit. `extension` builds the one universal VSIX, without npm install scripts, and normalises it so its bytes depend only on its files and the commit's time. Then it tests it on Linux, macOS and Windows with Python 3.10 and 3.13, trusted and in Restricted Mode. |
 | `secret-scan` | gitleaks over the whole git history ([`lineagepilot-secrets`](../.github/workflows/lineagepilot-secrets.yml), allowlist in [`.gitleaks.toml`](../.gitleaks.toml)). |
 | `github-release` | Checks that VSIX against both registries' rules, licence included (`check_vsix.py --release`), and that it is normalised for the tagged commit. Attests its build provenance and that of `SHA256SUMS` (public repository only, see below). Attaches it as `lineagepilot-<version>.vsix`, with `SHA256SUMS`, to a GitHub release, which becomes the latest release. Its notes are the changelog's, ending with the VSIX's SHA-256 and a link to the run. |
-| `marketplace`, `open-vsx` | Publish the same file, after checking its SHA-256. These run only when the repository variable `LP_PUBLISH_REGISTRIES` is `true`, and only after a reviewer approves the `registries` environment. |
+| `marketplace`, `open-vsx` | Publish the same file, after checking its SHA-256. These run only when the repository variable `LP_PUBLISH_REGISTRIES` is `true`, and only after a reviewer approves the `registries` environment. `marketplace` signs in with Trusted Publishing, so no Marketplace token is stored (checklist item 5). `open-vsx` uses the environment's `OVSX_PAT` secret. |
 
 Nothing is published unless every test passes. The VSIX that is released is the one that was tested: it is built once, in the `extension` job, and never rebuilt.
 
@@ -65,7 +65,7 @@ Nothing is published unless every test passes. The VSIX that is released is the 
 
 - **`verify` fails**: fix the version or the changelog on `main`, delete the tag (`git push origin :v0.1.1 && git tag -d v0.1.1`), and tag again.
 - **A test fails**: no release was made. Fix it on `main`, then move the tag the same way.
-- **A publish job fails** after the GitHub release: re-run that job from the Actions page. It publishes the VSIX already released. Never publish a different file under the same version.
+- **A publish job fails** after the GitHub release: re-run that job from the Actions page. It publishes the VSIX already released. Never publish a different file under the same version. If `marketplace` fails at the OIDC token exchange, the Trusted Publishing policy does not match this run: compare it with checklist item 5, correct it on the Marketplace and re-run the job. The tag does not change.
 - **`verify_release.py` fails** on a release the workflow made: it says which check failed. A pre-release is fixed by the command it prints. For anything else, do not hand the release out: fix the cause on `main` and release a new version. Never replace a released file.
 
 ### Checking a release
@@ -165,10 +165,20 @@ Work through these in order:
 
    6. Make it public: `gh repo edit arrufus/lineagepilot --visibility public --accept-visibility-change-consequences`. The READMEs' links then work for everyone, releases get build provenance attestations, and the rulesets and environment below can be enforced.
    7. Turn on private vulnerability reporting, which `SECURITY.md` points to: **Settings › Code security › Private vulnerability reporting**, or `gh api -X PUT repos/arrufus/lineagepilot/private-vulnerability-reporting`. GitHub offers it to public repositories only: on the private repository the API answers 404 (checked 13 November 2026).
-5. [ ] **Marketplace publisher** `lineagepilot`, the `publisher` in `extension/package.json`. Create it at <https://marketplace.visualstudio.com/manage> with a Microsoft account that has two-factor authentication on. Then create an Azure DevOps personal access token with the **Marketplace › Manage** scope, for **All accessible organizations**. It lasts a year at most: note when it expires.
-6. [ ] **Open VSX namespace** `lineagepilot`: sign in to <https://open-vsx.org> with GitHub (two-factor on), sign the Eclipse publisher agreement, create the namespace (`npx ovsx create-namespace lineagepilot -p <token>`), and claim it. The access token is on the same settings page.
-7. [ ] **Protect the new, public repository** (audit H8 and H9, LP-qy0.9). All of it was set up on 13 November 2026 except the two secrets, which only you can add:
-   - **A GitHub environment called `registries`**, under **Settings › Environments**: add yourself as a required reviewer, allow only tags `v*` to deploy, and add the secrets `VSCE_PAT` and `OVSX_PAT`. The tokens live only there, so only an approved release job can read them. Check that the required reviewer and the tag rule show as saved before you add the secrets.
+5. [ ] **Marketplace publisher** `lineagepilot`, the `publisher` in `extension/package.json`, created at <https://marketplace.visualstudio.com/manage> with a Microsoft account that has two-factor authentication on. Done, except the Trusted Publishing policy below. 0.2.0 was published with an Azure DevOps personal access token for **All accessible organizations**, with the **Marketplace › Manage** scope, made for that release alone. Azure DevOps is retiring such global tokens: on 27 January 2027 by its latest notice, and on 1 December 2026 by the VS Code publishing documentation. Every later release uses **Trusted Publishing** instead. On the publisher's **Trusted Publishing** page, **Create** a policy:
+   - **Policy name**: `Release workflow`
+   - **Repository owner**: `arrufus`
+   - **Repository**: `lineagepilot`
+   - **Workflow**: `lineagepilot-release.yml`
+   - **Environment**: `registries`
+
+   The `marketplace` job then trades its GitHub OIDC token for a Marketplace credential that lasts 15 minutes (`vsce publish --oidc`). That takes vsce 4.1.0 or later: 4.0.0 had the option, but its exchange did not yet match the Marketplace's. No Marketplace token is stored anywhere. Once the policy is saved, delete the `VSCE_PAT` secret from the `registries` environment and revoke the token in Azure DevOps.
+6. [x] **Open VSX namespace** `lineagepilot`. Done on 14 and 15 November 2026:
+   - Register an Eclipse Foundation account at <https://accounts.eclipse.org/user/register>, with its **GitHub Username** set to the GitHub account you sign in to <https://open-vsx.org> with. Sign in there, then under **Settings › Profile** choose **Log in with Eclipse**, **Show Publisher Agreement** and **Agree**.
+   - Generate a token under **Settings › Access Tokens**. It is shown once and does not expire. Create the namespace with it: `npx ovsx create-namespace lineagepilot`, with the token in `OVSX_PAT`. That makes you a contributor, and the namespace stays unverified until it is claimed.
+   - Claim it with the namespace template at <https://github.com/EclipseFdn/open-vsx.org/issues/new/choose>. Because `lineagepilot` is not your GitHub username, say why it is yours, and show that you own the Marketplace publisher of the same name. Granted in [EclipseFdn/open-vsx.org#15712](https://github.com/EclipseFdn/open-vsx.org/issues/15712), before the first publish, so 0.2.0 shows as verified.
+7. [x] **Protect the new, public repository** (audit H8 and H9, LP-qy0.9). Set up on 13 November 2026, with the secrets added on 14 and 15 November:
+   - **A GitHub environment called `registries`**, under **Settings › Environments**: add yourself as a required reviewer, allow only tags `v*` to deploy, and add the secret `OVSX_PAT`. The token lives only there, so only an approved release job can read it. The Marketplace needs no secret (item 5), and the Trusted Publishing policy names this environment, so only an approved release job can publish there either. Check that the required reviewer and the tag rule show as saved before you add a secret.
    - **Set the repository variable** `LP_PUBLISH_REGISTRIES` to `true`, under **Settings › Secrets and variables › Actions › Variables**.
    - **Rulesets**, under **Settings › Rules › Rulesets**:
      - a tag ruleset for `v*` (**Release tags**) that only you can create, update or delete: it blocks all three, and the repository admin role bypasses it;
@@ -177,11 +187,11 @@ Work through these in order:
 8. [ ] **Confirm that the leaked Snowflake key was rotated** (DCS-hov, in data-capsule's tracker), as the security audit asks before a public release (LP-qy0.9).
 9. [ ] **Remove the beta collaborators** from the private archive ([beta.md](beta.md#after-g1)). None are added to the new repository.
 
-Then **cut 0.2.0** in the new repository, as in [Cutting a release](#cutting-a-release), and approve the `registries` deployment when the run asks. `verify_release.py v0.2.0` then checks the attestations too.
+Then **cut 0.2.0** in the new repository, as in [Cutting a release](#cutting-a-release), and approve the `registries` deployment when the run asks. `verify_release.py v0.2.0` then checks the attestations too. Done: tagged on 13 November 2026, and on both registries since 15 November. The files the Marketplace and Open VSX serve are byte-for-byte the VSIX on the GitHub release.
 
 **Marketplace pre-releases are not used** (decided 13 November 2026). Every version is a normal release on both registries, and `vsce publish --pre-release` is not set up. The Marketplace shows LineagePilot as a Preview instead, from `"preview": true` in `extension/package.json`.
 
-**Recommended follow-up: publish without long-lived tokens.** `VSCE_PAT` lasts up to a year and can publish any version from anywhere until it expires. vsce can instead authenticate with Microsoft Entra ID (`vsce publish --azure-credential`, after `azure/login` with a federated credential bound to this repository and the `registries` environment), so the job holds only a short-lived OIDC token. vsce 4.0.0 and ovsx 1.3.0 also carry OpenID Connect trusted publishing (`--oidc`; hidden from vsce's help). Check each registry's documentation for its status before switching. Publishing is unchanged for now (security audit H4).
+**Long-lived tokens** (security audit H4). The Marketplace job holds none (item 5). Open VSX still uses `OVSX_PAT`, which does not expire and can publish to the namespace from anywhere until it is deleted. Keep it only in the `registries` environment, and replace it at once if it may have leaked. ovsx 1.3.0 also has `--oidc`, for Open VSX's own trusted publishing: check Open VSX's documentation before switching to it.
 
 ### Publishing the source
 
