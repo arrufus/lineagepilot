@@ -465,3 +465,18 @@ def test_no_release_is_a_pre_release():
     assert "prerelease" not in facts
     workflow = (ROOT.parent / ".github" / "workflows" / "lineagepilot-release.yml").read_text(encoding="utf-8")
     assert "prerelease" not in workflow
+
+
+def test_the_marketplace_job_uses_trusted_publishing():
+    # Azure DevOps' global personal access tokens are being retired, so the Marketplace job signs
+    # in with its GitHub OIDC token. vsce 4.0.0 had --oidc, but its token exchange did not yet
+    # match the Marketplace's: 4.1.0 is the first release that does
+    workflow_path = ROOT.parent / ".github" / "workflows" / "lineagepilot-release.yml"
+    workflow = workflow_path.read_text(encoding="utf-8")
+    job = workflow.split("\n  marketplace:\n", 1)[1].split("\n  open-vsx:\n", 1)[0]
+    assert "environment: registries" in job and "id-token: write" in job
+    assert 'npx vsce publish --oidc --packagePath "release/lineagepilot-$VERSION.vsix"' in job
+    assert "VSCE_PAT" not in workflow
+    lock = json.loads((ROOT / "package-lock.json").read_text(encoding="utf-8"))
+    vsce = lock["packages"]["node_modules/@vscode/vsce"]["version"]
+    assert tuple(int(part) for part in vsce.split(".")) >= (4, 1, 0)
