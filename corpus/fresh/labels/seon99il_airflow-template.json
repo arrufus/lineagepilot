@@ -1,0 +1,65 @@
+{
+  "repo": "seon99il/airflow-template",
+  "url": "https://github.com/seon99il/airflow-template",
+  "sha": "51a0a18b45deb188dde4111654bcc5977c5f3a22",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "include/dbt/sample"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "dbt_sample.stg.build",
+      "file": "dags/dbt_sample.py",
+      "line": 8,
+      "lines": [],
+      "dag_id": "dbt_sample",
+      "unit": "task",
+      "task_id": "stg",
+      "group_id": null,
+      "operator": "DbtDockerOperator",
+      "dbt_command": "build",
+      "command_index": 0,
+      "project_path": "include/dbt/sample",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "sample",
+      "models": [
+        "stg_numbers"
+      ],
+      "other_nodes": [],
+      "reason": "DbtDockerOperator (dags/dataplatform/operators/dbt.py) subclasses DockerOperator and runs dbt-ol build --project-dir <project>; the worker-dbt image copies include/dbt into its WORKDIR, so project sample is include/dbt/sample; --select stg_numbers"
+    },
+    {
+      "id": "dbt_sample.fct.build",
+      "file": "dags/dbt_sample.py",
+      "line": 9,
+      "lines": [],
+      "dag_id": "dbt_sample",
+      "unit": "task",
+      "task_id": "fct",
+      "group_id": null,
+      "operator": "DbtDockerOperator",
+      "dbt_command": "build",
+      "command_index": 0,
+      "project_path": "include/dbt/sample",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "sample",
+      "models": [
+        "fct_numbers"
+      ],
+      "other_nodes": [],
+      "reason": "DbtDockerOperator (dags/dataplatform/operators/dbt.py) subclasses DockerOperator and runs dbt-ol build --project-dir <project>; the worker-dbt image copies include/dbt into its WORKDIR, so project sample is include/dbt/sample; --select fct_numbers"
+    }
+  ]
+}

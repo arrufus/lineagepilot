@@ -12,7 +12,7 @@ import re
 import shlex
 from dataclasses import dataclass, field
 
-from lineagepilot_core.airflow.safe_io import is_absolute
+from lineagepilot_core.airflow.safe_io import env_tail, is_absolute
 
 JINJA_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.S)
 JINJA_PLACEHOLDER = "__LP_JINJA_{}__"
@@ -239,6 +239,9 @@ def parse_dbt_argv(
                 real = _restore(val, jinja)
                 if _has_jinja(val) or _has_jinja(real):
                     inv.unknown_fields[key] = f"Jinja template in {flag}: {real}"
+                elif key == "project_dir" and env_tail(real) is not None:
+                    # $AIRFLOW_HOME/dbt/x: the project is matched by the path after it (LP-0o1)
+                    inv.project_dir = real
                 elif SHELL_VARIABLE.search(real):
                     if key in ("selector", "project_dir"):
                         inv.unknown_fields[key] = f"shell variable in {flag}: {real}"
@@ -251,10 +254,22 @@ def parse_dbt_argv(
         if tok.startswith("-"):
             i += 1
             continue
+        if inv.command is not None:
+            word = _restore(tok, jinja)
+            if _has_jinja(word) or SHELL_VARIABLE.search(word):
+                # `dbt run $FLAGS`: it may hold --select, so the selection is not known
+                inv.unknown_fields.setdefault(
+                    "arguments", f"a variable or template among the arguments: {word}"
+                )
         if inv.command is None:
             word = _restore(tok, jinja)
             if _has_jinja(word):
                 inv.unknown_fields["dbt_command"] = f"Jinja template as dbt sub-command: {word}"
+                inv.command = "unknown"
+            elif SHELL_VARIABLE.search(word):
+                # `dbt $CMD`: which sub-command runs is not known. Reported as unknown, never
+                # read as a command that builds nothing
+                inv.unknown_fields["dbt_command"] = f"shell variable as dbt sub-command: {word}"
                 inv.command = "unknown"
             else:
                 inv.command = word
@@ -293,7 +308,12 @@ def find_dbt_in_shell(text: str) -> tuple[list[DbtInvocation], str | None]:
             continue
         if words[0] == "cd" and len(words) >= 2:
             target = _restore(words[1], jinja)
-            if _has_jinja(target) or SHELL_VARIABLE.search(target):
+            if not _has_jinja(target) and env_tail(target) is not None:
+                # cd $AIRFLOW_HOME/dbt/x: kept, so the project is matched by the path after the
+                # variable (LP-0o1)
+                cwd = target
+                unknown_cd = None
+            elif _has_jinja(target) or SHELL_VARIABLE.search(target):
                 cwd = None
                 unknown_cd = target
             elif cwd and not is_absolute(target):
@@ -341,6 +361,24 @@ def find_dbt_in_shell(text: str) -> tuple[list[DbtInvocation], str | None]:
                 invocation.notes.append(f"working directory comes from {unknown_cd}, not known")
             invocations.append(invocation)
     return invocations, None
+
+
+def runs_a_variable(text: str) -> bool:
+    """Whether a command in the string is itself a variable, as in ``$CMD`` or ``${RUN} x``:
+    what that runs is not known, so nothing can be said about the string as a whole. Also true
+    when it cannot be tokenised."""
+    tokens = tokenize_shell(text)
+    if tokens is None:
+        return True
+    for seg in _segments(tokens):
+        words = list(seg)
+        while words and (
+            re.match(r"^[A-Za-z_][A-Za-z0-9_]*=", words[0]) or words[0] in ("env", "exec", "time")
+        ):
+            words = words[1:]
+        if words and words[0].startswith("$"):
+            return True
+    return False
 
 
 def find_dbt_in_argv(argv: list[str]) -> list[DbtInvocation]:

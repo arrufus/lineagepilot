@@ -1,0 +1,62 @@
+{
+ "about": "Every miss of the first run on the fresh corpus (results/first.json, the frozen scanner), by cause. Read after that run, by the scanner's author. No label was changed.",
+ "frozen": {
+  "scanner_sha256": "22444f3d5c9bdcec106c7307c0bb7ecbcd8dc5bac9173671eb39dbda8bacf777",
+  "commit": "fd686c8"
+ },
+ "clusters": {
+  "A": {
+   "count": 10,
+   "repos": ["harrydevforlife/building-lakehouse"],
+   "reported_as": "unknown at the line",
+   "cause": "one BashOperator per model, made in a for-loop over the nodes of a manifest.json read at parse time. The reason names the HOME variable in the same command rather than the loop, which is misleading",
+   "follow_up": "LP-244"
+  },
+  "B": {
+   "count": 3,
+   "repos": ["stevetran77/weather-api-project", "rionurfadilah229/ELT-Pipeline"],
+   "reported_as": "nothing (2, as a string command); unknown (1, as a list)",
+   "cause": "a DockerOperator whose image's entrypoint is dbt, given only the sub-command and its flags: command='run --target dev', or ['run', '--project-dir', '/dbt']",
+   "follow_up": "the 2 silent links are unknowns after the freeze (08c6ee6); LP-245"
+  },
+  "C": {
+   "count": 2,
+   "repos": ["seon99il/airflow-template"],
+   "reported_as": "unknown at the line",
+   "cause": "a repo-local operator subclass, DbtDockerOperator, that builds its own dbt command",
+   "follow_up": "LP-2cd"
+  },
+  "D": {
+   "count": 2,
+   "repos": ["Victor-Kipruto-Rop/cloud-etl-pipeline"],
+   "unsure_labels": 2,
+   "reported_as": "nothing",
+   "cause": "the task is inside if os.getenv('DBT_ENABLED', 'false').lower() == 'true': the evaluator took the default as the value, decided the test was false, and skipped the branch in silence",
+   "follow_up": "reported as unknowns after the freeze (08c6ee6); LP-246"
+  },
+  "E": {
+   "count": 1,
+   "repos": ["richardhe-fundamenta/airflow_k8_dbt_demo"],
+   "reported_as": "unknown at the line",
+   "cause": "cmds=['bash', '-cx'] is not recognised as a shell",
+   "follow_up": "LP-x29"
+  },
+  "F": {
+   "count": 1,
+   "repos": ["grinfeld/py_spark_playground"],
+   "reported_as": "unknown at the line",
+   "cause": "the pod's command is in its pod_template_file, a YAML file outside the DAG files",
+   "follow_up": "none: out of reach of a scanner of DAG files"
+  },
+  "G": {
+   "count": 1,
+   "repos": ["ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow"],
+   "unsure_labels": 1,
+   "reported_as": "wrong model set (one model missing)",
+   "cause": "dbt test: the project's only tests are in YAML under test-paths, which the stand-in manifest does not read",
+   "follow_up": "LP-248"
+  }
+ },
+ "reported": {"unknown_at_the_line": 15, "silent": 4, "wrong": 1},
+ "entry_fixes_seen": "One of the 15 correct links went through an Entry fix: cd $AIRFLOW_HOME/restaurant_analytis, matched by the path after the variable (LP-0o1). The 0.2.0 scanner linked it too, through its only-project fallback, so the correct links are the same 15 (results/baseline-0.2.0.json). No link here needs a container mount or the only-project fallback for a container path (LP-c05), and no imported helper builds an operator (LP-z2x). This corpus therefore does not measure the Entry fixes; their fixtures and the first corpus (in-sample) do."
+}

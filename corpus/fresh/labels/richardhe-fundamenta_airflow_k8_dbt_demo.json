@@ -1,0 +1,43 @@
+{
+  "repo": "richardhe-fundamenta/airflow_k8_dbt_demo",
+  "url": "https://github.com/richardhe-fundamenta/airflow_k8_dbt_demo",
+  "sha": "8c43c18bc6094dfdd1f8d0d9803b42a40f2d01ba",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt/dbt_k8_demo"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "airflow_k8_dbt_demo.run_dbt_job_on_k8_demo.run",
+      "file": "dags/airflow_k8_dbt_demo.py",
+      "line": 24,
+      "lines": [],
+      "dag_id": "airflow_k8_dbt_demo",
+      "unit": "task",
+      "task_id": "run_dbt_job_on_k8_demo",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt/dbt_k8_demo",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_k8_demo",
+      "models": [
+        "my_first_dbt_model",
+        "my_second_dbt_model"
+      ],
+      "other_nodes": [],
+      "reason": "dbt/Dockerfile copies dbt/dbt_k8_demo to the image WORKDIR as dbt_k8_demo; --project-dir dbt_k8_demo; no selector: every model"
+    }
+  ]
+}

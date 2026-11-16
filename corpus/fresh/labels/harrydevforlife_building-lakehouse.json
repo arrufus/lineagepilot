@@ -1,0 +1,276 @@
+{
+  "repo": "harrydevforlife/building-lakehouse",
+  "url": "https://github.com/harrydevforlife/building-lakehouse",
+  "sha": "74ca719077586090ab69986d2baac340f64d6237",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "restaurant_analytis"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "run_dbt.run_dbt.run",
+      "file": "airflow/dags/dbt.py",
+      "line": 16,
+      "lines": [],
+      "dag_id": "run_dbt",
+      "unit": "task",
+      "task_id": "run_dbt",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "analyses_review",
+        "dim_date",
+        "dim_restaurant",
+        "dim_user",
+        "fact_review"
+      ],
+      "other_nodes": [],
+      "reason": "cd $AIRFLOW_HOME/restaurant_analytis; AIRFLOW_HOME is /usr/local/airflow (airflow/Dockerfile), where docker-compose mounts ./restaurant_analytis; no selector: every model"
+    },
+    {
+      "id": "dbt_transform.restaurant_analytis.dim_restaurant.run",
+      "file": "airflow/dags/dbt_transform.py",
+      "line": 36,
+      "lines": [],
+      "dag_id": "dbt_transform",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_restaurant",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_restaurant"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "dbt_transform.restaurant_analytis.dim_user.run",
+      "file": "airflow/dags/dbt_transform.py",
+      "line": 36,
+      "lines": [],
+      "dag_id": "dbt_transform",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_user",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_user"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "dbt_transform.restaurant_analytis.fact_review.run",
+      "file": "airflow/dags/dbt_transform.py",
+      "line": 36,
+      "lines": [],
+      "dag_id": "dbt_transform",
+      "unit": "task",
+      "task_id": "restaurant_analytis.fact_review",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "fact_review"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "dbt_transform.restaurant_analytis.analyses_review.run",
+      "file": "airflow/dags/dbt_transform.py",
+      "line": 36,
+      "lines": [],
+      "dag_id": "dbt_transform",
+      "unit": "task",
+      "task_id": "restaurant_analytis.analyses_review",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "analyses_review"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "dbt_transform.restaurant_analytis.dim_date.run",
+      "file": "airflow/dags/dbt_transform.py",
+      "line": 36,
+      "lines": [],
+      "dag_id": "dbt_transform",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_date",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_date"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "etl_pipeline.restaurant_analytis.dim_restaurant.run",
+      "file": "airflow/dags/ingest.py",
+      "line": 180,
+      "lines": [],
+      "dag_id": "etl_pipeline",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_restaurant",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_restaurant"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "etl_pipeline.restaurant_analytis.dim_user.run",
+      "file": "airflow/dags/ingest.py",
+      "line": 180,
+      "lines": [],
+      "dag_id": "etl_pipeline",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_user",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_user"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "etl_pipeline.restaurant_analytis.fact_review.run",
+      "file": "airflow/dags/ingest.py",
+      "line": 180,
+      "lines": [],
+      "dag_id": "etl_pipeline",
+      "unit": "task",
+      "task_id": "restaurant_analytis.fact_review",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "fact_review"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "etl_pipeline.restaurant_analytis.analyses_review.run",
+      "file": "airflow/dags/ingest.py",
+      "line": 180,
+      "lines": [],
+      "dag_id": "etl_pipeline",
+      "unit": "task",
+      "task_id": "restaurant_analytis.analyses_review",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "analyses_review"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    },
+    {
+      "id": "etl_pipeline.restaurant_analytis.dim_date.run",
+      "file": "airflow/dags/ingest.py",
+      "line": 180,
+      "lines": [],
+      "dag_id": "etl_pipeline",
+      "unit": "task",
+      "task_id": "restaurant_analytis.dim_date",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "restaurant_analytis",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "restaurant_analytis",
+      "models": [
+        "dim_date"
+      ],
+      "other_nodes": [],
+      "reason": "loop over model nodes of restaurant_analytis/target/manifest.json, committed and listing the same five models as the .sql files; HOME and AIRFLOW_HOME are /usr/local/airflow, where compose mounts ./restaurant_analytis; dbt run --models <name>"
+    }
+  ]
+}

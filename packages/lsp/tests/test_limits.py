@@ -44,7 +44,9 @@ async def test_the_server_stops_a_child_that_uses_too_much_memory(monkeypatch):
     async def on_event(event):
         events.append(event)
 
-    exit_ = await indexing.run_worker([sys.executable, "-c", grow], on_event)
+    # The interpreter the server starts its children with: on Windows a virtual environment's
+    # python.exe is a launcher, whose memory says nothing about the child it starts (LP-qy0.10)
+    exit_ = await indexing.run_worker([worker.interpreter(), "-c", grow], on_event)
     assert exit_.over_memory == 300 * 2**20
     assert events == []
     assert "used more than 0.3 GB of memory" in exit_.stopped("the indexer")

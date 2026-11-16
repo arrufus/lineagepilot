@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import posixpath
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Any
 
 from lineagepilot_core.airflow.manifest import Manifest, Node
@@ -18,6 +18,7 @@ from lineagepilot_core.airflow.values import (
     CallV,
     Const,
     DictV,
+    EnvPath,
     ListV,
     PathV,
     Sym,
@@ -199,6 +200,10 @@ def parse_cosmos(kind: str, call: CallV) -> CosmosSpec:
             spec.render_project = PathV(
                 posixpath.join(as_str(root), as_str(name)), conf="heuristic"
             )  # type: ignore[arg-type]
+            spec.render_project_source = "legacy dbt_root_path/dbt_project_name"
+        elif isinstance(root, EnvPath) and as_str(name) is not None:
+            # dbt_root_path=f"{os.environ['AIRFLOW_HOME']}/dbt" (LP-0o1)
+            spec.render_project = replace(root, text=posixpath.join(root.text, as_str(name)))  # type: ignore[arg-type]
             spec.render_project_source = "legacy dbt_root_path/dbt_project_name"
         spec.select = _legacy_selection(call.kwargs.get("select"), spec)
         spec.exclude = _legacy_selection(call.kwargs.get("exclude"), spec)

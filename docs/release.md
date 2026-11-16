@@ -68,6 +68,28 @@ Nothing is published unless every test passes. The VSIX that is released is the 
 - **A publish job fails** after the GitHub release: re-run that job from the Actions page. It publishes the VSIX already released. Never publish a different file under the same version. If `marketplace` fails at the OIDC token exchange, the Trusted Publishing policy does not match this run: compare it with checklist item 5, correct it on the Marketplace and re-run the job. The tag does not change.
 - **`verify_release.py` fails** on a release the workflow made: it says which check failed. A pre-release is fixed by the command it prints. For anything else, do not hand the release out: fix the cause on `main` and release a new version. Never replace a released file.
 
+### Rolling back to an earlier release
+
+0.2.0 is the release to fall back on while the next phase is built ([implementation_plan_next_phase.md](implementation_plan_next_phase.md)). Four things keep that possible, and none needs doing now:
+
+- **The source.** `v0.2.0` is the merge commit `7e211cb`. The `Release tags` ruleset forbids creating, moving or deleting any `v*` tag and has no bypass, so it cannot move. Work after it reaches `main` only through pull requests, which the `main` ruleset requires; merged with `--merge`, as step 3 of [Cutting a release](#cutting-a-release) says, each one can be reverted as a whole.
+- **The build.** `lineagepilot-0.2.0.vsix` and `SHA256SUMS` are on the GitHub release, with build provenance attestations. `python extension/scripts/verify_release.py v0.2.0` checks them end to end; it passed on 16 November 2026.
+- **The cache.** The server's snapshots are keyed by `SNAPSHOT_FORMAT` and the core's version, and one that does not match is ignored and deleted, so an older server never loads a newer one's cache. The core's version does not change between releases, so the format is the guard: `tests/test_snapshot_format.py` fails when the graph model changes until the format is bumped.
+- **Settings and files.** An editor ignores a setting the installed version does not declare. The plan has later releases read `.lineagepilot/lineage.yml` and still read `airflow.yml` (task 7.4), so a workspace that keeps `airflow.yml` keeps its Airflow annotations on 0.2.0. One that has moved them to `lineage.yml` loses them until it rolls forward.
+
+**One person rolls back** by installing the older version. In VS Code: the extension's gear › **Install Specific Version…** › `0.2.0`, then check that **Auto Update** is off for it in the same menu, or the newer version comes back. Or from the release, after checking it as in [Checking a release](#checking-a-release):
+
+```bash
+gh release download v0.2.0 --repo arrufus/lineagepilot --pattern 'lineagepilot-0.2.0.vsix' --pattern SHA256SUMS
+sha256sum --check SHA256SUMS && code --install-extension lineagepilot-0.2.0.vsix
+```
+
+**Everyone rolls back** with a new version. Neither registry can make an older version the latest again, and a released version is never replaced. So release the old code under the next number:
+
+1. On a branch from `main`, revert each pull request merged since the version to return to, newest first: `git revert -m 1 <merge commit>`. `git log --merges --oneline v0.2.0..main` lists them. Keep the release tooling: `.github/workflows/`, `extension/scripts/` and the `@vscode/vsce` version in `extension/package.json` changed after 0.2.0 for Trusted Publishing, and reverting them breaks publishing. `git diff v0.2.0 main -- .github extension/scripts extension/package.json` shows what they are.
+2. Check that the product is 0.2.0's again: `git diff v0.2.0 -- packages protocol extension/src extension/media fixtures` shows nothing.
+3. Bump the version past the newest release, write its changelog section (what was rolled back, and why), and cut it as in [Cutting a release](#cutting-a-release).
+
 ### Checking a release
 
 One command checks a release, from a clone of this repository, with the GitHub CLI signed in to an account that can read it:

@@ -1,0 +1,204 @@
+{
+  "repo": "hainguyenle89/airflow-dags",
+  "url": "https://github.com/hainguyenle89/airflow-dags",
+  "sha": "8be4907aa8e83e77e33e9922ec831582ab3142f8",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "."
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt/jaffle_shop"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "cosmos-dbt-impala-import-seeds-dag.py",
+      "what": "DbtRunOperationOperator tasks in group drop_seeds_if_exist"
+    },
+    {
+      "file": "cosmos-dbt-import-seeds-dag.py",
+      "what": "DbtRunOperationOperator tasks in group drop_seeds_if_exist"
+    },
+    {
+      "file": "dbt-full-process-jaffle-shop-dag.py",
+      "what": "DbtRunOperationOperator tasks in group drop_seeds_if_exist; DbtDocsS3Operator and DbtDocsOperator tasks"
+    },
+    {
+      "file": "cosmos-dbt-docs-dag.py",
+      "what": "DbtDocsS3Operator and DbtDocsOperator tasks"
+    }
+  ],
+  "links": [
+    {
+      "id": "cosmos-dbt-impala-import-seeds.jaffle_shop_seed.seed",
+      "file": "cosmos-dbt-impala-import-seeds-dag.py",
+      "line": 53,
+      "lines": [],
+      "dag_id": "cosmos-dbt-impala-import-seeds",
+      "unit": "task",
+      "task_id": "jaffle_shop_seed",
+      "group_id": null,
+      "operator": "DbtSeedOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no selector: the three seeds"
+    },
+    {
+      "id": "cosmos-dbt-import-seeds.jaffle_shop_seed.seed",
+      "file": "cosmos-dbt-import-seeds-dag.py",
+      "line": 57,
+      "lines": [],
+      "dag_id": "cosmos-dbt-import-seeds",
+      "unit": "task",
+      "task_id": "jaffle_shop_seed",
+      "group_id": null,
+      "operator": "DbtSeedOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no selector: the three seeds"
+    },
+    {
+      "id": "Dbt_full_process_jaffle_shop_dag.jaffle_shop_seed.seed",
+      "file": "dbt-full-process-jaffle-shop-dag.py",
+      "line": 90,
+      "lines": [],
+      "dag_id": "Dbt_full_process_jaffle_shop_dag",
+      "unit": "task",
+      "task_id": "jaffle_shop_seed",
+      "group_id": null,
+      "operator": "DbtSeedOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no selector: the three seeds"
+    },
+    {
+      "id": "Dbt_full_process_jaffle_shop_dag.jaffle_shop_tg.cosmos_render",
+      "file": "dbt-full-process-jaffle-shop-dag.py",
+      "line": 99,
+      "lines": [],
+      "dag_id": "Dbt_full_process_jaffle_shop_dag",
+      "unit": "cosmos_task_group",
+      "task_id": null,
+      "group_id": "jaffle_shop_tg",
+      "operator": "DbtTaskGroup",
+      "dbt_command": "cosmos_render",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customers",
+        "orders",
+        "stg_customers",
+        "stg_orders",
+        "stg_payments"
+      ],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no select: every model and seed (packages dbt_utils and dbt_expectations add none)"
+    },
+    {
+      "id": "cosmos_dbtDag_jaffle_shop_dag.DbtDag.cosmos_render",
+      "file": "dbtDag-jaffle-shop-dag.py",
+      "line": 21,
+      "lines": [],
+      "dag_id": "cosmos_dbtDag_jaffle_shop_dag",
+      "unit": "cosmos_dag",
+      "task_id": null,
+      "group_id": null,
+      "operator": "DbtDag",
+      "dbt_command": "cosmos_render",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customers",
+        "orders",
+        "stg_customers",
+        "stg_orders",
+        "stg_payments"
+      ],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no select: every model and seed"
+    },
+    {
+      "id": "cosmos_DbtTaskGroup_jaffle_shop_dag.jaffle_shop_tg.cosmos_render",
+      "file": "dbt-taskgroup-jaffe-shop-dag.py",
+      "line": 33,
+      "lines": [],
+      "dag_id": "cosmos_DbtTaskGroup_jaffle_shop_dag",
+      "unit": "cosmos_task_group",
+      "task_id": null,
+      "group_id": "jaffle_shop_tg",
+      "operator": "DbtTaskGroup",
+      "dbt_command": "cosmos_render",
+      "command_index": 0,
+      "project_path": "dbt/jaffle_shop",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "jaffle_shop",
+      "models": [
+        "customers",
+        "orders",
+        "stg_customers",
+        "stg_orders",
+        "stg_payments"
+      ],
+      "other_nodes": [
+        "seed.jaffle_shop.raw_customers",
+        "seed.jaffle_shop.raw_orders",
+        "seed.jaffle_shop.raw_payments"
+      ],
+      "reason": "the repository is the dags folder (/opt/bitnami/airflow/dags), so /opt/bitnami/airflow/dags/dbt/jaffle_shop is dbt/jaffle_shop; no select: every model and seed"
+    }
+  ]
+}

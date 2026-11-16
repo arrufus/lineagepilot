@@ -1,0 +1,69 @@
+{
+  "repo": "stevetran77/weather-api-project",
+  "url": "https://github.com/stevetran77/weather-api-project",
+  "sha": "51715242b5f4f3a69f655b5f0a6eab85adf2980f",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "api_request/airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "api_request/dbt/my_project"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "weather_dbt_orchestrator.transform_data_task.run",
+      "file": "api_request/airflow/dags/dbt_orchestrator.py",
+      "line": 54,
+      "lines": [],
+      "dag_id": "weather_dbt_orchestrator",
+      "unit": "task",
+      "task_id": "transform_data_task",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "api_request/dbt/my_project",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "my_project",
+      "models": [
+        "daily_average",
+        "stg_weather_report",
+        "weather_report"
+      ],
+      "other_nodes": [],
+      "reason": "image entrypoint is dbt; the host path bound to the working dir is AIRFLOW_DBT_PROJECT_HOST_PATH, which api_request/docker-compose.yml sets to ./dbt/my_project; no selector: every model"
+    },
+    {
+      "id": "weather_data_pipeline.transform_data_task.run",
+      "file": "api_request/airflow/dags/weather_orchestrator.py",
+      "line": 85,
+      "lines": [],
+      "dag_id": "weather_data_pipeline",
+      "unit": "task",
+      "task_id": "transform_data_task",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "api_request/dbt/my_project",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "my_project",
+      "models": [
+        "daily_average",
+        "stg_weather_report",
+        "weather_report"
+      ],
+      "other_nodes": [],
+      "reason": "image entrypoint is dbt; the host path bound to the working dir is AIRFLOW_DBT_PROJECT_HOST_PATH, which api_request/docker-compose.yml sets to ./dbt/my_project; no selector: every model"
+    }
+  ]
+}

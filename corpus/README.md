@@ -2,6 +2,8 @@
 
 How well the Airflow scanner does on repositories it had never seen. Spike S3's 0% miss rate was in-sample: the scanner was built while reading those repositories, and its own held-out check had only 9 links. This measures it properly.
 
+There are two corpora. The first, in this folder, measured the Phase 5 scanner. The second, in [fresh/](fresh/), was labelled after the Entry phase's fixes (LP-aax), and is reported in [A second corpus](#a-second-corpus-after-the-entry-fixes-lp-aax).
+
 ## The result
 
 **On 106 links in 17 unseen repositories, the frozen scanner got 17 right: a miss rate of 84.0%.**
@@ -20,7 +22,7 @@ So on repositories like these, the review's Airflow section is mostly a list of 
 
 The 9 silent links broke the plan's definition of done, so they were fixed afterwards (see [After the freeze](#after-the-freeze)). Everything else stands as measured.
 
-**This is the only out-of-sample figure.** The corpus has now been read, so anything tuned against it is in-sample. A tuned scanner needs a fresh corpus (LP-aax) before it can claim a better one.
+**This corpus is now in-sample.** It has been read, and the Entry fixes were aimed at its three largest causes, so a figure on it no longer counts as held out. The second corpus is the out-of-sample one.
 
 | Scanner | Correct | Miss rate | Sample |
 |---|---|---|---|
@@ -28,6 +30,8 @@ The 9 silent links broke the plan's definition of done, so they were fixed after
 | S3, its small hold-out | 5 of 5 resolvable, 9 links | 0% | 4 repositories, chosen by a search for `"dbt run" BashOperator` |
 | **Phase 5, frozen** | **17 of 106** | **84.0%** | **17 repositories, labelled blind** |
 | Phase 5, default DAG folder (`**/dags`) | 15 of 106 | 85.8% | The same, with no setting touched |
+| After the Entry fixes, in-sample | 55 of 106 | 46.2% | This corpus, after it was read: [results/after-entry-fixes.json](results/after-entry-fixes.json) |
+| **0.2.0 and Entry, on the second corpus** | **15 of 35** | **57.1%** | **12 other repositories, labelled blind: [fresh/](fresh/)** |
 
 ## Why it misses
 
@@ -125,6 +129,63 @@ One change, made because the plan's definition of done forbids silence: a task t
 
 [results/after-silence-fixed.json](results/after-silence-fixed.json) has this run. It is not a new out-of-sample result. Nothing else was tuned: the causes above are filed, not fixed, so that a fresh corpus can measure the fixes.
 
+## A second corpus, after the Entry fixes (LP-aax)
+
+The Entry phase ([implementation_plan_next_phase.md](../docs/implementation_plan_next_phase.md)) fixed the three largest causes above: environment variables with no default (LP-0o1), helpers imported from other files (LP-z2x) and container paths (LP-c05). A fresh corpus, in [fresh/](fresh/), was labelled blind while they were built, to measure the scanner again.
+
+**On 35 links in 12 unseen repositories, the frozen scanner got 15 right: a miss rate of 57.1%, with no false positives. The 0.2.0 scanner, from before the fixes, gets the same 15.**
+
+| Scanner, on the second corpus | Correct | Miss rate | Said nothing | Wrong | False positives |
+|---|---|---|---|---|---|
+| 0.2.0, before the Entry fixes ([baseline-0.2.0.json](fresh/results/baseline-0.2.0.json)) | 15 of 35 | 57.1% | 4 | 1 | 0 |
+| **Entry, frozen** ([first.json](fresh/results/first.json)) | **15 of 35** | **57.1%** | **4** | **1** | **0** |
+| Entry, after the silence fixes ([after-silence-fixed.json](fresh/results/after-silence-fixed.json)) | 15 of 35 | 57.1% | 0 | 1 | 0 |
+| Entry, frozen, default DAG folder (`**/dags`) | 8 of 35 | 77.1% | | | |
+| Entry, frozen, without the 3 labels marked `UNSURE:` | 15 of 32 | 53.1% | | | |
+
+All 15 correct links are `heuristic`.
+
+### How to read it
+
+- **This sample does not measure the Entry fixes.** One of its 35 links passes through one of them: `cd $AIRFLOW_HOME/restaurant_analytis && dbt run`, now matched by the path after the variable. 0.2.0 linked it too, through its only-project fallback. No link here needs a container mount, the only-project fallback for a container path, or an imported helper. What the fixes do is shown by their fixtures and, in-sample, by the first corpus: 17 to 55 correct of 106, with no false positives ([results/after-entry-fixes.json](results/after-entry-fixes.json)). That second figure was made after reading the corpus the fixes were aimed at, so it is not a held-out claim.
+- **The fall from 84.0% to 57.1% is the sample, not the scanner.** The same 0.2.0 scanner scores both. In this sample 11 of 35 links run dbt in a container, against 50 of 106 in the first, and 6 are Cosmos, against 36: the Cosmos searches ran dry, and the first corpus's largest cause was one Cosmos repository.
+- **It is small, and two repositories weigh heavily.** 35 links against the first corpus's 106. `harrydevforlife/building-lakehouse` has 11, 10 of them generated from `manifest.json`; `hainguyenle89/airflow-dags` has 6, all correct. Without the first, the scanner gets 14 of 24.
+- **Read together, the two corpora say the scanner misses about half to four-fifths of links on repositories it has not seen, says so at the line nearly every time, and has not yet linked a task that does not run dbt.**
+
+### Why it misses
+
+Every miss, with its cause, is in [fresh/results/adjudication.json](fresh/results/adjudication.json), read after the first run without changing a label.
+
+| Links | Cause | Reported as | Follow-up |
+|---|---|---|---|
+| 10 | One `BashOperator` per model, made in a loop over the nodes of a `manifest.json` read at parse time. The reason names `HOME` in the same command, not the loop | Unknown | LP-244 |
+| 3 | A DockerOperator whose image's entrypoint is dbt, given only `run --target dev` (2, as a string) or a list (1) | **Nothing** (2); unknown (1) | Silence fixed; LP-245 |
+| 2 | A repo-local operator subclass, `DbtDockerOperator` | Unknown | LP-2cd |
+| 2 | The task is under `if os.getenv("DBT_ENABLED", "false").lower() == "true":`. The default decided the test, and the branch was skipped. Both labels `UNSURE:` | **Nothing** | Silence fixed; LP-246 |
+| 1 | `cmds=["bash", "-cx"]`, not recognised as a shell | Unknown | LP-x29 |
+| 1 | The pod's command is in its `pod_template_file`, outside the DAG files | Unknown | None: out of reach |
+| 1 | `dbt test` where the only tests are YAML under `test-paths`, which the stand-in manifest does not read. Label `UNSURE:` | Wrong model set | LP-248 |
+
+### How it was done
+
+As for the first corpus, with these differences:
+
+1. **Labelled blind** by an agent told to read only the first corpus's labels, its selection record and the scorer, never the scanner, the spike, the design or the first corpus's results. It took the same five searches' hits in returned order, aiming at three repositories per operator family and passing over the first corpus's repositories and its exclusions. The two Cosmos searches ran dry, 60 hits giving one new repository, so the mix is 4 `BashOperator`, 3 `KubernetesPodOperator`, 4 `DockerOperator` and 1 Cosmos. It rejected none. Its stopping points are in [fresh/repos.json](fresh/repos.json).
+2. **The scorer came first.** `score.py --corpus` was committed (`9033508`) before any label existed, and the labels were committed unread (`dcc30a0`) before the scanner was frozen.
+3. **Frozen, then read.**
+
+   | | |
+   |---|---|
+   | Commit | `fd686c8` |
+   | Scanner sha256 | `22444f3d5c9bdcec106c7307c0bb7ecbcd8dc5bac9173671eb39dbda8bacf777` |
+   | Run | [fresh/results/first.json](fresh/results/first.json), the first and only run on that hash |
+
+4. **A baseline afterwards.** The 0.2.0 scanner (sha256 `9eaf8e94…`, unchanged from `v0.2.0` to `dcc30a0`) was scored on the same labels once the first run was recorded. It tunes nothing; it shows what the fixes changed here.
+
+**After the freeze**, as with the first corpus, the 4 silent links were fixed, because the definition of done forbids silence, by changes that only add unknowns (`08c6ee6`). The same 15 links are correct. On the first corpus that commit leaves the in-sample result unchanged.
+
+Limits: one labeller; 3 labels `UNSURE:`; every link was labelled resolvable, so this says nothing about how the scanner handles links that are rightly unknown; manifests are stand-ins, as before.
+
 ## Reproduce
 
 The repositories are data. They are fetched at a pinned commit into `work/`, which git ignores, with hooks off and without submodules or LFS, and read only as text and syntax. Nothing from them is imported, executed or installed, and no code from them is in this folder. The labels hold names, paths and short quotes. Review them before this repository goes public, along with LP-0tf.
@@ -134,6 +195,8 @@ export UV_PYTHON_PREFERENCE=only-managed
 uv run --project packages/core python corpus/score.py fetch        # the pinned commits
 uv run --project packages/core python corpus/score.py hash         # compare with the table above
 uv run --project packages/core python corpus/score.py run my-run   # writes results/my-run.json
+uv run --project packages/core python corpus/score.py --corpus fresh fetch       # the second corpus,
+uv run --project packages/core python corpus/score.py --corpus fresh run my-run  # in corpus/fresh/
 ```
 
-To reproduce the frozen run, check out `5a50fc8` first. It needs third-party repositories, so it does not run in CI.
+To reproduce a frozen run, check out its commit first: `5a50fc8` for the first corpus (in the private archive's history; the public history was rewritten when the source moved), `fd686c8` for the second. It needs third-party repositories, so it does not run in CI.

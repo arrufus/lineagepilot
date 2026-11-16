@@ -1,0 +1,95 @@
+{
+  "repo": "Rafavermar/BigQuery-K8s-dbt-airflow",
+  "url": "https://github.com/Rafavermar/BigQuery-K8s-dbt-airflow",
+  "sha": "b5a3710945e096eb822480d33b0058c2cdb24993",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt_bigquery_main"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "dags/dbt_bigquery_test2.py",
+      "what": "dbt debug task dbt_debug_task"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_full_workflow.dbt_run.run",
+      "file": "dags/dbt_bq_final.py",
+      "line": 23,
+      "lines": [],
+      "dag_id": "dbt_full_workflow",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_main",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_bigquery_main",
+      "models": [
+        "customers",
+        "my_first_dbt_model",
+        "my_second_dbt_model"
+      ],
+      "other_nodes": [],
+      "reason": "image jrvm/dbt_bigquery:dbt-image is built by the CI workflow from the root Dockerfile, which copies dbt_bigquery_main to /dbt_bigquery_main; no selector: every model"
+    },
+    {
+      "id": "dbt_full_workflow.dbt_seed.seed",
+      "file": "dags/dbt_bq_final.py",
+      "line": 35,
+      "lines": [],
+      "dag_id": "dbt_full_workflow",
+      "unit": "task",
+      "task_id": "dbt_seed",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "seed",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_main",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_bigquery_main",
+      "models": [],
+      "other_nodes": [
+        "seed.dbt_bigquery_main.stadium_cleaned"
+      ],
+      "reason": "image jrvm/dbt_bigquery:dbt-image is built by the CI workflow from the root Dockerfile, which copies dbt_bigquery_main to /dbt_bigquery_main; no selector: the one seed in seeds/"
+    },
+    {
+      "id": "dbt_full_workflow.dbt_test_task.test",
+      "file": "dags/dbt_bq_final.py",
+      "line": 47,
+      "lines": [],
+      "dag_id": "dbt_full_workflow",
+      "unit": "task",
+      "task_id": "dbt_test_task",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": "dbt_bigquery_main",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "dbt_bigquery_main",
+      "models": [
+        "customers"
+      ],
+      "other_nodes": [],
+      "reason": "image jrvm/dbt_bigquery:dbt-image is built by the CI workflow from the root Dockerfile, which copies dbt_bigquery_main to /dbt_bigquery_main; --exclude the two example models also drops their tests (eager indirect selection), leaving the tests on customers"
+    }
+  ]
+}

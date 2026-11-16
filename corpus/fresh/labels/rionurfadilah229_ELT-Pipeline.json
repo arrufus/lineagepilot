@@ -1,0 +1,46 @@
+{
+  "repo": "rionurfadilah229/ELT-Pipeline",
+  "url": "https://github.com/rionurfadilah229/ELT-Pipeline",
+  "sha": "b956beb25545130e104f2e357a622063c1a2247e",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "airflow/dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "postgres_transformations"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "dag_dbt.transformation_using_dbt.run",
+      "file": "airflow/dags/dag_dbt.py",
+      "line": 19,
+      "lines": [],
+      "dag_id": "dag_dbt",
+      "unit": "task",
+      "task_id": "transformation_using_dbt",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "postgres_transformations",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "postgres_transformations",
+      "models": [
+        "customers",
+        "denormalized_table",
+        "products",
+        "spesific_customer",
+        "transaction_items"
+      ],
+      "other_nodes": [],
+      "reason": "host path .../project_de_2_elt/postgres_transformations bound to /dbt, --project-dir /dbt; no selector: every model"
+    }
+  ]
+}

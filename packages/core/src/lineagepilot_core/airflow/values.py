@@ -133,6 +133,38 @@ class Unknown(Val):
     col: int = 0
 
 
+@dataclass
+class EnvPath(Unknown):
+    """A string built on environment variables that have no default here (LP-0o1).
+
+    ``text`` is the string with each such variable written as ``${NAME}``, as a shell writes it:
+    ``${AIRFLOW_HOME}/dags/dbt/shop``. It is an :class:`Unknown`, so whatever does not know about
+    it treats it as unknown, and nothing can take it for a literal. Two places read ``text``: a dbt
+    project path, matched by the literal path after the last variable (``heuristic``), and a shell
+    command, whose parser treats ``${NAME}`` as unknown in a selector.
+
+    An operation that is not taught to keep it gets a plain :class:`Unknown` (see :func:`plain`),
+    so ``os.environ["X"].lower()`` can never pass for the variable itself.
+    """
+
+    text: str = ""
+    names: tuple[str, ...] = ()
+
+
+def plain(v: Val) -> Val:
+    """``v``, with an :class:`EnvPath` turned into a plain :class:`Unknown`."""
+    if isinstance(v, EnvPath):
+        return Unknown(v.reason, line=v.line, col=v.col)
+    return v
+
+
+def text_of(v: Val | None) -> str | None:
+    """A string or path as text, an :class:`EnvPath` included; None for anything else."""
+    if isinstance(v, EnvPath):
+        return v.text
+    return as_str(v)
+
+
 def is_unknown(v: Val | None) -> bool:
     return v is None or isinstance(v, Unknown)
 

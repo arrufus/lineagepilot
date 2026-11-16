@@ -6,7 +6,9 @@ path is resolved in this order:
 
 1. As written, when it is a dbt project inside the workspace (``inferred``).
 2. Through the annotation file's explicit path map (``inferred``, a person declared it).
-3. By its trailing path components against the projects in the workspace (``heuristic``).
+3. By its trailing path components against the projects in the workspace (``heuristic``). A path
+   that starts from an environment variable with no value here, ``${AIRFLOW_HOME}/dags/dbt/x``, is
+   matched by what follows the variable alone.
 
 Nothing outside the workspace is ever read, or even looked at: a path written in a DAG file is
 checked as a string before any filesystem call (see ``safe_io.resolve_inside``).
@@ -20,6 +22,7 @@ from dataclasses import dataclass, field
 
 from lineagepilot_core.airflow.manifest import Manifest, ManifestError, load_manifest
 from lineagepilot_core.airflow.safe_io import (
+    env_tail,
     is_absolute,
     regular_file_inside,
     resolve_inside,
@@ -136,9 +139,10 @@ class ProjectIndex:
     def match(self, raw: str, base_dir: str | None = None) -> ProjectMatch:
         """Map a project path written in a DAG to a dbt project in the workspace."""
         candidate = raw
-        if not is_absolute(raw) and base_dir:
+        if not is_absolute(raw) and base_dir and env_tail(raw) is None:
             candidate = posixpath.normpath(posixpath.join(base_dir, raw))
-        if is_absolute(candidate):
+        env = env_tail(candidate)
+        if env is None and is_absolute(candidate):
             found = self._as_project(candidate)
             if found:
                 return ProjectMatch(found, "inferred")
@@ -148,9 +152,16 @@ class ProjectIndex:
             if found:
                 note = f"project path {raw!r} mapped by the path map entry {mapped[1]!r}"
                 return ProjectMatch(found, "inferred", note=note)
+        if env is not None:
+            # ${AIRFLOW_HOME}/dags/dbt/x: what the variable holds is not known here, so only the
+            # path after it counts (LP-0o1)
+            return self._by_tail(raw, _parts(env[1]), f"after the environment variable {env[0]}")
         # Not a project on this machine: container paths such as /usr/local/airflow/dbt/x,
         # or paths relative to an unknown working directory. Match by trailing components.
-        want = _parts(candidate)
+        return self._by_tail(raw, _parts(candidate), "does not exist here")
+
+    def _by_tail(self, raw: str, want: list[str], why: str) -> ProjectMatch:
+        """The one project whose path ends in the most of ``want``'s last components."""
         best: list[tuple[int, str]] = []
         for project in self.projects:
             have = _parts(self.relative(project))
@@ -171,7 +182,7 @@ class ProjectIndex:
                 None, "heuristic", reason=f"project path {raw!r} is ambiguous: {names}"
             )
         note = (
-            f"project path {raw!r} does not exist here; mapped to {self.relative(winners[0])} "
+            f"project path {raw!r} {why}; mapped to {self.relative(winners[0])} "
             f"by its last {top} path component(s)"
         )
         return ProjectMatch(winners[0], "heuristic", note=note)

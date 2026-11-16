@@ -1,0 +1,72 @@
+{
+  "repo": "grinfeld/py_spark_playground",
+  "url": "https://github.com/grinfeld/py_spark_playground",
+  "sha": "3f9ea0f1f7ae1b99ff9a734a0c6c1ce4e392f8a9",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "dags/dbt_k8s_dag.py",
+      "what": "dbt deps and dbt docs generate run by the image entrypoint before dbt run"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt.ssh_dbt.run",
+      "file": "dags/dbt_dag.py",
+      "line": 32,
+      "lines": [],
+      "dag_id": "dbt",
+      "unit": "task",
+      "task_id": "ssh_dbt",
+      "group_id": null,
+      "operator": "SSHOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "spark_iceberg_app",
+      "models": [
+        "company_employee_count",
+        "stg_customers"
+      ],
+      "other_nodes": [],
+      "reason": "SSH to the compose dbt container (image py-spark-dbt from Dockerfile.dbt, which copies ./dbt to /dbt); --project-dir /dbt; no selector: every model"
+    },
+    {
+      "id": "dbt_k8s.dbt_airflow_k8s_pod.run",
+      "file": "dags/dbt_k8s_dag.py",
+      "line": 44,
+      "lines": [],
+      "dag_id": "dbt_k8s",
+      "unit": "task",
+      "task_id": "dbt_airflow_k8s_pod",
+      "group_id": null,
+      "operator": "KubernetesPodOperator",
+      "dbt_command": "run",
+      "command_index": 3,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "spark_iceberg_app",
+      "models": [
+        "company_employee_count",
+        "stg_customers"
+      ],
+      "other_nodes": [],
+      "reason": "no command on the operator: image py-spark-dbt (Dockerfile.dbt) runs scripts/start_dbt.sh; DBT_STANDALONE is false, so it ends with dbt run on /dbt (./dbt copied in), the fourth dbt command in that script; no selector: every model"
+    }
+  ]
+}

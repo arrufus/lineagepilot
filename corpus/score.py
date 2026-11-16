@@ -8,6 +8,10 @@ Run with lineagepilot_core importable:
 
     UV_PYTHON_PREFERENCE=only-managed uv run --project packages/core python corpus/score.py run first
 
+``--corpus fresh`` before the command uses ``corpus/fresh/`` instead, with its own ``labels/``,
+``work/`` and ``results/`` (LP-aax: the corpus labelled after the tuning pass). Without it, the
+first corpus is used, as recorded in corpus/README.md.
+
 The repositories are data. They are fetched at a pinned commit with hooks off, without submodules
 or LFS, and read only as text and syntax. Nothing in them is imported, executed or installed.
 
@@ -269,15 +273,28 @@ def run(name: str) -> int:
     return 0
 
 
+def use_corpus(name: str) -> None:
+    """Point the labels, checkouts and results at ``corpus/<name>/``."""
+    global LABELS, WORK, RESULTS
+    if not name.isidentifier():
+        raise SystemExit(f"--corpus takes a folder name under corpus/, not {name!r}")
+    base = HERE / name
+    LABELS, WORK, RESULTS = base / "labels", base / "work", base / "results"
+
+
 def main() -> int:
-    command = sys.argv[1] if len(sys.argv) > 1 else ""
+    args = sys.argv[1:]
+    if args[:1] == ["--corpus"] and len(args) >= 2:
+        use_corpus(args[1])
+        args = args[2:]
+    command = args[0] if args else ""
     if command == "fetch":
         return fetch()
     if command == "hash":
         sys.stdout.write(scanner_hash() + "\n")
         return 0
-    if command == "run" and len(sys.argv) == 3:
-        return run(sys.argv[2])
+    if command == "run" and len(args) == 2:
+        return run(args[1])
     sys.stderr.write(__doc__ or "")
     return 2
 

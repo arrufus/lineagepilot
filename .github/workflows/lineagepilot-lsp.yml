@@ -71,6 +71,24 @@ jobs:
         env:
           PYTEST_ARGS: ${{ inputs.pytest-args }}
 
+  # On Windows the server's memory watch is what holds a child to its limit (LP-qy0.10). The
+  # whole unit suite still hangs there (LP-7t7), so this runs the limits' tests alone. GitHub
+  # has failed to stop a hung Windows step at its time limit, so `timeout` ends it first.
+  windows-memory-watch:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: astral-sh/setup-uv@1c37ad07a6a961277cf70c0d37d6f313000f5884 # v10.3.0
+        with:
+          version: ${{ env.UV_VERSION }}
+      - run: uv sync --locked --python 3.13
+      - run: >-
+          timeout --kill-after=15 300
+          uv run --locked pytest tests/test_limits.py -v --no-cov -p no:cacheprovider
+          -o faulthandler_timeout=120
+        timeout-minutes: 7
+
   lint-and-audit:
     runs-on: ubuntu-latest
     steps:

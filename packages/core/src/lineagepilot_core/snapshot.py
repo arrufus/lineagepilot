@@ -1,9 +1,15 @@
 """Graph snapshots: fast warm starts and stored baselines (design section 4.3, task 1.8).
 
-A snapshot is one JSON file holding the whole graph: nodes, columns, edges with their
-evidence, unresolved records and column-lineage states. Spike S2 found JSON loads faster
-than SQLite. Artifact versions and evidence records are stored once, in tables, and
-referenced by index, because thousands of edges share them.
+A snapshot is one file holding the whole graph: nodes, columns, edges with their evidence,
+unresolved records and column-lineage states. Spike S2 found JSON loads faster than SQLite.
+Artifact versions and evidence records are stored once, in tables, and referenced by index,
+because thousands of edges share them.
+
+The file is JSON lines (format 3): a header object, then each section's records in batches of
+up to ``BATCH``, one JSON array per line. Decoding the whole document at once, as format 2 did,
+held a 315 MB tree at 5,000 models before the graph existed, and Python kept that memory: the
+loaded graph cost 372 MB of the server's memory instead of 248 MB (LP-dtt). Batches keep the
+load as fast.
 
 Snapshots are keyed by the sha256 of the manifest and catalog, the snapshot format and
 the core version, so a changed artifact or an upgraded LineagePilot never reads a stale
@@ -20,10 +26,10 @@ import logging
 import os
 import sys
 import tempfile
-from collections.abc import Iterator
+from collections.abc import Callable, Iterable, Iterator
 from dataclasses import MISSING, fields
 from pathlib import Path
-from typing import Any
+from typing import Any, BinaryIO
 
 from lineagepilot_core import __version__
 from lineagepilot_core.graph.model import (
@@ -45,7 +51,12 @@ from lineagepilot_core.parsers import _json
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_FORMAT = 2
+SNAPSHOT_FORMAT = 3
+# Records per line: enough that decoding stays as fast as one document, few enough that a
+# batch decoded at a time costs little memory
+BATCH = 1000
+# The sections written as batches, in file order: the reader takes them in this order
+SECTIONS = ("artifacts", "evidence", "nodes", "columns", "edges", "unresolved")
 
 _REQUIRED = object()
 
@@ -189,14 +200,20 @@ def from_dict(data: Any, consume: bool = False) -> MetadataGraph:
     was_enabled = gc.isenabled()
     gc.disable()
     try:
-        return _from_dict(data, consume)
+        return _rebuild(data, lambda key: _records(data, key, consume))
+    finally:
+        if was_enabled:
+            gc.enable()
+
+
+def _rebuild(head: Any, records: Callable[[str], Iterable[Any]]) -> MetadataGraph:
+    """``_from_dict``, with what goes wrong in a malformed snapshot as a SnapshotError."""
+    try:
+        return _from_dict(head, records)
     except SnapshotError:
         raise
     except (KeyError, IndexError, TypeError, ValueError, AttributeError) as e:
         raise SnapshotError(f"malformed snapshot: {type(e).__name__}: {e}") from None
-    finally:
-        if was_enabled:
-            gc.enable()
 
 
 def _records(data: dict[str, Any], key: str, consume: bool) -> Iterator[Any]:
@@ -210,7 +227,7 @@ def _records(data: dict[str, Any], key: str, consume: bool) -> Iterator[Any]:
             records[index] = None
 
 
-def _from_dict(data: Any, consume: bool) -> MetadataGraph:
+def _check(data: Any) -> None:
     if not isinstance(data, dict):
         raise SnapshotError("not a snapshot")
     if data.get("format") != SNAPSHOT_FORMAT or data.get("core") != __version__:
@@ -218,7 +235,13 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
             f"snapshot format {data.get('format')} from core {data.get('core')} "
             f"does not match format {SNAPSHOT_FORMAT}, core {__version__}"
         )
-    artifacts = [ArtifactVersion(*row) for row in data["artifacts"]]
+
+
+def _from_dict(data: Any, records: Callable[[str], Iterable[Any]]) -> MetadataGraph:
+    """Rebuild from the scalars and tables in ``data`` and each section's records, taken in
+    the order of SECTIONS."""
+    _check(data)
+    artifacts = [ArtifactVersion(*row) for row in records("artifacts")]
     evidence = [
         Evidence(
             Origin(origin),
@@ -226,7 +249,7 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
             artifacts[artifact] if artifact is not None else None,
             Location(*location) if location is not None else None,
         )
-        for origin, confidence, artifact, location in data["evidence"]
+        for origin, confidence, artifact, location in records("evidence")
     ]
 
     graph = MetadataGraph(adapter_type=data["adapter_type"])
@@ -235,12 +258,12 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
     if data["manifest"] is not None:
         graph.manifest = artifacts[data["manifest"]]
     node_kinds = {kind.value: kind for kind in NodeKind}
-    for record in _records(data, "nodes", consume):
+    for record in records("nodes"):
         graph.add_node(Node(**{**record, "kind": node_kinds[record["kind"]]}))
-    for record in _records(data, "columns", consume):
+    for record in records("columns"):
         graph.add_column(Column(**record))
     edge_kinds = {kind.value: kind for kind in EdgeKind}
-    for kind, upstream, downstream, transformation, refs in _records(data, "edges", consume):
+    for kind, upstream, downstream, transformation, refs in records("edges"):
         if not refs:
             raise SnapshotError(f"edge {upstream} -> {downstream} has no evidence")
         edge = graph.add_edge(
@@ -248,7 +271,7 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
         )
         for ref in refs[1:]:
             edge.evidence.append(evidence[ref])
-    for subject, reference, reason, ref in _records(data, "unresolved", consume):
+    for subject, reference, reason, ref in records("unresolved"):
         graph.add_unresolved(Unresolved(subject, reference, reason, evidence[ref]))
     for node_id, (state, reason) in data["column_lineage"].items():
         graph.node(node_id)  # must exist
@@ -264,18 +287,55 @@ def _from_dict(data: Any, consume: bool) -> MetadataGraph:
 
 
 def save_snapshot(graph: MetadataGraph, path: str | Path) -> None:
-    """Write atomically: a reader never sees half a snapshot."""
+    """Write atomically: a reader never sees half a snapshot. JSON lines: the header, with
+    each section's count, then the sections' records in batches (see the module's notes)."""
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    payload = _json.dumps(to_dict(graph))
+    data = to_dict(graph)
+    sections = {key: data.pop(key) for key in SECTIONS}
+    data["counts"] = {key: len(records) for key, records in sections.items()}
     fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=".snapshot-", suffix=".tmp")
     try:
         with os.fdopen(fd, "wb") as f:
-            f.write(payload)
+            f.write(_json.dumps(data) + b"\n")  # compact JSON has no line breaks
+            for key in SECTIONS:
+                records = sections[key]
+                for start in range(0, len(records), BATCH):
+                    f.write(_json.dumps(records[start : start + BATCH]) + b"\n")
         os.replace(tmp, path)
     except BaseException:
         Path(tmp).unlink(missing_ok=True)
         raise
+
+
+class _Batches:
+    """A snapshot file's sections, read a batch at a time and released as they are used."""
+
+    def __init__(self, file: BinaryIO, counts: Any) -> None:
+        if not isinstance(counts, dict) or set(counts) != set(SECTIONS):
+            raise SnapshotError("malformed snapshot: the header's counts do not name every section")
+        self.file = file
+        self.counts = counts
+        self.next = 0
+
+    def records(self, key: str) -> Iterator[Any]:
+        if SECTIONS[self.next] != key:
+            raise SnapshotError(f"malformed snapshot: '{key}' read out of order")
+        self.next += 1
+        left = self.counts[key]
+        if not isinstance(left, int) or left < 0:
+            raise SnapshotError(f"malformed snapshot: the count of '{key}' is not a count")
+        while left:
+            line = self.file.readline()
+            if not line:
+                raise SnapshotError(f"malformed snapshot: it ends inside '{key}'")
+            batch = _json.loads(line)
+            if not isinstance(batch, list) or not batch or len(batch) > left:
+                raise SnapshotError(f"malformed snapshot: a batch of '{key}' is not one")
+            left -= len(batch)
+            for index in range(len(batch)):
+                yield batch[index]
+                batch[index] = None
 
 
 def load_snapshot(path: str | Path) -> MetadataGraph:
@@ -283,13 +343,21 @@ def load_snapshot(path: str | Path) -> MetadataGraph:
     was_enabled = gc.isenabled()
     gc.disable()  # decoding allocates the same objects; see from_dict
     try:
-        data = _json.load_file(path)
+        with open(path, "rb") as f:
+            head = _json.loads(f.readline())
+            _check(head)
+            batches = _Batches(f, head.pop("counts", None))
+            graph = _rebuild(head, batches.records)
+            if batches.next != len(SECTIONS) or f.readline():
+                raise SnapshotError("malformed snapshot: it does not end after its sections")
+            return graph
     except (OSError, ValueError) as e:
+        if isinstance(e, SnapshotError):
+            raise
         raise SnapshotError(f"cannot read snapshot {path}: {e}") from None
     finally:
         if was_enabled:
             gc.enable()
-    return from_dict(data, consume=True)
 
 
 class SnapshotCache:
