@@ -23,7 +23,7 @@ from lineagepilot_core.export import (
     pii_inventory_markdown,
     safe_filename,
 )
-from lineagepilot_core.graph.model import NodeKind
+from lineagepilot_core.graph.model import NodeKind, public_kind
 from pygls.exceptions import JsonRpcServerError
 from pygls.uris import to_fs_path
 
@@ -115,7 +115,7 @@ def impact(ctx: GraphContext, params: protocol.ImpactParams, column_stage: str) 
         nodes.append(
             {
                 "id": hit.id,
-                "kind": hit.kind.value,
+                "kind": public_kind(hit.kind, hit.tool),
                 "name": clip(node.name),
                 "depth": hit.depth,
                 "granularity": hit.granularity.value,

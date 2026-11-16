@@ -269,7 +269,7 @@ def test_a_manifest_path_cannot_leave_the_project(tmp_path, workspace):
 def test_a_dag_file_may_be_outside_the_project_but_not_the_workspace(tmp_path, workspace):
     (tmp_path / "dags").mkdir()
     (tmp_path / "dags" / "d.py").write_text("# a DAG\n")
-    task = Node("airflow:d.t", NodeKind.AIRFLOW_TASK, "t")
+    task = Node("airflow:d.t", NodeKind.TASK, "t", tool="airflow")
     inside = Locator(read_project(workspace), tmp_path)
     assert inside.file(task, "../dags/d.py") == tmp_path / "dags" / "d.py"
     assert inside.file(task, "../../etc/passwd") is None

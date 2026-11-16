@@ -39,9 +39,10 @@ def graph() -> MetadataGraph:
         ("c", NodeKind.MODEL),
         ("d", NodeKind.MODEL),
         ("e", NodeKind.EXPOSURE),
-        ("airflow:dag.t", NodeKind.AIRFLOW_TASK),
+        ("airflow:dag.t", NodeKind.TASK),
     ):
-        g.add_node(Node(node_id, kind, node_id))
+        tool = "airflow" if kind is NodeKind.TASK else None
+        g.add_node(Node(node_id, kind, node_id, tool=tool))
     for up, down in (("a", "b"), ("b", "c"), ("a", "d"), ("b", "e")):
         g.add_edge(EdgeKind.DEPENDS_ON, up, down, DECLARED)
     g.add_edge(EdgeKind.ORCHESTRATES, "airflow:dag.t", "c", GUESSED)

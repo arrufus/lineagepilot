@@ -48,8 +48,31 @@ PAYLOADS = [
 ]
 
 text = st.one_of(st.sampled_from(PAYLOADS), st.text(max_size=30))
-KINDS = ["model", "seed", "source", "exposure", "column", "airflow_task", "relation"]
-EDGE_KINDS = ["depends_on", "derives", "materialises", "orchestrates", "has_column", "weird"]
+# The graph's kinds, with D-9's pipeline, task and consumer, and one no exporter knows
+KINDS = [
+    "model",
+    "seed",
+    "source",
+    "exposure",
+    "column",
+    "relation",
+    "pipeline",
+    "task",
+    "consumer",
+    "weird",
+]
+EDGE_KINDS = [
+    "depends_on",
+    "derives",
+    "materialises",
+    "orchestrates",
+    "task_depends_on",
+    "loads",
+    "consumes",
+    "part_of",
+    "has_column",
+    "weird",
+]
 
 
 @st.composite
@@ -64,6 +87,7 @@ def views(draw) -> GraphView:
             domain=draw(st.none() | text),
             owner=draw(st.none() | text),
             file_path=draw(st.none() | text),
+            tool=draw(st.none() | st.sampled_from(["airflow", "dbt_semantic"]) | text),
         )
         for node_id in ids
     ]
@@ -89,6 +113,7 @@ def test_json_round_trips(view):
     data = json.loads(to_json(view))
     assert [n["id"] for n in data["nodes"]] == [n.id for n in view.nodes]
     assert [n["name"] for n in data["nodes"]] == [n.name for n in view.nodes]
+    assert [(n["kind"], n["tool"]) for n in data["nodes"]] == [(n.kind, n.tool) for n in view.nodes]
     assert [(e["upstream"], e["downstream"]) for e in data["edges"]] == [
         (e.upstream, e.downstream) for e in view.edges
     ]
@@ -104,6 +129,10 @@ def test_graphml_parses_and_keeps_every_value(view):
     for element, node in zip(nodes, view.nodes, strict=True):
         name = element.find("g:data[@key='n_name']", ns).text or ""
         assert name == xml_text(node.name)
+        tool = element.find("g:data[@key='n_tool']", ns)
+        assert (tool.text or "" if tool is not None else None) == (
+            xml_text(node.tool) if node.tool is not None else None
+        )
     edges = root.findall("g:graph/g:edge", ns)
     assert [(e.get("source"), e.get("target")) for e in edges] == [
         (xml_text(e.upstream), xml_text(e.downstream)) for e in view.edges
@@ -216,14 +245,14 @@ def test_cypher_statements_follow_the_template_and_literals_decode(view):
     expected_values = {n.id for n in view.nodes} | {
         v
         for n in view.nodes
-        for v in (n.name, n.layer, n.domain, n.owner, n.file_path)
+        for v in (n.name, n.tool, n.layer, n.domain, n.owner, n.file_path)
         if v is not None
     }
     expected_values |= {e.confidence for e in view.edges} | {
         e.transformation for e in view.edges if e.transformation is not None
     }
     assert set(literals) <= expected_values
-    known_kinds = {"model", "seed", "source", "exposure", "column", "airflow_task", "relation"}
+    known_kinds = set(KINDS) - {"weird"}
     assert len([line for line in lines if line.startswith("MERGE (n:")]) == len(
         [n for n in view.nodes if n.kind in known_kinds]
     )

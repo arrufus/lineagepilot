@@ -19,7 +19,8 @@ from xml.etree import ElementTree as ET
 from lineagepilot_core.export.escape import cypher_string, dot_string, mermaid_label, xml_text
 from lineagepilot_core.graph.model import EdgeKind, MetadataGraph, NodeKind
 
-FORMAT_VERSION = 1
+# 2: Airflow's DAGs and tasks are pipeline and task nodes with a tool (D-9)
+FORMAT_VERSION = 2
 
 
 class ExportFormat(str, Enum):
@@ -52,6 +53,7 @@ class ExportNode:
     domain: str | None = None
     owner: str | None = None
     file_path: str | None = None
+    tool: str | None = None  # for a pipeline, task or consumer (D-9)
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,7 +72,16 @@ class GraphView:
 
 
 # Exported edge kinds; materialises is left out unless relations are included
-_NODE_EDGES = (EdgeKind.DEPENDS_ON, EdgeKind.ORCHESTRATES, EdgeKind.TASK_DEPENDS_ON)
+_NODE_EDGES = (
+    EdgeKind.DEPENDS_ON,
+    EdgeKind.ORCHESTRATES,
+    EdgeKind.TASK_DEPENDS_ON,
+    EdgeKind.LOADS,
+    EdgeKind.CONSUMES,
+    EdgeKind.PART_OF,
+)
+# Between columns
+_COLUMN_EDGES = (EdgeKind.DERIVES, EdgeKind.CONSUMES, EdgeKind.PART_OF)
 _HAS_COLUMN = "has_column"
 
 
@@ -106,6 +117,7 @@ def graph_view(
                 domain=node.domain,
                 owner=node.owner,
                 file_path=node.file_path,
+                tool=node.tool,
             )
         )
     kinds = _NODE_EDGES + ((EdgeKind.MATERIALISES,) if relations else ())
@@ -121,7 +133,7 @@ def graph_view(
                 view.nodes.append(ExportNode(id=column.id, kind="column", name=column.name))
                 view.edges.append(ExportEdge(_HAS_COLUMN, node_id, column.id, "declared"))
         for edge in graph.edges:
-            if edge.kind is EdgeKind.DERIVES and {edge.upstream, edge.downstream} <= column_ids:
+            if edge.kind in _COLUMN_EDGES and {edge.upstream, edge.downstream} <= column_ids:
                 view.edges.append(_edge(edge.kind.value, edge.upstream, edge.downstream, edge))
 
     view.edges.sort(key=lambda e: (e.kind, e.upstream, e.downstream))
@@ -175,8 +187,9 @@ _MERMAID_SHAPES = {
     "source": ("[(", ")]"),
     "seed": ("[(", ")]"),
     "exposure": ("{{", "}}"),
-    "airflow_task": ("[[", "]]"),
-    "airflow_dag": ("[[", "]]"),
+    "consumer": ("{{", "}}"),
+    "task": ("[[", "]]"),
+    "pipeline": ("[[", "]]"),
     "column": (">", "]"),
 }
 _MERMAID_ARROWS = {"derives": "-.->", "has_column": "---", "materialises": "-.->"}
@@ -202,8 +215,9 @@ _DOT_SHAPES = {
     "source": "cylinder",
     "seed": "cylinder",
     "exposure": "hexagon",
-    "airflow_task": "component",
-    "airflow_dag": "component",
+    "consumer": "hexagon",
+    "task": "component",
+    "pipeline": "component",
     "column": "plaintext",
     "relation": "cylinder",
 }
@@ -234,7 +248,7 @@ def to_dot(view: GraphView) -> str:
 
 
 _GRAPHML_NS = "http://graphml.graphdrawing.org/xmlns"
-_NODE_KEYS = ("name", "kind", "layer", "domain", "owner", "file_path")
+_NODE_KEYS = ("name", "kind", "tool", "layer", "domain", "owner", "file_path")
 _EDGE_KEYS = ("kind", "confidence", "transformation")
 
 
@@ -290,8 +304,9 @@ _CYPHER_LABELS = {
     "source": "Source",
     "exposure": "Exposure",
     "relation": "Relation",
-    "airflow_dag": "AirflowDag",
-    "airflow_task": "AirflowTask",
+    "pipeline": "Pipeline",
+    "task": "Task",
+    "consumer": "Consumer",
     "column": "Column",
 }
 _CYPHER_RELS = {
@@ -300,9 +315,12 @@ _CYPHER_RELS = {
     "materialises": "MATERIALISES",
     "orchestrates": "ORCHESTRATES",
     "task_depends_on": "TRIGGERS",
+    "loads": "LOADS",
+    "consumes": "CONSUMES",
+    "part_of": "PART_OF",
     "has_column": "HAS_COLUMN",
 }
-_CYPHER_NODE_PROPS = ("name", "layer", "domain", "owner", "file_path")
+_CYPHER_NODE_PROPS = ("name", "tool", "layer", "domain", "owner", "file_path")
 
 
 def to_cypher(view: GraphView) -> str:

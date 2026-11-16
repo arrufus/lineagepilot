@@ -27,7 +27,7 @@ from lineagepilot_core.analysis.impact import Impact, impact
 from lineagepilot_core.analysis.review import baseline_inputs, review_changes
 from lineagepilot_core.gitdiff import GitError, git_changes
 from lineagepilot_core.graph.ids import column_id
-from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph
+from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph, public_kind
 from lineagepilot_core.indexer import IndexResult, IndexStatus, index_project
 from lineagepilot_core.project import DbtProject, read_project
 from lineagepilot_core.snapshot import SnapshotCache
@@ -348,7 +348,7 @@ def _impact_json(found: Impact) -> dict[str, Any]:
         "nodes": [
             {
                 "id": n.id,
-                "kind": n.kind.value,
+                "kind": public_kind(n.kind, n.tool),
                 "depth": n.depth,
                 "granularity": n.granularity.value,
                 "confidence": n.confidence.value,
@@ -378,7 +378,7 @@ def _impact_text(graph: MetadataGraph, found: Impact) -> str:
             if node.columns:
                 columns = "  [" + ", ".join(c.partition("#")[2] for c in node.columns) + "]"
             lines.append(
-                f"  {node.depth:>3}  {node.kind.value:<12} {node.id:<{width}}  "
+                f"  {node.depth:>3}  {public_kind(node.kind, node.tool):<12} {node.id:<{width}}  "
                 f"{node.confidence.value:<9} {node.granularity.value}{columns}{detail}"
             )
     if found.truncated:

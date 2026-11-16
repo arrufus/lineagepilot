@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from lineagepilot_core.airflow.link import AIRFLOW_KINDS
+from lineagepilot_core.airflow.link import is_airflow
 from lineagepilot_core.airflow.safe_io import regular_file_inside
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import Node, NodeKind
@@ -185,7 +185,7 @@ class Locator:
             root = root / self.project.packages_path / node.package
         # A DAG file may be outside the project: its path is relative, with .. in it
         path = Path(os.path.normpath(root / relative))
-        written = self.workspace if node.kind in AIRFLOW_KINDS else self.project.root
+        written = self.workspace if is_airflow(node) else self.project.root
         if not _written_inside(path, written):
             return None
         # The path keeps the editor's spelling (macOS: /var, not /private/var); its links are
@@ -215,7 +215,7 @@ class Locator:
         path = self.file(node, node.file_path)
         if path is None:
             return None
-        if node.kind in AIRFLOW_KINDS:
+        if is_airflow(node):
             line, column = node.properties.get("line", 0), node.properties.get("col", 0)
             return path, Span(line, column, line, column)
         if path.suffix in (".yml", ".yaml"):

@@ -138,10 +138,11 @@ def test_every_format_is_deterministic(pilot, fmt):
 
 def test_json_export_shape(pilot):
     data = json.loads(export_graph(graph_view(pilot), ExportFormat.JSON))
-    assert (data["format"], data["version"]) == ("lineagepilot-graph", 1)
+    assert (data["format"], data["version"]) == ("lineagepilot-graph", 2)
     assert data["nodes"][0].keys() == {
         "id",
         "kind",
+        "tool",
         "name",
         "layer",
         "domain",

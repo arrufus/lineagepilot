@@ -31,6 +31,7 @@ from lineagepilot_core.graph.model import (
     NodeKind,
     Origin,
     Unresolved,
+    public_kind,
 )
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
@@ -60,6 +61,7 @@ class ImpactedNode:
     reason: str | None = None
     # (from ref, step) pairs that reached this node or its columns
     via: list[tuple[str, Step]] = field(default_factory=list)
+    tool: str | None = None  # for a pipeline, task or consumer (D-9)
 
 
 @dataclass
@@ -71,10 +73,11 @@ class Impact:
     truncated: bool = False
 
     def counts(self) -> dict[str, int]:
-        """Impacted nodes per kind, for summaries such as CodeLens."""
+        """Impacted nodes per public kind, for summaries such as CodeLens."""
         counts: dict[str, int] = {}
         for node in self.nodes.values():
-            counts[node.kind.value] = counts.get(node.kind.value, 0) + 1
+            kind = public_kind(node.kind, node.tool)
+            counts[kind] = counts.get(kind, 0) + 1
         return dict(sorted(counts.items()))
 
 
@@ -226,6 +229,7 @@ def _collect(
             entry = ImpactedNode(
                 id=node_id,
                 kind=graph.nodes[node_id].kind,
+                tool=graph.nodes[node_id].tool,
                 depth=hit.depth,
                 granularity=Granularity.COLUMN if is_column else Granularity.MODEL,
                 confidence=confidence[ref],

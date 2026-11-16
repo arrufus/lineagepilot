@@ -38,7 +38,9 @@ from lineagepilot_core.graph.model import (
     Unresolved,
 )
 
-AIRFLOW_KINDS = frozenset({NodeKind.AIRFLOW_DAG, NodeKind.AIRFLOW_TASK})
+# Airflow's DAGs are pipelines and its tasks are tasks, with this tool (D-9)
+AIRFLOW = "airflow"
+AIRFLOW_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK})
 AIRFLOW_ORIGINS = frozenset({Origin.DAG_STATIC, Origin.ANNOTATION})
 _NOTES_KEPT = 8
 # A longer ID would not fit the protocol, and nobody names a DAG or task like this but on purpose
@@ -46,18 +48,25 @@ MAX_NAME = 1000
 _WITH_SELECTION = frozenset({"run", "build", "seed", "snapshot"})
 
 
+def is_airflow(node: Node, kind: NodeKind | None = None) -> bool:
+    """An Airflow DAG or task, or with ``kind`` only a DAG (pipeline) or only a task."""
+    return node.tool == AIRFLOW and (
+        node.kind in AIRFLOW_KINDS if kind is None else node.kind is kind
+    )
+
+
 def unlink_airflow(graph: MetadataGraph) -> None:
     """Remove everything an earlier scan added, leaving the dbt graph as it was indexed."""
-    for node_id in [n.id for n in graph.nodes.values() if n.kind in AIRFLOW_KINDS]:
+    for node_id in [n.id for n in graph.nodes.values() if is_airflow(n)]:
         graph.remove_node(node_id)
     graph.unresolved = [u for u in graph.unresolved if u.evidence.origin not in AIRFLOW_ORIGINS]
-    graph.airflow = None
+    graph.summaries.pop(AIRFLOW, None)
 
 
 def mark_not_analysed(graph: MetadataGraph, reason: str) -> None:
     """Say why this graph has no Airflow nodes, so nobody reads that as "no task is affected"."""
     unlink_airflow(graph)
-    graph.airflow = AirflowSummary(analysed=False, reason=reason)
+    graph.summaries[AIRFLOW] = AirflowSummary(analysed=False, reason=reason)
 
 
 def link_airflow(graph: MetadataGraph, scan: dict[str, Any]) -> AirflowSummary:
@@ -65,8 +74,8 @@ def link_airflow(graph: MetadataGraph, scan: dict[str, Any]) -> AirflowSummary:
     unlink_airflow(graph)
     linker = _Linker(graph, scan)
     linker.run()
-    graph.airflow = linker.summary()
-    return graph.airflow
+    summary = graph.summaries[AIRFLOW] = linker.summary()
+    return summary
 
 
 def _named_sensibly(record: dict[str, Any]) -> bool:
@@ -117,7 +126,8 @@ class _Linker:
         self._dependencies()
 
     def summary(self) -> AirflowSummary:
-        counts = self.graph.stats()
+        nodes = [n for n in self.graph.nodes.values() if is_airflow(n)]
+        links = sum(1 for n in nodes for _ in self.graph.out_edges(n.id, (EdgeKind.ORCHESTRATES,)))
         files = len(self.scan.get("files", {}))
         folders = tuple(self.scan.get("patterns", ()))
         reason = None
@@ -134,9 +144,9 @@ class _Linker:
             reason=reason,
             folders=folders,
             dag_files=files,
-            dags=counts["node_kinds"].get(NodeKind.AIRFLOW_DAG.value, 0),
-            tasks=counts["node_kinds"].get(NodeKind.AIRFLOW_TASK.value, 0),
-            links=counts["edge_kinds"].get(EdgeKind.ORCHESTRATES.value, 0),
+            dags=sum(1 for n in nodes if n.kind is NodeKind.PIPELINE),
+            tasks=sum(1 for n in nodes if n.kind is NodeKind.TASK),
+            links=links,
             unknowns=unknowns,
             opaque_tasks=self.opaque + self.dropped,
             annotation_file=annotations.get("file"),
@@ -178,8 +188,10 @@ class _Linker:
         return self.graph.add_node(
             Node(
                 id=node_id,
-                kind=NodeKind.AIRFLOW_DAG,
+                kind=NodeKind.PIPELINE,
                 name=dag_id,
+                tool=AIRFLOW,
+                subkind="dag",
                 owner=dag.get("owner"),
                 file_path=self._path(file) if file else None,
                 properties={
@@ -207,8 +219,10 @@ class _Linker:
         return self.graph.add_node(
             Node(
                 id=node_id,
-                kind=NodeKind.AIRFLOW_TASK,
+                kind=NodeKind.TASK,
                 name=task_id,
+                tool=AIRFLOW,
+                subkind="task",
                 owner=record.get("owner") or known.get("owner"),
                 file_path=self._path(file) if file else None,
                 properties={
@@ -438,7 +452,7 @@ class _Linker:
 
     def _dependencies(self) -> None:
         """The DAGs in the graph get all their tasks, and the order between them."""
-        in_graph = {n.name for n in self.graph.nodes.values() if n.kind is NodeKind.AIRFLOW_DAG}
+        in_graph = {n.name for n in self.graph.nodes.values() if is_airflow(n, NodeKind.PIPELINE)}
         for (dag_id, task_id), task in sorted(self.tasks.items()):
             if dag_id in in_graph:
                 self._task_node(dag_id, task_id, task.get("operator"), task)
@@ -455,7 +469,7 @@ class _Linker:
                     transformation=edge.get("how"),
                 )
         # A task in a group finishes before what follows the group
-        for node in [n for n in self.graph.nodes.values() if n.kind is NodeKind.AIRFLOW_TASK]:
+        for node in [n for n in self.graph.nodes.values() if is_airflow(n, NodeKind.TASK)]:
             parent = node.id.rsplit(".", 1)[0]
             if parent != airflow_dag_id(node.properties["dag"]) and parent in self.graph.nodes:
                 location = self.tasks.get(

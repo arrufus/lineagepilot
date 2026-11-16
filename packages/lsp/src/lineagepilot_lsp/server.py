@@ -30,7 +30,7 @@ from pathlib import Path
 from typing import Any
 
 from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
-from lineagepilot_core.airflow.link import link_airflow, mark_not_analysed
+from lineagepilot_core.airflow.link import AIRFLOW, link_airflow, mark_not_analysed
 from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.review import baseline_inputs
@@ -551,7 +551,7 @@ class LineagePilotServer(LanguageServer):
         return {
             "stage": self.airflow_stage(),
             "generation": self.airflow.generation if self.airflow else 0,
-            "summary": summary_json(graph.airflow if graph is not None else None),
+            "summary": summary_json(graph.summaries.get(AIRFLOW) if graph is not None else None),
         }
 
     def _artifacts(self) -> dict[str, Any]:

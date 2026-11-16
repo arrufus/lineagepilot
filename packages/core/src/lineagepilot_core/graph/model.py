@@ -1,7 +1,9 @@
 """The metadata graph (design section 5).
 
-Nodes are dbt nodes, physical relations and, from Phase 5, Airflow DAGs and tasks.
-Columns belong to nodes. Edges point the way data or control flows, from ``upstream`` to
+Nodes are dbt nodes, physical relations, and what readers of other tools find beside them
+(D-9): ``pipeline`` and ``task`` nodes, such as Airflow's DAGs and tasks, and ``consumer`` nodes,
+such as a metric or a dashboard. Each of those names its tool in ``Node.tool``. Columns belong to
+nodes, a consumer's included. Edges point the way data or control flows, from ``upstream`` to
 ``downstream``:
 
 | Kind              | Upstream -> downstream                                    |
@@ -9,8 +11,11 @@ Columns belong to nodes. Edges point the way data or control flows, from ``upstr
 | ``depends_on``    | the dbt node depended on -> the dbt node that depends on it |
 | ``derives``       | source column -> derived column                           |
 | ``materialises``  | dbt node -> the physical relation it builds or reads      |
-| ``orchestrates``  | Airflow task -> the dbt node it runs                      |
-| ``task_depends_on`` | upstream Airflow task -> downstream Airflow task        |
+| ``orchestrates``  | task -> the dbt node it runs                              |
+| ``task_depends_on`` | upstream task -> downstream task                        |
+| ``loads``         | task -> the relation or source it writes                  |
+| ``consumes``      | node or column -> the consumer, or consumer column, that reads it |
+| ``part_of``       | a part -> what holds it: a view -> its explore -> its dashboard |
 
 Every edge carries evidence: where it came from, how sure it is, which artifact version
 it was read from, and where to navigate to. An edge found by more than one source keeps
@@ -34,13 +39,29 @@ class NodeKind(str, Enum):
     SOURCE = "source"
     EXPOSURE = "exposure"
     RELATION = "relation"
-    AIRFLOW_DAG = "airflow_dag"
-    AIRFLOW_TASK = "airflow_task"
+    PIPELINE = "pipeline"  # an Airflow DAG, a Dagster job, a Databricks job...
+    TASK = "task"  # a step of a pipeline
+    CONSUMER = "consumer"  # what reads the data: a metric, a semantic model, a dashboard...
 
 
 DBT_KINDS = frozenset(
     {NodeKind.MODEL, NodeKind.SEED, NodeKind.SNAPSHOT, NodeKind.SOURCE, NodeKind.EXPOSURE}
 )
+# What a reader of another tool adds beside the dbt graph. ``Node.tool`` says which tool. Rules and
+# PII indicators never apply to them: they stay with ``DBT_KINDS``.
+TOOL_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK, NodeKind.CONSUMER})
+
+# The names protocol version 1, the review's JSON and the CLI give the kinds of Airflow's nodes.
+# The protocol gets the generic kinds, through its version negotiation, in task 7.5.
+_PUBLIC_KINDS = {
+    (NodeKind.PIPELINE, "airflow"): "airflow_dag",
+    (NodeKind.TASK, "airflow"): "airflow_task",
+}
+
+
+def public_kind(kind: NodeKind, tool: str | None = None) -> str:
+    """A kind as the protocol, the review's JSON and the CLI name it."""
+    return _PUBLIC_KINDS.get((kind, tool), kind.value)
 
 
 # Up to this many pieces of evidence on an edge, a list search is cheaper than a set
@@ -53,6 +74,9 @@ class EdgeKind(str, Enum):
     MATERIALISES = "materialises"
     ORCHESTRATES = "orchestrates"
     TASK_DEPENDS_ON = "task_depends_on"
+    LOADS = "loads"
+    CONSUMES = "consumes"
+    PART_OF = "part_of"
 
 
 class Origin(str, Enum):
@@ -134,6 +158,10 @@ class Node:
     source_sha256: str | None = None  # of a model's source text, as the manifest saw it
     in_catalog: bool = False  # catalog.json has an entry for it
     primary_key: list[str] = field(default_factory=list)  # contract primary-key columns
+    # For a pipeline, task or consumer: the tool it comes from (airflow, dbt_semantic, looker...),
+    # and what it is there (dag, task, metric, explore...)
+    tool: str | None = None
+    subkind: str | None = None
 
     @property
     def has_tests(self) -> bool:
@@ -202,7 +230,9 @@ class ColumnLineageStatus:
 
 @dataclass(frozen=True, slots=True)
 class AirflowSummary:
-    """What a DAG scan looked at and found (task 5.3). Not part of a snapshot."""
+    """What a DAG scan looked at and found (task 5.3). Not part of a snapshot.
+
+    It is the graph's summary for the tool ``airflow``."""
 
     analysed: bool
     reason: str | None = None  # why not, or why nothing was found
@@ -246,8 +276,8 @@ class MetadataGraph:
         # its columns in the graph, which also hold what the catalog and the docs list: the
         # Change Impact Review compares this with a baseline. Absent when it cannot be known.
         self.output_columns: dict[str, list[str]] = {}
-        # What the last DAG scan found; None until one has been applied
-        self.airflow: AirflowSummary | None = None
+        # What each reader's last run found, by tool; a tool that is absent has not run
+        self.summaries: dict[str, AirflowSummary] = {}
 
     # Building
 
@@ -385,9 +415,10 @@ class MetadataGraph:
         return [u for u in self.unresolved if u.subject == subject]
 
     def stats(self) -> dict[str, Any]:
+        """Counts, with each node kind as the protocol names it (``public_kind``)."""
         node_kinds: dict[str, int] = defaultdict(int)
         for node in self.nodes.values():
-            node_kinds[node.kind.value] += 1
+            node_kinds[public_kind(node.kind, node.tool)] += 1
         edge_kinds: dict[str, int] = defaultdict(int)
         for edge in self._edges.values():
             edge_kinds[edge.kind.value] += 1
