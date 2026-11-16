@@ -697,6 +697,41 @@ class FileScanner:
             self.exec_block(st.orelse, scope, ctx)
         else:
             self._branches([st.body, st.orelse], scope, ctx, "conditional")
+        if test is not None and self._guessed_test(st.test, scope):
+            self._skipped(st.orelse if test else st.body, st.test, scope, ctx)
+
+    def _guessed_test(self, test: ast.expr, scope: Scope) -> bool:
+        """Whether a test was decided by a guess, such as an environment variable's default."""
+        v = self.eval(test, scope, Ctx(emit=False))
+        return isinstance(v, Const) and v.conf == "heuristic"
+
+    def _skipped(self, body: list[ast.stmt], test: ast.expr, scope: Scope, ctx: Ctx) -> None:
+        """A branch not scanned because a guess decided its test: an operator in it that
+        mentions dbt is reported at its line, never left out in silence. It may well run."""
+        if not ctx.emit:
+            return
+        for stmt in body:
+            for sub in ast.walk(stmt):
+                if not isinstance(sub, ast.Call):
+                    continue
+                name = self._dotted_name(sub.func, scope) or ""
+                kind = _classify(name)
+                if kind is None or kind in ("dag", "task_group", "chain"):
+                    continue
+                runs_dbt = kind.startswith("cosmos") or kind == "airflow_dbt_operator"
+                if not runs_dbt and not _DBT_NAME.search(self._segment(sub)):
+                    continue
+                self._unresolved(
+                    sub.lineno,
+                    sub.col_offset,
+                    f"{name.rsplit('.', 1)[-1]} is created only if the test at line "
+                    f"{test.lineno} goes the other way; that test was decided by an environment "
+                    "variable's default, so this was not scanned",
+                    ctx,
+                    dag_id=ctx.dag.dag_id if ctx.dag else None,
+                    category=UnknownCategory.NOT_LITERAL,
+                    mentions_dbt=True,
+                )
 
     def _truth(self, test: ast.expr, scope: Scope, ctx: Ctx) -> bool | None:
         # `if __name__ == "__main__":` never runs when Airflow parses a DAG file
@@ -1127,15 +1162,18 @@ class FileScanner:
         if len(rights) == 1 and isinstance(left, Const) and isinstance(rights[0], Const):
             op = node.ops[0]
             a, b = left.value, rights[0].value
+            # An environment variable's default makes the answer a guess, and a branch it
+            # decides is reported (see _if)
+            conf = weakest(left.conf, rights[0].conf)
             try:
                 if isinstance(op, ast.Eq):
-                    return Const(a == b)
+                    return Const(a == b, conf=conf)
                 if isinstance(op, ast.NotEq):
-                    return Const(a != b)
+                    return Const(a != b, conf=conf)
                 if isinstance(op, ast.In):
-                    return Const(a in b)
+                    return Const(a in b, conf=conf)
                 if isinstance(op, ast.NotIn):
-                    return Const(a not in b)
+                    return Const(a not in b, conf=conf)
             except TypeError:
                 pass
         return Unknown("comparison over non-literal values", line=node.lineno)
@@ -1145,9 +1183,9 @@ class FileScanner:
         if isinstance(v, Const):
             try:
                 if isinstance(node.op, ast.Not):
-                    return Const(not v.value)
+                    return Const(not v.value, conf=v.conf)
                 if isinstance(node.op, ast.USub):
-                    return Const(-v.value)
+                    return Const(-v.value, conf=v.conf)
             except TypeError:
                 pass
         return Unknown("unary operation over a non-literal value", line=node.lineno)
@@ -2603,7 +2641,14 @@ class FileScanner:
                         mentions_dbt="dbt" in (text + self._segment(node)).lower(),
                     )
                 elif not text.strip().startswith(("echo", "#")):
-                    self._no_dbt_command(handle, node, ctx, text)
+                    # A container runs its image's entrypoint, which may be dbt (`run --target
+                    # dev`): the whole call says whether it is about dbt, as for an argv
+                    self._no_dbt_command(
+                        handle,
+                        node,
+                        ctx,
+                        f"{self._segment(node)} {text}" if kind == "docker" else text,
+                    )
                 continue
             for i, inv in enumerate(invs):
                 self._link_from_invocation(
