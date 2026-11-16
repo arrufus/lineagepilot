@@ -100,8 +100,6 @@ def test_resolvable_expressions(ws, expr, models):
     "expr, why",
     [
         ('f"dbt run --select {SEL:>10}"', "format spec"),
-        ('"dbt run --select " + os.environ["X"]', "os.environ"),
-        ('"dbt run --select " + os.getenv("X")', "no default"),
         ('"dbt run --select " + Variable.get("v")', "Airflow Variable"),
         ('"dbt run --select " + (SEL if os.getenv("C") else "other")', "conditional"),
         ('"dbt run --select " + BRANCHY', "branches"),
@@ -109,8 +107,8 @@ def test_resolvable_expressions(ws, expr, models):
         ('"dbt run --select " + some_call()', "some_call"),
         ('"dbt run --select " + CONF["missing"]', "not in dict"),
         ('"dbt run --select " + SELS[9]', "out of range"),
-        ('"dbt run %s" % os.getenv("X")', "non-literal"),
-        ('"dbt run {}".format(os.getenv("X"))', "non-literal"),
+        ('"dbt run %s" % Variable.get("v")', "non-literal"),
+        ('"dbt run {}".format(Variable.get("v"))', "non-literal"),
         ('"dbt run " + str(Path.cwd())', "runtime environment"),
         ('"dbt run " + os.path.abspath("rel")', "working directory"),
         ('"dbt run " + str(Path())', "working directory"),
@@ -139,6 +137,45 @@ def test_unresolvable_expressions(ws, expr, why):
     assert not res["links"], res["links"]
     reasons = " ".join(u["reason"] for u in res["unresolved"])
     assert why in reasons, reasons
+
+
+@pytest.mark.parametrize(
+    "expr, why",
+    [
+        ('"dbt run --select " + os.environ["X"]', "shell variable in --select: ${X}"),
+        ('"dbt run --select " + os.getenv("X")', "shell variable in --select: ${X}"),
+        ('"dbt run %s" % os.getenv("X")', "among the arguments: ${X}"),
+        ('"dbt run {}".format(os.getenv("X"))', "among the arguments: ${X}"),
+        ("f\"dbt run {os.environ['X']}\"", "among the arguments: ${X}"),
+        ('"dbt " + os.environ["X"]', "dbt sub-command: ${X}"),
+    ],
+)
+def test_commands_built_on_environment_variables_stay_unknown(ws, expr, why):
+    """An environment variable with no default is read as ${NAME}, as the shell would see it, so
+    the dbt command can be found; a selection it could change is still unknown (LP-0o1)."""
+    body = f"""
+        with DAG("d") as dag:
+            BashOperator(task_id="t", bash_command={expr})
+    """
+    res = run(ws, body)
+    assert [l["status"] for l in res["links"]] == ["unknown"], res["links"]
+    reasons = " ".join(u["reason"] for u in res["unresolved"])
+    assert why in reasons and "no default" in reasons, reasons
+
+
+@pytest.mark.parametrize(
+    "expr",
+    ['os.environ["CMD"]', 'os.environ["CMD"] + " --select a"', "f\"echo {os.environ['X']}\""],
+)
+def test_a_command_that_is_an_environment_variable_is_not_read(ws, expr):
+    """What runs is the variable itself, or nothing dbt can be seen: as unknown as before."""
+    body = f"""
+        with DAG("d") as dag:
+            BashOperator(task_id="dbt_t", bash_command={expr})
+    """
+    res = run(ws, body)
+    assert not res["links"], res["links"]
+    assert any("not statically resolvable" in u["reason"] for u in res["unresolved"])
 
 
 def test_task_groups_contexts_and_misc_statements(ws):

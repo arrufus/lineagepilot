@@ -175,3 +175,25 @@ def to_posix(path: str) -> str:
 def is_absolute(path: str) -> bool:
     """A POSIX path, or a Windows one in forward slashes such as ``C:/dags/x.py``."""
     return path.startswith("/") or _DRIVE.match(path) is not None
+
+
+# An environment variable, then a literal path: ``${AIRFLOW_HOME}/dags/dbt`` or ``$HOME/x``. What
+# follows the variable has no ``$`` or backquote, so the variable found is the last one.
+_ENV_PATH = re.compile(
+    r"^(?P<head>.*?)\$(?:\{(?P<braced>[A-Za-z_]\w*)\}|(?P<bare>[A-Za-z_]\w*))(?P<tail>/[^$`]*)$",
+    re.S,
+)
+
+
+def env_tail(path: str) -> tuple[str, str] | None:
+    """For a path that runs through an environment variable with no known value, the variable's
+    name and the literal path after it: ``("AIRFLOW_HOME", "dags/dbt")``. None when there is no
+    such variable, when nothing but slashes follows it, or when the path holds command
+    substitution, whose output could be anything (LP-0o1)."""
+    found = _ENV_PATH.match(path)
+    if found is None or "`" in found["head"] or "$(" in found["head"]:
+        return None
+    tail = found["tail"].strip("/")
+    if not tail:
+        return None
+    return found["braced"] or found["bare"], tail

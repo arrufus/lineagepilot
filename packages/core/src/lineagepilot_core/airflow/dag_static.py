@@ -40,6 +40,7 @@ from lineagepilot_core.airflow.manifest import (
 )
 from lineagepilot_core.airflow.projects import ManifestChoice, ProjectIndex
 from lineagepilot_core.airflow.safe_io import (
+    env_tail,
     is_absolute,
     is_inside,
     is_regular_file,
@@ -57,12 +58,14 @@ from lineagepilot_core.airflow.shell import (
     find_dbt_in_shell,
     mentions_dbt,
     parse_dbt_argv,
+    runs_a_variable,
 )
 from lineagepilot_core.airflow.values import (
     CallV,
     Const,
     DagV,
     DictV,
+    EnvPath,
     FuncV,
     ListV,
     PartialV,
@@ -75,6 +78,8 @@ from lineagepilot_core.airflow.values import (
     as_str_list,
     collect_meta,
     merge_values,
+    plain,
+    text_of,
     weakest,
 )
 from lineagepilot_core.parsers.sql_parser import parse_sql
@@ -183,6 +188,7 @@ _JINJA_PLACEHOLDER = "__lp_jinja__"
 _DBT_NAME = re.compile(r"(?<![a-z])dbt(?![a-z])", re.I)
 _CREATES_TASKS = re.compile(r"dag|task|operator|group", re.I)
 _FORMAT_WIDTH = re.compile(r"%[-#0 +]*(\d+)?(?:\.(\d+))?")
+_ENV_NAME = re.compile(r"[A-Za-z_][A-Za-z0-9_]*")
 POD_OPS = {"KubernetesPodOperator", "GKEStartPodOperator", "EksPodOperator", "AKSPodOperator"}
 DOCKER_OPS = {"DockerOperator", "DockerSwarmOperator"}
 SUBPROCESS_FUNCS = (
@@ -242,6 +248,24 @@ class TaskHandle:
     col: int
     prefix_parts: tuple[str, ...] | None = None
     owner: str | None = None
+
+
+@dataclass(frozen=True)
+class _Foreign:
+    """A helper from another workspace file, whose body is running (LP-z2x)."""
+
+    rel: str  # its file, relative to the workspace
+    name: str  # the function
+    site: tuple[int, int]  # the call in the file scanned
+
+
+@dataclass(frozen=True)
+class Container:
+    """dbt runs in a container, so the paths it is given are the container's (LP-c05).
+    ``mounts`` are its bind mounts that could be read: (the path in the container, the host
+    folder)."""
+
+    mounts: tuple[tuple[str, str], ...] = ()
 
 
 class Scope:
@@ -355,7 +379,11 @@ class FileScanner:
         # never followed: reading it fails, and says so
         real = resolve_inside(os.path.abspath(path), index.workspace)
         self.path = real or os.path.abspath(path)
+        # The file scanned. ``path`` is the module whose code runs, which is another one while a
+        # helper imported from it is followed (LP-z2x)
+        self.home = self.path
         self.rel = index.relative(self.path)
+        self._foreign: _Foreign | None = None
         self.index = index
         self.loader = loader
         self.emit = emit
@@ -475,7 +503,20 @@ class FileScanner:
 
     # --- records --------------------------------------------------------------------------
     def _loc(self, line: int, col: int) -> dict[str, Any]:
+        """Where a record is reported. In a helper followed into another file, a line there means
+        nothing in this one, so it is the call site in this file (LP-z2x)."""
+        if self._foreign is not None:
+            line, col = self._foreign.site
         return {"file": self.rel, "line": line, "col": col}
+
+    def _site_loc(self, line: int, col: int) -> dict[str, Any]:
+        """A call site: always in this file, even inside a followed helper."""
+        return {"file": self.rel, "line": line, "col": col}
+
+    def _here(self, line: int, col: int) -> dict[str, Any]:
+        """Where a node is, in the file it is in."""
+        rel = self._foreign.rel if self._foreign is not None else self.rel
+        return {"file": rel, "line": line, "col": col}
 
     def _dynamic_category(self) -> UnknownCategory:
         if self.reads_manifest:
@@ -494,10 +535,15 @@ class FileScanner:
         ctx: Ctx,
         force: bool = False,
         category: UnknownCategory = UnknownCategory.NOT_LITERAL,
+        at_site: bool = False,
         **extra: Any,
     ) -> None:
         if not (ctx.emit or force) or not self.emit and not force:
             return
+        if self._foreign is not None and not at_site:
+            # A line in the helper's file: say so, and report it at the call in this file
+            reason = f"{reason} (in {self._foreign.name}() in {self._foreign.rel}, line {line})"
+            line, col = self._foreign.site
         if ctx.dynamic and ctx.dynamic not in reason:
             reason = f"{ctx.dynamic}; {reason}"
             extra.setdefault("dynamic", True)
@@ -843,6 +889,7 @@ class FileScanner:
         out: list[str] = []
         confs: list[str] = ["inferred"]
         notes: list[str] = []
+        env: list[EnvPath] = []
         for part in node.values:
             if isinstance(part, ast.Constant):
                 out.append(str(part.value))
@@ -851,6 +898,10 @@ class FileScanner:
                 if part.format_spec is not None:
                     return Unknown("f-string with a format spec", line=node.lineno)
                 v = self.eval(part.value, scope, ctx)
+                if isinstance(v, EnvPath) and part.conversion in (-1, ord("s")):
+                    env.append(v)
+                    out.append(v.text)
+                    continue
                 s = _to_str(v)
                 if s is None:
                     return Unknown(
@@ -863,6 +914,9 @@ class FileScanner:
                 out.append(s)
                 confs.append(v.conf)
                 notes.extend(v.notes)
+        if env:
+            reason = f"an f-string part is not resolvable ({env[0].reason})"
+            return _env_value(env, "".join(out), reason, node.lineno)
         return _bounded_str("".join(out), weakest(*confs), tuple(dict.fromkeys(notes)), node.lineno)
 
     def _e_Name(self, node: ast.Name, scope: Scope, ctx: Ctx) -> Val:
@@ -960,8 +1014,11 @@ class FileScanner:
                 return Const(posixpath.splitext(p)[1], conf=base.conf)
         if isinstance(base, TaskV) and a == "output":
             return base
+        if isinstance(base, EnvPath) and a == "parent" and env_tail(base.text) is not None:
+            # ${X}/a/b -> ${X}/a; the variable alone has no parent that can be known
+            return replace(base, text=posixpath.dirname(base.text.rstrip("/")))
         if isinstance(base, Unknown):
-            return base
+            return plain(base)
         return Unknown(f"attribute .{a} of a {type(base).__name__} value", line=node.lineno)
 
     def _e_Subscript(self, node: ast.Subscript, scope: Scope, ctx: Ctx) -> Val:
@@ -969,9 +1026,8 @@ class FileScanner:
         key = self.eval(node.slice, scope, ctx)
         if isinstance(base, Sym) and base.name in ("os.environ",):
             k = as_str(key)
-            return Unknown(
-                f"environment variable {k!r} read with os.environ[...] (no default)",
-                line=node.lineno,
+            return _no_default(
+                k, f"environment variable {k!r} read with os.environ[...] (no default)", node.lineno
             )
         if isinstance(base, DictV) and isinstance(key, Const) and isinstance(key.value, str):
             v = base.items.get(key.value)
@@ -984,7 +1040,7 @@ class FileScanner:
             except IndexError:
                 return Unknown("list index out of range", line=node.lineno)
         if isinstance(base, Unknown):
-            return base
+            return plain(base)
         return Unknown("subscript of a non-literal value", line=node.lineno)
 
     def _e_List(self, node: ast.List, scope: Scope, ctx: Ctx) -> Val:
@@ -1161,7 +1217,7 @@ class FileScanner:
                 for d in downs:
                     self._edge(u, d, line, col, ctx, ">>" if isinstance(op, ast.RShift) else "<<")
             return right
-        if isinstance(op, ast.Div) and isinstance(left, PathV):
+        if isinstance(op, ast.Div) and isinstance(left, PathV) and not isinstance(right, EnvPath):
             s = _to_str(right)
             if s is None:
                 return Unknown("path joined with a non-literal part", line=line)
@@ -1169,6 +1225,17 @@ class FileScanner:
             conf, notes = collect_meta(left, right)
             j.conf, j.notes = weakest(conf, "inferred"), notes
             return j
+        if isinstance(op, (ast.Div, ast.Add)) and (
+            isinstance(left, EnvPath) or isinstance(right, EnvPath)
+        ):
+            # Path(os.environ["X"]) / "dbt", os.environ["X"] + "/dbt" (LP-0o1)
+            joined = (
+                _join_parts([left, right], line)
+                if isinstance(op, ast.Div)
+                else _concat_env(left, right, line)
+            )
+            if joined is not None:
+                return joined
         if isinstance(op, ast.Add):
             if (
                 isinstance(left, Const)
@@ -1186,26 +1253,33 @@ class FileScanner:
                 return ListV(left.items + right.items, conf=weakest(left.conf, right.conf))
         if isinstance(op, ast.Mod) and isinstance(left, Const) and isinstance(left.value, str):
             args: Any
+            items = right.items if isinstance(right, ListV) else [right]
+            env = [i for i in items if isinstance(i, EnvPath)]
             if isinstance(right, ListV):
-                args = tuple(_to_str(i) for i in right.items)
+                args = tuple(_fill(i) for i in right.items)
                 if any(a is None for a in args):
                     return Unknown("%-format with non-literal arguments", line=line)
             elif isinstance(right, DictV):
                 return Unknown("%-format with a mapping", line=line)
             else:
-                args = _to_str(right)
+                args = _fill(right)
                 if args is None:
                     return Unknown("%-format with a non-literal argument", line=line)
             if not _safe_percent(left.value):
                 return Unknown("%-format with a very large width", line=line)
+            if env and re.search(r"%[^s%]", left.value.replace("%%", "")):
+                return Unknown(f"%-format of {env[0].reason}, not with %s", line=line)
             try:
-                return _bounded_str(left.value % args, "inferred", (), line)
+                text = left.value % args
             except (TypeError, ValueError, MemoryError, OverflowError):
                 return Unknown("%-format failed", line=line)
+            if env:
+                return _env_value(env, text, env[0].reason, line)
+            return _bounded_str(text, "inferred", (), line)
         if isinstance(left, Unknown):
-            return left
+            return plain(left)
         if isinstance(right, Unknown):
-            return right
+            return plain(right)
         for side in (left, right):
             if isinstance(side, CallV):
                 return Unknown(
@@ -1268,6 +1342,22 @@ class FileScanner:
     def _method_call(self, base: Val, meth: str, node: ast.Call, scope: Scope, ctx: Ctx) -> Val:
         args, kwargs, _ = self._call_args(node, scope, ctx)
         line = node.lineno
+        if isinstance(base, EnvPath):
+            # Path(os.environ["X"]).joinpath("dbt") and the like (LP-0o1); anything else on it
+            # is unknown, below
+            if meth == "joinpath":
+                joined = _join_parts([base, *args], line)
+                if joined is not None:
+                    return joined
+            if meth in ("resolve", "absolute", "as_posix", "__str__", "__fspath__") and not args:
+                return base
+        if (
+            meth == "format"
+            and isinstance(base, Const)
+            and isinstance(base.value, str)
+            and any(isinstance(a, EnvPath) for a in [*args, *kwargs.values()])
+        ):
+            return self._format_env(base.value, args, kwargs, line)
         if isinstance(base, PathV) or (
             isinstance(base, Const) and isinstance(base.value, str) and meth in ("joinpath",)
         ):
@@ -1383,11 +1473,27 @@ class FileScanner:
                 base.func, node, [], merged, False, scope, mctx, mapped=set(kwargs)
             )
         if isinstance(base, Unknown):
-            return base
+            return plain(base)
         for a in list(args) + list(kwargs.values()):
             if isinstance(a, Unknown):
                 return Unknown(f".{meth}() argument not resolvable: {a.reason}", line=line)
         return Unknown(f".{meth}() on a {type(base).__name__} value is not evaluated", line=line)
+
+    @staticmethod
+    def _format_env(template: str, args: list[Val], kwargs: dict[str, Val], line: int) -> Val:
+        """``"{}/dbt".format(os.environ["X"])``: plain fields only, as for any ``.format()``."""
+        sargs = [_fill(a) for a in args]
+        skw = {k: _fill(v) for k, v in kwargs.items()}
+        if any(a is None for a in sargs) or any(v is None for v in skw.values()):
+            return Unknown(".format() with non-literal arguments", line=line)
+        if not _safe_format(template):
+            return Unknown(".format() with attribute access or a format spec", line=line)
+        try:
+            text = template.format(*sargs, **skw)
+        except (IndexError, KeyError, ValueError):
+            return Unknown("str.format() failed on literal arguments", line=line)
+        env = [a for a in [*args, *kwargs.values()] if isinstance(a, EnvPath)]
+        return _env_value(env, text, env[0].reason, line)
 
     def _call_named(
         self,
@@ -1408,7 +1514,7 @@ class FileScanner:
             key = as_str(args[0]) if args else None
             default = args[1] if len(args) > 1 else kwargs.get("default")
             if default is None or (isinstance(default, Const) and default.value is None):
-                return Unknown(f"environment variable {key!r} has no default", line=line)
+                return _no_default(key, f"environment variable {key!r} has no default", line)
             d = _clone(default)
             return d.with_meta(
                 "heuristic", (f"environment variable {key!r} assumed unset; used its default",)
@@ -1428,6 +1534,10 @@ class FileScanner:
         if fname in ("os.path.join", "posixpath.join", "path.join") or (
             fname.endswith("path.join") and fname.startswith("os")
         ):
+            if any(isinstance(a, EnvPath) for a in args):
+                joined = _join_parts(args, line)  # os.path.join(os.environ["X"], "dbt") (LP-0o1)
+                if joined is not None:
+                    return joined
             parts = [_to_str(a) for a in args]
             if any(p is None for p in parts) or not parts:
                 return Unknown("os.path.join with non-literal parts", line=line)
@@ -1440,6 +1550,13 @@ class FileScanner:
             "os.path.normpath",
             "os.path.basename",
         ):
+            if args and isinstance(args[0], EnvPath):
+                # The variable holds a whole path at run time: these keep it as it is, and the
+                # parent of ${X}/a/b is ${X}/a. The parent of ${X} alone cannot be known.
+                if fname in ("os.path.abspath", "os.path.realpath", "os.path.normpath"):
+                    return args[0]
+                if fname == "os.path.dirname" and env_tail(args[0].text) is not None:
+                    return replace(args[0], text=posixpath.dirname(args[0].text.rstrip("/")))
             s = _to_str(args[0]) if args else None
             if s is None:
                 return Unknown(f"{fname} of a non-literal value", line=line)
@@ -1468,6 +1585,10 @@ class FileScanner:
         ):
             if not args:
                 return Unknown("Path() with no arguments is the working directory", line=line)
+            if any(isinstance(a, EnvPath) for a in args):
+                joined = _join_parts(args, line)  # Path(os.environ["X"], "dbt") (LP-0o1)
+                if joined is not None:
+                    return joined
             parts = [_to_str(a) for a in args]
             if any(p is None for p in parts):
                 bad = next(a for a, p in zip(args, parts, strict=False) if p is None)
@@ -1481,6 +1602,8 @@ class FileScanner:
             return out
         if last in BUILTIN_CALLS and fname == last and scope.lookup(last) is None:
             if last == "str" and args:
+                if isinstance(args[0], EnvPath):
+                    return args[0]
                 s = _to_str(args[0])
                 if s is not None:
                     return Const(s, conf=args[0].conf, notes=args[0].notes)
@@ -1520,8 +1643,73 @@ class FileScanner:
                 mentions_dbt=True,
             )
             return Unknown("contents of manifest.json read at parse time", line=line)
+        helper = self._imported_helper(fname, node.func)
+        if helper is not None:
+            return self._follow(helper[0], helper[1], node, args, kwargs, has_star, ctx)
         self._maybe_wrapper(fname, _root_name(node.func), node, kwargs, ctx)
         return CallV(fname, args, kwargs, line=line, col=col, has_star=has_star)
+
+    def _imported_helper(self, fname: str, func: ast.expr) -> tuple[FuncV, FileScanner] | None:
+        """A plain function defined at the top of another workspace module, called from the DAG
+        file: ``f()`` after ``from helpers import f``, or ``helpers.f()`` after ``import helpers``
+        or ``from pkg import helpers`` (LP-z2x).
+
+        One level only: not from a module read for its constants, and not from inside a helper
+        already followed, where the call stays a named unknown. A module is found inside the
+        workspace only, and read as syntax, as for constants.
+        """
+        if self.import_depth or self._foreign is not None:
+            return None
+        if fname.startswith(KNOWN_LIBRARY_PREFIXES) or "." not in fname:
+            return None
+        local = _root_name(func)
+        if local is None:
+            return None
+        level = self.imports[local][2] if local in self.imports else 0
+        if isinstance(func, ast.Name):
+            if local not in self.imports:
+                return None
+            module, name = self.imports[local][0], self.imports[local][1] or ""
+        else:
+            module, name = fname.rsplit(".", 1)
+        path = self.loader.find(module, self.path, level)
+        if path is None or path == self.path:
+            return None
+        fs = self.loader.module(path, self.import_depth + 1)
+        fv = fs.scope.vars.get(name) if fs is not None else None
+        if not isinstance(fv, FuncV) or fv.kind != "plain" or fs is None:
+            return None
+        return fv, fs
+
+    def _follow(
+        self,
+        fv: FuncV,
+        fs: FileScanner,
+        node: ast.Call,
+        args: list[Val],
+        kwargs: dict[str, Val],
+        has_star: bool,
+        ctx: Ctx,
+    ) -> Val:
+        """Run an imported helper's body here, as for a local helper, with its own module's names
+        and imports. What it creates is reported at the call in this file."""
+        if self._call_depth >= MAX_CALL_DEPTH or fv.name in ctx.funcs:
+            return self._not_followed(fv, node, ctx, "depth/recursion limit")
+        saved = (self.path, self.imports, self.lines, self.scope, self.import_depth, self._foreign)
+        self.path, self.imports, self.lines = fs.path, fs.imports, fs.lines
+        self.scope, self.import_depth = fs.scope, fs.import_depth
+        self._foreign = _Foreign(fs.rel, fv.name, (node.lineno, node.col_offset))
+        try:
+            return self._exec_function(fv, node, args, kwargs, has_star, ctx)
+        finally:
+            (
+                self.path,
+                self.imports,
+                self.lines,
+                self.scope,
+                self.import_depth,
+                self._foreign,
+            ) = saved
 
     def _maybe_wrapper(
         self, fname: str, local: str | None, node: ast.Call, kwargs: dict[str, Val], ctx: Ctx
@@ -1860,13 +2048,14 @@ class FileScanner:
                 kind, handle, kwargs.get(cmd_key), node, ctx, kwargs, tid_v, mapped=mapped
             )
         elif kind == "pod":
-            self._argv_task(kind, handle, node, ctx, kwargs, tid_v)
+            self._argv_task(kind, handle, node, ctx, kwargs, tid_v, container=Container())
         elif kind == "docker":
             cmd = kwargs.get("command")
+            box = _docker_container(kwargs)
             if isinstance(cmd, ListV):
-                self._argv_task(kind, handle, node, ctx, {"cmds": cmd}, tid_v)
+                self._argv_task(kind, handle, node, ctx, {"cmds": cmd}, tid_v, container=box)
             else:
-                self._shell_task(kind, handle, cmd, node, ctx, kwargs, tid_v)
+                self._shell_task(kind, handle, cmd, node, ctx, kwargs, tid_v, container=box)
         elif kind == "sql":
             self._sql_task(fname, handle, node, kwargs, ctx)
         elif kind == "generic" and (
@@ -1997,9 +2186,14 @@ class FileScanner:
         }
         if ctx.call_sites:
             # report the outermost call site (where a user looks); keep where the call was built
-            rec["constructed_at"] = rec["location"]
-            rec["location"] = self._loc(*ctx.call_sites[0])
+            rec["constructed_at"] = self._here(node.lineno, node.col_offset)  # type: ignore[attr-defined]
+            rec["location"] = self._site_loc(*ctx.call_sites[0])
             rec["via_call_at"] = [list(cs) for cs in ctx.call_sites]
+        if self._foreign is not None:
+            rec["notes"].append(
+                f"built by {self._foreign.name}() in {self._foreign.rel}, a helper imported from "
+                "another workspace file and followed one level"
+            )
         if dag is None:
             self._why(rec, UnknownCategory.NOT_LITERAL, "task is not inside a resolvable DAG")
         elif dag.dag_id is None:
@@ -2057,6 +2251,7 @@ class FileScanner:
                 dag_id=rec["dag_id"],
                 task_id=rec.get("task_id") or rec.get("group_id"),
                 category=UnknownCategory(rec["category"]),
+                at_site=True,
                 mentions_dbt=True,
             )
 
@@ -2067,8 +2262,14 @@ class FileScanner:
         base_dir: str | None,
         ctx: Ctx,
         label: str = "project_dir",
+        container: Container | None = None,
     ) -> str | None:
-        """Turn a project path value into a workspace dbt project directory."""
+        """Turn a project path value into a workspace dbt project directory.
+
+        ``container`` says dbt runs in a container, so a path is the container's: one that
+        matches no project goes through the container's bind mounts, and then, with exactly one
+        dbt project in the workspace, to that project (LP-c05). Both are ``heuristic``.
+        """
         if raw is None:
             if base_dir:
                 m = self.index.match(base_dir)
@@ -2079,6 +2280,11 @@ class FileScanner:
                     )
                     rec["confidence"] = weakest(rec["confidence"], m.conf)
                     return m.path
+                if container is not None:
+                    mounted = self._through_mount(rec, base_dir, container)
+                    if mounted:
+                        return mounted
+                rec["notes"].append(f"the working directory {base_dir} is not known: {m.reason}")
             only = self.index.only_project()
             if only:
                 rec["notes"].append(
@@ -2092,6 +2298,14 @@ class FileScanner:
             )
             return None
         s = as_str(raw)
+        if s is None and isinstance(raw, EnvPath) and env_tail(raw.text) is not None:
+            s = raw.text
+            rec["notes"].append(
+                f"{label} is built on the environment variable(s) {', '.join(raw.names)}, "
+                "which have no default in the DAG file: the project is matched by the path after "
+                "the variable"
+            )
+            raw = Const(s, conf="heuristic")
         if s is None:
             self._why(
                 rec,
@@ -2106,6 +2320,15 @@ class FileScanner:
             self._why(rec, UnknownCategory.JINJA, f"{label} contains a Jinja template: {s}")
             return None
         m = self.index.match(s, base_dir)
+        if m.path is None and container is not None:
+            path = s
+            if base_dir and not is_absolute(s) and env_tail(s) is None:
+                path = posixpath.normpath(posixpath.join(base_dir, s))
+            found = self._through_mount(rec, path, container) or self._only_in_container(
+                rec, s, label
+            )
+            if found:
+                return found
         if m.path is None:
             self._why(rec, UnknownCategory.NO_PROJECT, m.reason or f"{label} {s!r} not found")
             return None
@@ -2113,6 +2336,39 @@ class FileScanner:
             rec["notes"].append(m.note)
         rec["confidence"] = weakest(rec["confidence"], m.conf)
         return m.path
+
+    def _through_mount(self, rec: dict[str, Any], path: str, container: Container) -> str | None:
+        """A path in the container, through the bind mount whose target holds it: the longest
+        one decides. The host folder is matched as any project path is (LP-c05)."""
+        for target, source in sorted(container.mounts, key=lambda m: -len(m[0])):
+            root = target.rstrip("/")
+            if path != root and not path.startswith(f"{root}/"):
+                continue
+            rest = path[len(root) :].strip("/")
+            host = posixpath.join(source, rest) if rest else source
+            m = self.index.match(host)
+            if m.path is None:
+                return None
+            rec["notes"].append(
+                f"container path {path!r} is mounted from the host folder {host!r}"
+                + (f"; {m.note}" if m.note else "")
+            )
+            rec["confidence"] = weakest(rec["confidence"], "heuristic")
+            return m.path
+        return None
+
+    def _only_in_container(self, rec: dict[str, Any], raw: str, label: str) -> str | None:
+        """A container path that names no project, and no mount: the workspace's only project,
+        if it has exactly one (LP-c05). With two or more, it stays unknown."""
+        only = self.index.only_project()
+        if only is None:
+            return None
+        rec["notes"].append(
+            f"{label} {raw!r} is a path in the container, and neither it nor a mount names a dbt "
+            "project here; assumed the only dbt project in the workspace"
+        )
+        rec["confidence"] = weakest(rec["confidence"], "heuristic")
+        return only
 
     def _apply_selection(
         self,
@@ -2181,7 +2437,10 @@ class FileScanner:
         env: Val | None = None,
         mapped: bool = False,
         task_cwd: Val | None = None,
+        container: Container | None = None,
     ) -> None:
+        if inv.remote and container is None:
+            container = Container()  # `docker run ... dbt run`: its paths are the container's
         rec = self._base_link(kind, node, ctx, _dag_of(handle, ctx), handle.task_id)
         rec["owner"] = handle.owner or rec["owner"]
         if handle.task_id is None:
@@ -2217,6 +2476,8 @@ class FileScanner:
         base_dir = inv.cwd
         if task_cwd is not None and not inv.remote:
             cwd_s = as_str(task_cwd)
+            if cwd_s is None and isinstance(task_cwd, EnvPath) and env_tail(task_cwd.text):
+                cwd_s = task_cwd.text  # matched by the path after the variable (LP-0o1)
             if cwd_s is None:
                 self._why(
                     rec,
@@ -2230,7 +2491,7 @@ class FileScanner:
                     base_dir = cwd_s
                 elif not is_absolute(base_dir):
                     base_dir = posixpath.normpath(posixpath.join(cwd_s, base_dir))
-        proj = self._resolve_project(rec, project_raw, base_dir, ctx)
+        proj = self._resolve_project(rec, project_raw, base_dir, ctx, container=container)
         if proj:
             rec["project_path"] = self.index.relative(proj)
             if self.index.is_other_project(proj):
@@ -2256,6 +2517,7 @@ class FileScanner:
         kwargs: dict[str, Val],
         tid_v: Val | None,
         mapped: set[str] | None = None,
+        container: Container | None = None,
     ) -> None:
         if not ctx.emit:
             return
@@ -2268,6 +2530,23 @@ class FileScanner:
             commands = [cmd]
         for c in commands:
             text = as_str(c)
+            env_src = (
+                c
+                if text is None and isinstance(c, EnvPath) and not runs_a_variable(c.text)
+                else None
+            )
+            if env_src is not None:
+                # Parsed as a shell would see it: ${NAME} is unknown in a selector, and a path
+                # after it can still name the project (LP-0o1)
+                text = env_src.text
+                c = Const(
+                    text,
+                    notes=(
+                        f"the command is built on the environment variable(s) "
+                        f"{', '.join(c.names)}, which have no default in the DAG file; "
+                        "read as ${NAME}",
+                    ),
+                )
             if text is None:
                 reason = "shell command not statically resolvable" + (
                     f": {c.reason}" if isinstance(c, Unknown) else ""
@@ -2284,6 +2563,20 @@ class FileScanner:
                 )
                 continue
             invs, err = find_dbt_in_shell(text)
+            _explain_env(invs, env_src)
+            if env_src is not None and not invs:
+                # No dbt in what is known, and the variable may hold it: as unknown as before
+                self._unresolved(
+                    node.lineno,
+                    node.col_offset,
+                    f"shell command not statically resolvable: {env_src.reason}",
+                    ctx,
+                    dag_id=handle.dag_id,
+                    task_id=handle.task_id,  # type: ignore[attr-defined]
+                    category=UnknownCategory.NOT_LITERAL,
+                    mentions_dbt="dbt" in self._segment(node).lower(),
+                )
+                continue
             if err:
                 self._unresolved(
                     node.lineno,
@@ -2327,6 +2620,7 @@ class FileScanner:
                     env=kwargs.get("env") or kwargs.get("environment"),
                     mapped=bool(mapped),
                     task_cwd=kwargs.get("cwd") or kwargs.get("working_dir"),
+                    container=container,
                 )
 
     def _argv_task(
@@ -2337,6 +2631,7 @@ class FileScanner:
         ctx: Ctx,
         kwargs: dict[str, Val],
         tid_v: Val | None,
+        container: Container | None = None,
     ) -> None:
         if not ctx.emit:
             return
@@ -2347,7 +2642,7 @@ class FileScanner:
         for v in (cmds, arguments):
             if v is None:
                 continue
-            lst = as_str_list(v)
+            lst = _argv_texts(v)
             if lst is None:
                 self._unresolved(
                     node.lineno,
@@ -2378,6 +2673,14 @@ class FileScanner:
             )
         if not invs:
             self._no_dbt_command(handle, node, ctx, self._segment(node) + " ".join(parts))
+        _explain_env(
+            invs,
+            *(
+                item
+                for v in (cmds, arguments)
+                for item in (v.items if isinstance(v, ListV) else [v])
+            ),
+        )
         conf, notes = collect_meta(*conf_vals)
         for i, inv in enumerate(invs):
             self._link_from_invocation(
@@ -2392,6 +2695,7 @@ class FileScanner:
                 notes + parts_note,
                 tid_v,
                 env=kwargs.get("env_vars"),
+                container=container,
             )
 
     def _sql_task(
@@ -2501,7 +2805,8 @@ class FileScanner:
             return None
         if not item.strip().lower().endswith(".sql"):
             return item
-        path = os.path.join(os.path.dirname(self.path), item.strip())
+        # Airflow finds a template next to the DAG file, wherever the operator was built
+        path = os.path.join(os.path.dirname(self.home), item.strip())
         data = read_capped(path, MAX_SQL_BYTES, self.index.workspace)
         if data is None:
             self._unresolved(
@@ -2639,6 +2944,8 @@ class FileScanner:
         pd = kwargs.get("dir") or kwargs.get("project_dir")
         if pd is not None and as_str(pd) is not None:
             inv.project_dir = as_str(pd)
+        elif isinstance(pd, EnvPath) and env_tail(pd.text) is not None:
+            inv.project_dir = pd.text  # matched by the path after the variable (LP-0o1)
         self._link_from_invocation(
             "airflow_dbt_operator", handle, inv, 0, 1, node, ctx, "declared", (), tid_v
         )
@@ -2803,6 +3110,15 @@ class FileScanner:
             return m, project_dir
         if spec.manifest_path is not None and lm in ("automatic", "dbt_manifest"):
             mp = as_str(spec.manifest_path)
+            from_env = (
+                mp is None
+                and isinstance(spec.manifest_path, EnvPath)
+                and env_tail(spec.manifest_path.text) is not None
+            )
+            if from_env:
+                # ${AIRFLOW_HOME}/dags/dbt/x/target/manifest.json: only the owning project can be
+                # matched, by the path after the variable (LP-0o1)
+                mp = spec.manifest_path.text  # type: ignore[union-attr]
             if mp is None:
                 self._why(
                     rec, UnknownCategory.NOT_LITERAL, "ProjectConfig.manifest_path is not literal"
@@ -2827,7 +3143,7 @@ class FileScanner:
                     if pd:
                         rec["project_path"] = self.index.relative(pd)
                 return None, project_dir
-            declared = regular_file_inside(mp, self.index.workspace)
+            declared = None if from_env else regular_file_inside(mp, self.index.workspace)
             choice = self.index.load_declared(declared) if declared else None
             if choice is None or choice.manifest is None:
                 # remap a container path to the workspace project that owns it
@@ -2848,7 +3164,9 @@ class FileScanner:
                     choice = self.index.load_declared(remapped)
                     rec["notes"].append(f"manifest path {mp!r} remapped: {pm.note}")
                     rec["confidence"] = weakest(rec["confidence"], "heuristic")
-                    project_dir = project_dir or pm.path
+                    if not project_dir:
+                        project_dir = pm.path
+                        rec["project_path"] = self.index.relative(pm.path)  # type: ignore[arg-type]
                 else:
                     self._why(
                         rec,
@@ -2956,6 +3274,106 @@ def _to_str(v: Val | None) -> str | None:
     if isinstance(v, Const) and isinstance(v.value, bool):
         return str(v.value)
     return None
+
+
+def _fill(v: Val | None) -> str | None:
+    """What a value puts into a string it is formatted into: an environment variable with no
+    default goes in as ``${NAME}``."""
+    return v.text if isinstance(v, EnvPath) else _to_str(v)
+
+
+_HOST_PATH = ("/", "./", "../", "~", "$")
+
+
+def _docker_container(kwargs: dict[str, Val]) -> Container:
+    """A DockerOperator's bind mounts: ``mounts=[Mount(target=..., source=..., type="bind")]``,
+    and the older ``volumes=["/host/path:/container/path:ro"]``. A volume, a mount whose type is
+    not ``"bind"``, and anything not literal are left out: they name no host folder."""
+    found: list[tuple[str, str]] = []
+    mounts = kwargs.get("mounts")
+    for item in mounts.items if isinstance(mounts, ListV) else []:
+        if not (isinstance(item, CallV) and item.func.rsplit(".", 1)[-1] == "Mount"):
+            continue
+        target = as_str(item.arg("target", 0))
+        source = text_of(item.arg("source", 1))
+        if target and source and as_str(item.arg("type", 2)) == "bind" and is_absolute(target):
+            found.append((target, source))
+    volumes = kwargs.get("volumes")
+    for item in volumes.items if isinstance(volumes, ListV) else []:
+        spec = text_of(item)
+        if spec is None or spec.count(":") not in (1, 2):
+            continue
+        source, target = spec.split(":")[:2]
+        if source.startswith(_HOST_PATH) and is_absolute(target):
+            found.append((target, source))
+    return Container(tuple(found))
+
+
+def _explain_env(invs: list[DbtInvocation], *sources: Val | None) -> None:
+    """A field left unknown by ``${NAME}`` says where the variable came from in the DAG file."""
+    env = [s for s in sources if isinstance(s, EnvPath)]
+    if not env:
+        return
+    for inv in invs:
+        for key, reason in list(inv.unknown_fields.items()):
+            if "$" in reason:
+                inv.unknown_fields[key] = f"{reason}: {env[0].reason}"
+
+
+def _argv_texts(v: Val | None) -> list[str] | None:
+    """A container's ``cmds`` or ``arguments`` as strings, an environment variable with no
+    default written as ``${NAME}``; None when a part is unknown in any other way."""
+    if isinstance(v, EnvPath):
+        return [v.text]
+    if isinstance(v, ListV):
+        out: list[str] = []
+        for item in v.items:
+            text = item.text if isinstance(item, EnvPath) else as_str(item)
+            if text is None:
+                return None
+            out.append(text)
+        return out
+    return as_str_list(v)
+
+
+def _no_default(key: str | None, reason: str, line: int) -> Unknown:
+    """An environment variable read with no default: unknown, but it remembers its name, so a
+    path built on it can still be matched by what comes after it (LP-0o1)."""
+    if key is not None and _ENV_NAME.fullmatch(key):
+        return EnvPath(reason, line=line, text="${" + key + "}", names=(key,))
+    return Unknown(reason, line=line)
+
+
+def _env_value(parts: list[EnvPath], text: str, reason: str, line: int) -> Unknown:
+    """A string built on the environment variables in ``parts``, written out as ``text``."""
+    if len(text) > MAX_STRING:
+        return Unknown(f"a string of more than {MAX_STRING} characters", line=line)
+    names = tuple(dict.fromkeys(name for part in parts for name in part.names))
+    return EnvPath(reason, line=line, text=text, names=names)
+
+
+def _join_parts(vals: list[Val], line: int) -> Val | None:
+    """``posixpath.join`` over strings, paths and environment variables with no default, or None
+    when a part is none of these. A part that is absolute drops those before it, as in Python."""
+    texts = [text_of(v) for v in vals]
+    if not texts or any(t is None for t in texts):
+        return None
+    start = max((i for i, t in enumerate(texts) if is_absolute(t)), default=0)  # type: ignore[arg-type]
+    joined = posixpath.join(*texts)  # type: ignore[arg-type]
+    env = [v for v in vals[start:] if isinstance(v, EnvPath)]
+    if env:
+        return _env_value(env, joined, env[0].reason, line)
+    conf, notes = collect_meta(*vals)
+    return PathV(posixpath.normpath(joined), conf=weakest(conf, "inferred"), notes=notes)
+
+
+def _concat_env(left: Val, right: Val, line: int) -> Val | None:
+    """``os.environ["X"] + "/dbt"``: string concatenation that keeps the variable."""
+    a, b = _fill(left), _fill(right)
+    if a is None or b is None or isinstance(left, PathV) or isinstance(right, PathV):
+        return None
+    env = [v for v in (left, right) if isinstance(v, EnvPath)]
+    return _env_value(env, a + b, env[0].reason, line)
 
 
 def _call_name(call: ast.Call) -> str:
