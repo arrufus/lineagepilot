@@ -68,7 +68,7 @@ These are the conditions of §6.2, as beads issues. Condition 1 is met: Gate G1 
 - **E.5 done**: snapshot format 3, read a batch at a time, takes the server at 5,000 models from 608 to 388 MB cold and 511 to 384 MB warm on macOS, with the warm start at 0.90 s ([design.md §11](design.md#11-performance-budgets)).
 - **E.6 done**: on Windows, the server's memory watch stopped a child past its limit, in CI (`lineagepilot-lsp`, job `windows-memory-watch`, runs 43894714635 and 43899691674). LP-qy0.10 closed. The rest of the server's unit suite still hangs on Windows (LP-7t7), so the job runs the limits' tests alone.
 - **E.7**: the owner's.
-- **E.8**: the Trusted Publishing policy is active and the PAT revoked. What remains is the dry run: the release workflow's `marketplace-sign-in` job, started by hand, signs in without `VSCE_PAT` and publishes nothing ([release.md](release.md), checklist item 5).
+- **E.8 done**: the Trusted Publishing policy is active and the PAT revoked. The dry run passed: the release workflow's `marketplace-sign-in` job signed in without `VSCE_PAT` and published nothing (run 43911789684; [release.md](release.md), checklist item 5).
 - **Rollback to 0.2.0**: [release.md](release.md#rolling-back-to-an-earlier-release).
 
 These scanner issues are not entry conditions. They stay in the backlog as candidates for the G2 window: LP-2cd, LP-x29, LP-4aw, LP-nqk, LP-ykj and LP-o59.
