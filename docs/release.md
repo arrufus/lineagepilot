@@ -165,8 +165,8 @@ Gate G1 passed on 13 November 2026. The source goes public as a **new** reposito
 Work through these in order:
 
 1. [x] **Replace the jaffle-shop fixtures** (LP-0tf) with a project of our own, with CI green. Done on 13 November 2026 (pull request #2 in the archive): `fixtures/pilot-shop`, written for this repository, with its artifacts built by `make_fixture.py` on dbt 1.12.6 and Fusion 2.0.9. The older copies stay in the archive's history, which is why the source moved ([Publishing the source](#publishing-the-source)).
-2. [ ] **Trademark search for "LineagePilot"** (decision D-4), by someone qualified to do one. Keep "dbt" out of the name and the publisher, per dbt Labs' trademark guidelines.
-3. [ ] **Keep your personal email address out of what you publish.** Set git's identity to your GitHub noreply address, in this clone and globally, before any commit or tag for the new repository (an annotated tag records its tagger's address too):
+2. [x] **Trademark search for "LineagePilot"** (decision D-4), by someone qualified to do one. Keep "dbt" out of the name and the publisher, per dbt Labs' trademark guidelines. Done before the 0.2.0 release.
+3. [x] **Keep your personal email address out of what you publish.** Done before the 0.2.0 release: on 16 November 2026 every commit and tag in the public repository carried a noreply address. Set git's identity to your GitHub noreply address, in this clone and globally, before any commit or tag for the new repository (an annotated tag records its tagger's address too):
 
    ```bash
    git config user.email 30685928+arrufus@users.noreply.github.com
@@ -215,8 +215,8 @@ Work through these in order:
      - a tag ruleset for `v*` (**Release tags**) that only you can create, update or delete: it blocks all three, and the repository admin role bypasses it;
      - a branch ruleset for `main` that blocks deletion and force pushes, requires a pull request merged with a merge commit, and requires the secret scan's `gitleaks` check, from GitHub Actions, to pass. It does not require the core, server and extension checks. Their workflows run only when their paths change, and GitHub would hold a pull request that touches none of them forever, waiting for checks that never come. Their job names (`test (ubuntu-latest, 3.13)`, `lint-and-audit`) are also shared between workflows, so a required name could be met by the wrong one. Requiring them needs one job that always runs and reports their result: until then, step 3's `&&` is what holds them.
    - **Workflows from forks**: under **Settings › Actions › General**, require approval for workflows from fork pull requests by all outside contributors, so a stranger's pull request runs nothing until you have read it.
-8. [ ] **Confirm that the leaked Snowflake key was rotated** (DCS-hov, in data-capsule's tracker), as the security audit asks before a public release (LP-qy0.9).
-9. [ ] **Remove the beta collaborators** from the private archive ([beta.md](beta.md#after-g1)). None are added to the new repository.
+8. [x] **Confirm that the leaked Snowflake key was rotated** (DCS-hov, in data-capsule's tracker), as the security audit asks before a public release (LP-qy0.9). Done before the 0.2.0 release.
+9. [x] **Remove the beta collaborators** from the private archive ([beta.md](beta.md#after-g1)). None are added to the new repository. Done before the 0.2.0 release.
 
 Then **cut 0.2.0** in the new repository, as in [Cutting a release](#cutting-a-release), and approve the `registries` deployment when the run asks. `verify_release.py v0.2.0` then checks the attestations too. Done: tagged on 13 November 2026, and on both registries since 15 November. The files the Marketplace and Open VSX serve are byte-for-byte the VSIX on the GitHub release.
 
