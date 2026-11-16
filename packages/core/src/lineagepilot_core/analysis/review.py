@@ -34,8 +34,6 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from lineagepilot_core.airflow.link import AIRFLOW, is_airflow
-from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import Impact, ImpactedNode, impact, weakest
 from lineagepilot_core.analysis.traversal import Granularity, Step
@@ -55,6 +53,8 @@ from lineagepilot_core.graph.model import (
 )
 from lineagepilot_core.parsers.base import source_sha256
 from lineagepilot_core.project import PROJECT_FILE, DbtProject, relative_to
+from lineagepilot_core.readers.airflow.link import AIRFLOW, is_airflow
+from lineagepilot_core.readers.airflow.view import summary_json
 
 # Free text from the workspace is cut to this many characters (design section 9)
 TEXT_LIMIT = 4000

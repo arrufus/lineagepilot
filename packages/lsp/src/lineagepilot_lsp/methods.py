@@ -10,7 +10,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.airflow.view import airflow_view
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import weakest
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
@@ -24,6 +23,7 @@ from lineagepilot_core.export import (
     safe_filename,
 )
 from lineagepilot_core.graph.model import NodeKind, public_kind
+from lineagepilot_core.readers.airflow.view import airflow_view
 from pygls.exceptions import JsonRpcServerError
 from pygls.uris import to_fs_path
 

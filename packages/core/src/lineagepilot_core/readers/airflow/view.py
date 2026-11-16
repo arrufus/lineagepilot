@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from lineagepilot_core.airflow.link import AIRFLOW, AIRFLOW_ORIGINS, is_airflow
 from lineagepilot_core.graph.model import (
     AirflowSummary,
     Confidence,
@@ -20,6 +19,7 @@ from lineagepilot_core.graph.model import (
     NodeKind,
     public_kind,
 )
+from lineagepilot_core.readers.airflow.link import AIRFLOW, AIRFLOW_ORIGINS, is_airflow
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
 # Free text from the workspace is cut to this many characters (design section 9)

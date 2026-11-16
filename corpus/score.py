@@ -39,8 +39,14 @@ LABELS = HERE / "labels"
 WORK = HERE / "work"
 RESULTS = HERE / "results"
 CORE = REPO / "packages" / "core" / "src" / "lineagepilot_core"
-# What decides the answer: the scanner, and the two modules it leans on
-SCANNER_FILES = (*sorted((CORE / "airflow").glob("*.py")), CORE / "parsers" / "sql_parser.py", CORE / "rules" / "safe_regex.py")
+# What decides the answer: the Airflow reader, the shared reading code it runs on (task 7.2), and
+# the two modules it leans on. Task 7.9 gives each reader its own hash.
+SCANNER_FILES = (
+    *sorted((CORE / "readers" / "common").glob("*.py")),
+    *sorted((CORE / "readers" / "airflow").glob("*.py")),
+    CORE / "parsers" / "sql_parser.py",
+    CORE / "rules" / "safe_regex.py",
+)
 
 
 def scanner_hash() -> str:
@@ -53,7 +59,9 @@ def scanner_hash() -> str:
 
 
 def commit() -> str:
-    done = subprocess.run(["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True)
+    done = subprocess.run(
+        ["git", "rev-parse", "HEAD"], cwd=REPO, capture_output=True, text=True, check=True
+    )
     return done.stdout.strip()
 
 
@@ -74,8 +82,27 @@ def fetch() -> int:
         for args in (
             ["init", "-q"],
             ["remote", "add", "origin", label["url"]],
-            ["-c", "core.hooksPath=/dev/null", "fetch", "-q", "--depth", "1", "origin", label["sha"]],
-            ["-c", "core.hooksPath=/dev/null", "-c", "filter.lfs.smudge=", "-c", "filter.lfs.required=false", "checkout", "-q", "FETCH_HEAD"],
+            [
+                "-c",
+                "core.hooksPath=/dev/null",
+                "fetch",
+                "-q",
+                "--depth",
+                "1",
+                "origin",
+                label["sha"],
+            ],
+            [
+                "-c",
+                "core.hooksPath=/dev/null",
+                "-c",
+                "filter.lfs.smudge=",
+                "-c",
+                "filter.lfs.required=false",
+                "checkout",
+                "-q",
+                "FETCH_HEAD",
+            ],
         ):
             subprocess.run(["git", *args], cwd=target, check=True)
     return 0
@@ -86,7 +113,9 @@ def fetch() -> int:
 
 def expected_models(entry: dict[str, Any]) -> list[str]:
     package = entry.get("package")
-    return sorted(m if m.startswith("model.") else f"model.{package}.{m}" for m in entry.get("models", []))
+    return sorted(
+        m if m.startswith("model.") else f"model.{package}.{m}" for m in entry.get("models", [])
+    )
 
 
 def _identity(entry: dict[str, Any], link: dict[str, Any]) -> bool:
@@ -100,7 +129,9 @@ def _identity(entry: dict[str, Any], link: dict[str, Any]) -> bool:
     if unit == "task":
         if entry.get("command_index") and link.get("command_index", 0) != entry["command_index"]:
             return False
-        return link.get("task_id") == entry.get("task_id") and link.get("dbt_command") == entry.get("dbt_command")
+        return link.get("task_id") == entry.get("task_id") and link.get("dbt_command") == entry.get(
+            "dbt_command"
+        )
     return False
 
 
@@ -127,21 +158,35 @@ def score(label: dict[str, Any], scan: dict[str, Any]) -> dict[str, Any]:
             "expect": entry["expect"],
             "unsure": str(entry.get("reason", "")).startswith("UNSURE:"),
         }
-        match = next((i for i, x in enumerate(links) if i not in used and _identity(entry, x)), None)
-        here = [i for i, x in enumerate(links) if x["location"]["file"] == entry["file"] and _lines(x) & lines]
+        match = next(
+            (i for i, x in enumerate(links) if i not in used and _identity(entry, x)), None
+        )
+        here = [
+            i
+            for i, x in enumerate(links)
+            if x["location"]["file"] == entry["file"] and _lines(x) & lines
+        ]
         flagged = [u for u in unresolved if u["file"] == entry["file"] and u["line"] in lines]
         if entry["expect"] == "unknown":
             candidates = ([match] if match is not None else []) + [i for i in here if i != match]
-            guesses = [i for i in candidates if links[i]["status"] == "resolved" and links[i]["in_scope"]]
+            guesses = [
+                i for i in candidates if links[i]["status"] == "resolved" and links[i]["in_scope"]
+            ]
             unknown_links = [i for i in candidates if links[i]["status"] == "unknown"]
             used.update(candidates)
             if guesses and not unknown_links:
-                row.update(outcome="miss", reason="resolved to a guess where only unknown is correct", got=links[guesses[0]]["resolved_models"])
+                row.update(
+                    outcome="miss",
+                    reason="resolved to a guess where only unknown is correct",
+                    got=links[guesses[0]]["resolved_models"],
+                )
             elif unknown_links or flagged:
                 row.update(outcome="unknown_legit" if entry.get("legit") else "unknown_not_legit")
                 row["category"] = next((u.get("category") for u in flagged), None)
             else:
-                row.update(outcome="miss", reason="silently dropped: no link and no unresolved record")
+                row.update(
+                    outcome="miss", reason="silently dropped: no link and no unresolved record"
+                )
             rows.append(row)
             continue
         expected = expected_models(entry)
@@ -154,10 +199,18 @@ def score(label: dict[str, Any], scan: dict[str, Any]) -> dict[str, Any]:
                 row.update(
                     outcome="miss",
                     reason="found with the wrong identity",
-                    got={k: link.get(k) for k in ("dag_id", "task_id", "group_id", "dbt_command", "command_index")},
+                    got={
+                        k: link.get(k)
+                        for k in ("dag_id", "task_id", "group_id", "dbt_command", "command_index")
+                    },
                 )
             elif flagged:
-                row.update(outcome="miss", reason="only an unresolved record", category=flagged[0].get("category"), detail=flagged[0]["reason"][:300])
+                row.update(
+                    outcome="miss",
+                    reason="only an unresolved record",
+                    category=flagged[0].get("category"),
+                    detail=flagged[0]["reason"][:300],
+                )
             else:
                 row.update(outcome="miss", reason="not found: no link and no unresolved record")
             rows.append(row)
@@ -166,12 +219,27 @@ def score(label: dict[str, Any], scan: dict[str, Any]) -> dict[str, Any]:
         link = links[match]
         row["confidence"] = link["confidence"]
         if link["status"] != "resolved":
-            row.update(outcome="miss", reason="unknown", category=link.get("category"), detail="; ".join(link["unknown_reasons"])[:300])
+            row.update(
+                outcome="miss",
+                reason="unknown",
+                category=link.get("category"),
+                detail="; ".join(link["unknown_reasons"])[:300],
+            )
         elif (link.get("project_path") or None) != entry.get("project_path"):
-            row.update(outcome="miss", reason="wrong project", got=link.get("project_path"), expected=entry.get("project_path"))
+            row.update(
+                outcome="miss",
+                reason="wrong project",
+                got=link.get("project_path"),
+                expected=entry.get("project_path"),
+            )
         elif sorted(link["resolved_models"]) != expected:
             got = set(link["resolved_models"])
-            row.update(outcome="miss", reason="wrong model set", missing=sorted(set(expected) - got), extra=sorted(got - set(expected)))
+            row.update(
+                outcome="miss",
+                reason="wrong model set",
+                missing=sorted(set(expected) - got),
+                extra=sorted(got - set(expected)),
+            )
         else:
             row["outcome"] = "correct"
         if link["status"] == "resolved" and "other_nodes" in entry:
@@ -179,12 +247,20 @@ def score(label: dict[str, Any], scan: dict[str, Any]) -> dict[str, Any]:
             others = {n for n in link["resolved_nodes"] if n not in models}
             row["other_nodes_match"] = others == set(entry["other_nodes"] or [])
             if not row["other_nodes_match"]:
-                row["other_nodes_diff"] = {"missing": sorted(set(entry["other_nodes"] or []) - others), "extra": sorted(others - set(entry["other_nodes"] or []))}
+                row["other_nodes_diff"] = {
+                    "missing": sorted(set(entry["other_nodes"] or []) - others),
+                    "extra": sorted(others - set(entry["other_nodes"] or [])),
+                }
         rows.append(row)
     unmatched = [links[i] for i, x in enumerate(links) if i not in used and x["in_scope"]]
     false_positives = [_brief(x) for x in unmatched if x["status"] == "resolved"]
     extra_unknown = [_brief(x) for x in unmatched if x["status"] == "unknown"]
-    return {"rows": rows, "false_positives": false_positives, "unexpected_unknown_links": extra_unknown, "metrics": metrics(rows, false_positives, extra_unknown, scan)}
+    return {
+        "rows": rows,
+        "false_positives": false_positives,
+        "unexpected_unknown_links": extra_unknown,
+        "metrics": metrics(rows, false_positives, extra_unknown, scan),
+    }
 
 
 def _brief(link: dict[str, Any]) -> dict[str, Any]:
@@ -200,7 +276,12 @@ def _brief(link: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def metrics(rows: list[dict[str, Any]], false_positives: list, extra_unknown: list, scan: dict[str, Any] | None = None) -> dict[str, Any]:
+def metrics(
+    rows: list[dict[str, Any]],
+    false_positives: list,
+    extra_unknown: list,
+    scan: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     resolvable = [r for r in rows if r["expect"] == "resolved"]
     misses = [r for r in rows if r["outcome"] == "miss"]
     confidence: dict[str, int] = {}
@@ -237,7 +318,11 @@ def pooled(results: list[dict[str, Any]]) -> dict[str, Any]:
     for row in rows:
         by_operator.setdefault(row["operator"] or "?", []).append(row)
     summary["by_operator"] = {
-        operator: {k: v for k, v in metrics(found, [], []).items() if k in ("expected_links", "correct", "misses", "miss_rate")}
+        operator: {
+            k: v
+            for k, v in metrics(found, [], []).items()
+            if k in ("expected_links", "correct", "misses", "miss_rate")
+        }
         for operator, found in sorted(by_operator.items())
     }
     reasons: dict[str, int] = {}
@@ -249,8 +334,8 @@ def pooled(results: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def run(name: str) -> int:
-    from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
-    from lineagepilot_core.airflow.workspace import scan_workspace
+    from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS
+    from lineagepilot_core.readers.airflow.workspace import scan_workspace
 
     sets: dict[str, list[dict[str, Any]]] = {"labelled_folders": [], "default_folders": []}
     repos = []
@@ -260,7 +345,14 @@ def run(name: str) -> int:
         default = score(label, scan_workspace(root, DEFAULT_DAG_FOLDERS))
         sets["labelled_folders"].append(labelled)
         sets["default_folders"].append(default)
-        repos.append({"repo": label["repo"], "sha": label["sha"], "labelled_folders": labelled, "default_folders": {"metrics": default["metrics"]}})
+        repos.append(
+            {
+                "repo": label["repo"],
+                "sha": label["sha"],
+                "labelled_folders": labelled,
+                "default_folders": {"metrics": default["metrics"]},
+            }
+        )
     output = {
         "scanner_sha256": scanner_hash(),
         "commit": commit(),
@@ -268,8 +360,13 @@ def run(name: str) -> int:
         "repos": repos,
     }
     RESULTS.mkdir(exist_ok=True)
-    (RESULTS / f"{name}.json").write_text(json.dumps(output, indent=1) + "\n", encoding="utf-8", newline="\n")
-    sys.stdout.write(json.dumps({"scanner_sha256": output["scanner_sha256"], **output["summary"]}, indent=1) + "\n")
+    (RESULTS / f"{name}.json").write_text(
+        json.dumps(output, indent=1) + "\n", encoding="utf-8", newline="\n"
+    )
+    sys.stdout.write(
+        json.dumps({"scanner_sha256": output["scanner_sha256"], **output["summary"]}, indent=1)
+        + "\n"
+    )
     return 0
 
 

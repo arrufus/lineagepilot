@@ -21,11 +21,11 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from lineagepilot_core.airflow.link import is_airflow
-from lineagepilot_core.airflow.safe_io import regular_file_inside
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import Node, NodeKind
 from lineagepilot_core.parsers import safe_yaml
+from lineagepilot_core.readers.airflow.link import is_airflow
+from lineagepilot_core.readers.common.safe_io import regular_file_inside
 
 from lineagepilot_lsp.project import DbtProject
 

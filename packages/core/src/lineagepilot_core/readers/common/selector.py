@@ -22,7 +22,7 @@ from dataclasses import dataclass, field
 from fnmatch import fnmatchcase
 from typing import Any
 
-from lineagepilot_core.airflow.manifest import Manifest, Node
+from lineagepilot_core.readers.common.manifest import Manifest, Node
 
 RAW_SELECTOR_PATTERN = re.compile(
     r"\A"

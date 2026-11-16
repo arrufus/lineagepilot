@@ -20,8 +20,8 @@ import os
 import posixpath
 from dataclasses import dataclass, field
 
-from lineagepilot_core.airflow.manifest import Manifest, ManifestError, load_manifest
-from lineagepilot_core.airflow.safe_io import (
+from lineagepilot_core.readers.common.manifest import Manifest, ManifestError, load_manifest
+from lineagepilot_core.readers.common.safe_io import (
     env_tail,
     is_absolute,
     regular_file_inside,
@@ -29,7 +29,7 @@ from lineagepilot_core.airflow.safe_io import (
     to_posix,
     walk_inside,
 )
-from lineagepilot_core.airflow.standin import build_standin
+from lineagepilot_core.readers.common.standin import build_standin
 
 SKIP_DIRS = {
     ".git",

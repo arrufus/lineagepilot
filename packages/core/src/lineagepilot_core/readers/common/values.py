@@ -13,7 +13,7 @@ import posixpath
 from dataclasses import dataclass, field
 from typing import Any
 
-from lineagepilot_core.airflow.safe_io import is_absolute
+from lineagepilot_core.readers.common.safe_io import is_absolute
 
 CONFIDENCE_RANK = {"declared": 3, "inferred": 2, "heuristic": 1}
 

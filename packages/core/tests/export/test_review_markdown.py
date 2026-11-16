@@ -15,12 +15,12 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 from support import apply_rename, copy_impact_shop
 
-from lineagepilot_core.airflow.link import link_airflow
-from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.export.review_markdown import MAX_CHARS, render_markdown
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
+from lineagepilot_core.readers.airflow.link import link_airflow
+from lineagepilot_core.readers.airflow.workspace import scan_airflow
 
 GOLDEN = Path(__file__).parents[1] / "fixtures" / "review" / "rename-order-total.md"
 BASE = BaseRef("origin/main", "0123456789abcdef0123456789abcdef01234567")
@@ -62,8 +62,8 @@ def test_the_order_of_the_input_does_not_matter(root):
 _RENDER_SCRIPT = """
 import sys
 from pathlib import Path
-from lineagepilot_core.airflow.link import link_airflow
-from lineagepilot_core.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.airflow.link import link_airflow
+from lineagepilot_core.readers.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project

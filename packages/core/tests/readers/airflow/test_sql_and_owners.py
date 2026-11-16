@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from lineagepilot_core.airflow.dag_static import _tables_of, scan_dags
+from lineagepilot_core.readers.airflow.dag_static import _tables_of, scan_dags
 
 HEADER = """
 from airflow import DAG

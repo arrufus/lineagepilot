@@ -14,15 +14,15 @@ from pathlib import Path
 import pytest
 from airflow_support import find_link
 
-from lineagepilot_core.airflow import dag_static
-from lineagepilot_core.airflow.dag_static import (
+from lineagepilot_core.readers.airflow import dag_static
+from lineagepilot_core.readers.airflow.dag_static import (
     clean_dag_folder,
     discover_dag_files,
     in_dag_folder,
     resolve_dag_folders,
     scan_dags,
 )
-from lineagepilot_core.airflow.safe_io import is_absolute, read_capped
+from lineagepilot_core.readers.common.safe_io import is_absolute, read_capped
 
 HEADER = """
 from airflow import DAG
@@ -465,7 +465,7 @@ class TestUnknownCategories:
         assert found == {"other_operator"}
 
     def test_every_category_has_a_label_and_a_way_out(self):
-        from lineagepilot_core.airflow.categories import (
+        from lineagepilot_core.readers.common.categories import (
             ANNOTATE,
             UnknownCategory,
             explanation,

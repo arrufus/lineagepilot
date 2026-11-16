@@ -11,9 +11,6 @@ from pathlib import Path
 import pytest
 from support import IMPACT_SHOP, copy_impact_shop
 
-from lineagepilot_core.airflow.link import link_airflow, mark_not_analysed, unlink_airflow
-from lineagepilot_core.airflow.view import airflow_view, summary_json
-from lineagepilot_core.airflow.workspace import default_workspace, scan_airflow, scan_workspace
 from lineagepilot_core.analysis.impact import impact
 from lineagepilot_core.analysis.pii import pii_index
 from lineagepilot_core.analysis.traversal import Direction, Granularity, steps
@@ -21,6 +18,13 @@ from lineagepilot_core.export import export_graph, graph_view
 from lineagepilot_core.export.graph import ExportFormat
 from lineagepilot_core.graph.model import Confidence, EdgeKind, NodeKind, Origin
 from lineagepilot_core.indexer import index_project
+from lineagepilot_core.readers.airflow.link import link_airflow, mark_not_analysed, unlink_airflow
+from lineagepilot_core.readers.airflow.view import airflow_view, summary_json
+from lineagepilot_core.readers.airflow.workspace import (
+    default_workspace,
+    scan_airflow,
+    scan_workspace,
+)
 from lineagepilot_core.rules import evaluate
 from lineagepilot_core.snapshot import from_dict, to_dict
 
