@@ -11,12 +11,16 @@
 #      Trusted Publishing, so no Marketplace token is stored; the Open VSX token is a secret of
 #      that environment.
 #
+# Started by hand from main (Run workflow), it releases nothing. It only checks that the
+# Marketplace's Trusted Publishing policy lets this workflow sign in (marketplace-sign-in, below).
+#
 # Nothing else publishes: a VSIX built anywhere but here never reaches a registry.
 name: lineagepilot-release
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -27,7 +31,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Every job of a release needs this one, so a run started by hand skips them all
   verify:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -225,3 +231,66 @@ jobs:
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
         run: npx ovsx publish "release/lineagepilot-$VERSION.vsix"
+
+  # Started by hand from main: checks that the Marketplace's Trusted Publishing policy lets this
+  # workflow sign in, without releasing anything (docs/release.md, item 5). It offers the latest
+  # release's VSIX, which the Marketplace already has: vsce signs in first, then sees the version
+  # is there and stops before uploading. Run it after changing the policy, this file's name or the
+  # 'registries' environment. The environment admits main only while the check is wanted.
+  marketplace-sign-in:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: registries
+    permissions:
+      contents: read
+      id-token: write
+    defaults:
+      run:
+        shell: bash
+        working-directory: extension
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+          package-manager-cache: false
+      # vsce, at the version in package-lock.json. No install scripts and no cache: this job can
+      # get a credential that publishes
+      - run: npm ci --ignore-scripts
+      - name: The latest release's VSIX, as released
+        id: latest
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="$(gh release view --repo "$GITHUB_REPOSITORY" --json tagName --jq .tagName)"
+          version="${tag#v}"
+          gh release download "$tag" --repo "$GITHUB_REPOSITORY" --dir release \
+            --pattern "lineagepilot-$version.vsix" --pattern SHA256SUMS
+          (cd release && sha256sum --check SHA256SUMS)
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+      # The check must never publish, so it stops here unless the Marketplace has this version
+      - name: The Marketplace has that version already
+        env:
+          VERSION: ${{ steps.latest.outputs.version }}
+        run: |
+          id="$(node -p 'const p = require("./package.json"); `${p.publisher}.${p.name}`')"
+          npx vsce show "$id" --json | node -e '
+            const ext = JSON.parse(require("fs").readFileSync(0, "utf8"));
+            const version = process.env.VERSION;
+            if (!ext?.versions?.some(v => v.version === version && !v.targetPlatform)) {
+              console.log(`::error::The Marketplace does not have ${version}: this check would publish it`);
+              process.exit(1);
+            }
+            console.log(`The Marketplace has ${version}`);
+          '
+      - name: Sign in with Trusted Publishing, and publish nothing
+        env:
+          VERSION: ${{ steps.latest.outputs.version }}
+        run: |
+          npx vsce publish --oidc --skip-duplicate --packagePath "release/lineagepilot-$VERSION.vsix" \
+            | tee "$RUNNER_TEMP/publish.log"
+          grep -qF "Version $VERSION is already published. Skipping publish." "$RUNNER_TEMP/publish.log"
+          echo "Signed in to the Marketplace with Trusted Publishing; nothing was published"
