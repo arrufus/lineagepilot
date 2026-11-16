@@ -1,6 +1,6 @@
 # Implementation plan: phases 7–11, beyond dbt and Airflow
 
-**Status**: Draft, 15 November 2026. It implements [design_next_phase.md](design_next_phase.md), which is still a proposal. It becomes the plan when the product owner approves decisions D-8 to D-14 (see [Decisions and questions](#decisions-and-questions-and-when-each-is-needed)).
+**Status**: The plan, approved on 16 November 2026 with decisions D-8 to D-14 ([design.md §15](design.md#15-decisions)). It implements [design_next_phase.md](design_next_phase.md). Drafted on 15 November 2026.
 **Date**: 15 November 2026
 **Companions**: [design_next_phase.md](design_next_phase.md) (what and why), [implementation_plan.md](implementation_plan.md) (phases 0–6, whose conventions this plan keeps)
 
@@ -62,16 +62,16 @@ These are the conditions of §6.2, as beads issues. Condition 1 is met: Gate G1 
 
 **Exit**: E.1–E.6 are closed and the fresh miss rate is reported. The design sets no threshold, so the product owner reads the result before Phase 7 starts. If the miss rate barely moves, that is a reason to keep working on Airflow, not to widen (§6.2).
 
-**Status, 16 November 2026** (merged to `main` in PR #5, `7c5cbd4`). E.1–E.6 are closed and the fresh miss rate is reported, so the exit's own conditions are met; the owner's reading of E.4 remains:
+**Status, 16 November 2026: the Entry phase is done.** E.1–E.8 are done, and the product owner read E.4's result and decided to proceed to Phase 7:
 - **E.1–E.3 done** (`fd686c8`): LP-0o1, LP-z2x and LP-c05 closed, each with its fixtures.
 - **E.4 done**: the fresh corpus scores 15 of 35, a miss rate of 57.1%, with no false positives. **The 0.2.0 scanner scores the same 15**: the sample holds almost none of the patterns E.1–E.3 fix, so it does not measure them. On the first corpus, now in-sample, they take 17 to 55 of 106. See [corpus/README.md](../corpus/README.md#a-second-corpus-after-the-entry-fixes-lp-aax); follow-ups LP-244 to LP-249.
 - **E.5 done**: snapshot format 3, read a batch at a time, takes the server at 5,000 models from 608 to 388 MB cold and 511 to 384 MB warm on macOS, with the warm start at 0.90 s ([design.md §11](design.md#11-performance-budgets)).
 - **E.6 done**: on Windows, the server's memory watch stopped a child past its limit, in CI (`lineagepilot-lsp`, job `windows-memory-watch`, runs 43894714635 and 43899691674). LP-qy0.10 closed. The rest of the server's unit suite still hangs on Windows (LP-7t7), so the job runs the limits' tests alone.
-- **E.7**: the owner's.
+- **E.7 done**: D-8 to D-14 approved as proposed and recorded in [design.md §15](design.md#15-decisions). Q3 answered: the CI Action comes after phases 7–11.
 - **E.8 done**: the Trusted Publishing policy is active and the PAT revoked. The dry run passed: the release workflow's `marketplace-sign-in` job signed in without `VSCE_PAT` and published nothing (run 43911789684; [release.md](release.md), checklist item 5).
 - **Rollback to 0.2.0**: [release.md](release.md#rolling-back-to-an-earlier-release).
 
-These scanner issues are not entry conditions. They stay in the backlog as candidates for the G2 window: LP-2cd, LP-x29, LP-4aw, LP-nqk, LP-ykj and LP-o59.
+These scanner issues are not entry conditions. They stay in the backlog as candidates for the G2 window: LP-2cd, LP-x29, LP-4aw, LP-nqk, LP-ykj and LP-o59, and the causes the second corpus found, LP-244 to LP-249.
 
 ---
 
@@ -91,7 +91,7 @@ Order: 7.1 and 7.2 first, then 7.3. After that, 7.4–7.9 can run in any order, 
 | 7.8 | **The dbt semantic layer (task 7.5 of §6.3).** Add `semantic_model.`, `metric.` and `saved_query.` to `INDEXED_PREFIXES` in `parsers/dbt_parser.py`, as consumer nodes with `tool="dbt_semantic"`. Edges: `consumes` from a semantic model to its model; its measures, dimensions and entities become columns under it, each consuming the model columns its `expr`, or its name, refers to (expressions go through sqlglot, and anything else is an unknown); a metric consumes the measures or metrics it uses; a saved query consumes its metrics and group-by dimensions, and lists its exports. `make_fixture.py` adds to `fixtures/impact-shop`, with real dbt, a semantic model on the mart, a metric whose measure uses the renamed column, and a saved query with an export. If dbt needs a time spine model to parse metrics, the fixture adds one. | Renaming the mart column lists the metric and the saved query, with their owners. |
 | 7.9 | **The corpus scorer (task 7.6 of §6.3).** `corpus/score.py` scores any reader, with one folder per tool (`corpus/<tool>/`, holding `repos.json`, `labels/` and `results/`) and a reader hash per tool. Today `SCANNER_FILES` hashes `airflow/*.py`, which 7.2 moves. The Airflow corpus moves to `corpus/airflow/`. | Scoring the current scanner gives the same numbers as before the move. |
 | 7.10 | **A budget harness for all readers.** `server_budgets.py` gets a section for each reader. A benchmark checks that a review of 100 changed models with every reader turned on stays within 300 ms (§8.2). In Phase 7 it covers Airflow and the semantic layer, and each later phase adds its reader. | The design.md §11 budgets hold, measured. |
-| 7.11 | **Docs and release 0.3.0.** design.md §15 records D-8 to D-14. Update the README, the CHANGELOG and the annotation file's documentation. | 0.3.0 is on both registries. |
+| 7.11 | **Docs and release 0.3.0.** (design.md §15 recorded D-8 to D-14 at E.7.) Update the README, the CHANGELOG and the annotation file's documentation. | 0.3.0 is on both registries. |
 
 **Exit**:
 - The Phase 5 acceptance scenario passes. Its golden files change only by the renames agreed in D-9.
@@ -233,6 +233,8 @@ If phases 8–11 are reordered, the labelling order follows.
 
 ## Decisions and questions, and when each is needed
 
+D-8 to D-14 were approved as proposed on 16 November 2026, and Q3 was answered: after phases 7–11. Q1, Q2 and Q4 remain open.
+
 | Item | Needed before | Why |
 |---|---|---|
 | D-8 (how tools are chosen), D-13 (no second framework) | Phase 7 | They set the scope of the whole plan. |
@@ -261,13 +263,13 @@ Every task meets the definition of done for phases 0–6 ([implementation_plan.m
 
 ## Tracking
 
-Not yet filed. When D-8 to D-14 are approved, file in beads under the prefix `LP`: one epic per phase, and G2 as a gate task, as G1 was. Phase 7 blocks on the Entry epic. Phases 8 and 9 block only on Phase 7, so they can be reordered. G2 blocks on Phase 9, and phases 10 and 11 block on G2. `bd ready` then shows only work that can start.
+Filed in beads on 16 November 2026, when D-8 to D-14 were approved: one epic per phase, and G2 as a gate task. Phase 7 blocks on the Entry epic. Phases 8 and 9 block only on Phase 7, so they can be reordered. G2 blocks on Phase 9, and phases 10 and 11 block on G2. `bd ready` shows only work that can start. Each phase's tasks are filed under its epic when the phase starts.
 
 | Phase | Epic | Gate |
 |---|---|---|
-| Entry | To be filed. It gathers LP-0o1, LP-z2x, LP-c05, LP-aax, LP-dtt and LP-qy0.10 | |
-| 7 A multi-tool graph and the semantic layer | To be filed | |
-| 8 Dagster | To be filed | |
-| 9 BI | To be filed | G2 |
-| 10 Declarative orchestrators | To be filed | |
-| 11 Upstream | To be filed | |
+| Entry | LP-250, done. It gathers LP-0o1, LP-z2x, LP-c05, LP-aax, LP-dtt and LP-qy0.10 | |
+| 7 A multi-tool graph and the semantic layer | LP-251 | |
+| 8 Dagster | LP-252 | |
+| 9 BI | LP-253 | G2: LP-254 |
+| 10 Declarative orchestrators | LP-255 | |
+| 11 Upstream | LP-256 | |

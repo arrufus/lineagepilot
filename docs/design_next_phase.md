@@ -1,6 +1,6 @@
 # LineagePilot after the MVP: beyond dbt and Airflow
 
-**Status**: Proposal, 11 November 2026. Not approved. Nothing here starts before Gate G1 (LP-7er.4) decides to continue.
+**Status**: Approved, 16 November 2026. The product owner approved decisions D-8 to D-14 as proposed, recorded in [design.md §15](design.md#15-decisions), and answered Q3: the CI Action comes after phases 7–11. Written as a proposal on 11 November 2026; Gate G1 passed on 13 November.
 **Date**: 11 November 2026
 **Builds on**: [design.md](design.md), in particular section 2 (Positioning), and [implementation_plan.md](implementation_plan.md), whose phases 0–6 this continues as phases 7–11.
 **Tracking**: LP-7p9
@@ -575,7 +575,7 @@ Otherwise, stop widening and deepen what exists: miss rates, and column-level co
 
 ## 11. Decisions proposed
 
-These continue the numbering of design section 15. D-6 (how far to support Fusion) is unchanged.
+These continue the numbering of design section 15. D-6 (how far to support Fusion) is unchanged. All seven were approved as proposed on 16 November 2026.
 
 | # | Decision | Recommendation |
 |---|---|---|
@@ -609,7 +609,7 @@ These continue the numbering of design section 15. D-6 (how far to support Fusio
 
 1. Should the beta's weekly check-in form ask now which orchestration, BI and ingestion tools each team uses? The phase order would then rest on the beta's answer, not only on download counts.
 2. Power BI's users are mostly Microsoft-stack enterprises, and Power BI Projects are opt-in for them. Is that an audience the product wants? The alternative is Phase 9 with Looker and Lightdash only.
-3. Does the CI GitHub Action from the backlog, the possible paid tier, come before, alongside or after phases 7–11? Every phase reaches `lineagepilot review`, so every phase also reaches the Action.
+3. Does the CI GitHub Action from the backlog, the possible paid tier, come before, alongside or after phases 7–11? Every phase reaches `lineagepilot review`, so every phase also reaches the Action. **Answered 16 November 2026: after.**
 4. D-12: is the no-network promise permanent, or a default that a user can turn off?
 
 ---
