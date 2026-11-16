@@ -1,0 +1,208 @@
+{
+  "selected_on": "2026-11-16",
+  "queries": [
+    "gh search code 'BashOperator \"dbt run\" language:python' --limit 50 --json repository,path",
+    "gh search code 'KubernetesPodOperator dbt language:python' --limit 50 --json repository,path",
+    "gh search code 'DockerOperator dbt language:python' --limit 50 --json repository,path",
+    "gh search code 'DbtTaskGroup ProjectConfig language:python' --limit 30 --json repository,path",
+    "gh search code 'DbtDag ProjectConfig language:python' --limit 30 --json repository,path"
+  ],
+  "excluded": [
+    "21voidx/F1_RealtimeReplay_Historical_Project",
+    "anhhoangdev/KonohaDataPlatform",
+    "astronomer/cosmos-ebook-companion",
+    "dataengineerankur/dms-snowpipe-dbt-airflow",
+    "datamindedbe/eu-data-platform",
+    "dungtran174/ecommerce-lakehouse-platform",
+    "feast-dev/feast-workshop",
+    "feluelle/kind-data-platform",
+    "halltape/HalltapeETL",
+    "Kevin-Nduati/My-Spotify-Wrapped",
+    "Nathnael12/Datawarehouse",
+    "Som-Energia/somenergia-jardiner",
+    "sungchun12/airflow-toolkit",
+    "teamdatatonic/dop",
+    "Toloka/dbt-af",
+    "UsmanAdnan234/flight-elt-airflow-dbt-snowflake",
+    "zhfem05-star/steam_analysis",
+    "astronomer/astronomer-cosmos",
+    "astronomer/cosmos-demo",
+    "astronomer/airflow-dbt-demo",
+    "konosp/dbt-airflow-docker-compose",
+    "danielvdende/data-testing-with-airflow",
+    "GokuMohandas/data-engineering",
+    "saastoolset/dbt-core-airflow-template"
+  ],
+  "repos": [
+    {
+      "repo": "Victor-Kipruto-Rop/cloud-etl-pipeline",
+      "url": "https://github.com/Victor-Kipruto-Rop/cloud-etl-pipeline",
+      "sha": "15898ad5c5dd2a12f72fb86503b4b5c648b9ebb7",
+      "license": "MIT",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow",
+      "url": "https://github.com/ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow",
+      "sha": "2ddce887bf7fd93d4138c4a7e4314d76285d9110",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "harrydevforlife/building-lakehouse",
+      "url": "https://github.com/harrydevforlife/building-lakehouse",
+      "sha": "74ca719077586090ab69986d2baac340f64d6237",
+      "license": "none found (read as data only)",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 11,
+      "resolved": 11,
+      "unknown": 0
+    },
+    {
+      "repo": "Rodrigo-Henrique21/data_pipeline_airflow_dbt",
+      "url": "https://github.com/Rodrigo-Henrique21/data_pipeline_airflow_dbt",
+      "sha": "d81d0cbe65c515ddb0653af07fded88e79613cdc",
+      "license": "GPL-3.0",
+      "operators": [
+        "BashOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "Rafavermar/BigQuery-K8s-dbt-airflow",
+      "url": "https://github.com/Rafavermar/BigQuery-K8s-dbt-airflow",
+      "sha": "b5a3710945e096eb822480d33b0058c2cdb24993",
+      "license": "none found (read as data only)",
+      "operators": [
+        "KubernetesPodOperator"
+      ],
+      "links": 3,
+      "resolved": 3,
+      "unknown": 0
+    },
+    {
+      "repo": "richardhe-fundamenta/airflow_k8_dbt_demo",
+      "url": "https://github.com/richardhe-fundamenta/airflow_k8_dbt_demo",
+      "sha": "8c43c18bc6094dfdd1f8d0d9803b42a40f2d01ba",
+      "license": "none found (read as data only)",
+      "operators": [
+        "KubernetesPodOperator"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "grinfeld/py_spark_playground",
+      "url": "https://github.com/grinfeld/py_spark_playground",
+      "sha": "3f9ea0f1f7ae1b99ff9a734a0c6c1ce4e392f8a9",
+      "license": "none found (read as data only)",
+      "operators": [
+        "KubernetesPodOperator",
+        "SSHOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "stevetran77/weather-api-project",
+      "url": "https://github.com/stevetran77/weather-api-project",
+      "sha": "51715242b5f4f3a69f655b5f0a6eab85adf2980f",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "seon99il/airflow-template",
+      "url": "https://github.com/seon99il/airflow-template",
+      "sha": "51a0a18b45deb188dde4111654bcc5977c5f3a22",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DbtDockerOperator"
+      ],
+      "links": 2,
+      "resolved": 2,
+      "unknown": 0
+    },
+    {
+      "repo": "ArMac05/NBA-Data-Engineering-Pipeline",
+      "url": "https://github.com/ArMac05/NBA-Data-Engineering-Pipeline",
+      "sha": "ccac6fedc901654f3936498afbbf8d1bbdc90807",
+      "license": "MIT",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "rionurfadilah229/ELT-Pipeline",
+      "url": "https://github.com/rionurfadilah229/ELT-Pipeline",
+      "sha": "b956beb25545130e104f2e357a622063c1a2247e",
+      "license": "MIT",
+      "operators": [
+        "DockerOperator"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "hainguyenle89/airflow-dags",
+      "url": "https://github.com/hainguyenle89/airflow-dags",
+      "sha": "8be4907aa8e83e77e33e9922ec831582ab3142f8",
+      "license": "none found (read as data only)",
+      "operators": [
+        "DbtDag",
+        "DbtSeedOperator",
+        "DbtTaskGroup"
+      ],
+      "links": 6,
+      "resolved": 6,
+      "unknown": 0
+    }
+  ],
+  "rejected": [],
+  "shortfalls": "The two Cosmos queries ran dry: across their 60 hits only one came from a repository that was not already labelled, excluded or passed over (hainguyenle89/airflow-dags, from the DbtDag query). The two missing Cosmos places went to one more repository from the BashOperator query and one more from the DockerOperator query, so the mix is 4 BashOperator, 3 KubernetesPodOperator, 4 DockerOperator and 1 Cosmos. No candidate was rejected. No link expects unknown.",
+  "selection_notes": "Searches run on 2026-11-16 with the five queries above; hits were taken in returned order, none skipped for being easy or hard. Passed over without counting as rejections: the 17 first-corpus repositories and the 7 excluded ones (listed under excluded), and the six the first corpus rejected for reasons that still hold (airflow-plugins/Example-Airflow-DAGs, GoogleCloudPlatform/professional-services, UllasP0707/bellwether, gmyrianthous/dbt-airflow, awslabs/runner-dbt-aws-airflow, cal-itp/data-infra). hainguyenle89/airflow-dags, which the first corpus found qualifying but did not take, was eligible and was taken. Stopping points (1-based hit numbers in the returned order): BashOperator query after Rodrigo-Henrique21/data_pipeline_airflow_dbt (hit 17; taken hits 11, 15, 16, 17); KubernetesPodOperator query after grinfeld/py_spark_playground (hit 12; taken hits 10, 11, 12); DockerOperator query after rionurfadilah229/ELT-Pipeline (hit 8; taken hits 5, 6, 7, 8); DbtTaskGroup query read to its end (30 hits) with no eligible repository; DbtDag query read to its end (30 hits), hainguyenle89/airflow-dags at hit 13 the only eligible one. Later hits were not evaluated. Repository sizes were checked before fetching; all were under 200 MB and none is a fork.",
+  "conventions": [
+    "Task built by a helper in the same file: line is the operator call inside the helper, lines holds the helper's call site.",
+    "Task built by a helper in another file: file is the DAG file and line the helper's call site; the helper's location is in reason.",
+    "Custom operators are named by their own class; reason says which standard operator they use.",
+    "command_index counts every dbt command in the string, in-scope or not.",
+    "Selected models for dbt test also count a model that is only the 'to' target of a relationships test, because that test depends on it; disabled tests do not count.",
+    "dbt test has empty other_nodes, even when seeds or snapshots have tests.",
+    "Cosmos units have task_id null; other_nodes holds the seeds and snapshots they select.",
+    "When one dag_id and task appear in several files, id carries a @ suffix to stay unique.",
+    "Model sets were worked out by applying dbt's selection rules with a small script of the labeller's own that reads project text, then checked by eye. It is not the scanner, and nothing from the repositories was executed.",
+    "Fresh corpus: model sets were worked out by hand from each project's own text (dbt_project.yml, .sql files and their ref()/source() calls, YAML properties), applying dbt's selection rules, then checked with a small script of the labeller's own that confirms every listed file, line, project, model and seed exists. Nothing from the repositories was executed; a dbt library committed inside one repository's virtualenv was read only as text to confirm how dbt parses YAML in test-paths and applies --exclude to tests.",
+    "A dbt project at the repository root has project_path '.'.",
+    "dbt_projects lists the repository's own dbt projects; dbt_project.yml files inside a committed virtualenv's site-packages or inside dbt_packages belong to libraries or installed packages and are not listed.",
+    "A task inside a plain Airflow TaskGroup has the task_id Airflow gives it, prefixed with the group id (group.task); group_id stays null, as it is only used for Cosmos task groups.",
+    "Tasks generated in a loop from a committed target/manifest.json are one link per generated task, all with the same file and line; they are resolved when the committed manifest matches the project's sources.",
+    "When the operator carries no dbt command and the image entrypoint script runs dbt, command_index counts the dbt commands in that script in text order, including any on branches not taken.",
+    "A command given without the dbt executable, because the image entrypoint is dbt, and a command run through the dbt-ol (OpenLineage) wrapper are labelled with the dbt command they run.",
+    "Operators other than the five searched for (an SSHOperator running dbt on another host, for example) are labelled like any other task, with the project that host holds.",
+    "A task built only when an environment variable allows it is still labelled; the condition is in reason."
+  ]
+}

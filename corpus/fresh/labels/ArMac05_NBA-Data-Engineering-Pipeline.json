@@ -1,0 +1,52 @@
+{
+  "repo": "ArMac05/NBA-Data-Engineering-Pipeline",
+  "url": "https://github.com/ArMac05/NBA-Data-Engineering-Pipeline",
+  "sha": "ccac6fedc901654f3936498afbbf8d1bbdc90807",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt"
+  ],
+  "out_of_scope_tasks": [
+    {
+      "file": "dags/dbt_run_dag.py",
+      "what": "dbt debug task dbt_debug"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_run.run_dbt.run",
+      "file": "dags/dbt_run_dag.py",
+      "line": 37,
+      "lines": [],
+      "dag_id": "dbt_run",
+      "unit": "task",
+      "task_id": "run_dbt",
+      "group_id": null,
+      "operator": "DockerOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "nba_pipeline",
+      "models": [
+        "dim_date",
+        "dim_teams",
+        "fact_game",
+        "fact_game_team",
+        "silver_games",
+        "silver_teams"
+      ],
+      "other_nodes": [],
+      "reason": "bind source is the Airflow Variable DBT_PATH, which the DAG docstring says is the host path of ./dbt; no selector: every model (dbt_utils in dbt/dbt_packages has no models)"
+    }
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "repo": "Victor-Kipruto-Rop/cloud-etl-pipeline",
+  "url": "https://github.com/Victor-Kipruto-Rop/cloud-etl-pipeline",
+  "sha": "15898ad5c5dd2a12f72fb86503b4b5c648b9ebb7",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "."
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "cloud_etl_pipeline.dbt_run_and_test.run",
+      "file": "dags/cloud_etl_pipeline.py",
+      "line": 47,
+      "lines": [],
+      "dag_id": "cloud_etl_pipeline",
+      "unit": "task",
+      "task_id": "dbt_run_and_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": ".",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "cloud_etl_warehouse",
+      "models": [
+        "fct_orders",
+        "stg_orders"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: task exists only when DBT_ENABLED is true; --project-dir is DBT_PROJECT_DIR, default '.', and the repository's only dbt project is at its root (docstring: the worker image includes this repository); no selector: every model (model-paths dbt/models)"
+    },
+    {
+      "id": "cloud_etl_pipeline.dbt_run_and_test.test",
+      "file": "dags/cloud_etl_pipeline.py",
+      "line": 47,
+      "lines": [],
+      "dag_id": "cloud_etl_pipeline",
+      "unit": "task",
+      "task_id": "dbt_run_and_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 1,
+      "project_path": ".",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "cloud_etl_warehouse",
+      "models": [
+        "fct_orders",
+        "stg_orders"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: task exists only when DBT_ENABLED is true; --project-dir is DBT_PROJECT_DIR, default '.', and the repository's only dbt project is at its root (docstring: the worker image includes this repository); second command in the string; both models have column tests in dbt/models/schema.yml (source tests do not count)"
+    }
+  ]
+}

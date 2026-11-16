@@ -1,0 +1,69 @@
+{
+  "repo": "ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow",
+  "url": "https://github.com/ansamAY/end-to-end-data-engineering-dbt-snowflake-airflow",
+  "sha": "2ddce887bf7fd93d4138c4a7e4314d76285d9110",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "."
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "."
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "dbt_workflow.dbt_run.run",
+      "file": "dbt_core_dag.py",
+      "line": 27,
+      "lines": [],
+      "dag_id": "dbt_workflow",
+      "unit": "task",
+      "task_id": "dbt_run",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": ".",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "snowflake_data_project",
+      "models": [
+        "fct_daily_order_revenue",
+        "stg_customers",
+        "stg_order_items",
+        "stg_orders",
+        "stg_products"
+      ],
+      "other_nodes": [],
+      "reason": "cd into a local folder named snowflake_data_project, the name of the root dbt project (README: the repository is that project); no selector: every model. dbt_project.yml files under the committed dbt-env virtualenv are dbt's own"
+    },
+    {
+      "id": "dbt_workflow.dbt_test.test",
+      "file": "dbt_core_dag.py",
+      "line": 34,
+      "lines": [],
+      "dag_id": "dbt_workflow",
+      "unit": "task",
+      "task_id": "dbt_test",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "test",
+      "command_index": 0,
+      "project_path": ".",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "snowflake_data_project",
+      "models": [
+        "stg_orders"
+      ],
+      "other_nodes": [],
+      "reason": "UNSURE: same project; the only model tests are in tests/snowflake_test.yml (test-paths, whose YAML dbt 1.9, the version in the committed venv, parses): accepted_values on stg_orders; its second entry names stg_cutomers, which is no model"
+    }
+  ]
+}

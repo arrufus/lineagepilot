@@ -1,0 +1,67 @@
+{
+  "repo": "Rodrigo-Henrique21/data_pipeline_airflow_dbt",
+  "url": "https://github.com/Rodrigo-Henrique21/data_pipeline_airflow_dbt",
+  "sha": "d81d0cbe65c515ddb0653af07fded88e79613cdc",
+  "license": "GPL-3.0",
+  "scan": {
+    "paths": [
+      "dags"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no scanner, no execution",
+  "dbt_projects": [
+    "dbt"
+  ],
+  "out_of_scope_tasks": [],
+  "links": [
+    {
+      "id": "captura_transformacao_com_taskgroups.transformacoes_dbt.run_dbt_silver.run",
+      "file": "dags/captura_dados.py",
+      "line": 261,
+      "lines": [],
+      "dag_id": "captura_transformacao_com_taskgroups",
+      "unit": "task",
+      "task_id": "transformacoes_dbt.run_dbt_silver",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "financas_data_pipeline",
+      "models": [
+        "ativos",
+        "indicadores",
+        "tesouro"
+      ],
+      "other_nodes": [],
+      "reason": "inside the Airflow TaskGroup transformacoes_dbt, so the task_id carries that prefix; /usr/local/airflow/dbt is ./dbt (Astro image copies the repository there; compose override mounts ./dbt); --select prata: no model of that name, so the folder models/prata"
+    },
+    {
+      "id": "captura_transformacao_com_taskgroups.transformacoes_dbt.run_dbt_gold.run",
+      "file": "dags/captura_dados.py",
+      "line": 268,
+      "lines": [],
+      "dag_id": "captura_transformacao_com_taskgroups",
+      "unit": "task",
+      "task_id": "transformacoes_dbt.run_dbt_gold",
+      "group_id": null,
+      "operator": "BashOperator",
+      "dbt_command": "run",
+      "command_index": 0,
+      "project_path": "dbt",
+      "expect": "resolved",
+      "legit": null,
+      "unknown_category": null,
+      "package": "financas_data_pipeline",
+      "models": [
+        "produto_dados_financeiros"
+      ],
+      "other_nodes": [],
+      "reason": "inside the Airflow TaskGroup transformacoes_dbt, so the task_id carries that prefix; /usr/local/airflow/dbt is ./dbt (Astro image copies the repository there; compose override mounts ./dbt); --select ouro: the folder models/ouro"
+    }
+  ]
+}
