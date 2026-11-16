@@ -476,7 +476,7 @@ Spike S2 measured these on 1 November 2026, on an Apple M4 Max with native arm64
 | Impact, worst of 20 sources | 0.5 ms | 0.4 ms |
 | Server memory | 576 MB | 482 MB |
 
-To meet the warm-start budget, the server loads a current snapshot itself instead of starting the indexer (which would load it only to find it current), and says "ready" before running the rules, which follow within half a second. The graph being replaced is collected before the next one loads. After a cold index the server still stays about 95 MB above a warm start, because Python keeps memory it has used: 15% over the 500 MB budget at 5,000 models, until the server restarts (beads LP-dtt).
+To meet the warm-start budget, the server loads a current snapshot itself instead of starting the indexer (which would load it only to find it current), and says "ready" before running the rules, which follow within half a second. The graph being replaced is collected before the next one loads. After a cold index the server still stays about 95 MB above a warm start, because Python keeps memory it has used: 15% over the 500 MB budget at 5,000 models, until the server restarts (beads LP-dtt; fixed by snapshot format 3, below the DAG scan's table).
 
 So **indexing runs in a child process**, never on the server's event loop: an `await`ed parse stalls the loop for about 2 s at 5,000 models, and a thread still leaves stalls of 100–520 ms. The server loads the indexer's snapshot. dbt itself takes 40–54 s (Core) or about 12 s (Fusion) to parse 5,000 models, so "Refresh dbt artifacts" runs asynchronously, with progress.
 
@@ -503,9 +503,18 @@ So **indexing runs in a child process**, never on the server's event loop: an `a
 | A review of 1 and of 100 changed models | 1.3 and 92 ms | 1.2 and 112 ms |
 | Peak server memory, cold and warm (budget 500 MB) | 608 and 511 MB | 379 and 374 MB |
 
-On Linux, the scan adds about 4 MB to Phase 4's 375 and 372 MB. macOS reads higher throughout, as it did before Phase 5 (576 and 482 MB in the table above), and is over the budget here; LP-dtt tracks that. A review of 100 models takes about twice as long as in Phase 4, because each now also walks the tasks, and stays inside the 300 ms set for impact.
+On Linux, the scan adds about 4 MB to Phase 4's 375 and 372 MB. macOS reads higher throughout, as it did before Phase 5 (576 and 482 MB in the table above), and was over the budget here, until snapshot format 3 (below). A review of 100 models takes about twice as long as in Phase 4, because each now also walks the tasks, and stays inside the 300 ms set for impact.
 
 **The measurement found two faults, both fixed before the freeze.** The first scan took about 60 s, half its time limit, because each selector walked all 15,000 nodes twice: names without a wildcard now come from an index, and each method's answer is kept per manifest, on the same answers (44 of 44 against real dbt). And the server kept the scan after linking it, about 30 MB: it now lets go once the full graph of a manifest is linked.
+
+**The server's memory is within budget on macOS too** (LP-dtt, the Entry phase's task E.5, 16 November 2026, the same heavy measurement on an Apple M4 Max with Python 3.13). What Python kept was not the graph: loading a snapshot decoded the whole 66 MB file into a 315 MB tree before the graph existed, and the server kept that peak, so the graph cost 372 MB of memory for 205 MB of objects. Snapshot format 3 writes JSON lines, a header and then batches of 1,000 records, and the server decodes a batch at a time.
+
+| Measure, 5,000 models, macOS | Format 2 | Format 3 |
+|---|---|---|
+| Server memory, cold and warm (budget 500 MB) | 608 and 511 MB | 388–392 and 384 MB |
+| Lineage ready, warm (budget 1 s) | 0.87 s | 0.90–0.91 s |
+| Column lineage complete, cold | 26.6 s | 26.5–26.7 s |
+| A review of 100 changed models | 130 ms | 128–134 ms |
 
 **The graph webview in a browser** (Phase 3 exit, beads LP-08j, `extension/webview/perf/`, 4 November 2026): the production bundle under the webview's CSP, in Chrome 156 on an Apple M4 with a 60 Hz display, in a 1600×913 page, on a layered graph of 500 models and 931 edges. Chrome is not VS Code's own Chromium, and this machine is slower than the M4 Max above, so the figures indicate rather than reproduce what the editor does.
 

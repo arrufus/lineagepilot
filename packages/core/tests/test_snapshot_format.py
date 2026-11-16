@@ -23,6 +23,8 @@ from lineagepilot_core.snapshot import SNAPSHOT_FORMAT
 # SNAPSHOT_FORMAT -> the fingerprint of the graph model it holds
 MODEL_OF_FORMAT = {
     2: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
+    # The same model, written as JSON lines in batches (LP-dtt)
+    3: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
 }
 
 

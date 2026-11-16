@@ -134,6 +134,42 @@ class TestSnapshot:
         with pytest.raises(SnapshotError, match="cannot read"):
             load_snapshot(tmp_path / "missing.json")
 
+    def test_the_file_is_a_header_then_batches(self, tmp_path, monkeypatch):
+        """JSON lines, read a batch at a time, so the whole document is never decoded at
+        once (LP-dtt). Small batches here, so every section spans several."""
+        monkeypatch.setattr("lineagepilot_core.snapshot.BATCH", 3)
+        graph = full_graph("pilot-1.12")
+        path = tmp_path / "graph.json"
+        save_snapshot(graph, path)
+        lines = path.read_bytes().splitlines()
+        head = json.loads(lines[0])
+        assert head["format"] == SNAPSHOT_FORMAT and "nodes" not in head
+        assert sum(head["counts"].values()) == sum(len(json.loads(x)) for x in lines[1:])
+        assert all(1 <= len(json.loads(x)) <= 3 for x in lines[1:])
+        assert_same(graph, load_snapshot(path))
+
+    def test_a_damaged_file_is_refused(self, tmp_path):
+        graph = full_graph("pilot-1.12")
+        path = tmp_path / "graph.json"
+        save_snapshot(graph, path)
+        lines = path.read_bytes().splitlines(keepends=True)
+        head = json.loads(lines[0])
+        damaged = {
+            "truncated": lines[:-1],
+            "trailing": [*lines, b"[1]\n"],
+            "overfull": [lines[0], b"[" + b",".join([b"0"] * 10**6) + b"]\n"],
+            "no counts": [json.dumps({k: v for k, v in head.items() if k != "counts"}).encode()],
+            "bad count": [
+                json.dumps({**head, "counts": {**head["counts"], "nodes": -1}}).encode() + b"\n"
+            ],
+            "previous format": [json.dumps({**head, "format": 2}).encode()],
+        }
+        for name, content in damaged.items():
+            bad = tmp_path / f"{name}.json"
+            bad.write_bytes(b"".join(content))
+            with pytest.raises(SnapshotError):
+                load_snapshot(bad)
+
     def test_keys_change_with_inputs(self):
         base = snapshot_key("m", "c", True)
         assert base != snapshot_key("m2", "c", True)
