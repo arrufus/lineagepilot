@@ -11,14 +11,14 @@ from collections.abc import Iterable
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS, scan_dags
-from lineagepilot_core.airflow.safe_io import (
+from lineagepilot_core.parsers.data_flow_annotations import DataFlowAnnotationLoader
+from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS, scan_dags
+from lineagepilot_core.readers.common.safe_io import (
     is_inside,
     regular_file_inside,
     resolve_inside,
     to_posix,
 )
-from lineagepilot_core.parsers.data_flow_annotations import DataFlowAnnotationLoader
 
 ANNOTATION_FILE = ".lineagepilot/airflow.yml"
 

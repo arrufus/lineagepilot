@@ -11,8 +11,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.airflow.safe_io import is_regular_file, read_capped, regular_file_inside
 from lineagepilot_core.parsers import _json
+from lineagepilot_core.readers.common.safe_io import (
+    is_regular_file,
+    read_capped,
+    regular_file_inside,
+)
 
 # As for the index: only stops a crafted file from exhausting memory
 DEFAULT_MANIFEST_CAP = 1 << 30

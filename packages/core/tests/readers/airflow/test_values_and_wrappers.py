@@ -7,7 +7,7 @@ import textwrap
 
 from airflow_support import SHOP, scan
 
-from lineagepilot_core.airflow.values import (
+from lineagepilot_core.readers.common.values import (
     CallV,
     Const,
     DictV,

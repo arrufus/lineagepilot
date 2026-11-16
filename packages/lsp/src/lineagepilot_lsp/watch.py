@@ -19,8 +19,8 @@ from collections.abc import Callable, Iterable
 from enum import Enum
 from pathlib import Path
 
-from lineagepilot_core.airflow.dag_static import clean_dag_folder, in_dag_folder
-from lineagepilot_core.airflow.workspace import ANNOTATION_FILE
+from lineagepilot_core.readers.airflow.dag_static import clean_dag_folder, in_dag_folder
+from lineagepilot_core.readers.airflow.workspace import ANNOTATION_FILE
 from lsprotocol import types
 
 from lineagepilot_lsp.project import PROJECT_FILE, DbtProject, relative_to

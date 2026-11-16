@@ -33,9 +33,9 @@ import traceback
 from pathlib import Path
 from typing import Any, TextIO
 
-from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.baseline import load_baseline_manifest
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, IndexResult, index_project
+from lineagepilot_core.readers.airflow.workspace import scan_airflow
 from lineagepilot_core.snapshot import SnapshotCache
 
 from lineagepilot_lsp import limits

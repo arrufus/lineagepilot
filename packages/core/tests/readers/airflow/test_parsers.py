@@ -8,21 +8,21 @@ from pathlib import Path
 import pytest
 from airflow_support import FIXTURES, MINI, SHOP
 
-from lineagepilot_core.airflow.manifest import (
+from lineagepilot_core.readers.common.manifest import (
     ManifestError,
     load_dbt_ls_file,
     load_manifest,
     manifest_from_dict,
 )
-from lineagepilot_core.airflow.projects import ProjectIndex, _drift
-from lineagepilot_core.airflow.shell import (
+from lineagepilot_core.readers.common.projects import ProjectIndex, _drift
+from lineagepilot_core.readers.common.shell import (
     find_dbt_in_argv,
     find_dbt_in_shell,
     mentions_dbt,
     parse_dbt_argv,
     tokenize_shell,
 )
-from lineagepilot_core.airflow.standin import build_standin
+from lineagepilot_core.readers.common.standin import build_standin
 
 
 def test_shell_cd_and_multiple_commands():

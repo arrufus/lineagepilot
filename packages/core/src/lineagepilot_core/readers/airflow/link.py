@@ -21,7 +21,6 @@ from __future__ import annotations
 import posixpath
 from typing import Any
 
-from lineagepilot_core.airflow.categories import explanation, label
 from lineagepilot_core.graph.ids import airflow_dag_id, airflow_task_id, normalise_identifier
 from lineagepilot_core.graph.model import (
     DBT_KINDS,
@@ -37,6 +36,7 @@ from lineagepilot_core.graph.model import (
     Origin,
     Unresolved,
 )
+from lineagepilot_core.readers.common.categories import explanation, label
 
 # Airflow's DAGs are pipelines and its tasks are tasks, with this tool (D-9)
 AIRFLOW = "airflow"

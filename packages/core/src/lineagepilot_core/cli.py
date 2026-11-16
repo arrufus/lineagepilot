@@ -18,10 +18,6 @@ from pathlib import Path
 from typing import Any, TextIO
 
 from lineagepilot_core import __version__
-from lineagepilot_core.airflow.categories import explanation, label
-from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
-from lineagepilot_core.airflow.link import link_airflow, mark_not_analysed
-from lineagepilot_core.airflow.workspace import default_workspace, scan_airflow, scan_workspace
 from lineagepilot_core.analysis.baseline import ManifestBaseline, load_baseline_manifest
 from lineagepilot_core.analysis.impact import Impact, impact
 from lineagepilot_core.analysis.review import baseline_inputs, review_changes
@@ -30,6 +26,14 @@ from lineagepilot_core.graph.ids import column_id
 from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph, public_kind
 from lineagepilot_core.indexer import IndexResult, IndexStatus, index_project
 from lineagepilot_core.project import DbtProject, read_project
+from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS
+from lineagepilot_core.readers.airflow.link import link_airflow, mark_not_analysed
+from lineagepilot_core.readers.airflow.workspace import (
+    default_workspace,
+    scan_airflow,
+    scan_workspace,
+)
+from lineagepilot_core.readers.common.categories import explanation, label
 from lineagepilot_core.snapshot import SnapshotCache
 
 EXIT_OK, EXIT_UNKNOWN, EXIT_USAGE = 0, 1, 2

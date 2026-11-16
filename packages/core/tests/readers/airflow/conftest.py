@@ -7,7 +7,7 @@ import json
 import pytest
 from airflow_support import FIXTURES, SHOP, scan
 
-from lineagepilot_core.airflow.manifest import load_manifest
+from lineagepilot_core.readers.common.manifest import load_manifest
 
 
 @pytest.fixture(scope="session")

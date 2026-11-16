@@ -13,7 +13,7 @@ from pathlib import Path
 import pytest
 from airflow_support import FIXTURES, find_link, scan, short
 
-from lineagepilot_core.airflow import dag_static as scanner_mod
+from lineagepilot_core.readers.airflow import dag_static as scanner_mod
 
 SIDE_EFFECT = FIXTURES / "dags" / "side_effect_dag.py"
 SRC = Path(__file__).resolve().parent.parent / "src"

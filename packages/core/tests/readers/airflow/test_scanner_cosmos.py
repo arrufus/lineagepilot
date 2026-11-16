@@ -180,8 +180,8 @@ def test_wrappers_are_flagged(fixture_scan):
 
 def test_folder_groups_collapse_like_cosmos_tests():
     """Mirrors cosmos tests/airflow/test_graph.py::test_build_airflow_graph_with_after_each (read as text)."""
-    from lineagepilot_core.airflow.cosmos import CosmosSpec, expand_tasks
-    from lineagepilot_core.airflow.manifest import manifest_from_dict
+    from lineagepilot_core.readers.airflow.cosmos import CosmosSpec, expand_tasks
+    from lineagepilot_core.readers.common.manifest import manifest_from_dict
 
     def node(uid, path, deps=()):
         return {

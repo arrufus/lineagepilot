@@ -21,10 +21,10 @@ from typing import Any
 
 import yaml
 
-from lineagepilot_core.airflow.manifest import Manifest, manifest_from_dict
-from lineagepilot_core.airflow.safe_io import read_capped, resolve_inside, walk_inside
 from lineagepilot_core.parsers import safe_yaml
 from lineagepilot_core.parsers.safe_yaml import shown
+from lineagepilot_core.readers.common.manifest import Manifest, manifest_from_dict
+from lineagepilot_core.readers.common.safe_io import read_capped, resolve_inside, walk_inside
 
 FILE_CAP = 2 * 1024 * 1024
 REF_RE = re.compile(

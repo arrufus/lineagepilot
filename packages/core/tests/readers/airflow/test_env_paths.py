@@ -14,10 +14,10 @@ import textwrap
 import pytest
 from airflow_support import MINI, SHOP, scan
 
-from lineagepilot_core.airflow.projects import ProjectIndex
-from lineagepilot_core.airflow.safe_io import env_tail
-from lineagepilot_core.airflow.shell import find_dbt_in_shell
-from lineagepilot_core.airflow.values import EnvPath, Unknown, plain, text_of
+from lineagepilot_core.readers.common.projects import ProjectIndex
+from lineagepilot_core.readers.common.safe_io import env_tail
+from lineagepilot_core.readers.common.shell import find_dbt_in_shell
+from lineagepilot_core.readers.common.values import EnvPath, Unknown, plain, text_of
 
 HEADER = """\
 import os

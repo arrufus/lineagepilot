@@ -19,14 +19,14 @@ from pathlib import Path
 
 import pytest
 
-from lineagepilot_core.airflow.dag_static import discover_dag_files, glob_match, scan_dags
-from lineagepilot_core.airflow.safe_io import (
+from lineagepilot_core.readers.airflow.dag_static import discover_dag_files, glob_match, scan_dags
+from lineagepilot_core.readers.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.common.safe_io import (
     is_remote,
     read_capped,
     regular_file_inside,
     resolve_inside,
 )
-from lineagepilot_core.airflow.workspace import scan_airflow
 
 CANARY = "CANARY_7f3a91"
 needs_symlinks = pytest.mark.skipif(
@@ -321,7 +321,7 @@ class TestFolderPatterns:
         assert time.perf_counter() - started < 1
 
     def test_a_pattern_folder_setting_is_bounded(self):
-        from lineagepilot_core.airflow.dag_static import clean_dag_folder
+        from lineagepilot_core.readers.airflow.dag_static import clean_dag_folder
 
         assert clean_dag_folder("**/dags") == "**/dags"
         assert clean_dag_folder("*a*a*a*a*a*a*a*b") is None

@@ -8,8 +8,8 @@ import json
 import pytest
 from airflow_support import FIXTURES, SHOP
 
-from lineagepilot_core.airflow.manifest import manifest_from_dict
-from lineagepilot_core.airflow.selector import (
+from lineagepilot_core.readers.common.manifest import manifest_from_dict
+from lineagepilot_core.readers.common.selector import (
     SelectorEngine,
     UnsupportedSelector,
     _PathGlob,
@@ -18,7 +18,7 @@ from lineagepilot_core.airflow.selector import (
     parse_spec,
     select,
 )
-from lineagepilot_core.airflow.standin import build_standin
+from lineagepilot_core.readers.common.standin import build_standin
 
 
 def _cases(answers):

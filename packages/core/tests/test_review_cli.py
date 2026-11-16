@@ -13,8 +13,6 @@ from pathlib import Path
 import pytest
 from support import IMPACT_SHOP, apply_rename, copy_impact_shop
 
-from lineagepilot_core.airflow.link import link_airflow
-from lineagepilot_core.airflow.workspace import scan_airflow
 from lineagepilot_core.analysis.review import (
     BaseRef,
     ChangedFile,
@@ -25,6 +23,8 @@ from lineagepilot_core.cli import EXIT_OK, EXIT_UNKNOWN, EXIT_USAGE, main
 from lineagepilot_core.gitdiff import GitError, git_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
+from lineagepilot_core.readers.airflow.link import link_airflow
+from lineagepilot_core.readers.airflow.workspace import scan_airflow
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
 

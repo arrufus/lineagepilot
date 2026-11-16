@@ -12,7 +12,7 @@ import re
 import shlex
 from dataclasses import dataclass, field
 
-from lineagepilot_core.airflow.safe_io import env_tail, is_absolute
+from lineagepilot_core.readers.common.safe_io import env_tail, is_absolute
 
 JINJA_RE = re.compile(r"\{\{.*?\}\}|\{%.*?%\}", re.S)
 JINJA_PLACEHOLDER = "__LP_JINJA_{}__"

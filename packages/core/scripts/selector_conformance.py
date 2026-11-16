@@ -21,8 +21,8 @@ import sys
 import tempfile
 from pathlib import Path
 
-from lineagepilot_core.airflow.manifest import manifest_from_dict
-from lineagepilot_core.airflow.selector import select
+from lineagepilot_core.readers.common.manifest import manifest_from_dict
+from lineagepilot_core.readers.common.selector import select
 
 FIXTURES = Path(__file__).resolve().parent.parent / "tests" / "fixtures" / "airflow" / "dbt"
 FIXTURE = FIXTURES / "shop"

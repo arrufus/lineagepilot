@@ -29,12 +29,12 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.airflow.dag_static import DEFAULT_DAG_FOLDERS
-from lineagepilot_core.airflow.link import AIRFLOW, link_airflow, mark_not_analysed
-from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.review import baseline_inputs
 from lineagepilot_core.graph.model import MetadataGraph
+from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS
+from lineagepilot_core.readers.airflow.link import AIRFLOW, link_airflow, mark_not_analysed
+from lineagepilot_core.readers.airflow.view import summary_json
 from lineagepilot_core.rules import (
     Evaluation,
     RulePack,

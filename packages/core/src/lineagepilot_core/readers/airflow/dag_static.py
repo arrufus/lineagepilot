@@ -30,16 +30,17 @@ from typing import Any
 from sqlglot import exp, parse
 from sqlglot.errors import SqlglotError
 
-from lineagepilot_core.airflow import cosmos as cz
-from lineagepilot_core.airflow.categories import UnknownCategory, most_specific
-from lineagepilot_core.airflow.manifest import (
+from lineagepilot_core.parsers.sql_parser import parse_sql
+from lineagepilot_core.readers.airflow import cosmos as cz
+from lineagepilot_core.readers.common.categories import UnknownCategory, most_specific
+from lineagepilot_core.readers.common.manifest import (
     Manifest,
     ManifestError,
     load_dbt_ls_file,
     manifest_from_dict,
 )
-from lineagepilot_core.airflow.projects import ManifestChoice, ProjectIndex
-from lineagepilot_core.airflow.safe_io import (
+from lineagepilot_core.readers.common.projects import ManifestChoice, ProjectIndex
+from lineagepilot_core.readers.common.safe_io import (
     env_tail,
     is_absolute,
     is_inside,
@@ -50,8 +51,8 @@ from lineagepilot_core.airflow.safe_io import (
     to_posix,
     walk_inside,
 )
-from lineagepilot_core.airflow.selector import select as run_select
-from lineagepilot_core.airflow.shell import (
+from lineagepilot_core.readers.common.selector import select as run_select
+from lineagepilot_core.readers.common.shell import (
     BUILDING_COMMANDS,
     DbtInvocation,
     find_dbt_in_argv,
@@ -60,7 +61,7 @@ from lineagepilot_core.airflow.shell import (
     parse_dbt_argv,
     runs_a_variable,
 )
-from lineagepilot_core.airflow.values import (
+from lineagepilot_core.readers.common.values import (
     CallV,
     Const,
     DagV,
@@ -82,7 +83,6 @@ from lineagepilot_core.airflow.values import (
     text_of,
     weakest,
 )
-from lineagepilot_core.parsers.sql_parser import parse_sql
 from lineagepilot_core.rules.safe_regex import SafeRegex, UnsafePattern
 
 ORIGIN = "dag_static"

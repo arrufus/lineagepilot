@@ -6,7 +6,7 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from lineagepilot_core.airflow.dag_static import scan_dags
+from lineagepilot_core.readers.airflow.dag_static import scan_dags
 
 FIXTURES = Path(__file__).parent / "fixtures" / "airflow"
 SHOP = FIXTURES / "dbt" / "shop"
