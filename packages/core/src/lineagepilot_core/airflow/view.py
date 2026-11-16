@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from lineagepilot_core.airflow.link import AIRFLOW_KINDS, AIRFLOW_ORIGINS
+from lineagepilot_core.airflow.link import AIRFLOW, AIRFLOW_ORIGINS, is_airflow
 from lineagepilot_core.graph.model import (
     AirflowSummary,
     Confidence,
@@ -18,6 +18,7 @@ from lineagepilot_core.graph.model import (
     MetadataGraph,
     Node,
     NodeKind,
+    public_kind,
 )
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
@@ -70,7 +71,7 @@ def airflow_view(graph: MetadataGraph, nodes: Iterable[str] | None = None) -> di
         if wanted is not None and not touching:
             continue
         dag = dags.setdefault(dag_id, _dag_json(graph, dag_id))
-        if node.kind is NodeKind.AIRFLOW_TASK or touching:
+        if node.kind is NodeKind.TASK or touching:
             dag["tasks"].append(_task_json(node, touching))
     return {
         "dags": [dags[d] for d in sorted(dags)],
@@ -86,12 +87,12 @@ def airflow_view(graph: MetadataGraph, nodes: Iterable[str] | None = None) -> di
             ),
             key=lambda u: (u["subject"], u["reference"], u["reason"]),
         ),
-        "summary": summary_json(graph.airflow),
+        "summary": summary_json(graph.summaries.get(AIRFLOW)),
     }
 
 
 def _airflow_nodes(graph: MetadataGraph) -> list[Node]:
-    return [n for n in graph.nodes.values() if n.kind in AIRFLOW_KINDS]
+    return [n for n in graph.nodes.values() if is_airflow(n)]
 
 
 def _dag_json(graph: MetadataGraph, dag_id: str) -> dict[str, Any]:
@@ -112,7 +113,7 @@ def _task_json(node: Node, edges: list[Edge]) -> dict[str, Any]:
     weakest = max(confidences, key=_STRENGTH.index) if confidences else None
     return {
         "id": node.id,
-        "kind": node.kind.value,
+        "kind": public_kind(node.kind, node.tool),
         "name": _clip(node.name),
         "operator": _clip(node.properties.get("operator")),
         "owner": _clip(node.owner),

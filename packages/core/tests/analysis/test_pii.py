@@ -44,7 +44,7 @@ def graph() -> MetadataGraph:
     for node_id, layer in (("a", "silver"), ("b", "silver"), ("c", "silver"), ("d", "gold")):
         g.add_node(Node(node_id, NodeKind.MODEL, node_id, layer=layer))
     g.add_node(Node("e", NodeKind.EXPOSURE, "dashboard"))
-    g.add_node(Node("airflow:dag.t", NodeKind.AIRFLOW_TASK, "t"))
+    g.add_node(Node("airflow:dag.t", NodeKind.TASK, "t", tool="airflow"))
     for up, down in (("a", "b"), ("a", "c"), ("b", "d"), ("c", "d"), ("d", "e")):
         g.add_edge(EdgeKind.DEPENDS_ON, up, down, DECLARED)
     g.add_edge(EdgeKind.ORCHESTRATES, "airflow:dag.t", "d", DECLARED)

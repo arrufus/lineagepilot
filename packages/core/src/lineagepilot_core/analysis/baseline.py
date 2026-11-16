@@ -18,7 +18,7 @@ from typing import Any
 from lineagepilot_core.graph.build import build_dbt_graph
 from lineagepilot_core.graph.column_lineage import catalog_schema
 from lineagepilot_core.graph.ids import normalise_identifier
-from lineagepilot_core.graph.model import EdgeKind, MetadataGraph
+from lineagepilot_core.graph.model import EdgeKind, MetadataGraph, public_kind
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, locate_artifacts
 from lineagepilot_core.parsers.base import ParseErrorSeverity
 from lineagepilot_core.parsers.dbt_parser import DbtParser
@@ -171,7 +171,7 @@ def _read_node(graph: MetadataGraph, node_id: str, sql: str | None) -> BaselineN
     adapter = graph.adapter_type
     return BaselineNode(
         id=node_id,
-        kind=node.kind.value,
+        kind=public_kind(node.kind, node.tool),
         name=node.name,
         owner=node.owner or node.group,
         columns=tuple(names) if names else None,

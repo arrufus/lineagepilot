@@ -533,8 +533,8 @@ class TestStages:
 
     def test_airflow_counts_as_analysed_once_the_graph_has_it(self, root):
         graph = graph_of(root)
-        graph.airflow = AirflowSummary(analysed=True, dag_files=1)
-        task = graph.add_node(Node("airflow:d.t", NodeKind.AIRFLOW_TASK, "t", owner="etl"))
+        graph.summaries["airflow"] = AirflowSummary(analysed=True, dag_files=1)
+        task = graph.add_node(Node("airflow:d.t", NodeKind.TASK, "t", owner="etl", tool="airflow"))
         graph.add_edge(
             EdgeKind.ORCHESTRATES,
             task.id,

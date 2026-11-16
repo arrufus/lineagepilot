@@ -25,6 +25,8 @@ MODEL_OF_FORMAT = {
     2: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
     # The same model, written as JSON lines in batches (LP-dtt)
     3: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
+    # Pipeline, task and consumer kinds, with a tool and a subkind on each node (D-9)
+    4: "5b7abe11c88e22b048a451abceaece5bd9bde5bbba00d60e03a10c2d9cce1c92",
 }
 
 

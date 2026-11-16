@@ -23,6 +23,7 @@ from lineagepilot_core.graph.model import (
     EdgeKind,
     MetadataGraph,
     Node,
+    public_kind,
 )
 
 from lineagepilot_lsp.locate import Locator, location_json
@@ -269,7 +270,7 @@ class GraphContext:
         status = self.graph.column_lineage.get(ref)
         return {
             "id": ref,
-            "kind": node.kind.value,
+            "kind": public_kind(node.kind, node.tool),
             "name": clip(node.name),
             "side": side,
             "depth": depth,

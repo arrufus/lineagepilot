@@ -51,7 +51,8 @@ from lineagepilot_core.parsers import _json
 
 logger = logging.getLogger(__name__)
 
-SNAPSHOT_FORMAT = 3
+# 4: nodes carry a tool and a subkind; pipeline, task and consumer kinds (D-9, task 7.1)
+SNAPSHOT_FORMAT = 4
 # Records per line: enough that decoding stays as fast as one document, few enough that a
 # batch decoded at a time costs little memory
 BATCH = 1000

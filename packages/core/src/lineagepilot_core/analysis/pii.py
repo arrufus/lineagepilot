@@ -33,6 +33,7 @@ from lineagepilot_core.analysis.traversal import (
 )
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import (
+    DBT_KINDS,
     Column,
     Confidence,
     LineageState,
@@ -50,6 +51,8 @@ _MASKING_INDICATORS = (
 CONSUMPTION_LAYERS = frozenset({"gold", "marts", "mart", "consumption", "reporting", "analytics"})
 
 _SQL_KINDS = frozenset({NodeKind.MODEL, NodeKind.SNAPSHOT})
+# What uses a node with PII downstream: an exposure, a task that runs it, or a consumer
+_USER_KINDS = frozenset({NodeKind.EXPOSURE, NodeKind.TASK, NodeKind.CONSUMER})
 
 
 class PIIBasis(str, Enum):
@@ -143,7 +146,7 @@ class PIIIndex:
 def pii_index(graph: MetadataGraph) -> PIIIndex:
     """Direct indicators, then the flow of PII along every lineage path."""
     index = PIIIndex()
-    direct = {cid: c for cid, c in graph.columns.items() if c.pii_type}
+    direct = {cid: c for cid, c in graph.columns.items() if c.pii_type and _dbt(graph, c)}
     # column -> the direct, unmasked PII origins that reach it
     origins: dict[str, set[str]] = {}
     queue: deque[str] = deque()
@@ -158,6 +161,8 @@ def pii_index(graph: MetadataGraph) -> PIIIndex:
         carried = origins[cid]
         for step in steps(graph, cid, Direction.DOWNSTREAM, Granularity.COLUMN):
             target = graph.columns[step.ref]
+            if not _dbt(graph, target):
+                continue  # a consumer's column reads PII; it is not an indicator (D-9)
             if is_masked(target):
                 origins.setdefault(step.ref, set())  # reached, but the flow stops here
                 continue
@@ -205,6 +210,11 @@ def pii_index(graph: MetadataGraph) -> PIIIndex:
     index.indicators = dict(sorted(index.indicators.items()))
     index.unknown = _unknown_downstream(graph, index.nodes())
     return index
+
+
+def _dbt(graph: MetadataGraph, column: Column) -> bool:
+    """PII indicators are on the columns of dbt nodes only, never a pipeline's or consumer's."""
+    return graph.nodes[column.node_id].kind in DBT_KINDS
 
 
 def _types(direct: dict[str, Column], origins: Iterable[str]) -> set[str]:
@@ -284,7 +294,7 @@ def pii_exposure(
         users = [
             s.ref
             for s in steps(graph, node_id, Direction.DOWNSTREAM, Granularity.MODEL)
-            if graph.nodes[s.ref].kind in (NodeKind.EXPOSURE, NodeKind.AIRFLOW_TASK)
+            if graph.nodes[s.ref].kind in _USER_KINDS
         ]
         if users:
             report.consumers[node_id] = sorted(users)

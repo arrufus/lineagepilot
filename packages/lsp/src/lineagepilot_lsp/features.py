@@ -26,7 +26,7 @@ from typing import Any
 from lineagepilot_core.analysis.impact import weakest
 from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, steps
 from lineagepilot_core.graph.ids import split_column_id
-from lineagepilot_core.graph.model import Edge, LineageState, Node, NodeKind
+from lineagepilot_core.graph.model import Edge, LineageState, Node, NodeKind, public_kind
 from lineagepilot_core.rules import Category, Evaluation, Result, RulePack, Severity
 
 from lineagepilot_lsp.context import GraphContext
@@ -240,11 +240,11 @@ def _step_line(ctx: GraphContext, step: Step, label: str) -> str:
 
 def _node_label(ctx: GraphContext, node_id: str) -> str:
     node = ctx.graph.nodes[node_id]
-    return f"**{md(node.name)}** ({node.kind.value})"
+    return f"**{md(node.name)}** ({public_kind(node.kind, node.tool)})"
 
 
 def node_markdown(ctx: GraphContext, node: Node, here: list[Node]) -> str:
-    lines = [f"### {md(node.name)}", f"{node.kind.value} · {md(node.id)}"]
+    lines = [f"### {md(node.name)}", f"{public_kind(node.kind, node.tool)} · {md(node.id)}"]
     if node.description:
         lines += ["", md(node.description[:DESCRIPTION_LIMIT])]
     upstream = sorted(

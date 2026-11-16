@@ -34,7 +34,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from lineagepilot_core.airflow.link import AIRFLOW_KINDS
+from lineagepilot_core.airflow.link import AIRFLOW, is_airflow
 from lineagepilot_core.airflow.view import summary_json
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import Impact, ImpactedNode, impact, weakest
@@ -51,6 +51,7 @@ from lineagepilot_core.graph.model import (
     Node,
     NodeKind,
     Unresolved,
+    public_kind,
 )
 from lineagepilot_core.parsers.base import source_sha256
 from lineagepilot_core.project import PROJECT_FILE, DbtProject, relative_to
@@ -64,7 +65,19 @@ MAX_EVIDENCE = 5
 # How many of the nodes a task runs, and the task ids Cosmos derives for them, are listed
 MAX_TASK_DETAIL = 20
 
-KIND_ORDER = ("model", "snapshot", "seed", "source", "exposure", "airflow_task", "airflow_dag")
+# Impacted nodes in this order of their public kinds (D-9: a tool's tasks before its pipelines)
+KIND_ORDER = (
+    "model",
+    "snapshot",
+    "seed",
+    "source",
+    "exposure",
+    "consumer",
+    "airflow_task",
+    "airflow_dag",
+    "task",
+    "pipeline",
+)
 _PROJECT_FILES = frozenset(
     {PROJECT_FILE, "packages.yml", "dependencies.yml", "package-lock.yml", "selectors.yml"}
 )
@@ -238,7 +251,7 @@ def review_changes(
         "changedNodes": changed_nodes,
         "impacted": impacted,
         "owners": _owners(impacted),
-        "airflow": summary_json(graph.airflow),
+        "airflow": summary_json(graph.summaries.get(AIRFLOW)),
         "unknowns": _deduplicated(unknowns),
         "otherFiles": other_files,
         "outsideProject": outside_project,
@@ -449,7 +462,7 @@ def _changed_column_ids(graph: MetadataGraph, node_id: str, diff: dict[str, Any]
 def _changed_node(node: Node, entry: _Touched, diff: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": node.id,
-        "kind": node.kind.value,
+        "kind": public_kind(node.kind, node.tool),
         "name": clip(node.name),
         "owner": clip(node.owner or node.group),
         "status": entry.status,
@@ -518,7 +531,7 @@ def _impacted_json(
     traced = by_column and hit.granularity is Granularity.COLUMN
     confidence = hit.confidence if traced else weakest(hit.confidence, Confidence.INFERRED)
     reason = hit.reason
-    airflow = _airflow_detail(graph, node, hit) if node.kind in AIRFLOW_KINDS else None
+    airflow = _airflow_detail(graph, node, hit) if is_airflow(node) else None
     if airflow is not None:
         reason = None
     elif not traced and reason is None:
@@ -536,7 +549,7 @@ def _impacted_json(
     )
     return {
         "id": hit.id,
-        "kind": hit.kind.value,
+        "kind": public_kind(hit.kind, hit.tool),
         "name": clip(node.name),
         "owner": clip(node.owner or node.group),
         "file": clip(node.file_path),

@@ -30,8 +30,11 @@ KIND_TITLES = {
     "seed": ("seed", "seeds"),
     "source": ("source", "sources"),
     "exposure": ("exposure", "exposures"),
+    "consumer": ("consumer", "consumers"),
     "airflow_task": ("Airflow task", "Airflow tasks"),
     "airflow_dag": ("Airflow DAG", "Airflow DAGs"),
+    "task": ("task", "tasks"),
+    "pipeline": ("pipeline", "pipelines"),
 }
 _ORIGINS = {
     "manifest": "manifest",

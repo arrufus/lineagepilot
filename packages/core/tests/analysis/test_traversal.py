@@ -138,7 +138,7 @@ def test_two_builders_of_one_table_are_not_each_others_lineage(junction):
 
 def test_airflow_tasks_that_run_a_node_are_downstream_of_it():
     graph = chain("model.p.a", "model.p.b")
-    graph.add_node(Node("airflow:dag.run_b", NodeKind.AIRFLOW_TASK, "run_b"))
+    graph.add_node(Node("airflow:dag.run_b", NodeKind.TASK, "run_b", tool="airflow"))
     graph.add_edge(EdgeKind.ORCHESTRATES, "airflow:dag.run_b", "model.p.b", GUESSED)
     assert traverse(graph, ["model.p.a"], DOWN).found() == ["model.p.b", "airflow:dag.run_b"]
     assert traverse(graph, ["model.p.b"], UP).found() == ["model.p.a"]

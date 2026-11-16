@@ -11,6 +11,7 @@ from lineagepilot_core.graph.ids import (
 )
 from lineagepilot_core.graph.model import (
     DBT_KINDS,
+    TOOL_KINDS,
     ArtifactVersion,
     Column,
     Confidence,
@@ -24,10 +25,12 @@ from lineagepilot_core.graph.model import (
     NodeKind,
     Origin,
     Unresolved,
+    public_kind,
 )
 
 __all__ = [
     "DBT_KINDS",
+    "TOOL_KINDS",
     "ArtifactVersion",
     "Column",
     "Confidence",
@@ -47,6 +50,7 @@ __all__ = [
     "build_dbt_graph",
     "column_id",
     "normalise_identifier",
+    "public_kind",
     "relation_id",
     "split_column_id",
 ]
