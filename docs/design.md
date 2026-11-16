@@ -670,6 +670,22 @@ How the Airflow linkage is tested (Phase 5):
 | — | **D-7 revised: the usage counts are removed** (above). | No telemetry, and no counting of any kind. |
 | — | **The source is published as a new public repository**, `arrufus/lineagepilot`, from a copy of this history with the unlicensed fixtures filtered out. This repository becomes a private archive. | Replacing the fixtures in a new commit would leave them in the history, and in pull request refs GitHub keeps. The steps are in [release.md](release.md#publishing-the-source). |
 
+### Decided (16 November 2026, before Phase 7)
+
+Proposed in [design_next_phase.md](design_next_phase.md) §11 and approved as proposed. They govern phases 7–11 of [implementation_plan_next_phase.md](implementation_plan_next_phase.md).
+
+| # | Decision | Consequences |
+|---|---|---|
+| D-8 | **Tools are chosen by popularity with dbt teams, weighted towards tools whose definitions are declarative files in the repository** (design_next_phase.md §5). | Phases 7–11 in the proposed order: the dbt semantic layer, Dagster, BI (Looker, Power BI, Lightdash), Databricks Asset Bundles and GitHub Actions, then upstream. Phases 8 and 9 can be swapped, and the answer to Q1 (which tools teams run) can reorder phases 8–11. |
+| D-9 | **A generic graph model**: `pipeline`, `task` and `consumer` kinds, each with a `tool` field, and new edges `loads`, `consumes` and `part_of`. Airflow IDs are unchanged. | Task 7.1. Snapshots change with the model, so `SNAPSHOT_FORMAT` is bumped and its test records the new model, which keeps a rollback safe. |
+| D-10 | **A tool that lives in a service is read from an export file the user makes**, never by connecting to it. | The export-file route (design_next_phase.md §6.8), by demand, from the G2 window. The export's path is a machine-scoped setting, and the review states the export's date. |
+| D-11 | **The confidence `observed`**, for facts read from records of runs, such as OpenLineage run events and exports of query history. | Task 11.1. No rule and no traversal treats it as `declared`. |
+| D-12 | **No live connectors in phases 7–11.** | Revisited if the export route proves too awkward in use. Beyond Phase 11 the question stays open, with Q4: whether the no-network promise is permanent. |
+| D-13 | **No second transformation framework**, such as SQLMesh or Dataform, in phases 7–11. | Revisited on demand (design_next_phase.md §6.9). |
+| D-14 | **The annotation file is `.lineagepilot/lineage.yml`**, and `.lineagepilot/airflow.yml` is still read. | Task 7.4. `pipelines` take a `tool`, which defaults to `airflow`, and a new `consumers` section declares what reads a model when no file says so. |
+| — | **Q3: the CI GitHub Action comes after phases 7–11.** | It stays in the backlog. |
+| — | **The Entry phase's result was read, and the work proceeds to Phase 7.** On the second held-out corpus the miss rate is 57.1%, the same for 0.2.0 and the Entry scanner, because the sample barely holds the patterns the Entry fixes address ([corpus/README.md](../corpus/README.md#a-second-corpus-after-the-entry-fixes-lp-aax)). | The new causes it found (LP-244 to LP-249) stay in the backlog, as candidates for the G2 window. |
+
 ### Open
 
 | # | Decision | Recommendation |
