@@ -14,10 +14,11 @@ from conftest import REPO, age_sources
 from lineagepilot_core.cli import main as cli_main
 from lineagepilot_core.gitdiff import git_changes
 from lineagepilot_core.project import read_project
+from lineagepilot_core.readers.airflow.reader import READER
 from lsprotocol import types
 
 from lineagepilot_lsp import protocol
-from lineagepilot_lsp.airflow_scan import AirflowScanner, AirflowStage
+from lineagepilot_lsp.reading import ReaderRunner, ReaderStage
 
 SHOP = REPO / "fixtures" / "impact-shop"
 RENAME = SHOP / "changes" / "rename-order-total"
@@ -285,7 +286,8 @@ class TestTheScanner:
 
     async def test_an_interpreter_that_cannot_start_is_a_failure_with_words(self, tmp_path):
         changes = []
-        scanner = AirflowScanner(
+        scanner = ReaderRunner(
+            READER,
             self.project(tmp_path),
             tmp_path,
             ["dags"],
@@ -295,22 +297,27 @@ class TestTheScanner:
         )
         scanner.start("k")
         await scanner.wait()
-        assert scanner.stage is AirflowStage.FAILED and "could not start" in scanner.message
+        assert scanner.stage is ReaderStage.FAILED and "could not start" in scanner.message
         assert changes == [1] and not scanner.current_for("k")
 
     async def test_a_reader_that_dies_is_a_failure_with_words(self, tmp_path):
-        scanner = AirflowScanner(
-            self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
+        scanner = ReaderRunner(
+            READER, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
         )
-        scanner.request_body = lambda output: {"task": "airflow"}  # no paths: the reader fails
+        scanner.request_body = lambda output: {"task": "read", "tool": "airflow"}  # no paths
         scanner.start("k")
         await scanner.wait()
-        assert scanner.stage is AirflowStage.FAILED and "KeyError" in scanner.message
+        assert scanner.stage is ReaderStage.FAILED and "KeyError" in scanner.message
 
     async def test_a_later_scan_overtakes_an_earlier_one(self, tmp_path):
         calls = []
-        scanner = AirflowScanner(
-            self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: calls.append(1)
+        scanner = ReaderRunner(
+            READER,
+            self.project(tmp_path),
+            tmp_path,
+            ["dags"],
+            tmp_path / "out",
+            lambda: calls.append(1),
         )
         scanner.start("a")
         scanner.start("b")
@@ -322,8 +329,8 @@ class TestTheScanner:
         assert not scanner.current_for("b")
 
     async def test_stop_kills_it(self, tmp_path):
-        scanner = AirflowScanner(
-            self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
+        scanner = ReaderRunner(
+            READER, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
         )
         scanner.start("a")
         await scanner.stop()

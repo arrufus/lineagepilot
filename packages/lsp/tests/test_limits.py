@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from lineagepilot_lsp import airflow_scan, indexing, limits, worker
+from lineagepilot_lsp import indexing, limits, reading, worker
 
 
 def test_the_limit_scales_with_the_artifact_limit_within_the_machine():
@@ -19,9 +19,9 @@ def test_the_limit_scales_with_the_artifact_limit_within_the_machine():
 
 
 def test_the_command_carries_the_limit_for_the_server_to_watch():
-    cmd = worker.command(sys.executable, {"task": "airflow", "maxArtifactBytes": 1 << 30})
+    cmd = worker.command(sys.executable, {"task": "read", "maxArtifactBytes": 1 << 30})
     assert worker.memory_limit_of(cmd) == limits.memory_limit(1 << 30)
-    assert json.loads(cmd[5])["task"] == "airflow"
+    assert json.loads(cmd[5])["task"] == "read"
     assert worker.memory_limit_of([sys.executable, "-c", "pass"]) is None
 
 
@@ -75,11 +75,11 @@ def test_the_operating_system_stops_an_allocation_past_the_limit():
 def test_a_scan_over_the_cap_is_not_read(tmp_path, monkeypatch):
     path = tmp_path / "scan.json"
     path.write_text(json.dumps({"links": ["x" * 100]}))
-    monkeypatch.setattr(airflow_scan, "MAX_SCAN_BYTES", 50)
-    with pytest.raises(airflow_scan.ScanTooLarge):
-        airflow_scan._read(path)
-    monkeypatch.setattr(airflow_scan, "MAX_SCAN_BYTES", 1000)
-    assert airflow_scan._read(path) == {"links": ["x" * 100]}
+    monkeypatch.setattr(reading, "MAX_SCAN_BYTES", 50)
+    with pytest.raises(reading.ScanTooLarge):
+        reading._read(path)
+    monkeypatch.setattr(reading, "MAX_SCAN_BYTES", 1000)
+    assert reading._read(path) == {"links": ["x" * 100]}
 
 
 async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
@@ -87,7 +87,7 @@ async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
     PermissionError escaped stop(), so the server never finished shutting down."""
     import asyncio
 
-    scanner = airflow_scan.AirflowScanner.__new__(airflow_scan.AirflowScanner)
+    scanner = reading.ReaderRunner.__new__(reading.ReaderRunner)
 
     async def fails_in_cleanup():
         try:
@@ -104,4 +104,4 @@ async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
 def test_a_scan_is_read_by_its_size(tmp_path):
     path = tmp_path / "scan.json"
     path.write_text('{"links": []}')
-    assert airflow_scan._read(path) == {"links": []}
+    assert reading._read(path) == {"links": []}
