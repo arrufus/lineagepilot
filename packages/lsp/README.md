@@ -5,8 +5,8 @@ The LineagePilot language server: `lineagepilot_core` behind the Language Server
 ## What it does
 
 - **Indexes in a child process** (`worker.py`): the model-level graph first, then column lineage, each handed over as a snapshot in the cache directory. The server never parses on its event loop, and freezes its heap after each load (design section 11).
-- **Reads DAG files in a child process** (`airflow_scan.py`), as syntax only, and puts the result on top of whichever graph is loaded. A scan is never part of a snapshot (design section 6.2).
-- **Watches** the artifacts, `dbt_project.yml`, the project's source files, `.lineagepilot/rules.yml`, `.lineagepilot/airflow.yml` and the DAG folders through `workspace/didChangeWatchedFiles`, with debouncing.
+- **Runs each reader in a child process** (`reading.py`), with a time limit and a memory limit: Airflow's reads the DAG files, as syntax only. What it found is put on top of whichever graph is loaded, never into a snapshot, and released once linked (design section 6.2; the reader contract, task 7.3 of the next phase's plan).
+- **Watches** the artifacts, `dbt_project.yml`, the project's source files, `.lineagepilot/rules.yml`, and each reader's files and annotation files (for Airflow, the DAG folders and `.lineagepilot/airflow.yml`), through `workspace/didChangeWatchedFiles`, with debouncing.
 - **LSP features**: CodeLens, hover and diagnostics (`features.py`).
 - **`lineage/*` requests** (`methods.py`): `status`, `refresh`, `graph`, `impact`, `export`, `nodesForFile`, `node`, `reviewChanges`, `airflow`, and the `indexUpdated` notification. Params are validated against the shared schema in `protocol/` (`protocol.py` is generated from it).
 
@@ -16,8 +16,8 @@ The LineagePilot language server: `lineagepilot_core` behind the Language Server
 |---|---|
 | `server.py` | The pygls server: initialise and protocol negotiation, handlers, diagnostics publishing, logging to the client |
 | `indexing.py` | The index state machine for one project, the indexer process, staleness |
-| `airflow_scan.py` | One project's DAG scan: when it runs, and what became of it |
-| `worker.py` | The indexer, run as a child process; it also reads a review's baseline manifest and the DAG files |
+| `reading.py` | One reader's run for one project: when it runs, and what became of it |
+| `worker.py` | The indexer, run as a child process; it also reads a review's baseline manifest, and runs any reader |
 | `context.py` | Everything derived from one loaded graph, and column lineage on demand |
 | `features.py` | CodeLens, hover and diagnostics |
 | `methods.py` | The `lineage/*` requests |
