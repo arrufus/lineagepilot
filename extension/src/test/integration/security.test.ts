@@ -9,9 +9,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import type { RefreshOutcome } from '../../dbt';
-import { PROBE_SCRIPT } from '../../interpreter';
+import { PROBE_SCRIPT, pathCandidates } from '../../interpreter';
 import { inWorkspace } from '../../panel';
-import { api, codeOf, expectTrusted, label, ran, readyServer, root, until, uri } from './helpers';
+import { api, codeOf, expectTrusted, label, ran, readerOf, readyServer, root, until, uri } from './helpers';
 
 const expectedSource = process.env.LP_EXPECT_SOURCE;
 const expectedVersion = process.env.LP_EXPECT_PYTHON_VERSION;
@@ -22,10 +22,16 @@ function inside(file: string, directory: string): boolean {
   return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
-// The same candidates, in the same order, as pathCandidates() in src/interpreter.ts
-function firstPythonOnPath(): string {
-  const candidates = process.platform === 'win32' ? [['py', '-3'], ['python']] : [['python3'], ['python']];
-  for (const [command, ...args] of candidates) {
+// The extension's own PATH candidates, in its order, less any it tried and could not run. A probe
+// has a time limit, and a Python that has never run can miss it: a fresh CI machine with a second
+// Python (Windows, Python 3.15 beside the job's 3.13) made the extension move on to the next
+// candidate, as it should, while this lookup, which has no limit, found the slow one.
+function firstPythonOnPath(attempts: readonly string[]): string {
+  const failed = (name: string) => attempts.includes(`path: ${name}: did not run as Python`);
+  for (const { command, args } of pathCandidates(process.platform)) {
+    if (failed([command, ...args].join(' '))) {
+      continue;
+    }
     try {
       return execFileSync(command, [...args, '-I', '-c', 'import sys; print(sys.executable)'],
         { encoding: 'utf8', windowsHide: true }).trim();
@@ -48,7 +54,8 @@ suite(`interpreter (${label})`, () => {
       assert.ok(python.python.startsWith(`${expectedVersion}.`), python.python);
     }
     if (process.env.LP_EXPECT_PATH_LOOKUP) {
-      assert.equal(fs.realpathSync(python.executable), fs.realpathSync(firstPythonOnPath()));
+      const attempts = manager.resolution?.attempts ?? [];
+      assert.equal(fs.realpathSync(python.executable), fs.realpathSync(firstPythonOnPath(attempts)), attempts.join('\n'));
     }
     assert.equal(python.isolated, true);
     const libs = path.join(extensionDir, 'bundled', 'libs');
@@ -101,8 +108,8 @@ suite('DAG files', () => {
   test('a DAG file is read and never run, trusted or not', async function () {
     this.timeout(120_000);
     const server = await readyServer();
-    await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
-    assert.ok(server.status.airflow.summary.dagFiles >= 1, 'no DAG file was read');
+    await until('the DAG files to be read', 100_000, () => readerOf(server.status)?.stage === 'done');
+    assert.ok(readerOf(server.status)!.summary.files >= 1, 'no DAG file was read');
     assert.equal(ran('planted-dag-ran'), undefined, 'a DAG file was imported or run');
   });
 });

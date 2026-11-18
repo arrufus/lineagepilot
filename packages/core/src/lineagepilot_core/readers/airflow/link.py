@@ -8,7 +8,8 @@ milliseconds.
   ``DbtTaskGroup`` gets one edge per node at the level of the DAG or group, which is what the file
   states; the per-model task ids Cosmos would render are derived and kept beside it.
 - A SQL operator gets one to each dbt node whose table its SQL reads or writes.
-- An annotation adds a declared edge, and answers the scanner's unknown about that task.
+- An annotation adds a declared edge, and answers the scanner's unknown about that task. The
+  annotation file's declared consumers are linked here too (``readers.common.declared``).
 - Whatever the scan could not resolve becomes an ``Unresolved`` record, at the call site. A task
   whose command cannot be read and does not mention dbt is counted, not listed: it is usually
   nothing to do with dbt, and one line per such task would bury the rest.
@@ -21,9 +22,10 @@ from __future__ import annotations
 import posixpath
 from typing import Any
 
-from lineagepilot_core.graph.ids import airflow_dag_id, airflow_task_id, normalise_identifier
+from lineagepilot_core.graph.ids import airflow_dag_id, airflow_task_id
 from lineagepilot_core.graph.model import (
-    DBT_KINDS,
+    AIRFLOW,
+    PIPELINE_KINDS,
     AirflowSummary,
     ArtifactVersion,
     Confidence,
@@ -37,10 +39,9 @@ from lineagepilot_core.graph.model import (
     Unresolved,
 )
 from lineagepilot_core.readers.common.categories import explanation, label
+from lineagepilot_core.readers.common.declared import link_declared, unlink_declared
+from lineagepilot_core.readers.common.references import References
 
-# Airflow's DAGs are pipelines and its tasks are tasks, with this tool (D-9)
-AIRFLOW = "airflow"
-AIRFLOW_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK})
 AIRFLOW_ORIGINS = frozenset({Origin.DAG_STATIC, Origin.ANNOTATION})
 _NOTES_KEPT = 8
 # A longer ID would not fit the protocol, and nobody names a DAG or task like this but on purpose
@@ -48,25 +49,24 @@ MAX_NAME = 1000
 _WITH_SELECTION = frozenset({"run", "build", "seed", "snapshot"})
 
 
-def is_airflow(node: Node, kind: NodeKind | None = None) -> bool:
-    """An Airflow DAG or task, or with ``kind`` only a DAG (pipeline) or only a task."""
-    return node.tool == AIRFLOW and (
-        node.kind in AIRFLOW_KINDS if kind is None else node.kind is kind
-    )
+def is_airflow(node: Node) -> bool:
+    """An Airflow DAG (a pipeline) or task."""
+    return node.kind in PIPELINE_KINDS and node.tool == AIRFLOW
 
 
 def unlink_airflow(graph: MetadataGraph) -> None:
     """Remove everything an earlier scan added, leaving the dbt graph as it was indexed."""
     for node_id in [n.id for n in graph.nodes.values() if is_airflow(n)]:
         graph.remove_node(node_id)
+    unlink_declared(graph)
     graph.unresolved = [u for u in graph.unresolved if u.evidence.origin not in AIRFLOW_ORIGINS]
-    graph.summaries.pop(AIRFLOW, None)
+    graph.airflow = None
 
 
 def mark_not_analysed(graph: MetadataGraph, reason: str) -> None:
     """Say why this graph has no Airflow nodes, so nobody reads that as "no task is affected"."""
     unlink_airflow(graph)
-    graph.summaries[AIRFLOW] = AirflowSummary(analysed=False, reason=reason)
+    graph.airflow = AirflowSummary(analysed=False, reason=reason)
 
 
 def link_airflow(graph: MetadataGraph, scan: dict[str, Any]) -> AirflowSummary:
@@ -74,8 +74,8 @@ def link_airflow(graph: MetadataGraph, scan: dict[str, Any]) -> AirflowSummary:
     unlink_airflow(graph)
     linker = _Linker(graph, scan)
     linker.run()
-    summary = graph.summaries[AIRFLOW] = linker.summary()
-    return summary
+    graph.airflow = linker.summary()
+    return graph.airflow
 
 
 def _named_sensibly(record: dict[str, Any]) -> bool:
@@ -103,7 +103,8 @@ class _Linker:
         self.opaque = 0
         self.problems: list[str] = list(scan.get("problems") or [])
         self._artifacts: dict[str, ArtifactVersion] = {}
-        self._suffixes: dict[str, set[str]] | None = None
+        self.references = References(graph)
+        self.declared = 0
 
     def run(self) -> None:
         for dag in self.scan.get("dags", []):
@@ -116,6 +117,13 @@ class _Linker:
         self.problems += annotations.get("problems", [])
         for annotation in annotations.get("tasks", []):
             self._annotation(annotation, annotations.get("file"))
+        file = annotations.get("file")
+        self.declared = link_declared(
+            self.graph,
+            annotations.get("consumers", []),
+            self._path(file) if file else None,
+            self.references,
+        )
         for link in self.scan.get("links", []):
             if link["status"] == "resolved":
                 self._link(link)
@@ -126,8 +134,7 @@ class _Linker:
         self._dependencies()
 
     def summary(self) -> AirflowSummary:
-        nodes = [n for n in self.graph.nodes.values() if is_airflow(n)]
-        links = sum(1 for n in nodes for _ in self.graph.out_edges(n.id, (EdgeKind.ORCHESTRATES,)))
+        airflow = [n for n in self.graph.nodes.values() if is_airflow(n)]
         files = len(self.scan.get("files", {}))
         folders = tuple(self.scan.get("patterns", ()))
         reason = None
@@ -140,17 +147,18 @@ class _Linker:
         unknowns = sum(1 for u in self.graph.unresolved if u.evidence.origin in AIRFLOW_ORIGINS)
         annotations = self.scan.get("annotations") or {}
         return AirflowSummary(
-            analysed=files > 0 or bool(annotations.get("tasks")),
+            analysed=files > 0 or bool(annotations.get("tasks")) or self.declared > 0,
             reason=reason,
             folders=folders,
             dag_files=files,
-            dags=sum(1 for n in nodes if n.kind is NodeKind.PIPELINE),
-            tasks=sum(1 for n in nodes if n.kind is NodeKind.TASK),
-            links=links,
+            dags=sum(n.kind is NodeKind.PIPELINE for n in airflow),
+            tasks=sum(n.kind is NodeKind.TASK for n in airflow),
+            links=sum(len(self.graph.out_edges(n.id, (EdgeKind.ORCHESTRATES,))) for n in airflow),
             unknowns=unknowns,
             opaque_tasks=self.opaque + self.dropped,
             annotation_file=annotations.get("file"),
             problems=tuple(self.problems),
+            consumers=self.declared,
         )
 
     # Paths and evidence
@@ -222,7 +230,7 @@ class _Linker:
                 kind=NodeKind.TASK,
                 name=task_id,
                 tool=AIRFLOW,
-                subkind="task",
+                subkind="task_group" if operator == "DbtTaskGroup" else "task",
                 owner=record.get("owner") or known.get("owner"),
                 file_path=self._path(file) if file else None,
                 properties={
@@ -235,6 +243,10 @@ class _Linker:
                 },
             )
         )
+
+    def _airflow(self, kind: NodeKind) -> list[Node]:
+        """The Airflow DAGs, or tasks, in the graph so far."""
+        return [n for n in self.graph.nodes.values() if n.kind is kind and is_airflow(n)]
 
     def _note(self, node: Node, notes: list[str]) -> None:
         kept = node.properties["notes"]
@@ -300,7 +312,7 @@ class _Linker:
         node = None
         for tables, how in ((record["reads"], "reads"), (record["writes"], "writes")):
             for table in tables:
-                found, partial = self._table(table)
+                found, partial = self.references.table(table)
                 for target in found:
                     node = node or self._task_node(
                         record["dag_id"], record["task_id"], record["operator"], record
@@ -312,41 +324,6 @@ class _Linker:
                     )
         if node is not None:
             self._note(node, record["notes"])
-
-    def _table(self, parts: list[str | None]) -> tuple[list[str], bool]:
-        """The dbt nodes for ``[database, schema, table]``, and whether that was by a partial name.
-
-        A partial name counts only if exactly one relation in the graph ends with it.
-        """
-        adapter = self.graph.adapter_type
-        names = [normalise_identifier(p, adapter) for p in parts if p]
-        if not names:
-            return [], False
-        key = ".".join(names)
-        full = f"relation:{key}"
-        if full in self.graph.nodes:
-            return self._builders(full), False
-        matches = self._by_suffix().get(key, set())
-        if len(matches) != 1:
-            return [], False
-        return self._builders(next(iter(matches))), True
-
-    def _builders(self, relation: str) -> list[str]:
-        """Who the table belongs to: what builds it, or else the sources that read it."""
-        nodes = self.graph.logical_nodes_for(relation)
-        built = [n.id for n in nodes if n.kind is not NodeKind.SOURCE]
-        return sorted(built or [n.id for n in nodes])
-
-    def _by_suffix(self) -> dict[str, set[str]]:
-        if self._suffixes is None:
-            self._suffixes = {}
-            for node in self.graph.nodes.values():
-                if node.kind is NodeKind.RELATION:
-                    parts = node.id.removeprefix("relation:").split(".")
-                    for start in range(1, len(parts)):
-                        key = ".".join(parts[start:])
-                        self._suffixes.setdefault(key, set()).add(node.id)
-        return self._suffixes
 
     # Annotations
 
@@ -363,7 +340,7 @@ class _Linker:
         )
         for how in ("consumes", "produces", "transforms", "validates"):
             for reference in annotation.get(how, []):
-                found, _ = self._reference(reference)
+                found, _ = self.references.resolve(reference)
                 for target in found:
                     self.graph.add_edge(
                         EdgeKind.ORCHESTRATES, node.id, target, evidence, transformation=how
@@ -377,22 +354,6 @@ class _Linker:
                             evidence=evidence,
                         )
                     )
-
-    def _reference(self, reference: str) -> tuple[list[str], bool]:
-        """What an annotation names: a dbt ID, a table name, or a model's name if it is unique."""
-        node = self.graph.nodes.get(reference)
-        if node is not None and node.kind in DBT_KINDS:
-            return [reference], False
-        if "." in reference:
-            return self._table(reference.split("."))
-        named = [
-            n.id
-            for n in self.graph.nodes.values()
-            if n.kind in DBT_KINDS and n.name.lower() == reference.lower()
-        ]
-        if len(named) == 1:
-            return named, False
-        return ([], False) if named else self._table([reference])
 
     # Unknowns
 
@@ -452,7 +413,7 @@ class _Linker:
 
     def _dependencies(self) -> None:
         """The DAGs in the graph get all their tasks, and the order between them."""
-        in_graph = {n.name for n in self.graph.nodes.values() if is_airflow(n, NodeKind.PIPELINE)}
+        in_graph = {n.name for n in self._airflow(NodeKind.PIPELINE)}
         for (dag_id, task_id), task in sorted(self.tasks.items()):
             if dag_id in in_graph:
                 self._task_node(dag_id, task_id, task.get("operator"), task)
@@ -469,7 +430,7 @@ class _Linker:
                     transformation=edge.get("how"),
                 )
         # A task in a group finishes before what follows the group
-        for node in [n for n in self.graph.nodes.values() if is_airflow(n, NodeKind.TASK)]:
+        for node in self._airflow(NodeKind.TASK):
             parent = node.id.rsplit(".", 1)[0]
             if parent != airflow_dag_id(node.properties["dag"]) and parent in self.graph.nodes:
                 location = self.tasks.get(

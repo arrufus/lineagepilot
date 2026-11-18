@@ -1,14 +1,16 @@
 {
- "about": "A small dbt project of our own for the Change Impact Review: a source, a staging model, a mart, its downstream models, an exposure, owners and a deliberately unparseable model (design section 14). Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
+ "about": "A small dbt project of our own for the Change Impact Review: a source, a staging model, a mart, its downstream models, an exposure, a semantic layer with metrics and a saved query, owners and a deliberately unparseable model (design section 14). Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
  "licence": "Written for this repository; not derived from jaffle-shop.",
  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
  "steps": {
   "target/": "seed, run --exclude broken_report, docs generate; macros emptied",
-  "changes/rename-order-total/target/": "the rename applied, then compile; macros emptied. catalog.json stays the one in target/"
+  "changes/rename-order-total/target/": "the rename applied, then compile; macros emptied. catalog.json stays the one in target/",
+  "variants/semantic-v2/target/": "the project with variants/semantic-v2's files over it, then parse; macros emptied"
  },
  "sha256": {
-  "target/manifest.json": "bbe6e6ce24c69df87dff6445b2d90d9adfb5bd8cf5dbb0aee1e505ef69f89725",
-  "target/catalog.json": "33f0f331530b8781b10aef929e2dfcead8a1da6c4dd39e08e3a633d17f622d1f",
-  "changes/rename-order-total/target/manifest.json": "63b80f681d615ba6fdc5692c36dc2bee1cf75865b239d8dad4e9fc032e1e1ab5"
+  "target/manifest.json": "b8575bafdb198d45a19697d8f0c76ae5bf505f11fd1724271957872cc4c8d02a",
+  "target/catalog.json": "a730ea2442332d7ce3ef69dacd8054424d261ac974f8f49912cc543f43b7f74a",
+  "changes/rename-order-total/target/manifest.json": "e1665667bc99a0842527a5f4b54d40dd80089b64a61b003fdef8bb42bb3905c1",
+  "variants/semantic-v2/target/manifest.json": "43395f4b874549f5a73a548e05d56c0cec55a4d7076a34676f4bb0be0aa0f207"
  }
 }

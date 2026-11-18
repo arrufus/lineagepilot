@@ -5,18 +5,23 @@ dbt source reads the table that a model, seed or snapshot builds, and both have 
 ``materialises`` edge into it. So a source is downstream of its table's builders, and
 the junction counts as one step. Physical relations are never reported as reached.
 
-Downstream of a dbt node also includes the tasks that run it (``orchestrates`` edges point from
-the task to the node), and downstream of a task the tasks that run after it. Upstream of a task
-are the nodes it runs and the tasks it waits for.
+Downstream of a dbt node also includes the tasks that run it (``orchestrates`` edges point
+from the task to the node), and downstream of a task the tasks that run after it. Upstream of
+a task are the nodes it runs and the tasks it waits for.
 
-Readers of other tools add three edges (D-9). ``consumes`` leads from a node to the consumer that
-reads it, and from a column to a consumer's column; ``part_of`` from a consumer to what holds it.
-Consumers are leaves as far as dbt is concerned. ``loads`` leads from a task to what it writes: a
-source, or a physical table, which is a junction to the sources that read it, as above.
+Downstream of a node or column are the consumers that read it (``consumes`` edges point from
+the consumer to what it reads, as ``orchestrates`` edges do), and downstream of a part what it
+is part of (``part_of``): a field's view, a view's explore. Consumers are leaves as far as dbt
+is concerned. A node that reads a column itself, as a metric reads a measure, has a ``consumes``
+edge to the column's node too: model-level traversal follows that, column-level traversal stays
+column to column, and impact follows ``column_readers``.
+
+Downstream of a task is what it loads (``loads``); a task that loads a physical table reaches the
+sources that read it, through the table, as one step.
 
 Traversal is breadth first, keeps the smallest depth for each node, and visits each node
-once, so cycles (impossible in a dbt DAG, possible in a crafted manifest or among Airflow
-tasks) cannot make it loop.
+once, so cycles (impossible in a dbt DAG, possible in a crafted manifest or among tasks)
+cannot make it loop.
 """
 
 from __future__ import annotations
@@ -96,52 +101,39 @@ def _node_steps(graph: MetadataGraph, node_id: str, direction: Direction) -> Ite
             yield Step(edge.downstream, (edge,))
         for reader, edges in _junction(graph, node_id, direction):
             yield Step(reader, edges)
-        for edge in graph.in_edges(node_id, (EdgeKind.ORCHESTRATES,)):
-            yield Step(edge.upstream, (edge,))
-        for edge in graph.out_edges(node_id, (EdgeKind.TASK_DEPENDS_ON,)):
+        for edge in graph.in_edges(node_id, (EdgeKind.ORCHESTRATES, EdgeKind.CONSUMES)):
+            if edge.upstream in graph.nodes:
+                yield Step(edge.upstream, (edge,))
+        for edge in graph.out_edges(node_id, (EdgeKind.TASK_DEPENDS_ON, EdgeKind.PART_OF)):
             yield Step(edge.downstream, (edge,))
-        yield from _consumers(graph, graph.out_edges(node_id, _CONSUMER_EDGES), downstream=True)
-        yield from _loaded(graph, node_id)
+        yield from _loads(graph, node_id)
     else:
         for edge in graph.in_edges(node_id, (EdgeKind.DEPENDS_ON,)):
             yield Step(edge.upstream, (edge,))
         for builder, edges in _junction(graph, node_id, direction):
             yield Step(builder, edges)
-        for edge in graph.out_edges(node_id, (EdgeKind.ORCHESTRATES,)):
-            yield Step(edge.downstream, (edge,))
-        for edge in graph.in_edges(node_id, (EdgeKind.TASK_DEPENDS_ON,)):
+        for edge in graph.out_edges(node_id, (EdgeKind.ORCHESTRATES, EdgeKind.CONSUMES)):
+            if edge.downstream in graph.nodes:  # not a column a metric reads itself
+                yield Step(edge.downstream, (edge,))
+        for edge in graph.in_edges(node_id, (EdgeKind.TASK_DEPENDS_ON, EdgeKind.PART_OF)):
             yield Step(edge.upstream, (edge,))
-        yield from _consumers(graph, graph.in_edges(node_id, _CONSUMER_EDGES), downstream=False)
-        yield from _loaders(graph, node_id)
+        yield from _loaded_by(graph, node_id)
 
 
-# Between nodes at model granularity, between columns at column granularity
-_CONSUMER_EDGES = (EdgeKind.CONSUMES, EdgeKind.PART_OF)
-
-
-def _consumers(graph: MetadataGraph, edges: list[Edge], downstream: bool) -> Iterator[Step]:
-    """Steps over ``consumes`` and ``part_of`` edges that stay at one granularity."""
-    for edge in edges:
-        other = edge.downstream if downstream else edge.upstream
-        here = edge.upstream if downstream else edge.downstream
-        if (other in graph.columns) == (here in graph.columns):
-            yield Step(other, (edge,))
-
-
-def _loaded(graph: MetadataGraph, task: str) -> Iterator[Step]:
+def _loads(graph: MetadataGraph, task: str) -> Iterator[Step]:
     """What a task loads: a source, or through a physical table the sources that read it."""
     for edge in graph.out_edges(task, (EdgeKind.LOADS,)):
         target = graph.nodes.get(edge.downstream)
-        if target is not None and target.kind is NodeKind.RELATION:
-            for read in graph.in_edges(target.id, (EdgeKind.MATERIALISES,)):
-                if graph.nodes[read.upstream].kind is NodeKind.SOURCE:
-                    yield Step(read.upstream, (edge, read))
-        elif target is not None:
-            yield Step(target.id, (edge,))
+        if target is None or target.kind is not NodeKind.RELATION:
+            yield Step(edge.downstream, (edge,))
+            continue
+        for read in graph.in_edges(target.id, (EdgeKind.MATERIALISES,)):
+            if graph.nodes[read.upstream].kind is NodeKind.SOURCE:
+                yield Step(read.upstream, (edge, read))
 
 
-def _loaders(graph: MetadataGraph, node_id: str) -> Iterator[Step]:
-    """The tasks that load a node, directly or, for a source, through its physical table."""
+def _loaded_by(graph: MetadataGraph, node_id: str) -> Iterator[Step]:
+    """The tasks that load a node, or a source's physical table."""
     for edge in graph.in_edges(node_id, (EdgeKind.LOADS,)):
         yield Step(edge.upstream, (edge,))
     node = graph.nodes.get(node_id)
@@ -156,16 +148,29 @@ def _column_steps(graph: MetadataGraph, column: str, direction: Direction) -> It
     if direction is Direction.DOWNSTREAM:
         for edge in graph.out_edges(column, (EdgeKind.DERIVES,)):
             yield Step(edge.downstream, (edge,))
-        yield from _consumers(graph, graph.out_edges(column, _CONSUMER_EDGES), downstream=True)
+        # Column to column only: a consumer that reads the whole node is reached at its level
+        for edge in graph.in_edges(column, (EdgeKind.CONSUMES,)):
+            if edge.upstream in graph.columns:
+                yield Step(edge.upstream, (edge,))
     else:
         for edge in graph.in_edges(column, (EdgeKind.DERIVES,)):
             yield Step(edge.upstream, (edge,))
-        yield from _consumers(graph, graph.in_edges(column, _CONSUMER_EDGES), downstream=False)
+        for edge in graph.out_edges(column, (EdgeKind.CONSUMES,)):
+            if edge.downstream in graph.columns:
+                yield Step(edge.downstream, (edge,))
     node_id, name = split_column_id(column)
     for other, edges in _junction(graph, node_id, direction):
         twin = f"{other}#{name}"  # the column ID is already folded to the adapter's rules
         if twin in graph.columns:
             yield Step(twin, edges)
+
+
+def column_readers(graph: MetadataGraph, column: str) -> Iterator[Step]:
+    """The nodes that read a column themselves, not through a column of their own: a metric
+    reading a measure, a saved query grouping by a dimension."""
+    for edge in graph.in_edges(column, (EdgeKind.CONSUMES,)):
+        if edge.upstream in graph.nodes:
+            yield Step(edge.upstream, (edge,))
 
 
 def _junction(

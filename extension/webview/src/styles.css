@@ -54,7 +54,8 @@
 .lp-kind-seed { --lp-accent: var(--lp-seed); }
 .lp-kind-snapshot { --lp-accent: var(--lp-snapshot); }
 .lp-kind-exposure { --lp-accent: var(--lp-exposure); }
-.lp-kind-airflow_task, .lp-kind-airflow_dag { --lp-accent: var(--lp-airflow); }
+.lp-kind-pipeline, .lp-kind-task, .lp-kind-airflow_task, .lp-kind-airflow_dag { --lp-accent: var(--lp-pipeline); }
+.lp-kind-consumer { --lp-accent: var(--lp-consumer); }
 .lp-node-root { box-shadow: 0 0 0 2px var(--lp-accent); }
 .lp-node-selected { border-color: var(--lp-focus); box-shadow: 0 0 0 2px var(--lp-focus); }
 .lp-node-dimmed { opacity: 0.35; }

@@ -2,8 +2,9 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "urn:lineagepilot:protocol",
   "title": "LineagePilot lineage/* protocol",
-  "description": "The custom requests and notifications between the LineagePilot extension and its language server (design section 9). This file is the single source: protocol/generate.py writes the zod schemas for the extension and the dataclass validators for the server from it. Each side validates what it receives. Every request carries a params object, even an empty one (spike S1, finding 4). Free text from the workspace is truncated by the server to fit the length limits here.",
-  "x-protocol-version": 1,
+  "description": "The custom requests and notifications between the LineagePilot extension and its language server (design section 9). This file is the single source: protocol/generate.py writes the zod schemas for the extension and the dataclass validators for the server from it. Each side validates what it receives. Every request carries a params object, even an empty one (spike S1, finding 4). Free text from the workspace is truncated by the server to fit the length limits here. The server speaks every version in x-protocol-versions, and answers each client in the version they negotiated: a protocol 1 client never receives anything this file marks as protocol 2. protocol/v1/ keeps the protocol 1 schema, which the server's tests hold its protocol 1 answers to.",
+  "x-protocol-version": 2,
+  "x-protocol-versions": [1, 2],
   "x-requests": {
     "lineage/status": { "params": "EmptyParams", "result": "Status" },
     "lineage/refresh": { "params": "EmptyParams", "result": "Status" },
@@ -13,7 +14,9 @@
     "lineage/nodesForFile": { "params": "NodesForFileParams", "result": "NodesForFileResult" },
     "lineage/node": { "params": "NodeParams", "result": "NodeResult" },
     "lineage/reviewChanges": { "params": "ReviewParams", "result": "ReviewResult" },
-    "lineage/airflow": { "params": "AirflowParams", "result": "AirflowResult" }
+    "lineage/airflow": { "params": "AirflowParams", "result": "AirflowResult", "until": 2, "description": "Replaced by lineage/pipelines; kept for one protocol version. Its tasks' kinds are always airflow_dag and airflow_task." },
+    "lineage/pipelines": { "params": "PipelinesParams", "result": "PipelinesResult", "since": 2 },
+    "lineage/consumers": { "params": "ConsumersParams", "result": "ConsumersResult", "since": 2 }
   },
   "x-notifications": {
     "lineage/indexUpdated": "Status"
@@ -31,9 +34,13 @@
     "Count": { "type": "integer", "minimum": 0 },
 
     "NodeKind": {
-      "enum": ["model", "seed", "snapshot", "source", "exposure", "relation", "airflow_dag", "airflow_task", "column"]
+      "description": "pipeline, task and consumer are protocol 2, with a tool. In protocol 1 an Airflow DAG and task are airflow_dag and airflow_task, and no other pipeline, task or consumer is sent.",
+      "enum": ["model", "seed", "snapshot", "source", "exposure", "relation", "airflow_dag", "airflow_task", "pipeline", "task", "consumer", "column"]
     },
-    "EdgeKind": { "enum": ["depends_on", "derives", "materialises", "orchestrates", "task_depends_on"] },
+    "EdgeKind": {
+      "description": "loads, consumes and part_of are protocol 2: an edge of those kinds is never sent in protocol 1.",
+      "enum": ["depends_on", "derives", "materialises", "orchestrates", "task_depends_on", "loads", "consumes", "part_of"]
+    },
     "Confidence": { "enum": ["declared", "inferred", "heuristic"] },
     "Origin": { "enum": ["manifest", "compiled_sql", "catalog", "dag_static", "annotation"] },
     "Direction": { "enum": ["upstream", "downstream", "both"] },
@@ -44,6 +51,7 @@
     "ColumnStage": { "enum": ["pending", "computing", "done", "off"] },
     "ExportFormat": { "enum": ["json", "mermaid", "dot", "graphml", "cypher", "pii-markdown", "pii-csv"] },
     "AirflowStage": { "enum": ["pending", "scanning", "done", "failed"] },
+    "ReaderStage": { "enum": ["pending", "scanning", "done", "failed"] },
 
     "Position": {
       "type": "object",
@@ -109,7 +117,9 @@
         "description": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
         "columnLineage": { "anyOf": [{ "$ref": "#/$defs/LineageState" }, { "type": "null" }] },
         "columnLineageReason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
-        "pii": { "type": "boolean" }
+        "pii": { "type": "boolean" },
+        "tool": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: the tool of a pipeline, task or consumer (airflow, dbt_semantic...); null for anything else. Never sent in protocol 1." },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: what the tool calls it (dag, task, metric, view...). Never sent in protocol 1." }
       },
       "required": [
         "id", "kind", "name", "side", "depth", "parent", "location", "layer", "materialization",
@@ -170,7 +180,9 @@
         "columns": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
         "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
         "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
-        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] }
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "tool": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: the tool of a pipeline, task or consumer (airflow, dbt_semantic...); null for anything else. Never sent in protocol 1." },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: what the tool calls it (dag, task, metric, view...). Never sent in protocol 1." }
       },
       "required": ["id", "kind", "name", "depth", "granularity", "confidence", "columns", "reason", "location", "owner"],
       "additionalProperties": false
@@ -376,7 +388,11 @@
         "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
         "via": { "type": "array", "items": { "$ref": "#/$defs/ImpactEvidence" }, "maxItems": 5 },
         "viaMore": { "$ref": "#/$defs/Count" },
-        "airflow": { "anyOf": [{ "$ref": "#/$defs/ImpactAirflow" }, { "type": "null" }], "description": "For an Airflow task or DAG: what it has to do with the change." }
+        "airflow": { "anyOf": [{ "$ref": "#/$defs/ImpactAirflow" }, { "type": "null" }], "description": "For an Airflow task or DAG: what it has to do with the change. Kept in protocol 2 for one version; pipeline replaces it." },
+        "tool": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: the tool of a pipeline, task or consumer (airflow, dbt_semantic...); null for anything else. Never sent in protocol 1." },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }], "description": "Protocol 2: what the tool calls it (dag, task, metric, view...). Never sent in protocol 1." },
+        "pipeline": { "anyOf": [{ "$ref": "#/$defs/ImpactPipeline" }, { "type": "null" }], "description": "Protocol 2: for a pipeline or task of any tool, what it has to do with the change. Never sent in protocol 1." },
+        "exports": { "type": "array", "items": { "$ref": "#/$defs/Name" }, "maxItems": 20, "description": "Protocol 2: for a dbt saved query, the tables its exports write, as schema.table; empty for anything else. Never sent in protocol 1." }
       },
       "required": ["id", "kind", "name", "owner", "file", "depth", "reach", "confidence", "origins", "columns", "reason", "via", "viaMore", "airflow"],
       "additionalProperties": false
@@ -406,6 +422,166 @@
         "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
       },
       "required": ["dag", "operator", "how", "runs", "runsMore", "tasks", "tasksMore", "after", "notes"],
+      "additionalProperties": false
+    },
+    "ImpactPipeline": {
+      "description": "Protocol 2. How a pipeline or task relates to a change, for any tool: what it runs, how, the tasks derived for it, and the tasks it follows.",
+      "type": "object",
+      "properties": {
+        "tool": { "$ref": "#/$defs/Name" },
+        "pipeline": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "operator": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "how": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "runs": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "runsMore": { "$ref": "#/$defs/Count" },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "tasksMore": { "$ref": "#/$defs/Count" },
+        "after": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
+      },
+      "required": ["tool", "pipeline", "operator", "how", "runs", "runsMore", "tasks", "tasksMore", "after", "notes"],
+      "additionalProperties": false
+    },
+    "ReaderSummary": {
+      "description": "Protocol 2. What one reader looked at and found. analysed is false when nothing was read, and reason says why, so nobody reads that as nothing being affected.",
+      "type": "object",
+      "properties": {
+        "tool": { "$ref": "#/$defs/Name" },
+        "analysed": { "type": "boolean" },
+        "reason": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }] },
+        "paths": { "type": "array", "items": { "$ref": "#/$defs/Text" }, "description": "Where it looked: its folders or patterns." },
+        "files": { "$ref": "#/$defs/Count" },
+        "pipelines": { "$ref": "#/$defs/Count" },
+        "tasks": { "$ref": "#/$defs/Count" },
+        "consumers": { "$ref": "#/$defs/Count" },
+        "links": { "$ref": "#/$defs/Count" },
+        "unknowns": { "$ref": "#/$defs/Count" },
+        "opaqueTasks": { "$ref": "#/$defs/Count", "description": "Tasks whose commands cannot be read and do not mention dbt: counted, not listed." },
+        "problems": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
+      },
+      "required": ["tool", "analysed", "reason", "paths", "files", "pipelines", "tasks", "consumers", "links", "unknowns", "opaqueTasks", "problems"],
+      "additionalProperties": false
+    },
+    "ReaderStatus": {
+      "description": "Protocol 2. One reader: whether it is reading now, and what its last read found.",
+      "type": "object",
+      "properties": {
+        "tool": { "$ref": "#/$defs/Name" },
+        "stage": { "$ref": "#/$defs/ReaderStage" },
+        "generation": { "$ref": "#/$defs/Count", "description": "One per read started." },
+        "message": { "anyOf": [{ "$ref": "#/$defs/Text" }, { "type": "null" }], "description": "Why the last read failed, when it did." },
+        "summary": { "$ref": "#/$defs/ReaderSummary" }
+      },
+      "required": ["tool", "stage", "generation", "message", "summary"],
+      "additionalProperties": false
+    },
+    "PipelinesParams": {
+      "description": "Protocol 2.",
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/Id" }, "maxItems": 200 }, { "type": "null" }],
+          "description": "Only the tasks that run or read these nodes; null for every pipeline and task."
+        },
+        "tools": {
+          "anyOf": [{ "type": "array", "items": { "$ref": "#/$defs/Name" }, "maxItems": 50 }, { "type": "null" }],
+          "description": "Only these tools; null or absent for every tool."
+        }
+      },
+      "required": ["nodes"],
+      "additionalProperties": false
+    },
+    "PipelineTask": {
+      "description": "Protocol 2. A task, or a pipeline that is one link as a whole (a Cosmos DbtDag).",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "kind": { "$ref": "#/$defs/NodeKind" },
+        "tool": { "$ref": "#/$defs/Name" },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "name": { "$ref": "#/$defs/Name" },
+        "operator": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "how": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/Id" } },
+        "derivedTasks": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "confidence": { "anyOf": [{ "$ref": "#/$defs/Confidence" }, { "type": "null" }] },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 },
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] }
+      },
+      "required": ["id", "kind", "tool", "subkind", "name", "operator", "owner", "how", "nodes", "derivedTasks", "confidence", "origins", "notes", "location"],
+      "additionalProperties": false
+    },
+    "Pipeline": {
+      "description": "Protocol 2.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "tool": { "$ref": "#/$defs/Name" },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "name": { "$ref": "#/$defs/Name" },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
+        "tasks": { "type": "array", "items": { "$ref": "#/$defs/PipelineTask" } }
+      },
+      "required": ["id", "tool", "subkind", "name", "owner", "location", "tasks"],
+      "additionalProperties": false
+    },
+    "PipelinesResult": {
+      "description": "Protocol 2. The pipelines and tasks touching some nodes, or all of them, for each reader that reads pipelines (the Pipelines view).",
+      "type": "object",
+      "properties": {
+        "readers": { "type": "array", "items": { "$ref": "#/$defs/ReaderStatus" } },
+        "pipelines": { "type": "array", "items": { "$ref": "#/$defs/Pipeline" } },
+        "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } }
+      },
+      "required": ["readers", "pipelines", "unknowns"],
+      "additionalProperties": false
+    },
+    "ConsumersParams": {
+      "description": "Protocol 2.",
+      "type": "object",
+      "properties": {
+        "nodes": { "type": "array", "items": { "$ref": "#/$defs/Id" }, "minItems": 1, "maxItems": 200 }
+      },
+      "required": ["nodes"],
+      "additionalProperties": false
+    },
+    "ConsumerRead": {
+      "description": "Protocol 2. How a consumer reads one node: the whole node, or the columns listed.",
+      "type": "object",
+      "properties": {
+        "node": { "$ref": "#/$defs/Id" },
+        "columns": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
+        "confidence": { "$ref": "#/$defs/Confidence" },
+        "origins": { "type": "array", "items": { "$ref": "#/$defs/Origin" }, "maxItems": 5 }
+      },
+      "required": ["node", "columns", "confidence", "origins"],
+      "additionalProperties": false
+    },
+    "Consumer": {
+      "description": "Protocol 2. Something that reads dbt's models from outside dbt: a metric, a dashboard, a report.",
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/Id" },
+        "tool": { "$ref": "#/$defs/Name" },
+        "subkind": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "name": { "$ref": "#/$defs/Name" },
+        "owner": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
+        "location": { "anyOf": [{ "$ref": "#/$defs/Location" }, { "type": "null" }] },
+        "reads": { "type": "array", "items": { "$ref": "#/$defs/ConsumerRead" } }
+      },
+      "required": ["id", "tool", "subkind", "name", "owner", "location", "reads"],
+      "additionalProperties": false
+    },
+    "ConsumersResult": {
+      "description": "Protocol 2. What reads some nodes, directly, and how (the Consumers view).",
+      "type": "object",
+      "properties": {
+        "consumers": { "type": "array", "items": { "$ref": "#/$defs/Consumer" } }
+      },
+      "required": ["consumers"],
       "additionalProperties": false
     },
     "AirflowSummary": {
@@ -557,7 +733,9 @@
         "changedNodes": { "type": "array", "items": { "$ref": "#/$defs/ChangedNode" } },
         "impacted": { "type": "array", "items": { "$ref": "#/$defs/ReviewImpacted" } },
         "owners": { "type": "array", "items": { "$ref": "#/$defs/OwnerGroup" } },
-        "airflow": { "$ref": "#/$defs/AirflowSummary" },
+        "airflow": { "$ref": "#/$defs/AirflowSummary", "description": "Kept in protocol 2 for one version; pipelines replaces it." },
+        "pipelines": { "type": "array", "items": { "$ref": "#/$defs/ReaderSummary" }, "description": "Protocol 2: what each reader of pipelines read, for the review's Pipelines section. Never sent in protocol 1." },
+        "consumers": { "type": "array", "items": { "$ref": "#/$defs/ReaderSummary" }, "description": "Protocol 2: what each reader of consumers read, for the review's Consumers section. Never sent in protocol 1." },
         "unknowns": { "type": "array", "items": { "$ref": "#/$defs/Unknown" } },
         "otherFiles": { "type": "array", "items": { "$ref": "#/$defs/OtherFile" } },
         "outsideProject": { "$ref": "#/$defs/Count" },
@@ -713,7 +891,8 @@
         "fromCache": { "type": "boolean" },
         "indexedAt": { "anyOf": [{ "$ref": "#/$defs/Name" }, { "type": "null" }] },
         "rules": { "$ref": "#/$defs/RulesStatus" },
-        "airflow": { "$ref": "#/$defs/AirflowStatus" }
+        "airflow": { "$ref": "#/$defs/AirflowStatus", "description": "Kept in protocol 2 for one version; readers replaces it." },
+        "readers": { "type": "array", "items": { "$ref": "#/$defs/ReaderStatus" }, "description": "Protocol 2: every reader, what it found, read and linked, its unknowns, and any failure. Never sent in protocol 1." }
       },
       "required": [
         "protocolVersion", "server", "project", "trusted", "state", "indexing", "generation",

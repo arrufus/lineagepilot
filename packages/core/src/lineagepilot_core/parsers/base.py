@@ -57,7 +57,8 @@ def source_sha256(text: str) -> str:
 
 @dataclass(slots=True)
 class RawNode:
-    """A dbt node (model, source, seed, snapshot or exposure), keyed by ``unique_id``."""
+    """A dbt node (model, source, seed, snapshot or exposure, or a semantic model, metric or saved
+    query), keyed by ``unique_id``."""
 
     unique_id: str
     resource_type: str
@@ -103,7 +104,8 @@ class RawNode:
     patch_path: str | None = None
 
     # Kind-specific fields: source_name, identifier and loader for sources;
-    # type, maturity, url and label for exposures
+    # type, maturity, url and label for exposures; label, a metric's type and a saved query's
+    # exports for the semantic layer
     properties: dict[str, Any] = field(default_factory=dict)
 
     # Column lineage inputs: compiled SQL from the manifest (after dbt compile or
@@ -177,6 +179,54 @@ class RawUnresolved:
     reason: str
 
 
+@dataclass(slots=True)
+class RawField:
+    """An entity, dimension or measure of a semantic model (task 7.8)."""
+
+    name: str
+    role: str  # entity, dimension or measure
+    # SQL over the model's columns. None means the column of the same name, as MetricFlow reads it
+    expr: str | None = None
+    type: str | None = None  # primary, foreign, categorical, time, sum, count...
+    description: str | None = None
+
+
+@dataclass(slots=True)
+class RawSemanticModel:
+    """A semantic model: the dbt model it is defined on, and its fields."""
+
+    node_id: str
+    model_id: str | None  # from depends_on; None if the manifest names no model
+    fields: list[RawField] = field(default_factory=list)
+
+
+@dataclass(slots=True)
+class RawMetric:
+    """What a metric reads, besides the metrics it is built from (those are its depends_on).
+
+    ``references`` are MetricFlow's names in filters and conversions, such as
+    ``{{ Dimension('order__order_size') }} = 'large'``, as written.
+    """
+
+    node_id: str
+    metric_type: str | None
+    measures: list[str] = field(default_factory=list)  # measure names (the older YAML)
+    references: list[str] = field(default_factory=list)
+    # The newer YAML aggregates an expression over a semantic model's model directly
+    expr: str | None = None
+    semantic_model: str | None = None  # by name
+
+
+@dataclass(slots=True)
+class RawSavedQuery:
+    """A saved query: its group-by and filter references, and the tables its exports write.
+    The metrics it queries are its depends_on."""
+
+    node_id: str
+    references: list[str] = field(default_factory=list)
+    exports: list[dict[str, Any]] = field(default_factory=list)
+
+
 @dataclass
 class RawDomain:
     """A business domain."""
@@ -214,6 +264,10 @@ class ParseResult:
     columns: list[RawColumn] = field(default_factory=list)
     edges: list[RawEdge] = field(default_factory=list)
     unresolved: list[RawUnresolved] = field(default_factory=list)
+    # The dbt semantic layer: what its nodes read, for the graph to link (task 7.8)
+    semantic_models: list[RawSemanticModel] = field(default_factory=list)
+    metrics: list[RawMetric] = field(default_factory=list)
+    saved_queries: list[RawSavedQuery] = field(default_factory=list)
     domains: list[RawDomain] = field(default_factory=list)
     tags: list[RawTag] = field(default_factory=list)
 

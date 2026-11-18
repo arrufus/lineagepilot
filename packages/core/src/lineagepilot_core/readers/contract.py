@@ -1,72 +1,95 @@
-"""The reader contract (design_next_phase §7.2, task 7.3).
+"""The reader contract (design_next_phase section 7.2, task 7.3).
 
-Each tool beside dbt is read by a reader under ``lineagepilot_core.readers.<tool>``, which declares
-the five parts below, and ``registry.READERS`` lists them. The language server runs every reader
-the same way: it reads in a child process, with a time limit and a memory limit; it links what was
-read on top of the loaded graph, never into a snapshot; and it lets what was read go once linked.
+A reader reads one tool's files as data and links what it finds to the dbt graph. It declares:
 
-- **Discovery**: a setting of paths or globs relative to the workspace, bounded like
-  ``dagFolders``. From it, the globs the editor watches, and whether a changed file is the
-  reader's. A change to one of its annotation files also means reading again.
-- **Reading**: workspace files as text and syntax only, through ``common.safe_io``, into JSON.
-  Nothing is imported or run, so a reader works in Restricted Mode.
-- **Linking**: that JSON onto the graph, by dbt ID, by selector (``common.selector``), by
-  relation name, or by a key of the tool's own.
-- **Output**: nodes and edges with evidence, named unknowns at the line that caused them, each
-  with a category from ``common.categories``, and a summary of what was read, in
-  ``graph.summaries[tool]``.
-- **Lifecycle**: ``unlink`` takes it all out again. ``not_analysed`` says why there is nothing,
-  so nobody reads an empty part of the graph as "nothing is affected".
+- **Discovery**: which files are its own. A setting of relative folders or patterns, bounded,
+  with defaults that find the tool's marker files (``default_paths``, ``clean_paths``); the globs
+  the editor watches for it (``watch_globs``); and whether a changed file is one (``owns``).
+  When nothing is found, the reader's summary says where it looked.
+- **Reading**: ``read`` runs in a child process with a time limit and a memory limit, through
+  ``readers.common.safe_io``. It reads only regular files inside the workspace, never runs
+  anything, and so works in Restricted Mode. What it returns is plain JSON.
+- **Linking**: ``link`` puts what was read into a graph, against that graph's manifest, and
+  ``unlink`` takes it out again, leaving the dbt graph as it was indexed.
+- **Output**: nodes of its ``kinds``, edges with evidence, and named unknowns at the line that
+  caused them, with the annotation that answers each, under its ``origins``; and a summary of what
+  was read, in ``graph.readers[tool]``, which ``summary_json`` writes as the protocol's
+  ``ReaderSummary``.
+  ``mark_not_analysed`` says why a graph has nothing from the reader, so nobody reads its absence
+  as "nothing is affected".
+- **Lifecycle**: what a reader adds is composed on top of the graph and never stored in a
+  snapshot. The caller reads again when the reader's files or the annotation file change, or a
+  new manifest arrives, and lets the result go once it is linked.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Sequence
+from pathlib import Path
 from typing import Any, Protocol, runtime_checkable
 
-from lineagepilot_core.graph.model import MetadataGraph
+from lineagepilot_core.graph.model import MetadataGraph, NodeKind, Origin
 
 
 @runtime_checkable
 class Reader(Protocol):
-    tool: str  # Node.tool of what it adds, and the key of its summary
-    files: str  # what it reads, as messages name it: "the DAG files"
-    option: str  # its setting in the server's initializationOptions: "dagFolders"
+    """One tool's reader. Implementations hold no state: the caller holds what was read."""
+
+    # The tool, as in a node's ``tool`` and an ID's prefix: ``airflow``
+    tool: str
+    # The client's option for the reader's paths: ``dagFolders``, from the setting
+    # lineagePilot.airflow.dagFolders
+    option: str
+    # Where it looks when the setting is not given
     default_paths: tuple[str, ...]
-    annotation_files: tuple[str, ...]  # relative to the project
+    # The files, in a sentence: "the DAG files are still being read"
+    files: str
+    # What it adds to the graph: the kinds of node, and the origins of its evidence and unknowns
+    kinds: frozenset[NodeKind]
+    origins: frozenset[Origin]
 
     # Discovery
 
-    def clean_paths(self, paths: Iterable[str]) -> list[str]:
-        """The setting's entries that are relative and stay in the workspace; the rest dropped."""
+    def clean_paths(self, paths: Iterable[Any]) -> list[str]:
+        """The setting's relative folders or patterns that are safe to use; the rest dropped."""
         ...
 
-    def watch_globs(self, paths: list[str]) -> list[str]:
-        """Globs relative to the workspace, for the editor to watch."""
+    def watch_globs(self, paths: Sequence[str]) -> list[str]:
+        """Globs, relative to the workspace, for the editor to watch."""
         ...
 
-    def watches(self, relative: str, paths: list[str]) -> bool:
-        """Whether a changed file, relative to the workspace, is one this reader reads."""
+    def owns(self, relative: str, paths: Sequence[str]) -> bool:
+        """Whether a file, relative to the workspace, is one the reader reads."""
         ...
 
-    # Reading, in the child process
+    # Reading, in a child process
 
     def read(
-        self, project_dir: str, workspace: str, paths: list[str], manifest: str | None
+        self,
+        project_root: str | Path,
+        workspace: str | Path,
+        paths: Sequence[str],
+        manifest: str | Path | None,
     ) -> dict[str, Any]:
-        """What the files say about this project, as JSON."""
+        """Read the files for this project, as JSON. Nothing in them is ever run."""
         ...
 
-    # Linking and output, in the server
+    # Linking and output
 
-    def link(self, graph: MetadataGraph, found: dict[str, Any]) -> Any:
-        """Replace what this reader put on the graph with what ``read`` found."""
-        ...
-
-    def not_analysed(self, graph: MetadataGraph, reason: str) -> None:
-        """Take this reader's part out, and say why there is none."""
+    def link(self, graph: MetadataGraph, scan: dict[str, Any]) -> Any:
+        """Replace what an earlier read added to ``graph`` with this one's, and return its summary,
+        which is also in ``graph.readers[tool]``."""
         ...
 
     def unlink(self, graph: MetadataGraph) -> None:
-        """Take this reader's part out, leaving the graph as it was indexed."""
+        """Take out everything the reader added."""
+        ...
+
+    def mark_not_analysed(self, graph: MetadataGraph, reason: str) -> None:
+        """Take out what the reader added, and say why there is nothing from it."""
+        ...
+
+    def summary_json(self, graph: MetadataGraph | None) -> dict[str, Any]:
+        """What its last read found in ``graph``, as the protocol's ``ReaderSummary``; not
+        analysed, with the reason, when nothing has been read into it."""
         ...

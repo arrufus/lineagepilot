@@ -131,15 +131,19 @@ suite(`change impact review (${label})`, () => {
 
   test('Copy as Markdown copies the text the server rendered, and takes none from the page', async () => {
     await vscode.env.clipboard.writeText('before');
-    // The review renders again when the DAG scan comes in, and a copy takes the newest text, so
-    // take the text once the scan is in: the workspace's one DAG file is always read
-    const review = await until('the DAG files to be read', 60_000, () =>
-      panel.latest?.airflow.analysed ? panel.latest : undefined);
-    const markdown = review.markdown;
-    assert.match(markdown, /^## Change impact review: `pilot_shop`/);
+    // Copy once the DAG scan is in, so the text is a whole review: the workspace's one DAG file is
+    // always read
+    await until('the DAG files to be read', 60_000, () => panel.latest?.pipelines?.find((r) => r.tool === 'airflow')?.analysed);
     await panel.handle({ type: 'copyMarkdown', text: 'from the page' });
     assert.equal(await vscode.env.clipboard.readText(), 'before', 'a message with text is malformed, so it is dropped');
+    // A copy takes the review the page shows at that moment, and the review renders again whenever
+    // the server moves on. Not only when the scan comes in: a touched manifest (the security
+    // suite's dbt) is indexed again a second later, and the DAG files are read again for the new
+    // graph. So read the text in the same turn as the copy starts: handle() reaches copy(), which
+    // reads the review, before it awaits anything.
+    const markdown = panel.latest!.markdown;
     await panel.handle({ type: 'copyMarkdown' });
+    assert.match(markdown, /^## Change impact review: `pilot_shop`/);
     assert.equal(await vscode.env.clipboard.readText(), markdown);
     assert.equal(find('copied')?.characters, markdown.length);
   });

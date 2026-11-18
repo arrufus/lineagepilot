@@ -71,7 +71,13 @@ def test_node_targets_are_model_level_and_declared(graph):
         "e": (2, "model", "declared", [], None),
         "airflow:dag.t": (3, "model", "heuristic", [], None),
     }
-    assert result.counts() == {"airflow_task": 1, "exposure": 1, "model": 3}
+    assert result.counts() == {"exposure": 1, "model": 3, "task": 1}
+    # By tool, which CodeLens words come from (task 7.6)
+    assert result.counts_by_tool() == {
+        ("exposure", None): 1,
+        ("model", None): 3,
+        ("task", "airflow"): 1,
+    }
 
 
 def test_column_targets_follow_derives_where_lineage_is_known(graph):
@@ -185,12 +191,25 @@ def pilot():
 
 
 def test_pilot_column_impact_is_precise(pilot):
-    """order_items does not use order_total, so it is not impacted (checked by hand)."""
+    """order_items does not use order_total, so it is not impacted (checked by hand). In the
+    semantic layer, the order_total and lifetime_spend measures read the two columns, and revenue
+    reads order_total. orders_placed and customers_served count other columns: not impacted."""
     result = impact(pilot, [f"{PILOT}.stg_orders#order_total"])
-    assert {n.id: n.columns for n in result.nodes.values()} == {
-        f"{PILOT}.orders": [f"{PILOT}.orders#order_total"],
-        f"{PILOT}.customers": [f"{PILOT}.customers#lifetime_spend"],
+    semantic = "semantic_model.pilot_shop"
+    assert {n.id: (n.columns, n.reads) for n in result.nodes.values()} == {
+        f"{PILOT}.orders": ([f"{PILOT}.orders#order_total"], []),
+        f"{PILOT}.customers": ([f"{PILOT}.customers#lifetime_spend"], []),
+        f"{semantic}.orders": ([f"{semantic}.orders#order_total"], []),
+        f"{semantic}.customers": ([f"{semantic}.customers#lifetime_spend"], []),
+        "metric.pilot_shop.revenue": ([], [f"{semantic}.orders#order_total"]),
+        # These use the whole of revenue
+        "metric.pilot_shop.spend_per_customer": ([], []),
+        "saved_query.pilot_shop.revenue_by_customer_type": ([], []),
     }
+    by_column = [n.id for n in result.nodes.values() if n.granularity is Granularity.COLUMN]
+    assert "metric.pilot_shop.revenue" in by_column
+    spend = result.nodes["metric.pilot_shop.spend_per_customer"]
+    assert (spend.granularity, spend.reason) == (Granularity.MODEL, "uses the whole node")
     assert result.unknowns == []
 
 
@@ -216,7 +235,18 @@ def test_pilot_lineage_computed_on_demand_is_followed(pilot):
 
 def test_pilot_model_impact(pilot):
     result = impact(pilot, [f"{PILOT}.stg_orders"])
-    assert set(result.nodes) == {f"{PILOT}.orders", f"{PILOT}.order_items", f"{PILOT}.customers"}
+    models = {f"{PILOT}.orders", f"{PILOT}.order_items", f"{PILOT}.customers"}
+    assert {n for n in result.nodes if n.startswith("model.")} == models
+    # At model level everything the two marts' semantic models feed: not the locations one
+    assert {n for n in result.nodes if not n.startswith("model.")} == {
+        "semantic_model.pilot_shop.orders",
+        "semantic_model.pilot_shop.customers",
+        "metric.pilot_shop.revenue",
+        "metric.pilot_shop.orders_placed",
+        "metric.pilot_shop.customers_served",
+        "metric.pilot_shop.spend_per_customer",
+        "saved_query.pilot_shop.revenue_by_customer_type",
+    }
     assert {n.confidence for n in result.nodes.values()} == {Confidence.DECLARED}
 
 

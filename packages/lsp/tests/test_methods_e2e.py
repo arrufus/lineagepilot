@@ -53,9 +53,12 @@ async def test_graph_downstream(start, workspace):
     result = await call(
         client,
         "lineage/graph",
-        {"root": f"{J}.orders", "direction": "downstream", "depth": 2, "granularity": "model"},
+        {"root": f"{J}.orders", "direction": "downstream", "depth": 3, "granularity": "model"},
     )
     nodes = {n["id"]: n for n in result["nodes"]}
+    # Three steps reach the end of the semantic layer on the marts, which a protocol 1 client
+    # does not see: it has no consumers (task 7.8)
+    assert not any(n["kind"] == "consumer" for n in result["nodes"])
     assert nodes[f"{J}.orders"]["side"] == "root" and nodes[f"{J}.orders"]["depth"] == 0
     assert nodes[f"{J}.customers"]["side"] == "downstream" and nodes[f"{J}.customers"]["depth"] == 1
     assert nodes[f"{J}.orders"]["location"] == {
@@ -225,7 +228,8 @@ async def test_export_formats(start):
         {"format": "mermaid", "root": f"{J}.orders", "direction": "downstream", "depth": 1},
     )
     assert part["filename"] == "pilot_shop-orders.mmd"
-    assert part["content"].startswith("flowchart") and part["nodes"] == 2 and part["edges"] == 1
+    # orders, customers, and the semantic model that reads orders
+    assert part["content"].startswith("flowchart") and part["nodes"] == 3 and part["edges"] == 2
 
     around = await call(client, "lineage/export", {"format": "dot", "root": f"{J}.orders"})
     assert around["nodes"] > part["nodes"]
@@ -258,16 +262,15 @@ async def test_node_details(start):
     client = await ready(start)
     orders = await call(client, "lineage/node", {"id": f"{J}.orders"})
     assert orders["node"]["name"] == "orders" and orders["node"]["side"] == "root"
-    assert (orders["upstream"], orders["downstream"]) == (
-        2,
-        1,
-    )  # stg_orders, order_items; customers
+    # stg_orders, order_items; customers, and the semantic model on orders
+    assert (orders["upstream"], orders["downstream"]) == (2, 2)
     columns = {c["name"]: c for c in orders["columns"]}
     assert "order_total" in columns and columns["order_id"]["tests"] >= 2
     customers = await call(client, "lineage/node", {"id": f"{J}.customers"})
     assert any(c["pii"] for c in customers["columns"])
     column = await call(client, "lineage/node", {"id": f"{J}.customers#lifetime_spend"})
     assert column["node"]["kind"] == "column" and column["columns"] == []
-    assert (column["upstream"], column["downstream"]) == (1, 0)
+    # The customers semantic model's measure reads it
+    assert (column["upstream"], column["downstream"]) == (1, 1)
     error = await error_of(client, "lineage/node", {"id": f"{J}.nowhere"})
     assert error.code == protocol.ErrorCode.UNKNOWN_NODE

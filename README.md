@@ -1,18 +1,18 @@
 # LineagePilot
 
-A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models, exposures, and the Airflow tasks that run them. It reads the dbt artifacts already in your workspace, and needs no server, no account and no warehouse connection.
+A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models and exposures, the Airflow tasks that run them, and what reads them, from the dbt semantic layer's metrics to the dashboards you declare. It reads the dbt artifacts already in your workspace, and needs no server, no account and no warehouse connection.
 
 **Install** it from the VS Code Marketplace or Open VSX: search the Extensions view for **LineagePilot**, or run `code --install-extension lineagepilot.lineagepilot`. Each release's VSIX is also on [GitHub releases](https://github.com/arrufus/lineagepilot/releases/latest). The [extension's README](extension/README.md) covers using it.
 
-**It is a Preview.** What it cannot check, it lists under **Unknowns** rather than leaving out. The Airflow linkage is the part to judge carefully: on repositories it had never seen, it linked 17 of 106 tasks and listed most of the rest as unknown ([corpus/README.md](corpus/README.md)).
+**It is a Preview.** What it cannot check, it lists under **Unknowns** rather than leaving out. The Airflow linkage is the part to judge carefully: on repositories it had never seen, it linked 15 of 35 tasks and listed all but one of the rest as unknown ([corpus/airflow/README.md](corpus/airflow/README.md)).
 
 **Problems and ideas** go in [GitHub issues](https://github.com/arrufus/lineagepilot/issues). **Security problems** do not: report them privately, as [SECURITY.md](SECURITY.md) describes.
 
 ## For contributors
 
 - Design: [docs/design.md](docs/design.md)
-- Plan: [docs/implementation_plan.md](docs/implementation_plan.md)
-- After the MVP, beyond dbt and Airflow (proposal, not approved): [docs/design_next_phase.md](docs/design_next_phase.md)
+- Plan: [docs/implementation_plan.md](docs/implementation_plan.md) (phases 0–6)
+- After the MVP, beyond dbt and Airflow, approved on 16 November 2026: [docs/design_next_phase.md](docs/design_next_phase.md), and its plan for the Entry phase and phases 7–11, [docs/implementation_plan_next_phase.md](docs/implementation_plan_next_phase.md)
 - Demo scripts: [docs/demo.md](docs/demo.md) (Phases 1–4) and [docs/demo_phase5.md](docs/demo_phase5.md) (Airflow linkage)
 - Releases: [docs/release.md](docs/release.md). The closed beta and Gate G1, now closed: [docs/beta.md](docs/beta.md)
 - Work items: `bd ready` (beads, prefix `LP`)
@@ -26,7 +26,7 @@ packages/lsp/     lineagepilot_lsp, the pygls language server (Phase 2)
 extension/        the VS Code extension (Phase 2)
 protocol/         the lineage/* JSON Schema, its generator and contract examples
 fixtures/         dbt project workspaces for the core, server and extension tests
-corpus/           the held-out DAG corpus: labels, scorer and results (Phase 5)
+corpus/           held-out corpora, a folder per tool with its labels and results, and one scorer
 docs/             design, plan, rules reference, demo scripts, release process and beta guide
 .github/          CI and release workflows, and the issue forms
 ```
@@ -68,7 +68,7 @@ CI found one bug that local runs could not: on Windows, git checks files out wit
 
 Phase 5, Airflow linkage (LP-56q), was built on 6 November 2026: DAG files read as syntax only and never imported or run, and tasks linked to dbt nodes in CodeLens, the **Airflow** view, the lineage graph, **Review Changes** and `lineagepilot review` ([design §6.2](docs/design.md#62-airflow-mvp-static-analysis)). What could not be read is listed as an unknown, at the line that caused it, and `.lineagepilot/airflow.yml` can answer it.
 
-**The miss rate on repositories the scanner had never seen is 84.0%** (LP-56q.5, [corpus/README.md](corpus/README.md)). On 106 links in 17 repositories labelled blind, the frozen scanner got 17 right, reported 78 as unknown at the call site, said nothing on 9 and was wrong on 2, with no false positives. Spike S3's 0% was in-sample and says little about other repositories. The scanner rarely misleads, but on repositories like these it often cannot tell, so the review's Airflow section is mostly a list of tasks it could not read. Three general gaps make up 62 of the 89 misses (LP-0o1, LP-z2x, LP-c05). The silent links are now unknowns, and the correct count did not move. Nothing else was tuned: this corpus has been read, so a tuned scanner needs a fresh one (LP-aax).
+**The miss rate on repositories the scanner had never seen is 84.0%** (LP-56q.5, [corpus/airflow/README.md](corpus/airflow/README.md)). On 106 links in 17 repositories labelled blind, the frozen scanner got 17 right, reported 78 as unknown at the call site, said nothing on 9 and was wrong on 2, with no false positives. Spike S3's 0% was in-sample and says little about other repositories. The scanner rarely misleads, but on repositories like these it often cannot tell, so the review's Airflow section is mostly a list of tasks it could not read. Three general gaps make up 62 of the 89 misses (LP-0o1, LP-z2x, LP-c05). The silent links are now unknowns, and the correct count did not move. Nothing else was tuned: this corpus has been read, so a tuned scanner needs a fresh one (LP-aax).
 
 The exit criteria:
 - the full acceptance scenario passes in a real VS Code with the real `vscode.git`, on real dbt 1.12 artifacts: the review lists the downstream models, the exposure, the Airflow task and its owner, an unparseable model is under Unknowns, and Restricted Mode keeps lineage and refuses dbt. Its Airflow assertions passed in CI on Linux, macOS and Windows on an earlier commit (run 42236319899, where the only failures were three new tests with bugs of their own, since fixed); the whole scenario passes on the final code in the Linux container, on Python 3.10 and 3.13;
@@ -102,3 +102,19 @@ Tested locally, in the Linux container, with Python 3.10 and 3.13:
 The same CI runs cover Phase 6's code on Linux, macOS and Windows. The first macOS and Windows runs found two faults, both fixed in `95abc3a`. **Apply the Sample Change** failed on Windows, which refuses to truncate a file it is not allowed to create. A test asked VS Code's Git extension about the workspace before it was a repository. The release workflow made the first beta release, v0.1.1, on 9 November 2026 (run 42700988466). `extension/scripts/verify_release.py` checks a release in one command ([docs/release.md](docs/release.md#checking-a-release)). It found that v0.1.1 was marked as a pre-release, so the repository had no latest release for beta teams to be sent to; no release is a pre-release now (LP-fzx).
 
 **Gate G1 passed on 13 November 2026**, by the product owner's judgment (LP-7er.4, [docs/beta.md](docs/beta.md)). The first public release, 0.2.0, follows: a Preview on the Marketplace and Open VSX, from a public repository ([docs/release.md](docs/release.md#before-the-first-public-release-after-gate-g1), LP-2xl). It removes what existed only for the beta: the usage counts and **Copy Usage Counts**, the walkthrough's beta step (it now has six) and the weekly check-in issue form. There is still no telemetry (D-7).
+
+**The Entry phase (LP-250) was done on 16 November 2026**, before widening beyond dbt and Airflow ([docs/implementation_plan_next_phase.md](docs/implementation_plan_next_phase.md)):
+- the three largest causes of Airflow misses are fixed: environment variables with no default, helpers imported from other files, and container paths (LP-0o1, LP-z2x, LP-c05);
+- a second held-out corpus, labelled blind while they were built, scores 15 of 35, a miss rate of 57.1%, with no false positives. 0.2.0 scores the same 15, because the sample has few of the patterns fixed ([corpus/airflow/README.md](corpus/airflow/README.md#a-second-corpus-after-the-entry-fixes-lp-aax));
+- the server's memory at 5,000 models on macOS is within its budget, 388 MB cold and 384 MB warm, down from 608 and 511 MB (LP-dtt);
+- the server's memory watch was shown on Windows CI to stop a child past its limit (LP-qy0.10);
+- decisions D-8 to D-14 were approved, and the CI Action comes after phases 7–11;
+- the Marketplace is published to with Trusted Publishing, with no stored token.
+
+**Phase 7, a multi-tool graph and the dbt semantic layer (LP-251), was built from 16 to 18 November 2026.** It was built on a line of its own, merged with the Entry phase on 18 November, and ends with release 0.3.0 ([extension/CHANGELOG.md](extension/CHANGELOG.md)):
+- the graph has pipeline, task and consumer nodes, each with its tool. The readers share one package, one contract and one runner in the server, and the protocol's version 2 has pipelines, consumers and a status for each reader;
+- the extension has a **Pipelines** view by tool, which replaces the Airflow view, and a **Consumers** view. The review, on the page and in Markdown, is organised by section and by tool;
+- the dbt semantic layer is part of the graph: semantic models, metrics and saved queries, each with what it reads, down to the column;
+- `.lineagepilot/lineage.yml` replaces `airflow.yml`, which is still read, and declares consumers;
+- `corpus/score.py` scores any reader's corpus, one folder per tool;
+- at 5,000 models with every reader on, every budget holds: a review of 100 changed models takes 231–261 ms (budget 300 ms) and the warm start 0.94 s (budget 1 s) ([design §11](docs/design.md#11-performance-budgets)).

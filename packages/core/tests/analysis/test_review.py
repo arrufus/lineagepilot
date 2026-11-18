@@ -36,6 +36,9 @@ from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
 
 S = "model.impact_shop"
+SEMANTIC = "semantic_model.impact_shop"
+METRIC = "metric.impact_shop"
+QUERY = "saved_query.impact_shop"
 ORDERS_SQL = "models/marts/orders.sql"
 ORDERS_YML = "models/marts/orders.yml"
 MODIFIED = FileStatus.MODIFIED
@@ -120,8 +123,17 @@ class TestAcceptanceScenario:
     def test_owners_come_from_meta_owner_or_group_and_nobody_is_lost(self, renamed):
         owners = {o["owner"]: o["nodes"] for o in renamed["owners"]}
         assert owners["growth-analytics"] == [f"{S}.customer_revenue"]
-        assert owners["operations"] == [f"{S}.order_counts"]  # dbt group, no meta.owner
-        assert owners[None] == [f"{S}.broken_report", f"{S}.revenue_tiers"]
+        # dbt groups, no meta.owner: a model's and a saved query's
+        assert owners["operations"] == [f"{S}.order_counts", f"{QUERY}.weekly_revenue"]
+        assert owners["finance-analytics"] == [f"{METRIC}.revenue"]
+        assert owners["finance-data"] == [f"{SEMANTIC}.orders"]
+        assert owners[None] == [
+            f"{METRIC}.average_order_value",
+            f"{METRIC}.large_orders",
+            f"{METRIC}.order_count",
+            f"{S}.broken_report",
+            f"{S}.revenue_tiers",
+        ]
         assert [o["owner"] for o in renamed["owners"]][-1] is None
 
     def test_the_unparseable_model_is_under_unknowns(self, renamed):
@@ -139,12 +151,81 @@ class TestAcceptanceScenario:
 
     def test_the_summary_adds_up(self, renamed):
         summary = renamed["summary"]
-        assert summary["impacted"] == {"exposure": 1, "model": 4}
-        assert summary["impactedByColumn"] == 2
+        assert summary["impacted"] == {"consumer": 6, "exposure": 1, "model": 4}
+        # Two models, the semantic model, and the two metrics that read its broken fields
+        assert summary["impactedByColumn"] == 5
         assert summary["unknowns"] == len(renamed["unknowns"]) == 1
         assert summary["changedFiles"] == 2 and summary["changedNodes"] == 1
         assert renamed["base"] == {"ref": "origin/main", "commit": "a" * 40}
         assert renamed["notes"] == [CATALOG_NOTE]
+
+
+class TestSemanticLayer:
+    """Task 7.8: the semantic layer on the mart, in the same rename."""
+
+    def test_the_metric_and_the_saved_query_are_listed_with_their_owners(self, renamed):
+        hits = by_id(renamed["impacted"])
+        revenue = hits[f"{METRIC}.revenue"]
+        assert (revenue["kind"], revenue["tool"], revenue["subkind"]) == (
+            "consumer",
+            "dbt_semantic",
+            "metric",
+        )
+        assert revenue["owner"] == "finance-analytics"
+        # Reached through the measure it reads: the measure is its field
+        assert (revenue["reach"], revenue["columns"], revenue["reason"]) == (
+            "column",
+            ["order_total"],
+            None,
+        )
+        assert revenue["via"][0]["source"] == f"{SEMANTIC}.orders#order_total"
+        query = hits[f"{QUERY}.weekly_revenue"]
+        assert (query["owner"], query["reach"]) == ("operations", "model")
+        assert query["exports"] == ["exports.weekly_revenue"]
+        assert revenue["exports"] == []
+        assert query["reason"] == "uses the whole node"
+        assert hits[f"{SEMANTIC}.orders"]["columns"] == ["order_size", "order_total"]
+        # The dimension a metric filters on carries the change too
+        assert hits[f"{METRIC}.large_orders"]["columns"] == ["order_size"]
+
+    def test_a_metric_that_reads_other_columns_is_listed_at_model_level(self, renamed):
+        count = by_id(renamed["impacted"])[f"{METRIC}.order_count"]
+        assert count["reach"] == "model"
+        assert "none of the columns known to have changed" in count["reason"]
+
+    def test_the_markdown_has_the_semantic_layer_in_dbt_s_section(self, renamed):
+        markdown = renamed["markdown"]
+        assert "1 semantic model, 4 metrics, 1 saved query" in markdown
+        downstream = markdown.split("### Downstream impact")[1].split("### Pipelines")[0]
+        assert "#### Semantic layer (6)" in downstream
+        assert "| `revenue` (metric) | Field `order_total` |" in downstream
+        assert "| `weekly_revenue` (saved query; exports `exports.weekly_revenue`) |" in downstream
+        assert "`finance-analytics` |" in downstream
+        assert "### Consumers" not in markdown  # the semantic layer is dbt's own
+
+    def test_a_changed_semantic_yaml_is_its_definition(self, root):
+        result = review(root, changed("models/marts/semantic.yml"))
+        changed_nodes = by_id(result["changedNodes"])
+        assert set(changed_nodes) == {
+            f"{SEMANTIC}.orders",
+            f"{METRIC}.revenue",
+            f"{METRIC}.order_count",
+            f"{METRIC}.large_orders",
+            f"{METRIC}.average_order_value",
+            f"{QUERY}.weekly_revenue",
+        }
+        revenue = changed_nodes[f"{METRIC}.revenue"]
+        assert revenue["files"] == [
+            {"path": "models/marts/semantic.yml", "status": "modified", "role": "definition"}
+        ]
+        assert revenue["columns"]["state"] == "not_compared"
+        assert (
+            revenue["columns"]["reason"] == "a change to the semantic layer is followed as a whole"
+        )
+        # Not mistaken for a file the manifest has not seen, and nothing is said about columns
+        assert result["unknowns"] == []
+        # Everything that reads it changed with it
+        assert result["impacted"] == []
 
 
 class TestFilesToNodes:
@@ -533,7 +614,7 @@ class TestStages:
 
     def test_airflow_counts_as_analysed_once_the_graph_has_it(self, root):
         graph = graph_of(root)
-        graph.summaries["airflow"] = AirflowSummary(analysed=True, dag_files=1)
+        graph.airflow = AirflowSummary(analysed=True, dag_files=1)
         task = graph.add_node(Node("airflow:d.t", NodeKind.TASK, "t", owner="etl", tool="airflow"))
         graph.add_edge(
             EdgeKind.ORCHESTRATES,
@@ -544,7 +625,16 @@ class TestStages:
         result = review(root, changed(ORDERS_SQL), graph=graph)
         assert result["airflow"]["analysed"] is True
         hit = by_id(result["impacted"])["airflow:d.t"]
-        assert hit["kind"] == "airflow_task" and hit["confidence"] == "heuristic"
+        assert (
+            hit["kind"] == "task" and hit["tool"] == "airflow" and hit["confidence"] == "heuristic"
+        )
+        assert hit["pipeline"]["tool"] == "airflow" and hit["pipeline"]["pipeline"] is None
+        assert hit["airflow"] == {
+            "dag": None,
+            **{k: v for k, v in hit["pipeline"].items() if k not in ("tool", "pipeline")},
+        }
+        assert [s["tool"] for s in result["pipelines"]] == ["airflow"]
+        assert result["pipelines"][0]["files"] == 1 and result["consumers"] == []
         assert {"owner": "etl", "nodes": ["airflow:d.t"]} in result["owners"]
 
 

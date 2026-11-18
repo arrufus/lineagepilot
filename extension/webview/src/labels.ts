@@ -1,19 +1,11 @@
 // Words for what the graph shows: node kinds, confidence, transformations, and the accessible
 // labels screen readers announce for each node (task 3.4).
 
-import type { Confidence, GraphEdge, GraphNode, NodeKind } from '../../src/protocol';
+import { kindLabel } from '../../src/kinds';
+import type { Confidence, GraphEdge, GraphNode } from '../../src/protocol';
 
-export const KIND_LABELS: Record<NodeKind, string> = {
-  model: 'model',
-  seed: 'seed',
-  snapshot: 'snapshot',
-  source: 'source',
-  exposure: 'exposure',
-  relation: 'table',
-  airflow_dag: 'Airflow DAG',
-  airflow_task: 'Airflow task',
-  column: 'column',
-};
+// What kinds and tools are called is shared with the tree views (task 7.6)
+export { KIND_LABELS, kindKey, kindLabel, toolLabel } from '../../src/kinds';
 
 export const CONFIDENCE_LABELS: Record<Confidence, string> = {
   declared: 'declared',
@@ -35,7 +27,7 @@ export function plural(count: number, one: string, many = `${one}s`): string {
 
 /** What a screen reader announces for a node. */
 export function nodeLabel(node: GraphNode, upstream: number, downstream: number): string {
-  const parts = [`${KIND_LABELS[node.kind]} ${node.name}`];
+  const parts = [`${kindLabel(node)} ${node.name}`];
   if (node.side === 'root') {
     parts.push('the focus of this view');
   } else {

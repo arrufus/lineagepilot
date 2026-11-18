@@ -12,9 +12,14 @@ import { RestartPolicy } from './backoff';
 import type { Interpreter } from './interpreter';
 import { parseNotification, request, type Params, type Result } from './lineage';
 import type { Project } from './projects';
-import { PROTOCOL_VERSION, type RequestMethod, type Status } from './protocol';
+import { type RequestMethod, type Status } from './protocol';
 
 export const SERVER_SCRIPT = path.join('bundled', 'tool', 'lsp_server.py');
+
+// The lineage protocol version the extension speaks: 2, with pipelines, consumers and a status
+// for each reader (task 7.6). The bundled server also speaks 1, for one version, for clients
+// built before 2 (PROTOCOL_VERSIONS).
+export const CLIENT_PROTOCOL_VERSION = 2;
 
 export interface ServerEnvironment {
   extensionPath: string;
@@ -77,7 +82,7 @@ export class ProjectServer implements vscode.Disposable {
       ],
       outputChannel: output,
       initializationOptions: {
-        protocolVersions: [PROTOCOL_VERSION],
+        protocolVersions: [CLIENT_PROTOCOL_VERSION],
         projectRoot: this.project.root,
         trusted: vscode.workspace.isTrusted,
         storagePath: this.env.storagePath,
@@ -117,10 +122,10 @@ export class ProjectServer implements vscode.Disposable {
       return;
     }
     const negotiated = client.initializeResult?.capabilities.experimental?.lineagePilot?.protocolVersion;
-    if (negotiated !== PROTOCOL_VERSION) {
+    if (negotiated !== CLIENT_PROTOCOL_VERSION) {
       await this.stop();
       this.setProblem(`the language server speaks lineage protocol ${negotiated ?? 'none'}, `
-        + `the extension ${PROTOCOL_VERSION}; reinstall LineagePilot`);
+        + `the extension ${CLIENT_PROTOCOL_VERSION}; reinstall LineagePilot`);
       return;
     }
     this.problem = undefined;

@@ -11,6 +11,7 @@ from lineagepilot_core.graph.ids import (
 )
 from lineagepilot_core.graph.model import (
     DBT_KINDS,
+    PIPELINE_KINDS,
     TOOL_KINDS,
     ArtifactVersion,
     Column,
@@ -25,11 +26,13 @@ from lineagepilot_core.graph.model import (
     NodeKind,
     Origin,
     Unresolved,
-    public_kind,
+    kind_name,
+    legacy_kind,
 )
 
 __all__ = [
     "DBT_KINDS",
+    "PIPELINE_KINDS",
     "TOOL_KINDS",
     "ArtifactVersion",
     "Column",
@@ -49,8 +52,9 @@ __all__ = [
     "airflow_task_id",
     "build_dbt_graph",
     "column_id",
+    "kind_name",
+    "legacy_kind",
     "normalise_identifier",
-    "public_kind",
     "relation_id",
     "split_column_id",
 ]

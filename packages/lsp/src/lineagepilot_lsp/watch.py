@@ -1,4 +1,4 @@
-"""What the server watches, and what each change means (task 2.1).
+"""What the server watches, and what each change means (tasks 2.1 and 7.3).
 
 The editor watches the files (``workspace/didChangeWatchedFiles``, registered by the
 server), so the server holds no file-system watchers of its own. Changes are grouped
@@ -8,26 +8,28 @@ by kind and debounced, because dbt writes several artifacts in a row:
 - **project**: ``dbt_project.yml``; re-read the project, and re-index if its paths moved.
 - **sources**: files dbt reads to build the manifest; update the staleness warning.
 - **rules**: ``.lineagepilot/rules.yml``; re-run the rules.
-- **reader**: a reader's files, found by its paths setting, and its annotation files: run that
-  reader again (task 7.3). For Airflow, the Python files in the DAG folders and
-  ``.lineagepilot/airflow.yml``. A module they import from elsewhere is not watched: **Reindex**
-  picks that up.
+- **readers**: each reader's files, found by its globs (the Airflow DAG folders' Python files), and
+  the annotation file, ``.lineagepilot/lineage.yml`` or ``.lineagepilot/airflow.yml``, which
+  every reader reads; read them again. A module a DAG file imports from elsewhere is not watched:
+  **Reindex** picks that up.
 """
 
 from __future__ import annotations
 
 import asyncio
-from collections.abc import Callable, Iterable, Sequence
+from collections.abc import Callable, Iterable, Mapping, Sequence
 from enum import Enum
 from pathlib import Path
-from typing import NamedTuple
 
-from lineagepilot_core.readers.contract import Reader
+from lineagepilot_core.parsers.data_flow_annotations import ANNOTATION_FILES
+from lineagepilot_core.readers.registry import reader
 from lsprotocol import types
 
 from lineagepilot_lsp.project import PROJECT_FILE, DbtProject, relative_to
 
 RULES_FILE = ".lineagepilot/rules.yml"
+# A change that every reader reads again for: the annotation file
+ALL_READERS = "*"
 
 
 class Change(str, Enum):
@@ -35,30 +37,23 @@ class Change(str, Enum):
     PROJECT = "project"
     SOURCES = "sources"
     RULES = "rules"
-    READER = "reader"
+    READERS = "readers"
 
 
-# Each reader with its paths setting, already cleaned (Reader.clean_paths)
-Watched = Sequence[tuple[Reader, list[str]]]
-
-
-class Changed(NamedTuple):
-    kind: Change
-    relative: str  # to the project, or for a reader's file to the workspace
-    tool: str | None = None  # whose file, for Change.READER
+# The paths setting of each reader, by tool
+ReaderPaths = Mapping[str, Sequence[str]]
 
 
 def watchers(
-    project: DbtProject, workspace: Path | None, readers: Watched
+    project: DbtProject, workspace: Path | None, readers: ReaderPaths
 ) -> list[types.FileSystemWatcher]:
     """File-system watchers to register with the client."""
     root = project.root.as_uri()
-    annotations = sorted({f for reader, _ in readers for f in reader.annotation_files})
     patterns = [
         f"{project.target_path}/{{manifest,catalog}}.json",
         PROJECT_FILE,
         RULES_FILE,
-        *annotations,
+        *ANNOTATION_FILES,
         *(f"{p}/**" if p != "." else "**/*.{sql,yml,yaml,py,csv,md}" for p in project.source_paths),
     ]
     found = [
@@ -68,41 +63,42 @@ def watchers(
     if workspace is not None:
         found += [
             types.FileSystemWatcher(
-                glob_pattern=types.RelativePattern(base_uri=workspace.as_uri(), pattern=glob)
+                glob_pattern=types.RelativePattern(base_uri=workspace.as_uri(), pattern=pattern)
             )
-            for reader, paths in readers
-            for glob in reader.watch_globs(paths)
+            for tool, paths in readers.items()
+            for pattern in reader(tool).watch_globs(paths)
         ]
     return found
 
 
 def classify(
-    project: DbtProject, workspace: Path | None, readers: Watched, path: Path
-) -> Changed | None:
-    """The kind of a changed file, and its path relative to the project (or workspace)."""
+    project: DbtProject, workspace: Path | None, readers: ReaderPaths, path: Path
+) -> tuple[Change, str] | None:
+    """The kind of a changed file, and its path relative to the project. For a reader's file it
+    is the reader's tool instead, or ``ALL_READERS``: what the debouncer collects is what to read
+    again."""
     relative = project.relative(path)
     if relative is not None:
         if relative in (
             f"{project.target_path}/manifest.json",
             f"{project.target_path}/catalog.json",
         ):
-            return Changed(Change.ARTIFACTS, relative)
+            return Change.ARTIFACTS, relative
         if relative == RULES_FILE:
-            return Changed(Change.RULES, relative)
-        for reader, _ in readers:
-            if relative in reader.annotation_files:
-                return Changed(Change.READER, relative, reader.tool)
+            return Change.RULES, relative
+        if relative in ANNOTATION_FILES:
+            return Change.READERS, ALL_READERS
         if relative == PROJECT_FILE:
-            return Changed(Change.PROJECT, relative)
+            return Change.PROJECT, relative
         if project.is_source_file(relative) and not relative.startswith(f"{project.target_path}/"):
-            return Changed(Change.SOURCES, relative)
+            return Change.SOURCES, relative
     if workspace is not None:
         in_workspace = relative_to(path, workspace)
         if in_workspace is None:
             return None
-        for reader, paths in readers:
-            if reader.watches(in_workspace, paths):
-                return Changed(Change.READER, in_workspace, reader.tool)
+        owners = [tool for tool, paths in readers.items() if reader(tool).owns(in_workspace, paths)]
+        if owners:
+            return Change.READERS, owners[0] if len(owners) == 1 else ALL_READERS
     return None
 
 

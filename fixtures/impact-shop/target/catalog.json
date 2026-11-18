@@ -4,9 +4,9 @@
   "dbt_schema_version": "https://schemas.getdbt.com/dbt/catalog/v1.json",
   "dbt_version": "1.12.6",
   "env": {},
-  "generated_at": "2026-11-05T08:05:22.830951Z",
-  "invocation_id": "8ae36f58-a97b-4a79-98f6-29d30f88e322",
-  "invocation_started_at": "2026-11-05T08:05:22.419860Z"
+  "generated_at": "2026-11-17T19:15:14.271406Z",
+  "invocation_id": "723ff866-fa93-4608-b85a-c048a1b42836",
+  "invocation_started_at": "2026-11-17T19:15:13.801272Z"
  },
  "nodes": {
   "model.impact_shop.customer_revenue": {
@@ -48,6 +48,34 @@
     }
    },
    "unique_id": "model.impact_shop.customer_revenue"
+  },
+  "model.impact_shop.metricflow_time_spine": {
+   "columns": {
+    "date_day": {
+     "comment": null,
+     "index": 1,
+     "name": "date_day",
+     "type": "DATE"
+    }
+   },
+   "metadata": {
+    "comment": null,
+    "database": "impact_shop",
+    "name": "metricflow_time_spine",
+    "owner": null,
+    "schema": "main",
+    "type": "VIEW"
+   },
+   "stats": {
+    "has_stats": {
+     "description": "Indicates whether there are statistics for this table",
+     "id": "has_stats",
+     "include": false,
+     "label": "Has Stats?",
+     "value": false
+    }
+   },
+   "unique_id": "model.impact_shop.metricflow_time_spine"
   },
   "model.impact_shop.order_counts": {
    "columns": {

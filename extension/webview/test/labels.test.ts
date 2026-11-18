@@ -2,6 +2,9 @@
 // the extension and the webview (task 3.1).
 import { strict as assert } from 'assert';
 
+import {
+  kindKey, kindLabel, pipelineWord, subkindLabel, toolLabel, toolOfId, withoutTool,
+} from '../../src/kinds';
 import { DEFAULT_SETTINGS, HostMessage, ViewSettings, WebviewMessage } from '../../src/webviewMessages';
 import { edgeLabel, nodeLabel, plural, transformationLabel } from '../src/labels';
 import { edge, node, ordersGraph } from './fixtures';
@@ -25,10 +28,52 @@ suite('labels', () => {
     assert.equal(transformationLabel(''), null);
   });
 
+  test("a tool's node is announced with its tool", () => {
+    const task = node('airflow:daily.marts', { kind: 'task', name: 'marts', tool: 'airflow', subkind: 'task_group', side: 'downstream', depth: 1 });
+    assert.equal(nodeLabel(task, 1, 0), 'Airflow task group marts, downstream, 1 step away, 1 upstream, 0 downstream');
+  });
+
   test('plural', () => {
     assert.equal(plural(1, 'node'), '1 node');
     assert.equal(plural(0, 'node'), '0 nodes');
     assert.equal(plural(2, 'query', 'queries'), '2 queries');
+  });
+});
+
+suite('kinds and tools (task 7.6)', () => {
+  test('tools are named in plain text, and one this version does not know by its own name', () => {
+    assert.deepEqual(['airflow', 'powerbi', 'dbt_semantic', 'github_actions'].map(toolLabel), ['Airflow', 'Power BI', 'dbt semantic layer', 'GitHub Actions']);
+    assert.equal(toolLabel('acme_bi'), 'acme_bi');
+    assert.equal(toolLabel('constructor'), 'constructor');
+    assert.equal(toolLabel(null), 'other');
+  });
+
+  test("what a tool calls its pipelines, and a subkind's words", () => {
+    assert.deepEqual([pipelineWord('airflow', 1), pipelineWord('airflow', 2), pipelineWord('dagster', 1), pipelineWord(undefined, 0)],
+      ['DAG', 'DAGs', 'pipeline', 'pipelines']);
+    assert.deepEqual([subkindLabel('dag'), subkindLabel('task_group'), subkindLabel('saved_query'), subkindLabel(null)],
+      ['DAG', 'task group', 'saved query', undefined]);
+  });
+
+  test('a kind, with its tool and what the tool calls it', () => {
+    assert.equal(kindLabel({ kind: 'model' }), 'model');
+    assert.equal(kindLabel({ kind: 'relation', tool: null }), 'table');
+    assert.equal(kindLabel({ kind: 'task', tool: 'airflow', subkind: 'task' }), 'Airflow task');
+    assert.equal(kindLabel({ kind: 'task', tool: 'airflow' }), 'Airflow task');
+    assert.equal(kindLabel({ kind: 'pipeline', tool: 'airflow', subkind: 'dag' }), 'Airflow DAG');
+    assert.equal(kindLabel({ kind: 'pipeline', tool: 'airflow' }), 'Airflow DAG');
+    assert.equal(kindLabel({ kind: 'pipeline', tool: 'dagster' }), 'Dagster pipeline');
+    assert.equal(kindLabel({ kind: 'consumer', tool: 'dbt_semantic', subkind: 'metric' }), 'dbt semantic layer metric');
+    assert.equal(kindLabel({ kind: 'consumer', tool: 'looker' }), 'Looker consumer');
+    assert.equal(kindLabel({ kind: 'task', tool: null }), 'task');
+    assert.equal(kindLabel({ kind: 'airflow_task' }), 'Airflow task');
+  });
+
+  test('keys and IDs', () => {
+    assert.deepEqual([kindKey({ kind: 'model', tool: null }), kindKey({ kind: 'task', tool: 'airflow' })], ['model', 'task:airflow']);
+    assert.deepEqual(['airflow:daily.marts', 'dbt_semantic:revenue', 'model.shop.orders', 'dags/a.py', 'model.shop.o#x'].map(toolOfId),
+      ['airflow', 'dbt_semantic', undefined, undefined, undefined]);
+    assert.deepEqual(['looker:view.orders', 'model.shop.orders'].map(withoutTool), ['view.orders', 'model.shop.orders']);
   });
 });
 

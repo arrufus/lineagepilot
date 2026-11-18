@@ -10,7 +10,15 @@ Writes two states of the same project:
 - ``changes/rename-order-total/target/``: after renaming ``orders.order_total`` to ``total_usd``
   (the other files in that folder) and running only ``dbt compile``, as a developer would.
   ``customer_revenue`` still reads the old name, which is the breakage the review must find, so
-  building it would fail. The catalog stays as it was, and is not repeated there.
+  building it would fail. So do the semantic layer's ``order_total`` measure and ``order_size``
+  dimension, and the metrics and saved query built on them. The catalog stays as it was, and is
+  not repeated there.
+
+And one more manifest, of the project as it is but with its semantic layer written in the YAML
+dbt 1.12 prefers (the files in ``variants/semantic-v2``), after ``dbt parse``:
+``variants/semantic-v2/target/``. Both forms write the same manifest objects, differently filled.
+
+dbt parses metrics only in a project with a time spine, so ``models/utilities`` has one.
 
 ``broken_report`` is deliberately not valid SQL, so ``dbt run`` leaves it out. The ``macros`` key
 is emptied to keep the manifests small: the parser never reads it.
@@ -30,6 +38,10 @@ from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
 CHANGE = HERE / "changes" / "rename-order-total"
+VARIANT = HERE / "variants" / "semantic-v2"
+IGNORE = shutil.ignore_patterns(
+    "target", "changes", "variants", "dags", "make_fixture.py", "PROVENANCE.json"
+)
 PROFILE = """impact_shop:
   target: dev
   outputs:
@@ -65,10 +77,7 @@ def keep(source: Path, destination: Path, project: Path) -> str:
 def main() -> None:
     with tempfile.TemporaryDirectory() as work:
         project = Path(work) / "impact_shop"
-        ignore = shutil.ignore_patterns(
-            "target", "changes", "dags", "make_fixture.py", "PROVENANCE.json"
-        )
-        shutil.copytree(HERE, project, ignore=ignore)
+        shutil.copytree(HERE, project, ignore=IGNORE)
         database = Path(work) / "impact_shop.duckdb"
         (project / "profiles.yml").write_text(PROFILE.format(path=database), encoding="utf-8")
 
@@ -93,17 +102,34 @@ def main() -> None:
             project / "target" / "manifest.json", manifest, project
         )
 
+        # The same project as target/, with the semantic layer in the newer YAML
+        variant = Path(work) / "impact_shop_v2" / "impact_shop"
+        shutil.copytree(HERE, variant, ignore=IGNORE)
+        (variant / "profiles.yml").write_text(PROFILE.format(path=database), encoding="utf-8")
+        for path in (VARIANT / "models").rglob("*"):
+            if path.is_file():
+                shutil.copy(path, variant / path.relative_to(VARIANT))
+        dbt(variant, "parse")
+        hashes["variants/semantic-v2/target/manifest.json"] = keep(
+            variant / "target" / "manifest.json",
+            VARIANT / "target" / "manifest.json",
+            variant,
+        )
+
         provenance = {
             "about": "A small dbt project of our own for the Change Impact Review: a source, a "
-            "staging model, a mart, its downstream models, an exposure, owners and a deliberately "
-            "unparseable model (design section 14). Regenerate it with make_fixture.py. Tests that "
-            "change files work on a copy of this folder, never on it.",
+            "staging model, a mart, its downstream models, an exposure, a semantic layer with "
+            "metrics and a saved query, owners and a deliberately unparseable model (design "
+            "section 14). Regenerate it with make_fixture.py. Tests that change files work on a "
+            "copy of this folder, never on it.",
             "licence": "Written for this repository; not derived from jaffle-shop.",
             "dbt": f"{version('dbt-core')} + dbt-duckdb {version('dbt-duckdb')}",
             "steps": {
                 "target/": "seed, run --exclude broken_report, docs generate; macros emptied",
                 "changes/rename-order-total/target/": "the rename applied, then compile; macros "
                 "emptied. catalog.json stays the one in target/",
+                "variants/semantic-v2/target/": "the project with variants/semantic-v2's files "
+                "over it, then parse; macros emptied",
             },
             "sha256": hashes,
         }

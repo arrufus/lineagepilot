@@ -2,22 +2,31 @@
 // columns that changed, as a diff; then what that reaches, each row with how sure it is and what
 // says so; then what could not be checked. All of it comes from the language server through the
 // extension, and "Copy as Markdown" copies the server's text, not what this page shows.
+//
+// Its sections follow design_next_phase section 7.5 (task 7.6): what changed; dbt's own nodes,
+// with the semantic layer; the pipelines that run them, by tool and then by pipeline; the
+// consumers that read them, by tool; the owners across tools; and the unknowns, by tool.
 
 import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, GitCompare, Loader2, Network, RefreshCw } from 'lucide-react';
 
+import { isKnownTool, pipelineWord, subkindLabel, toolOfId, withoutTool } from '../../../src/kinds';
 import type {
-  ChangedNode, ColumnDiff, Confidence, Location, NodeKind, Origin, ReviewImpacted, ReviewResult,
+  ChangedNode, ColumnDiff, Confidence, Location, NodeKind, Origin, ReaderSummary, ReviewImpacted, ReviewResult, Unknown,
 } from '../../../src/protocol';
 import type { ReviewHostMessage, ReviewProblem } from '../../../src/reviewMessages';
-import { KIND_LABELS, plural } from '../labels';
+import { KIND_LABELS, plural, toolLabel } from '../labels';
 import type { ReviewTransport } from './transport';
 
 const COPIED_MS = 2000;
-const KIND_ORDER: NodeKind[] = ['model', 'snapshot', 'seed', 'source', 'exposure', 'airflow_task', 'airflow_dag'];
+// dbt's own nodes, in this order, each kind in a table of its own
+const DBT_ORDER: NodeKind[] = ['model', 'snapshot', 'seed', 'source', 'exposure'];
 const KIND_HEADINGS: Partial<Record<NodeKind, string>> = {
   model: 'Models', snapshot: 'Snapshots', seed: 'Seeds', source: 'Sources', exposure: 'Exposures',
 };
+const PIPELINE_KINDS: NodeKind[] = ['pipeline', 'task'];
+// Consumers that are dbt's own, listed with dbt's nodes rather than with the other tools'
+const DBT_TOOLS = new Set(['dbt_semantic']);
 const ORIGIN_LABELS: Record<Origin, string> = {
   manifest: 'the manifest', compiled_sql: 'compiled SQL', catalog: 'the catalog', dag_static: 'the DAG file', annotation: 'an annotation',
 };
@@ -29,13 +38,12 @@ const STATUS_LABELS: Record<ChangedNode['status'], string> = {
 };
 
 const NODE_ID = /^(model|seed|snapshot|source|exposure)\./;
-const AIRFLOW_KINDS: NodeKind[] = ['airflow_task', 'airflow_dag'];
 
-/** ``model.shop.orders#total`` as ``orders.total``, ``airflow:dag.task`` as ``dag.task``. Anything
- * else, such as a path, as it is. */
+/** ``model.shop.orders#total`` as ``orders.total``, ``airflow:dag.task`` as ``dag.task``, for any
+ * tool. Anything else, such as a path, as it is. */
 export function shortRef(ref: string): string {
-  if (ref.startsWith('airflow:')) {
-    return ref.slice('airflow:'.length);
+  if (toolOfId(ref) !== undefined) {
+    return withoutTool(ref);
   }
   if (!NODE_ID.test(ref)) {
     return ref;
@@ -141,9 +149,16 @@ function ChangedSection({ nodes, actions }: { nodes: ChangedNode[]; actions: Nod
   );
 }
 
+/** ``Release notes.`` for ``Release notes``, as the review's Markdown writes a reason. */
+function sentence(text: string): string {
+  return /[.!?]$/.test(text) ? text : `${text}.`;
+}
+
 function Reached({ node }: { node: ReviewImpacted }) {
+  // A consumer's columns are its fields: a metric's measures, a view's dimensions
+  const word = node.kind === 'consumer' ? 'Field' : 'Column';
   const columns = node.columns.length > 0 && (
-    <span>{node.columns.length === 1 ? 'Column ' : 'Columns '}<span className="lp-identifier">{node.columns.join(', ')}</span></span>
+    <span>{node.columns.length === 1 ? `${word} ` : `${word}s `}<span className="lp-identifier">{node.columns.join(', ')}</span></span>
   );
   if (node.reach === 'column') {
     return columns || null;
@@ -160,25 +175,39 @@ function Evidence({ node }: { node: ReviewImpacted }) {
   const sources = [...new Set(node.via.map((step) => shortRef(step.source)))];
   return (
     <>
-      {node.origins.map((origin) => ORIGIN_LABELS[origin]).join(', ')}
+      {node.origins.map((origin) => ORIGIN_LABELS[origin] ?? origin).join(', ')}
       {sources.length > 0 && <div className="lp-muted">from <span className="lp-identifier">{sources.join(', ')}</span>{node.viaMore > 0 ? ` and ${node.viaMore} more` : ''}</div>}
     </>
   );
 }
 
-function ImpactTable({ kind, nodes, actions }: { kind: NodeKind; nodes: ReviewImpacted[]; actions: NodeActions }) {
-  const heading = KIND_HEADINGS[kind] ?? kind;
+interface ImpactTableProps {
+  heading: string;
+  // What the table is called to a screen reader: "Impacted models"
+  label: string;
+  nodes: ReviewImpacted[];
+  actions: NodeActions;
+}
+
+function ImpactTable({ heading, label, nodes, actions }: ImpactTableProps) {
   return (
     <>
       <h3>{heading} ({nodes.length})</h3>
-      <table className="lp-impact" aria-label={`Impacted ${heading.toLowerCase()}`}>
+      <table className="lp-impact" aria-label={label}>
         <thead>
           <tr><th scope="col">Name</th><th scope="col">Reached</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
         </thead>
         <tbody>
           {nodes.map((node) => (
             <tr key={node.id} className={node.reach === 'column' ? 'lp-reach-column' : 'lp-reach-model'}>
-              <th scope="row"><NodeName id={node.id} name={node.name} actions={actions} /></th>
+              <th scope="row">
+                <NodeName id={node.id} name={node.name} actions={actions} />
+                {node.tool && node.subkind && <div className="lp-muted">{subkindLabel(node.subkind)}</div>}
+                {/* A saved query's exports: the tables it writes change too */}
+                {node.exports && node.exports.length > 0 && (
+                  <div className="lp-muted">exports <span className="lp-identifier">{node.exports.join(', ')}</span></div>
+                )}
+              </th>
               <td><Reached node={node} /></td>
               <td><ConfidenceMark confidence={node.confidence} /></td>
               <td><Evidence node={node} /></td>
@@ -196,13 +225,15 @@ function moreOf(shown: number, more: number): string {
 }
 
 /** One task: what it has to do with the change, and why the link is as sure as it is. */
-function AirflowRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions }) {
-  const detail = node.airflow;
+function TaskRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions }) {
+  const detail = node.pipeline;
   return (
     <tr className="lp-reach-model">
-      <td className="lp-identifier">{detail?.dag}</td>
+      <td className="lp-identifier">{detail?.pipeline}</td>
       <th scope="row">
-        {node.kind === 'airflow_dag' ? <span>The whole DAG</span> : <NodeName id={node.id} name={node.name} actions={actions} />}
+        {node.kind === 'pipeline'
+          ? <span>The whole {pipelineWord(node.tool, 1)}</span>
+          : <NodeName id={node.id} name={node.name} actions={actions} />}
         {detail && detail.tasks.length > 0 && (
           <div className="lp-muted">
             Tasks Cosmos should render: <span className="lp-identifier">{detail.tasks.join(', ')}</span>{moreOf(detail.tasks.length, detail.tasksMore)}
@@ -217,7 +248,7 @@ function AirflowRow({ node, actions }: { node: ReviewImpacted; actions: NodeActi
       </td>
       <td><ConfidenceMark confidence={node.confidence} /></td>
       <td>
-        {node.origins.map((origin) => ORIGIN_LABELS[origin]).join(', ')}
+        {node.origins.map((origin) => ORIGIN_LABELS[origin] ?? origin).join(', ')}
         {node.file && <div className="lp-muted lp-identifier">{node.file}</div>}
         {detail?.notes.map((note) => <div key={note} className="lp-muted lp-reason" title={note}>{note}</div>)}
       </td>
@@ -226,84 +257,185 @@ function AirflowRow({ node, actions }: { node: ReviewImpacted; actions: NodeActi
   );
 }
 
-function AirflowSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
-  const { airflow } = result;
-  if (!airflow.analysed) {
+/** The tools in some reader summaries and rows, by name: a tool with rows and no reader too. */
+function toolsOf(summaries: ReaderSummary[], nodes: ReviewImpacted[]): string[] {
+  const tools = new Set([...summaries.map((s) => s.tool), ...nodes.map((n) => n.tool ?? '')]);
+  tools.delete('');
+  return [...tools].sort((a, b) => toolLabel(a).localeCompare(toolLabel(b)) || a.localeCompare(b));
+}
+
+/** One tool's tasks, by pipeline; or why there are none. */
+function PipelineTool({ tool, summary, nodes, actions }: {
+  tool: string; summary: ReaderSummary | undefined; nodes: ReviewImpacted[]; actions: NodeActions;
+}) {
+  const name = toolLabel(tool);
+  const files = `${pipelineWord(tool, 1)} file`;
+  if (summary && !summary.analysed) {
     return (
       <>
-        <h3>Airflow tasks</h3>
-        <p className="lp-muted">Airflow DAGs were not analysed: {airflow.reason ?? 'they were not read'}.</p>
+        <h3>{name}</h3>
+        <p className="lp-muted">Not analysed: {sentence(summary.reason ?? `the ${files}s were not read`)}</p>
       </>
     );
   }
-  const nodes = result.impacted
-    .filter((node) => AIRFLOW_KINDS.includes(node.kind))
-    .sort((a, b) => (a.airflow?.dag ?? '').localeCompare(b.airflow?.dag ?? '') || a.name.localeCompare(b.name));
-  const dags = new Set(nodes.map((node) => node.airflow?.dag));
+  const sorted = [...nodes].sort((a, b) => (a.pipeline?.pipeline ?? '').localeCompare(b.pipeline?.pipeline ?? '') || a.name.localeCompare(b.name));
+  const pipelines = new Set(sorted.map((node) => node.pipeline?.pipeline));
+  const counted = sorted.length > 0 ? ` (${plural(sorted.length, 'task')} in ${pipelines.size} ${pipelineWord(tool, pipelines.size)})` : '';
   return (
     <>
-      <h3>Airflow tasks{nodes.length > 0 ? ` (${plural(nodes.length, 'task')} in ${plural(dags.size, 'DAG')})` : ''}</h3>
-      {nodes.length === 0 && <p className="lp-muted">No task in the {plural(airflow.dagFiles, 'DAG file')} read runs a changed or downstream node.</p>}
-      {nodes.length > 0 && (
-        <table className="lp-impact lp-impact-airflow" aria-label="Impacted airflow tasks">
+      <h3>{name}{counted}</h3>
+      {sorted.length === 0 && summary && <p className="lp-muted">No task in the {plural(summary.files, files)} read runs a changed or downstream node.</p>}
+      {sorted.length > 0 && (
+        <table className="lp-impact lp-impact-pipeline" aria-label={`Impacted ${name} tasks`}>
           <thead>
-            <tr><th scope="col">DAG</th><th scope="col">Task</th><th scope="col">What it has to do with this</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
+            <tr><th scope="col">{pipelineWord(tool, 1)}</th><th scope="col">Task</th><th scope="col">What it has to do with this</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
           </thead>
           <tbody>
-            {nodes.map((node) => <AirflowRow key={node.id} node={node} actions={actions} />)}
+            {sorted.map((node) => <TaskRow key={node.id} node={node} actions={actions} />)}
           </tbody>
         </table>
       )}
-      {airflow.opaqueTasks > 0 && <p className="lp-muted">{plural(airflow.opaqueTasks, 'task')} could not be read and do not mention dbt, so they are not listed.</p>}
+      {summary && summary.opaqueTasks > 0 && <p className="lp-muted">{plural(summary.opaqueTasks, 'task')} could not be read and do not mention dbt, so they are not listed.</p>}
     </>
   );
 }
 
-function DownstreamSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
-  const names = new Map(result.impacted.map((node) => [node.id, node.name]));
+function PipelinesSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
+  const summaries = result.pipelines ?? [];
+  const nodes = result.impacted.filter((node) => PIPELINE_KINDS.includes(node.kind));
+  const tools = toolsOf(summaries, nodes);
+  if (tools.length === 0) {
+    return null;
+  }
   return (
-    <section aria-labelledby="lp-downstream">
-      <h2 id="lp-downstream">Downstream impact</h2>
-      {result.impacted.length === 0 && <p className="lp-muted">Nothing is known to be downstream of the changed nodes.</p>}
-      {KIND_ORDER.filter((kind) => !AIRFLOW_KINDS.includes(kind)).map((kind) => {
-        const nodes = result.impacted.filter((node) => node.kind === kind);
-        return nodes.length > 0 ? <ImpactTable key={kind} kind={kind} nodes={nodes} actions={actions} /> : null;
-      })}
-      <AirflowSection result={result} actions={actions} />
-      {result.owners.length > 0 && (
-        <>
-          <h3>Owners</h3>
-          <dl className="lp-owners">
-            {result.owners.map((group) => (
-              <div key={group.owner ?? ''}>
-                <dt>{group.owner ?? <span className="lp-muted">No owner</span>}</dt>
-                <dd className="lp-identifier">{group.nodes.map((id) => names.get(id) ?? id).join(', ')}</dd>
-              </div>
-            ))}
-          </dl>
-        </>
-      )}
+    <section aria-labelledby="lp-pipelines">
+      <h2 id="lp-pipelines">Pipelines</h2>
+      {tools.map((tool) => (
+        <PipelineTool key={tool} tool={tool} summary={summaries.find((s) => s.tool === tool)}
+          nodes={nodes.filter((node) => node.tool === tool)} actions={actions} />
+      ))}
     </section>
   );
 }
 
+/** What reads the changed nodes from outside dbt, by tool, with the fields of each that break.
+ * Shown when a reader of consumers is turned on, or something declares a consumer. */
+function ConsumersSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
+  const summaries = (result.consumers ?? []).filter((s) => !DBT_TOOLS.has(s.tool));
+  const nodes = result.impacted.filter((node) => node.kind === 'consumer' && !DBT_TOOLS.has(node.tool ?? ''));
+  const tools = toolsOf(summaries, nodes);
+  if (tools.length === 0) {
+    return null;
+  }
+  return (
+    <section aria-labelledby="lp-consumers">
+      <h2 id="lp-consumers">Consumers</h2>
+      {tools.map((tool) => {
+        const found = nodes.filter((node) => node.tool === tool);
+        const summary = summaries.find((s) => s.tool === tool);
+        if (summary && !summary.analysed) {
+          return (
+            <div key={tool}>
+              <h3>{toolLabel(tool)}</h3>
+              <p className="lp-muted">Not analysed: {sentence(summary.reason ?? 'its files were not read')}</p>
+            </div>
+          );
+        }
+        return found.length > 0
+          ? <ImpactTable key={tool} heading={toolLabel(tool)} label={`Impacted ${toolLabel(tool)} consumers`} nodes={found} actions={actions} />
+          : (
+            <div key={tool}>
+              <h3>{toolLabel(tool)}</h3>
+              <p className="lp-muted">No consumer in the {plural(summary?.files ?? 0, 'file')} read uses a changed or downstream node.</p>
+            </div>
+          );
+      })}
+    </section>
+  );
+}
+
+function DownstreamSection({ result, actions }: { result: ReviewResult; actions: NodeActions }) {
+  const semantic = result.impacted.filter((node) => node.kind === 'consumer' && DBT_TOOLS.has(node.tool ?? ''));
+  return (
+    <section aria-labelledby="lp-downstream">
+      <h2 id="lp-downstream">Downstream impact</h2>
+      {result.impacted.length === 0 && <p className="lp-muted">Nothing is known to be downstream of the changed nodes.</p>}
+      {DBT_ORDER.map((kind) => {
+        const nodes = result.impacted.filter((node) => node.kind === kind);
+        const heading = KIND_HEADINGS[kind] ?? kind;
+        return nodes.length > 0
+          ? <ImpactTable key={kind} heading={heading} label={`Impacted ${heading.toLowerCase()}`} nodes={nodes} actions={actions} />
+          : null;
+      })}
+      {semantic.length > 0 && <ImpactTable heading="Semantic layer" label="Impacted semantic layer" nodes={semantic} actions={actions} />}
+    </section>
+  );
+}
+
+function OwnersSection({ result }: { result: ReviewResult }) {
+  if (result.owners.length === 0) {
+    return null;
+  }
+  const names = new Map(result.impacted.map((node) => [node.id, node.name]));
+  return (
+    <section aria-labelledby="lp-owners">
+      <h2 id="lp-owners">Owners</h2>
+      <dl className="lp-owners">
+        {result.owners.map((group) => (
+          <div key={group.owner ?? ''}>
+            <dt>{group.owner ?? <span className="lp-muted">No owner</span>}</dt>
+            <dd className="lp-identifier">{group.nodes.map((id) => names.get(id) ?? id).join(', ')}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  );
+}
+
+/** The unknowns by tool, as the review's Markdown groups them. A review's unknowns are about a
+ * node, a column or a changed file: a pipeline's, task's or consumer's ID starts with its tool,
+ * and anything else, such as a path with a colon in it, is dbt's. dbt first. */
+export function unknownGroups(result: ReviewResult): [string, Unknown[]][] {
+  const tools = new Set([
+    ...[...(result.pipelines ?? []), ...(result.consumers ?? [])].map((s) => s.tool),
+    ...result.impacted.map((n) => n.tool ?? ''),
+  ]);
+  const groups = new Map<string, Unknown[]>();
+  for (const unknown of result.unknowns) {
+    const tool = toolOfId(unknown.subject);
+    const name = tool !== undefined && (isKnownTool(tool) || tools.has(tool)) ? toolLabel(tool) : 'dbt';
+    groups.set(name, [...(groups.get(name) ?? []), unknown]);
+  }
+  return [...groups].sort((a, b) => Number(b[0] === 'dbt') - Number(a[0] === 'dbt') || a[0].localeCompare(b[0]));
+}
+
+function UnknownList({ unknowns }: { unknowns: Unknown[] }) {
+  return (
+    <ul className="lp-unknowns">
+      {unknowns.map((unknown) => (
+        <li key={`${unknown.subject}|${unknown.reference}|${unknown.reason}`}>
+          <span className="lp-identifier">{shortRef(unknown.subject)}</span>
+          <span className="lp-muted"> {unknown.reference}</span>
+          <div>{unknown.reason}</div>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 function UnknownsSection({ result }: { result: ReviewResult }) {
+  const groups = unknownGroups(result);
   return (
     <section aria-labelledby="lp-unknowns">
       <h2 id="lp-unknowns">Unknowns ({result.unknowns.length})</h2>
-      {result.unknowns.length === 0
-        ? <p className="lp-muted">Nothing on the way down could not be checked.</p>
-        : (
-          <ul className="lp-unknowns">
-            {result.unknowns.map((unknown) => (
-              <li key={`${unknown.subject}|${unknown.reference}|${unknown.reason}`}>
-                <span className="lp-identifier">{shortRef(unknown.subject)}</span>
-                <span className="lp-muted"> {unknown.reference}</span>
-                <div>{unknown.reason}</div>
-              </li>
-            ))}
-          </ul>
-        )}
+      {result.unknowns.length === 0 && <p className="lp-muted">Nothing on the way down could not be checked.</p>}
+      {groups.length === 1 && <UnknownList unknowns={groups[0][1]} />}
+      {groups.length > 1 && groups.map(([name, unknowns]) => (
+        <div key={name}>
+          <h3>{name} ({unknowns.length})</h3>
+          <UnknownList unknowns={unknowns} />
+        </div>
+      ))}
     </section>
   );
 }
@@ -448,6 +580,9 @@ export default function ReviewApp({ transport }: { transport: ReviewTransport })
             {result.notes.map((note) => <p key={note} className="lp-review-note">{note}</p>)}
             <ChangedSection nodes={result.changedNodes} actions={actions} />
             <DownstreamSection result={result} actions={actions} />
+            <PipelinesSection result={result} actions={actions} />
+            <ConsumersSection result={result} actions={actions} />
+            <OwnersSection result={result} />
             <UnknownsSection result={result} />
             <OtherFiles result={result} />
           </>

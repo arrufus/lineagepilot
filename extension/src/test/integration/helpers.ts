@@ -4,7 +4,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 
 import type { LineagePilotApi } from '../../extension';
-import type { Status } from '../../protocol';
+import type { ReaderStatus, Status } from '../../protocol';
 import type { ProjectServer } from '../../server';
 
 export const EXTENSION_ID = 'lineagepilot.lineagepilot';
@@ -42,6 +42,11 @@ export async function until<T>(what: string, timeoutMs: number, fn: () => Promis
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
   throw new Error(`timed out after ${timeoutMs} ms waiting for ${what}${last ? `: ${last}` : ''}`);
+}
+
+/** What one reader is doing and last read, from a status (protocol 2). */
+export function readerOf(status: Status | undefined, tool = 'airflow'): ReaderStatus | undefined {
+  return status?.readers?.find((reader) => reader.tool === tool);
 }
 
 export async function api(): Promise<LineagePilotApi> {

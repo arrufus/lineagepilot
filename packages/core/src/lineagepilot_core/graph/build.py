@@ -1,4 +1,9 @@
-"""Build a MetadataGraph from parsed dbt artifacts."""
+"""Build a MetadataGraph from parsed dbt artifacts.
+
+The semantic layer's nodes (task 7.8) are consumers with the tool ``dbt_semantic``. What one depends
+on, it reads: its ``depends_on`` become ``consumes`` edges, which point from the consumer to what it
+reads. ``graph/semantic.py`` then adds their fields and column-level reads.
+"""
 
 from __future__ import annotations
 
@@ -17,7 +22,9 @@ from lineagepilot_core.graph.model import (
     Origin,
     Unresolved,
 )
+from lineagepilot_core.graph.semantic import add_semantic_layer
 from lineagepilot_core.parsers.base import ParseErrorSeverity, ParseResult, RawNode
+from lineagepilot_core.parsers.dbt_semantic import SEMANTIC_KEYS, SEMANTIC_TOOL
 
 
 class UntrustedParseResult(GraphError):
@@ -112,6 +119,15 @@ def build_dbt_graph(result: ParseResult, graph: MetadataGraph | None = None) -> 
 
     for raw_edge in result.edges:
         downstream = graph.nodes[raw_edge.downstream_id]
+        if downstream.kind is NodeKind.CONSUMER:
+            graph.add_edge(
+                EdgeKind.CONSUMES,
+                raw_edge.downstream_id,
+                raw_edge.upstream_id,
+                evidence(downstream.file_path),
+                transformation=raw_edge.transformation,
+            )
+            continue
         graph.add_edge(
             EdgeKind.DEPENDS_ON,
             raw_edge.upstream_id,
@@ -131,13 +147,17 @@ def build_dbt_graph(result: ParseResult, graph: MetadataGraph | None = None) -> 
             )
         )
 
+    add_semantic_layer(graph, result)
     return graph
 
 
 def _node(raw: RawNode, relation: str | None) -> Node:
+    semantic = raw.resource_type in SEMANTIC_KEYS
     return Node(
         id=raw.unique_id,
-        kind=NodeKind(raw.resource_type),
+        kind=NodeKind.CONSUMER if semantic else NodeKind(raw.resource_type),
+        tool=SEMANTIC_TOOL if semantic else None,
+        subkind=raw.resource_type if semantic else None,
         name=raw.name,
         package=raw.package_name,
         database=raw.database_name,

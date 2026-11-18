@@ -1,16 +1,29 @@
 {
  "child_map": {
   "exposure.impact_shop.revenue_dashboard": [],
+  "metric.impact_shop.average_order_value": [
+   "saved_query.impact_shop.weekly_revenue"
+  ],
+  "metric.impact_shop.large_orders": [],
+  "metric.impact_shop.order_count": [
+   "metric.impact_shop.average_order_value"
+  ],
+  "metric.impact_shop.revenue": [
+   "metric.impact_shop.average_order_value",
+   "saved_query.impact_shop.weekly_revenue"
+  ],
   "model.impact_shop.broken_report": [],
   "model.impact_shop.customer_revenue": [
    "exposure.impact_shop.revenue_dashboard",
    "model.impact_shop.revenue_tiers"
   ],
+  "model.impact_shop.metricflow_time_spine": [],
   "model.impact_shop.order_counts": [],
   "model.impact_shop.orders": [
    "model.impact_shop.broken_report",
    "model.impact_shop.customer_revenue",
    "model.impact_shop.order_counts",
+   "semantic_model.impact_shop.orders",
    "test.impact_shop.not_null_orders_order_id.cf6c17daed",
    "test.impact_shop.unique_orders_order_id.fed79b3a6e"
   ],
@@ -21,8 +34,14 @@
   "model.impact_shop.stg_orders": [
    "model.impact_shop.orders"
   ],
+  "saved_query.impact_shop.weekly_revenue": [],
   "seed.impact_shop.raw_customers": [],
   "seed.impact_shop.raw_orders": [],
+  "semantic_model.impact_shop.orders": [
+   "metric.impact_shop.large_orders",
+   "metric.impact_shop.order_count",
+   "metric.impact_shop.revenue"
+  ],
   "source.impact_shop.shop.raw_customers": [
    "model.impact_shop.stg_customers"
   ],
@@ -51,7 +70,7 @@
     "meta": {},
     "tags": []
    },
-   "created_at": 1793865920.32758,
+   "created_at": 1794942911.489696,
    "depends_on": {
     "macros": [],
     "nodes": [
@@ -95,7 +114,8 @@
  "functions": {},
  "group_map": {
   "operations": [
-   "model.impact_shop.order_counts"
+   "model.impact_shop.order_counts",
+   "saved_query.impact_shop.weekly_revenue"
   ]
  },
  "groups": {
@@ -123,9 +143,9 @@
   "dbt_schema_version": "https://schemas.getdbt.com/dbt/manifest/v12.json",
   "dbt_version": "1.12.6",
   "env": {},
-  "generated_at": "2026-11-05T08:05:22.632146Z",
-  "invocation_id": "8ae36f58-a97b-4a79-98f6-29d30f88e322",
-  "invocation_started_at": "2026-11-05T08:05:19.597210+00:00",
+  "generated_at": "2026-11-17T19:15:14.054099Z",
+  "invocation_id": "723ff866-fa93-4608-b85a-c048a1b42836",
+  "invocation_started_at": "2026-11-17T19:15:10.697271+00:00",
   "project_id": "4e0b163b6456ee2ef68a9c6b0fda803c",
   "project_name": "impact_shop",
   "quoting": {
@@ -134,11 +154,312 @@
    "identifier": true,
    "schema": true
   },
-  "run_started_at": "2026-11-05T08:05:19.597419+00:00",
+  "run_started_at": "2026-11-17T19:15:10.697572+00:00",
   "send_anonymous_usage_stats": false,
   "user_id": null
  },
- "metrics": {},
+ "metrics": {
+  "metric.impact_shop.average_order_value": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794942911.518348,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "metric.impact_shop.revenue",
+     "metric.impact_shop.order_count"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "average_order_value"
+   ],
+   "group": null,
+   "label": "Average order value",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "average_order_value",
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "ratio",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": {
+     "alias": null,
+     "filter": null,
+     "name": "order_count",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "order_total"
+     },
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "orders_placed"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": null,
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": {
+     "alias": null,
+     "filter": null,
+     "name": "revenue",
+     "offset_to_grain": null,
+     "offset_window": null
+    },
+    "window": null
+   },
+   "unique_id": "metric.impact_shop.average_order_value",
+   "unrendered_config": {}
+  },
+  "metric.impact_shop.large_orders": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794942911.5172539,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.impact_shop.orders"
+    ]
+   },
+   "description": "",
+   "filter": {
+    "where_filters": [
+     {
+      "where_sql_template": "{{ Dimension('order__order_size') }} = 'large'"
+     }
+    ]
+   },
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "large_orders"
+   ],
+   "group": null,
+   "label": "Large orders",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "large_orders",
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "orders_placed"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "orders_placed"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.impact_shop.large_orders",
+   "unrendered_config": {}
+  },
+  "metric.impact_shop.order_count": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {}
+   },
+   "created_at": 1794942911.5169978,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.impact_shop.orders"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "order_count"
+   ],
+   "group": null,
+   "label": "Orders placed",
+   "meta": {},
+   "metadata": null,
+   "metrics": [],
+   "name": "order_count",
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "orders_placed"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "orders_placed"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.impact_shop.order_count",
+   "unrendered_config": {}
+  },
+  "metric.impact_shop.revenue": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {
+     "owner": "finance-analytics"
+    }
+   },
+   "created_at": 1794942911.516586,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "semantic_model.impact_shop.orders"
+    ]
+   },
+   "description": "",
+   "filter": null,
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "revenue"
+   ],
+   "group": null,
+   "label": "Revenue",
+   "meta": {
+    "owner": "finance-analytics"
+   },
+   "metadata": null,
+   "metrics": [],
+   "name": "revenue",
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "refs": [],
+   "resource_type": "metric",
+   "sources": [],
+   "tags": [],
+   "time_granularity": null,
+   "type": "simple",
+   "type_params": {
+    "conversion_type_params": null,
+    "cumulative_type_params": null,
+    "denominator": null,
+    "expr": null,
+    "fill_nulls_with": null,
+    "grain_to_date": null,
+    "input_measures": [
+     {
+      "alias": null,
+      "fill_nulls_with": null,
+      "filter": null,
+      "join_to_timespine": false,
+      "name": "order_total"
+     }
+    ],
+    "is_private": null,
+    "join_to_timespine": false,
+    "measure": {
+     "alias": null,
+     "fill_nulls_with": null,
+     "filter": null,
+     "join_to_timespine": false,
+     "name": "order_total"
+    },
+    "metric_aggregation_params": null,
+    "metrics": [],
+    "numerator": null,
+    "window": null
+   },
+   "unique_id": "metric.impact_shop.revenue",
+   "unrendered_config": {
+    "meta": {
+     "owner": "finance-analytics"
+    }
+   }
+  }
+ },
  "nodes": {
   "model.impact_shop.broken_report": {
    "access": "protected",
@@ -201,7 +522,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.1415029,
+   "created_at": 1794942911.2929122,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -353,7 +674,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.319017,
+   "created_at": 1794942911.480693,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -418,6 +739,132 @@
    },
    "version": null
   },
+  "model.impact_shop.metricflow_time_spine": {
+   "access": "protected",
+   "alias": "metricflow_time_spine",
+   "build_path": null,
+   "checksum": {
+    "checksum": "2e7cb0bdf6e29eece21a893c902ff428bd646e228b91733c75ebdabbf9120c61",
+    "name": "sha256"
+   },
+   "columns": {
+    "date_day": {
+     "config": {
+      "meta": {},
+      "tags": []
+     },
+     "constraints": [],
+     "data_type": null,
+     "description": "",
+     "dimension": null,
+     "doc_blocks": [],
+     "entity": null,
+     "granularity": "day",
+     "meta": {},
+     "name": "date_day",
+     "quote": null,
+     "tags": []
+    }
+   },
+   "compiled": true,
+   "compiled_code": "-- One row a day: dbt parses metrics only in a project with a time spine\nselect cast(range as date) as date_day\nfrom range(date '2026-01-01', date '2027-01-01', interval 1 day)",
+   "compiled_path": "target/compiled/impact_shop/models/utilities/metricflow_time_spine.sql",
+   "config": {
+    "access": "protected",
+    "alias": null,
+    "batch_size": null,
+    "begin": null,
+    "column_types": {},
+    "concurrent_batches": null,
+    "contract": {
+     "alias_types": true,
+     "enforced": false
+    },
+    "database": null,
+    "docs": {
+     "node_color": null,
+     "show": true
+    },
+    "enabled": true,
+    "event_time": null,
+    "freshness": null,
+    "full_refresh": null,
+    "grants": {},
+    "group": null,
+    "incremental_strategy": null,
+    "latest_version_pointer": {
+     "alias": null,
+     "enabled": null
+    },
+    "lookback": 1,
+    "materialized": "view",
+    "meta": {},
+    "on_configuration_change": "apply",
+    "on_error": null,
+    "on_schema_change": "ignore",
+    "packages": [],
+    "persist_docs": {},
+    "post-hook": [],
+    "pre-hook": [],
+    "quoting": {},
+    "schema": null,
+    "static_analysis": null,
+    "tags": [],
+    "unique_key": null
+   },
+   "constraints": [],
+   "contract": {
+    "alias_types": true,
+    "checksum": null,
+    "enforced": false
+   },
+   "created_at": 1794942911.548085,
+   "database": "impact_shop",
+   "depends_on": {
+    "macros": [],
+    "nodes": []
+   },
+   "deprecation_date": null,
+   "description": "One row a day, for the semantic layer.",
+   "doc_blocks": [],
+   "docs": {
+    "node_color": null,
+    "show": true
+   },
+   "extra_ctes": [],
+   "extra_ctes_injected": true,
+   "fqn": [
+    "impact_shop",
+    "utilities",
+    "metricflow_time_spine"
+   ],
+   "functions": [],
+   "group": null,
+   "language": "sql",
+   "latest_version": null,
+   "meta": {},
+   "metrics": [],
+   "name": "metricflow_time_spine",
+   "original_file_path": "models/utilities/metricflow_time_spine.sql",
+   "package_name": "impact_shop",
+   "patch_path": "impact_shop://models/utilities/metricflow_time_spine.yml",
+   "path": "utilities/metricflow_time_spine.sql",
+   "primary_key": [],
+   "raw_code": "-- One row a day: dbt parses metrics only in a project with a time spine\nselect cast(range as date) as date_day\nfrom range(date '2026-01-01', date '2027-01-01', interval 1 day)",
+   "refs": [],
+   "relation_name": "\"impact_shop\".\"main\".\"metricflow_time_spine\"",
+   "resource_type": "model",
+   "schema": "main",
+   "sources": [],
+   "tags": [],
+   "time_spine": {
+    "custom_granularities": [],
+    "standard_granularity_column": "date_day"
+   },
+   "unique_id": "model.impact_shop.metricflow_time_spine",
+   "unrendered_config": {},
+   "version": null
+  },
   "model.impact_shop.order_counts": {
    "access": "protected",
    "alias": "order_counts",
@@ -479,7 +926,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.319801,
+   "created_at": 1794942911.481384,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -649,7 +1096,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.280828,
+   "created_at": 1794942911.443155,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -771,7 +1218,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.319941,
+   "created_at": 1794942911.481513,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -886,7 +1333,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.126328,
+   "created_at": 1794942911.2757041,
    "database": "impact_shop",
    "depends_on": {
     "macros": [],
@@ -1020,7 +1467,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.251711,
+   "created_at": 1794942911.412946,
    "database": "impact_shop",
    "depends_on": {
     "macros": [
@@ -1126,7 +1573,7 @@
     "tags": [],
     "unique_key": null
    },
-   "created_at": 1793865920.191539,
+   "created_at": 1794942911.34981,
    "database": "impact_shop",
    "depends_on": {
     "macros": []
@@ -1205,7 +1652,7 @@
     "tags": [],
     "unique_key": null
    },
-   "created_at": 1793865920.1923258,
+   "created_at": 1794942911.350661,
    "database": "impact_shop",
    "depends_on": {
     "macros": []
@@ -1276,7 +1723,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.317037,
+   "created_at": 1794942911.4786959,
    "database": "impact_shop",
    "depends_on": {
     "macros": [
@@ -1373,7 +1820,7 @@
     "checksum": null,
     "enforced": false
    },
-   "created_at": 1793865920.317746,
+   "created_at": 1794942911.4794,
    "database": "impact_shop",
    "depends_on": {
     "macros": [
@@ -1437,6 +1884,19 @@
   "exposure.impact_shop.revenue_dashboard": [
    "model.impact_shop.customer_revenue"
   ],
+  "metric.impact_shop.average_order_value": [
+   "metric.impact_shop.order_count",
+   "metric.impact_shop.revenue"
+  ],
+  "metric.impact_shop.large_orders": [
+   "semantic_model.impact_shop.orders"
+  ],
+  "metric.impact_shop.order_count": [
+   "semantic_model.impact_shop.orders"
+  ],
+  "metric.impact_shop.revenue": [
+   "semantic_model.impact_shop.orders"
+  ],
   "model.impact_shop.broken_report": [
    "model.impact_shop.orders"
   ],
@@ -1444,6 +1904,7 @@
    "model.impact_shop.orders",
    "model.impact_shop.stg_customers"
   ],
+  "model.impact_shop.metricflow_time_spine": [],
   "model.impact_shop.order_counts": [
    "model.impact_shop.orders"
   ],
@@ -1459,8 +1920,15 @@
   "model.impact_shop.stg_orders": [
    "source.impact_shop.shop.raw_orders"
   ],
+  "saved_query.impact_shop.weekly_revenue": [
+   "metric.impact_shop.average_order_value",
+   "metric.impact_shop.revenue"
+  ],
   "seed.impact_shop.raw_customers": [],
   "seed.impact_shop.raw_orders": [],
+  "semantic_model.impact_shop.orders": [
+   "model.impact_shop.orders"
+  ],
   "source.impact_shop.shop.raw_customers": [],
   "source.impact_shop.shop.raw_orders": [],
   "test.impact_shop.not_null_orders_order_id.cf6c17daed": [
@@ -1470,9 +1938,231 @@
    "model.impact_shop.orders"
   ]
  },
- "saved_queries": {},
+ "saved_queries": {
+  "saved_query.impact_shop.weekly_revenue": {
+   "config": {
+    "cache": {
+     "enabled": false
+    },
+    "enabled": true,
+    "export_as": null,
+    "group": "operations",
+    "meta": {},
+    "schema": null
+   },
+   "created_at": 1794942911.546815,
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "metric.impact_shop.revenue",
+     "metric.impact_shop.average_order_value"
+    ]
+   },
+   "description": "Revenue by week, for the finance export.",
+   "exports": [
+    {
+     "config": {
+      "alias": "weekly_revenue",
+      "database": "impact_shop",
+      "export_as": "table",
+      "schema_name": "exports"
+     },
+     "name": "weekly_revenue",
+     "unrendered_config": {
+      "export_as": "table",
+      "schema": "exports"
+     }
+    }
+   ],
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "weekly_revenue"
+   ],
+   "group": "operations",
+   "label": null,
+   "metadata": null,
+   "name": "weekly_revenue",
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "query_params": {
+    "group_by": [
+     "TimeDimension('order__ordered_at', 'week')"
+    ],
+    "limit": null,
+    "metrics": [
+     "revenue",
+     "average_order_value"
+    ],
+    "order_by": [],
+    "where": null
+   },
+   "refs": [],
+   "resource_type": "saved_query",
+   "tags": [],
+   "unique_id": "saved_query.impact_shop.weekly_revenue",
+   "unrendered_config": {
+    "group": "operations"
+   }
+  }
+ },
  "selectors": {},
- "semantic_models": {},
+ "semantic_models": {
+  "semantic_model.impact_shop.orders": {
+   "config": {
+    "enabled": true,
+    "group": null,
+    "meta": {
+     "owner": "finance-data"
+    }
+   },
+   "created_at": 1794942911.535557,
+   "defaults": {
+    "agg_time_dimension": "ordered_at"
+   },
+   "depends_on": {
+    "macros": [],
+    "nodes": [
+     "model.impact_shop.orders"
+    ]
+   },
+   "description": "Orders, for the semantic layer.",
+   "dimensions": [
+    {
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "datatype": null,
+     "description": null,
+     "expr": null,
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "ordered_at",
+     "type": "time",
+     "type_params": {
+      "time_granularity": "day",
+      "validity_params": null
+     }
+    },
+    {
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "datatype": null,
+     "description": null,
+     "expr": "case when order_total >= 100 then 'large' else 'small' end",
+     "is_partition": false,
+     "label": null,
+     "metadata": null,
+     "name": "order_size",
+     "type": "categorical",
+     "type_params": null
+    }
+   ],
+   "entities": [
+    {
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "description": null,
+     "expr": "order_id",
+     "label": null,
+     "name": "order",
+     "role": null,
+     "type": "primary"
+    },
+    {
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "description": null,
+     "expr": "customer_id",
+     "label": null,
+     "name": "customer",
+     "role": null,
+     "type": "foreign"
+    }
+   ],
+   "fqn": [
+    "impact_shop",
+    "marts",
+    "orders"
+   ],
+   "group": null,
+   "label": null,
+   "measures": [
+    {
+     "agg": "sum",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "create_metric": false,
+     "description": "Revenue, summed.",
+     "expr": null,
+     "label": null,
+     "name": "order_total",
+     "non_additive_dimension": null
+    },
+    {
+     "agg": "count",
+     "agg_params": null,
+     "agg_time_dimension": null,
+     "config": {
+      "meta": {
+       "owner": "finance-data"
+      }
+     },
+     "create_metric": false,
+     "description": null,
+     "expr": "order_id",
+     "label": null,
+     "name": "orders_placed",
+     "non_additive_dimension": null
+    }
+   ],
+   "metadata": null,
+   "model": "ref('orders')",
+   "name": "orders",
+   "node_relation": {
+    "alias": "orders",
+    "database": "impact_shop",
+    "relation_name": "\"impact_shop\".\"main\".\"orders\"",
+    "schema_name": "main"
+   },
+   "original_file_path": "models/marts/semantic.yml",
+   "package_name": "impact_shop",
+   "path": "marts/semantic.yml",
+   "primary_entity": null,
+   "refs": [
+    {
+     "name": "orders",
+     "package": null,
+     "version": null
+    }
+   ],
+   "resource_type": "semantic_model",
+   "unique_id": "semantic_model.impact_shop.orders",
+   "unrendered_config": {
+    "meta": {
+     "owner": "finance-data"
+    }
+   }
+  }
+ },
  "sources": {
   "source.impact_shop.shop.raw_customers": {
    "columns": {},
@@ -1496,7 +2186,7 @@
     "static_analysis": null,
     "tags": []
    },
-   "created_at": 1793865920.3372102,
+   "created_at": 1794942911.555451,
    "database": "impact_shop",
    "description": "Customers as the shop writes them.",
    "doc_blocks": [],
@@ -1573,7 +2263,7 @@
     "static_analysis": null,
     "tags": []
    },
-   "created_at": 1793865920.3367019,
+   "created_at": 1794942911.5549068,
    "database": "impact_shop",
    "description": "Orders as the shop writes them.",
    "doc_blocks": [],

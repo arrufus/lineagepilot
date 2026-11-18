@@ -16,9 +16,10 @@ import type { ExportFormat, GraphNode } from './protocol';
 import { ReviewPanel } from './reviewPanel';
 import { applySampleChange, type ApplyOutcome, copySample, isSample } from './sample';
 import type { ProjectServer } from './server';
-import { statusBar } from './status';
-import { AirflowTree } from './views/airflowTree';
+import { readersKey, statusBar } from './status';
+import { ConsumersTree } from './views/consumersTree';
 import { LineageTree, NodeItem } from './views/lineageTree';
+import { PipelinesTree } from './views/pipelinesTree';
 
 const GRAPH_FORMATS: { format: ExportFormat; label: string }[] = [
   { format: 'json', label: 'JSON' },
@@ -37,7 +38,11 @@ const STATUS_REFRESH_MS = 60_000;
 export interface LineagePilotApi {
   manager: ServerManager;
   lineageTree: LineageTree;
-  airflowTree: AirflowTree;
+  pipelinesTree: PipelinesTree;
+  consumersTree: ConsumersTree;
+  /** The Pipelines and Consumers views, to see that they show. */
+  pipelinesView: vscode.TreeView<unknown>;
+  consumersView: vscode.TreeView<unknown>;
   statusBarText(): string;
   /** The project's open lineage graph panel. */
   lineagePanel(root: string): LineagePanel | undefined;
@@ -57,8 +62,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   const lineageView = vscode.window.createTreeView('lineagePilot.lineage', {
     treeDataProvider: lineageTree, showCollapseAll: true,
   });
-  const airflowTree = new AirflowTree((file) => manager.serverFor(file), () => manager.list());
-  const airflowView = vscode.window.createTreeView('lineagePilot.airflow', { treeDataProvider: airflowTree });
+  const pipelinesTree = new PipelinesTree((file) => manager.serverFor(file), () => manager.list());
+  const pipelinesView = vscode.window.createTreeView('lineagePilot.pipelines', { treeDataProvider: pipelinesTree });
+  const consumersTree = new ConsumersTree((file) => manager.serverFor(file));
+  const consumersView = vscode.window.createTreeView('lineagePilot.consumers', { treeDataProvider: consumersTree });
+  const showFile = (uri: vscode.Uri | undefined) => {
+    void lineageTree.showFile(uri);
+    void pipelinesTree.showFile(uri);
+    void consumersTree.showFile(uri);
+  };
 
   const updateStatus = () => {
     const bar = statusBar(
@@ -79,13 +91,12 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     updateStatus();
     // Re-read the tree when any project's graph changes
     const generations = manager.list()
-      .map((s) => `${s.status?.generation}:${s.status?.state}:${s.status?.indexing}:${s.status?.airflow.generation}:${s.status?.airflow.stage}`)
+      .map((s) => `${s.status?.generation}:${s.status?.state}:${s.status?.indexing}:${readersKey(s.status)}`)
       .join();
     if (generations !== lastGenerations) {
       lastGenerations = generations;
       lineageTree.refresh();
-      void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
-      void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
+      showFile(vscode.window.activeTextEditor?.document.uri);
     }
   });
   const updateSampleContext = () => void vscode.commands.executeCommand('setContext', 'lineagePilot.sampleOpen',
@@ -184,7 +195,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   };
 
   context.subscriptions.push(
-    output, statusItem, lineageView, airflowView, manager, { dispose: () => clearInterval(timer) },
+    output, statusItem, lineageView, pipelinesView, consumersView, manager, { dispose: () => clearInterval(timer) },
     vscode.commands.registerCommand('lineagePilot.showImpact', showImpact),
     vscode.commands.registerCommand('lineagePilot.showLineage', showLineage),
     vscode.commands.registerCommand('lineagePilot.reviewChanges', async (projectRoot?: string) => {
@@ -332,10 +343,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
     }),
     vscode.commands.registerCommand('lineagePilot.restartServer', () => manager.restartAll(true)),
     vscode.commands.registerCommand('lineagePilot.showOutput', () => output.show()),
-    vscode.window.onDidChangeActiveTextEditor((editor) => {
-      void lineageTree.showFile(editor?.document.uri);
-      void airflowTree.showFile(editor?.document.uri);
-    }),
+    vscode.window.onDidChangeActiveTextEditor((editor) => showFile(editor?.document.uri)),
     vscode.workspace.onDidChangeWorkspaceFolders(() => {
       updateSampleContext();
       void manager.rediscover();
@@ -359,12 +367,14 @@ export async function activate(context: vscode.ExtensionContext): Promise<Lineag
   void forgetOldCounts(context.globalState);  // the usage counts 0.1.x kept, if any
   await manager.start(true);
   updateStatus();
-  void lineageTree.showFile(vscode.window.activeTextEditor?.document.uri);
-  void airflowTree.showFile(vscode.window.activeTextEditor?.document.uri);
+  showFile(vscode.window.activeTextEditor?.document.uri);
   return {
     manager,
     lineageTree,
-    airflowTree,
+    pipelinesTree,
+    consumersTree,
+    pipelinesView,
+    consumersView,
     statusBarText: () => statusItem.text,
     lineagePanel: (root) => LineagePanel.forProject(root),
     reviewPanel: (root) => ReviewPanel.forProject(root),

@@ -7,7 +7,7 @@
 import { ExternalLink, Loader2, Target, TriangleAlert, X } from 'lucide-react';
 
 import type { ImpactedNode, ImpactResult, Location, NodeKind } from '../../../src/protocol';
-import { CONFIDENCE_LABELS, KIND_LABELS, plural } from '../labels';
+import { CONFIDENCE_LABELS, KIND_LABELS, kindKey, kindLabel, plural, toolLabel } from '../labels';
 
 export interface ImpactPanelProps {
   name: string;
@@ -18,14 +18,31 @@ export interface ImpactPanelProps {
   onFocus(id: string): void;
 }
 
-const ORDER: NodeKind[] = ['model', 'snapshot', 'seed', 'source', 'exposure', 'airflow_task', 'airflow_dag'];
+// dbt's kinds, then what runs them, then what reads them (design_next_phase section 7.5)
+const ORDER: NodeKind[] = ['model', 'snapshot', 'seed', 'source', 'exposure', 'task', 'pipeline', 'consumer', 'airflow_task', 'airflow_dag'];
 
-function groups(nodes: ImpactedNode[]): [NodeKind, ImpactedNode[]][] {
-  const byKind = new Map<NodeKind, ImpactedNode[]>();
+interface Group {
+  key: string;
+  // ``model``, ``Airflow task``: each tool's apart
+  label: string;
+  nodes: ImpactedNode[];
+}
+
+function rank(node: ImpactedNode): number {
+  const index = ORDER.indexOf(node.kind);
+  return index < 0 ? ORDER.length : index;
+}
+
+export function groups(nodes: ImpactedNode[]): Group[] {
+  const byKey = new Map<string, ImpactedNode[]>();
   for (const node of nodes) {
-    byKind.set(node.kind, [...(byKind.get(node.kind) ?? []), node]);
+    const key = kindKey(node);
+    byKey.set(key, [...(byKey.get(key) ?? []), node]);
   }
-  return [...byKind.entries()].sort((a, b) => ORDER.indexOf(a[0]) - ORDER.indexOf(b[0]));
+  return [...byKey.entries()]
+    .map(([key, found]) => ({ key, label: kindLabel({ kind: found[0].kind, tool: found[0].tool }), nodes: found }))
+    .sort((a, b) => rank(a.nodes[0]) - rank(b.nodes[0])
+      || toolLabel(a.nodes[0].tool).localeCompare(toolLabel(b.nodes[0].tool)) || a.key.localeCompare(b.key));
 }
 
 export default function ImpactPanel({ name, result, error, onClose, onOpen, onFocus }: ImpactPanelProps) {
@@ -59,9 +76,9 @@ export default function ImpactPanel({ name, result, error, onClose, onOpen, onFo
               <p className="lp-muted">Column lineage is still being computed, so some models are reached at model level.</p>
             )}
           </section>
-          {groups(result.nodes).map(([kind, nodes]) => (
-            <section key={kind} aria-label={`Impacted ${KIND_LABELS[kind]}s`}>
-              <h3>{plural(nodes.length, KIND_LABELS[kind])}</h3>
+          {groups(result.nodes).map(({ key, label, nodes }) => (
+            <section key={key} aria-label={`Impacted ${label}s`}>
+              <h3>{plural(nodes.length, label)}</h3>
               <ul className="lp-list">
                 {nodes.map((hit) => (
                   <li key={hit.id}>

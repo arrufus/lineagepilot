@@ -21,7 +21,7 @@ EXPECTED = index_project(FIXTURE, column_lineage=False).graph.stats()
 async def test_indexes_on_start_model_graph_first(start):
     client, result = await start()
     lineage = result.capabilities.experimental["lineagePilot"]
-    assert lineage["protocolVersion"] == 1 and lineage["protocolVersions"] == [1]
+    assert lineage["protocolVersion"] == 1 and lineage["protocolVersions"] == [1, 2]
 
     status = await client.ready()
     assert status["state"] == "ready" and status["columnLineage"] == "done"
@@ -101,6 +101,8 @@ async def test_watchers_are_registered(start, workspace):
         (root, "target/{manifest,catalog}.json"),
         (root, "dbt_project.yml"),
         (root, ".lineagepilot/rules.yml"),
+        (root, ".lineagepilot/lineage.yml"),
+        (root, ".lineagepilot/airflow.yml"),
         (root, "models/**"),
         (root, "macros/**"),
         (root, "dags/**/*.py"),
@@ -216,7 +218,10 @@ async def test_without_storage_snapshots_go_to_a_temporary_directory(start, work
     assert status["columnStates"] == {"resolved": 0, "partial": 0, "unknown": 0}
 
 
-@pytest.mark.parametrize("versions, chosen", [([1, 2], 1), ([99], None), (None, None), ("1", None)])
+@pytest.mark.parametrize(
+    "versions, chosen",
+    [([1, 2], 2), ([1], 1), ([2], 2), ([2, 99], 2), ([99], None), (None, None), ("1", None)],
+)
 async def test_protocol_version_negotiation(start, versions, chosen):
     client, result = await start(options={"protocolVersions": versions})
     assert result.capabilities.experimental["lineagePilot"]["protocolVersion"] == chosen

@@ -1,12 +1,12 @@
-"""Running a reader, in a child process like the index (task 7.3, design section 11).
+"""Running a reader, in a child process like the index (tasks 5.3 and 7.3, design section 11).
 
-One runner per reader (``lineagepilot_core.readers.registry``), the same for each. What a reader
-reads depends on the manifest, whose selectors it evaluates, and on the tool's files, so it has its
+One runner per reader (``lineagepilot_core.readers.registry``), the same for every tool. A read
+depends on the manifest, whose selectors it may evaluate, and on the tool's files, so it has its
 own lifecycle. It is applied on top of whichever graph is loaded: a DAG file changes far more often
-than the manifest, and re-indexing column lineage for it would take seconds at best. Reading has
+than the manifest, and re-indexing column lineage for it would take seconds at best. A read has
 no budget of its own on the event loop: at 5,000 models reading the manifest takes a second or two,
 which is why it is a child process, with a time limit and a memory limit, and the graph answers
-meanwhile, saying the files are still being read. What was read is released once it is linked.
+meanwhile, saying the files are still being read.
 """
 
 from __future__ import annotations
@@ -28,10 +28,9 @@ from lineagepilot_lsp.project import DbtProject
 
 logger = logging.getLogger(__name__)
 
-# Beyond this a reader is stopped and the review says its files could not be read
+# Beyond this a read is stopped and the review says the files could not be read
 SCAN_TIMEOUT_S = 120.0
-# What a reader found is read into the server, which has a memory budget: a DAG scan is about
-# 30 MB at 5,000 models
+# The scan is read into the server, which has a memory budget: about 30 MB at 5,000 models
 MAX_SCAN_BYTES = 128 * 2**20
 
 
@@ -47,7 +46,7 @@ class ReaderStage(str, Enum):
 
 
 class ReaderRunner:
-    """Runs one reader: starts it, stops it, and holds what it found until that is linked."""
+    """Reads one tool's files for one project, and holds the result until it is linked."""
 
     def __init__(
         self,
@@ -62,7 +61,7 @@ class ReaderRunner:
         self.reader = reader
         self.project = project
         self.workspace = workspace
-        self.paths = paths  # the reader's setting, cleaned (Reader.clean_paths)
+        self.paths = paths
         self.directory = directory
         self.on_change = on_change
         self.python = python or worker.interpreter()
@@ -81,14 +80,13 @@ class ReaderRunner:
         return self.stage is ReaderStage.SCANNING and self.manifest_key == key
 
     def release(self) -> None:
-        """Nothing more is coming that needs what was read: a DAG scan can be 30 MB at 5,000
-        models, and the server has a memory budget. If the graph is replaced, reading again takes a
-        second or two."""
+        """Nothing more is coming that needs this scan: it can be 30 MB at 5,000 models, and the
+        server has a memory budget. If the graph is replaced, a new scan takes a second or two."""
         self.scan = None
         self.manifest_key = None
 
     def invalidate(self) -> None:
-        """The reader's files may have changed: what was read no longer counts."""
+        """The reader's files may have changed: the scan held no longer counts."""
         self.manifest_key = None
 
     def start(self, key: str | None) -> None:

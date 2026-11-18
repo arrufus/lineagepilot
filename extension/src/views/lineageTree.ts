@@ -3,6 +3,7 @@
 
 import * as vscode from 'vscode';
 
+import { kindLabel } from '../kinds';
 import type { GraphEdge, GraphNode } from '../protocol';
 import type { ProjectServer } from '../server';
 
@@ -40,6 +41,9 @@ const ICONS: Record<string, string> = {
   exposure: 'graph',
   airflow_dag: 'workflow',
   airflow_task: 'clock',
+  pipeline: 'workflow',
+  task: 'clock',
+  consumer: 'dashboard',
   column: 'symbol-field',
 };
 
@@ -173,10 +177,10 @@ export class LineageTree implements vscode.TreeDataProvider<LineageItem> {
     const tree = new vscode.TreeItem(node.name, vscode.TreeItemCollapsibleState.Collapsed);
     tree.id = pathOf(item);
     tree.iconPath = new vscode.ThemeIcon(ICONS[node.kind] ?? 'circle-outline');
-    tree.description = [node.kind, edge?.confidence, node.pii ? 'PII' : undefined].filter(Boolean).join(' · ');
+    tree.description = [kindLabel(node), edge?.confidence, node.pii ? 'PII' : undefined].filter(Boolean).join(' · ');
     const tooltip = new vscode.MarkdownString(undefined, false);
     tooltip.isTrusted = false;
-    tooltip.appendMarkdown(`**${escapeMarkdown(node.name)}** (${node.kind})\n\n${escapeMarkdown(node.id)}`);
+    tooltip.appendMarkdown(`**${escapeMarkdown(node.name)}** (${escapeMarkdown(kindLabel(node))})\n\n${escapeMarkdown(node.id)}`);
     if (edge) {
       const via = edge.relation ? `, via table ${escapeMarkdown(edge.relation)}` : '';
       tooltip.appendMarkdown(`\n\n${edge.kind}: ${edge.confidence}, ${edge.origins.join(', ')}${via}`);

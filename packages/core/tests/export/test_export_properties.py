@@ -48,14 +48,17 @@ PAYLOADS = [
 ]
 
 text = st.one_of(st.sampled_from(PAYLOADS), st.text(max_size=30))
-# The graph's kinds, with D-9's pipeline, task and consumer, and one no exporter knows
+# Every kind as it is written out (``kind_name``), and one no exporter knows
 KINDS = [
     "model",
     "seed",
+    "snapshot",
     "source",
     "exposure",
     "column",
     "relation",
+    "airflow_task",
+    "airflow_dag",
     "pipeline",
     "task",
     "consumer",
@@ -87,7 +90,6 @@ def views(draw) -> GraphView:
             domain=draw(st.none() | text),
             owner=draw(st.none() | text),
             file_path=draw(st.none() | text),
-            tool=draw(st.none() | st.sampled_from(["airflow", "dbt_semantic"]) | text),
         )
         for node_id in ids
     ]
@@ -113,7 +115,6 @@ def test_json_round_trips(view):
     data = json.loads(to_json(view))
     assert [n["id"] for n in data["nodes"]] == [n.id for n in view.nodes]
     assert [n["name"] for n in data["nodes"]] == [n.name for n in view.nodes]
-    assert [(n["kind"], n["tool"]) for n in data["nodes"]] == [(n.kind, n.tool) for n in view.nodes]
     assert [(e["upstream"], e["downstream"]) for e in data["edges"]] == [
         (e.upstream, e.downstream) for e in view.edges
     ]
@@ -129,10 +130,6 @@ def test_graphml_parses_and_keeps_every_value(view):
     for element, node in zip(nodes, view.nodes, strict=True):
         name = element.find("g:data[@key='n_name']", ns).text or ""
         assert name == xml_text(node.name)
-        tool = element.find("g:data[@key='n_tool']", ns)
-        assert (tool.text or "" if tool is not None else None) == (
-            xml_text(node.tool) if node.tool is not None else None
-        )
     edges = root.findall("g:graph/g:edge", ns)
     assert [(e.get("source"), e.get("target")) for e in edges] == [
         (xml_text(e.upstream), xml_text(e.downstream)) for e in view.edges
@@ -245,7 +242,7 @@ def test_cypher_statements_follow_the_template_and_literals_decode(view):
     expected_values = {n.id for n in view.nodes} | {
         v
         for n in view.nodes
-        for v in (n.name, n.tool, n.layer, n.domain, n.owner, n.file_path)
+        for v in (n.name, n.layer, n.domain, n.owner, n.file_path)
         if v is not None
     }
     expected_values |= {e.confidence for e in view.edges} | {

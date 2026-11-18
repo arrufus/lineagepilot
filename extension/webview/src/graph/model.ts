@@ -1,7 +1,8 @@
 // The graph the webview shows (task 3.3): what the language server returned, merged as nodes
 // are expanded, and filtered for display. Pure functions, no React.
 
-import type { GraphEdge, GraphNode, GraphResult, NodeKind } from '../../../src/protocol';
+import { kindKey, kindLabel } from '../../../src/kinds';
+import type { GraphEdge, GraphNode, GraphResult } from '../../../src/protocol';
 
 export interface ViewGraph {
   rootId: string;
@@ -16,8 +17,15 @@ export interface ViewGraph {
 }
 
 export interface Filters {
-  hiddenKinds: Set<NodeKind>;
+  // Kinds hidden, by kindKey: ``source``, or ``task:airflow`` for one tool's tasks
+  hiddenKinds: Set<string>;
   search: string;
+}
+
+/** A filter the toolbar offers: a kind, or a kind of one tool. */
+export interface KindFilter {
+  key: string;
+  label: string;
 }
 
 export const NO_FILTERS: Filters = { hiddenKinds: new Set(), search: '' };
@@ -76,15 +84,21 @@ export function matches(node: GraphNode, search: string): boolean {
 
 /** The nodes and edges to draw: hidden kinds removed (never the root), edges between the rest.
  * Search only highlights, so it is not an input: typing must not lay the graph out again. */
-export function visible(view: ViewGraph, hiddenKinds: ReadonlySet<NodeKind>): { nodes: GraphNode[]; edges: GraphEdge[] } {
-  const nodes = [...view.nodes.values()].filter((node) => node.id === view.rootId || !hiddenKinds.has(node.kind));
+export function visible(view: ViewGraph, hiddenKinds: ReadonlySet<string>): { nodes: GraphNode[]; edges: GraphEdge[] } {
+  const nodes = [...view.nodes.values()].filter((node) => node.id === view.rootId || !hiddenKinds.has(kindKey(node)));
   const shown = new Set(nodes.map((node) => node.id));
   const edges = [...view.edges.values()].filter((edge) => shown.has(edge.upstream) && shown.has(edge.downstream));
   return { nodes, edges };
 }
 
-export function kindsIn(view: ViewGraph): NodeKind[] {
-  return [...new Set([...view.nodes.values()].map((node) => node.kind))].sort();
+/** The kinds in the graph, each tool's apart (``Airflow task``, ``Dagster task``), by label. */
+export function kindsIn(view: ViewGraph): KindFilter[] {
+  const filters = new Map<string, string>();
+  for (const node of view.nodes.values()) {
+    filters.set(kindKey(node), kindLabel({ kind: node.kind, tool: node.tool }));
+  }
+  return [...filters].map(([key, label]) => ({ key, label }))
+    .sort((a, b) => a.label.localeCompare(b.label) || a.key.localeCompare(b.key));
 }
 
 /** The edges into and out of a node, in data-flow terms. */

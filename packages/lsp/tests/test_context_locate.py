@@ -187,7 +187,13 @@ def test_downstream_counts_are_cached(model_graph):
     graph, project = model_graph
     ctx = GraphContext(graph, project)
     first = ctx.downstream_counts(f"{J}.stg_orders")
-    assert first == {"model": 3}  # orders, order_items, customers
+    # orders, order_items, customers, and the semantic layer on two of them, by what each is
+    assert first == {
+        ("model", None): 3,
+        ("semantic_model", None): 2,
+        ("metric", None): 4,
+        ("saved_query", None): 1,
+    }
     assert ctx.downstream_counts(f"{J}.stg_orders") is first
 
 
@@ -279,6 +285,86 @@ def test_a_dag_file_may_be_outside_the_project_but_not_the_workspace(tmp_path, w
     # A project outside the workspace folder is its own workspace
     elsewhere = Locator(read_project(workspace), tmp_path / "dags")
     assert elsewhere.workspace == read_project(workspace).root
+
+
+# Task 7.10: one request's locations in a batch, each folder checked once
+
+
+def test_a_batch_places_files_as_the_full_check_does(tmp_path, workspace):
+    import os
+    import sys
+
+    outside = tmp_path / "secret"
+    outside.mkdir()
+    (outside / "x.sql").write_text("select 1\n")
+    locator = Locator(read_project(workspace), workspace)
+    model = Node("model.pilot_shop.x", NodeKind.MODEL, "x", package="pilot_shop")
+    cases = [
+        "models/marts/orders.sql",
+        "models/marts/orders.yml",
+        "models/marts/missing.sql",
+        "models/marts",
+        "../secret/x.sql",
+    ]
+    links = sys.platform != "win32"
+    if links:
+        models = workspace / "models"
+        os.symlink(outside / "x.sql", models / "out.sql")
+        os.symlink(models / "marts" / "orders.sql", models / "in.sql")
+        os.symlink(outside, models / "away")
+        cases += ["models/out.sql", "models/in.sql", "models/away/x.sql"]
+    each = {case: locator.file(model, case) for case in cases}
+    with locator.batch():
+        assert {case: locator.file(model, case) for case in cases} == each
+        with locator.batch():  # a request inside another shares its batch
+            assert locator.file(model, cases[0]) == each[cases[0]]
+    assert each["models/marts/orders.sql"] == workspace / "models" / "marts" / "orders.sql"
+    assert each["models/marts/missing.sql"] is None and each["models/marts"] is None
+    assert each["../secret/x.sql"] is None
+    if links:
+        # A link is followed only while it stays in the workspace, in a batch or not
+        assert each["models/in.sql"] == workspace / "models" / "in.sql"
+        assert each["models/out.sql"] is None and each["models/away/x.sql"] is None
+
+
+def test_a_batch_checks_each_folder_once_and_forgets_it_after(tmp_path, workspace, monkeypatch):
+    import os
+    import sys
+
+    from lineagepilot_lsp import locate
+
+    calls = {"folders": 0, "full": 0}
+    resolve, full = locate.resolve_inside, locate.regular_file_inside
+
+    def counted_resolve(path, root):
+        calls["folders"] += 1
+        return resolve(path, root)
+
+    def counted_full(path, root):
+        calls["full"] += 1
+        return full(path, root)
+
+    monkeypatch.setattr(locate, "resolve_inside", counted_resolve)
+    monkeypatch.setattr(locate, "regular_file_inside", counted_full)
+    locator = Locator(read_project(workspace), workspace)
+    model = Node("model.pilot_shop.x", NodeKind.MODEL, "x", package="pilot_shop")
+    names = ["orders.sql", "orders.yml", "customers.sql", "orders.sql"]
+    with locator.batch():
+        found = [locator.file(model, f"models/marts/{name}") for name in names]
+    assert all(found) and calls == {"folders": 1, "full": 0}
+    for name in names:
+        locator.file(model, f"models/marts/{name}")
+    assert calls["full"] == len(names)  # outside a batch, every file is checked in full
+    if sys.platform == "win32":
+        return
+    # Nothing is kept after a request: a file that has become a link out is refused
+    outside = tmp_path / "secret.sql"
+    outside.write_text("select 1\n")
+    orders = workspace / "models" / "marts" / "orders.sql"
+    orders.unlink()
+    os.symlink(outside, orders)
+    with locator.batch():
+        assert locator.file(model, "models/marts/orders.sql") is None
 
 
 def test_yaml_entries_bound_aliases():

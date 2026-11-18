@@ -72,10 +72,10 @@ Nothing is published unless every test passes. The VSIX that is released is the 
 
 0.2.0 is the release to fall back on while the next phase is built ([implementation_plan_next_phase.md](implementation_plan_next_phase.md)). Four things keep that possible, and none needs doing now:
 
-- **The source.** `v0.2.0` is the merge commit `7e211cb`. The `Release tags` ruleset forbids creating, moving or deleting any `v*` tag and has no bypass, so it cannot move. Work after it reaches `main` only through pull requests, which the `main` ruleset requires; merged with `--merge`, as step 3 of [Cutting a release](#cutting-a-release) says, each one can be reverted as a whole.
+- **The source.** `v0.2.0` is the merge commit `7e211cb`. The `Release tags` ruleset blocks creating, moving or deleting any `v*` tag for everyone but the repository's admin role, so only you can move it. Work after it reaches `main` only through pull requests, which the `main` ruleset requires; merged with `--merge`, as step 3 of [Cutting a release](#cutting-a-release) says, each one can be reverted as a whole.
 - **The build.** `lineagepilot-0.2.0.vsix` and `SHA256SUMS` are on the GitHub release, with build provenance attestations. `python extension/scripts/verify_release.py v0.2.0` checks them end to end; it passed on 16 November 2026.
 - **The cache.** The server's snapshots are keyed by `SNAPSHOT_FORMAT` and the core's version, and one that does not match is ignored and deleted, so an older server never loads a newer one's cache. The core's version does not change between releases, so the format is the guard: `tests/test_snapshot_format.py` fails when the graph model changes until the format is bumped.
-- **Settings and files.** An editor ignores a setting the installed version does not declare. The plan has later releases read `.lineagepilot/lineage.yml` and still read `airflow.yml` (task 7.4), so a workspace that keeps `airflow.yml` keeps its Airflow annotations on 0.2.0. One that has moved them to `lineage.yml` loses them until it rolls forward.
+- **Settings and files.** An editor ignores a setting the installed version does not declare. 0.3.0 reads `.lineagepilot/lineage.yml` and still reads `airflow.yml` (task 7.4), so a workspace that keeps `airflow.yml` keeps its Airflow annotations on 0.2.0. One that has moved them to `lineage.yml` loses them, and its declared consumers, until it rolls forward.
 
 **One person rolls back** by installing the older version. In VS Code: the extension's gear › **Install Specific Version…** › `0.2.0`, then check that **Auto Update** is off for it in the same menu, or the newer version comes back. Or from the release, after checking it as in [Checking a release](#checking-a-release):
 
@@ -282,6 +282,179 @@ The `v0.1.1` tag and its release stay in the private archive. The first release 
 
 This was rehearsed on 13 November 2026 on a scratch copy: all 75 commits survived, no jaffle-shop path and no personal address remained, and `v0.1.1`'s tagger was mapped too (the steps above leave tags out altogether).
 
+
+### Releasing 0.3.0 from the private line, step by step
+
+Phase 7 was built in the private repository, `arrufus/lineagepilot-private`, and the Entry phase in the public one. On 18 November 2026 the Entry phase was merged into the private line ([the plan](implementation_plan_next_phase.md)). So the private `main` holds both, with 0.3.0's version and CHANGELOG (pull request #16, merged as `4c97f5a`).
+
+That work reaches the public repository as one commit that carries the private tree, never its history: the private history holds the jaffle-shop files and was never rewritten. Then 0.3.0 is cut in the public repository like any release.
+
+**This was rehearsed on 18 November 2026**, without pushing, with the public `main` at `6e2ec33` and the private `main` at `4c97f5a`. Every check below printed what its comment says. The public repository's settings were read the same day:
+- the `Release tags` ruleset lets the admin role, which is you, create `v*` tags;
+- the `registries` environment admits only `v*` tags, has you as its reviewer and holds `OVSX_PAT`;
+- `LP_PUBLISH_REGISTRIES` is `true`.
+
+Allow about an hour. CI on the pull request takes about 10 minutes, and the release run about 11 before it waits for your approval. The Marketplace then checks the new version before listing it.
+
+**Never push from a clone of the private repository to the public one, and never add the public repository as a remote of a private clone.** Work in two fresh clones in an empty folder, as below.
+
+#### 0. Before you start
+
+```bash
+gh auth status                    # Logged in to github.com account arrufus
+git config --global user.email    # 30685928+arrufus@users.noreply.github.com
+command -v rsync uv               # a path for each
+```
+
+If the address is not the noreply one, step 1 sets it in the clone, which is enough for this release. [Before the first public release](#before-the-first-public-release-after-gate-g1), item 3, sets it for good.
+
+#### 1. Copy the private tree onto a branch of the public repository
+
+```bash
+WORK=$(mktemp -d) && cd "$WORK"
+git clone https://github.com/arrufus/lineagepilot.git public
+git clone --no-local --single-branch --branch main --depth 1 \
+  https://github.com/arrufus/lineagepilot-private.git private
+git -C private log --oneline -1       # … Merge pull request #17 from arrufus/docs/release-0.3.0-steps
+PRIVATE=$(git -C private rev-parse --short HEAD)
+cd public
+git config user.email 30685928+arrufus@users.noreply.github.com
+git switch -c release/0.3.0
+rsync -a --delete --exclude .git ../private/ ./
+```
+
+The private clone holds only its last commit, so none of its history can be copied. `rsync` copies only files:
+- `--exclude .git` leaves each clone's history where it is;
+- `--delete` removes the files the private tree no longer has.
+
+Pull request #17 added these steps after 0.3.0 was prepared (#16, `4c97f5a`). It changes only this file and the plan's link to it. If the private `main` shows a later merge, something else was merged after 0.3.0 was prepared. Before you go on, check that it belongs in 0.3.0 and that the CHANGELOG's 0.3.0 section still describes the release. `PRIVATE` holds the commit copied, for step 3.
+
+#### 2. Check the copy before committing
+
+In `public`, run each of these. Each must print what its comment says:
+
+```bash
+git add -A
+git ls-files | grep -c -i jaffle                                                 # 0
+git diff --cached --no-renames --name-only --diff-filter=D | grep -v '^corpus/'  # the three files below
+git diff --cached --name-status --diff-filter=D -- corpus                        # nothing
+diff -rq -x .git ../private . && echo identical                                  # identical
+uv run --no-project python extension/scripts/release_check.py --tag v0.3.0      # release check passed: v0.3.0 is version 0.3.0
+```
+
+The three deleted files:
+- `extension/src/views/airflowTree.ts`: the Pipelines view replaced it (task 7.6);
+- `packages/core/src/lineagepilot_core/readers/airflow/workspace.py` and `packages/lsp/src/lineagepilot_lsp/reading.py`: the public repository's own 7.1–7.3 modules, which this line's Phase 7 replaces.
+
+`git status` shows `reading.py` as renamed to `readers.py`, which replaced it. That is why the second check lists deletions without pairing them.
+
+The corpus check shows that no corpus file is lost. The first corpus's files move into `corpus/airflow/` (task 7.9), and `corpus/fresh/` moves into `corpus/airflow/fresh/`, unchanged.
+
+**If any check prints something else, stop.** Commit nothing, and delete `$WORK`. The likely cause is a change merged on the public `main` after `6e2ec33`, which the copy would undo. In `public`, `git log --oneline 6e2ec33..origin/main` lists such changes. Merge them into the private line first, then start again.
+
+#### 3. Commit, push and open the pull request
+
+```bash
+git commit -m "Release 0.3.0: Phase 7 and the Entry phase, from the private line at $PRIVATE"
+git log -1 --format='%ae %s'          # 30685928+arrufus@users.noreply.github.com Release 0.3.0: … at <a commit>
+git push -u origin HEAD
+gh pr create --base main --title "Release 0.3.0: Phase 7 and the Entry phase" \
+  --body "The private line's tree at $PRIVATE, as one commit (docs/release.md, Releasing 0.3.0 from the private line). The CHANGELOG's 0.3.0 section says what is in it."
+```
+
+If you opened a new terminal since step 1, `PRIVATE` is empty, and the message ends in "at": set it again in `public` with `PRIVATE=$(git -C ../private rev-parse --short HEAD)` before committing.
+
+The pull request changes about 209 files. The core, server, extension and secret-scan workflows start on it. No workflow file changes, so the push needs no `workflow` scope.
+
+#### 4. Merge it with CI green
+
+```bash
+gh pr checks --watch --fail-fast && gh pr merge --merge --delete-branch
+```
+
+This takes about 10 minutes. If `gh pr checks` says no checks were reported, the workflows have not registered yet: wait a few seconds and run it again. The ruleset requires only `gitleaks`, so the `&&` is what holds the other checks.
+
+If a check fails, nothing is merged:
+- **A runner problem**, such as a job never picked up or an internal server error: re-run the failed jobs with `gh run rerun <run ID> --failed`. `gh pr checks` links each run.
+- **A test that fails:** close the pull request with `gh pr close --delete-branch`. Fix the test in the private repository, through a pull request there, then start again from step 1.
+
+#### 5. Tag the merge commit and push the tag
+
+```bash
+git switch main && git pull
+git log -1 --format='%h %s'           # Merge pull request #… from arrufus/release/0.3.0
+git log -1 --format='%ae %ce'         # noreply addresses only
+git tag -a v0.3.0 -m "LineagePilot 0.3.0"
+git push origin v0.3.0
+```
+
+The tag starts the release run, `lineagepilot-release`. Only the admin role can create a `v*` tag (the `Release tags` ruleset).
+
+#### 6. Watch the run, and approve the registries
+
+```bash
+gh run watch --exit-status "$(gh run list --workflow lineagepilot-release.yml --branch v0.3.0 --limit 1 --json databaseId --jq '.[0].databaseId')"
+```
+
+If it says `failed to get run: HTTP 404: Not Found`, the run has not registered yet: wait a few seconds and run it again.
+
+After about 11 minutes, `verify`, the tests, the secret scan and `github-release` have passed, and the GitHub release exists. The run then waits at `marketplace` and `open-vsx`, and `gh run watch` waits with it. GitHub notifies you that a deployment needs your review. The run waits for you, for up to 30 days.
+
+Before you approve, read what is about to be published. From a second terminal, in `public`:
+
+```bash
+gh release view v0.3.0               # the notes are the CHANGELOG's 0.3.0 section, then the VSIX's SHA-256 and the run's link
+```
+
+Then approve it, on the run's page (`gh run view <run ID> --web`):
+1. Click **Review deployments**.
+2. Tick `registries`.
+3. Click **Approve and deploy**.
+
+`marketplace` and `open-vsx` publish the VSIX that was released, after checking its SHA-256. When both pass, `gh run watch` ends and exits 0.
+
+#### 7. Check the release
+
+```bash
+uv run --no-project python extension/scripts/verify_release.py v0.3.0
+```
+
+It prints one line per check, then **The release is complete.** It checks the release and its files, the run and every job in it, and each file's build provenance attestation ([Checking a release](#checking-a-release)).
+
+#### 8. Check that it reached users
+
+- **The Marketplace and Open VSX:** the Marketplace checks a new version before it lists it, which can take some minutes. Then each page shows 0.3.0:
+  - <https://marketplace.visualstudio.com/items?itemName=lineagepilot.lineagepilot>
+  - <https://open-vsx.org/extension/lineagepilot/lineagepilot>
+- **VS Code:** LineagePilot updates to 0.3.0 by itself, or at once with **Extensions: Check for Extension Updates**.
+- **The sample project,** as a last look, in a new window:
+  1. Run **LineagePilot: Open Sample Project**, and follow its five steps.
+  2. Check that the review lists the semantic layer (a semantic model, metrics and a saved query), the Airflow tasks under **Pipelines**, and the owners.
+
+#### 9. Record it
+
+In the private repository, through a pull request:
+- in [the plan](implementation_plan_next_phase.md), say in 7.11's row that 0.3.0 is on both registries, with the date and the release run's ID;
+- remove "0.3.0 waits for the owner" from Phase 7's status;
+- close LP-251, Phase 7's issue, with `bd close LP-251`.
+
+The record reaches the public repository with the next copy. No tag is made in the private repository.
+
+#### If something goes wrong after the tag
+
+Follow [If a release fails](#if-a-release-fails), with two differences:
+- **A fix starts in the private repository:** merge it there, then copy it as in steps 1–4.
+- **Move the tag only if the run failed before `github-release`.** That is, before a GitHub release exists. Delete the tag with `git push origin :v0.3.0 && git tag -d v0.3.0`, then tag the new merge commit as in step 5. Only you can delete it, through the admin role's bypass.
+
+Once a GitHub release exists, never move the tag: re-run a failed publish job, or release 0.3.1.
+
+#### Later releases
+
+The same steps release the private line's next version. Three things change:
+- the private commit that step 1 expects;
+- the version, in steps 2, 3, 5, 6 and 7;
+- the files step 2 expects to see deleted. They are whatever the private line removed since the last copy, whose private commit the public commit's message names. In the private repository, `git diff --name-only --diff-filter=D <that commit> main` lists them.
+
 ---
 
 ## Building a VSIX to test locally
@@ -306,3 +479,5 @@ What the VSIX holds:
 `scripts/third_party_notices.py` fails the build if a package's licence is not on its allowed list, so shipping a new licence is a deliberate decision. `scripts/check_vsix.py` fails if the VSIX carries a pip `direct_url.json`, which records the build machine's paths.
 
 CI audits the npm dependencies in two steps. `npm audit --omit=dev --audit-level=high` covers what ships. `scripts/npm_audit_gate.py` covers the rest of the tree: it fails on a high advisory in the tools that build and publish the VSIX (vsce, ovsx, esbuild), and on a critical one in the test tools. Moderate and low advisories are listed in the log, not gated.
+
+An advisory over its gate that has no fix can be accepted in the script's `ACCEPTED`, with why and until when. An accepted advisory is still listed, marked `acc`. It fails again after its date, or if it reaches what ships or turns up in another package. One is accepted now, until 1 February 2027: GHSA-fc5q-39xc-vjpf, a ReDoS in picomatch (every version to 4.0.7, none patched), which vsce and ovsx reach through tinyglobby. It needs a glob pattern the attacker chooses, and the release tools only use the patterns in this repository's `.vscodeignore` and `package.json`. When a patched picomatch is published, update the lockfile and remove the entry.

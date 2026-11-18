@@ -17,9 +17,11 @@ from hypothesis import strategies as st
 from markdown_it import MarkdownIt
 
 # _flatten is how the review folds a name onto one line; the hostile-name tests check it
+# _cut is the last resort, which only thousands of parts reach; it is tested on its own here
 from lineagepilot_core.export.review_markdown import (
     MAX_CHARS,
     NAME_LIMIT,
+    _cut,
     _flatten,
     render_markdown,
 )
@@ -64,7 +66,7 @@ def base() -> dict[str, Any]:
         "summary": {
             "changedNodes": 1,
             "changedColumns": 1,
-            "impacted": {"model": 1, "airflow_task": 1},
+            "impacted": {"model": 1, "task": 1},
             "unknowns": 1,
         },
         "changedNodes": [
@@ -111,7 +113,9 @@ def base() -> dict[str, Any]:
             },
             {
                 "id": "airflow:d.t",
-                "kind": "airflow_task",
+                "kind": "task",
+                "tool": "airflow",
+                "subkind": "task",
                 "name": "t",
                 "owner": None,
                 "file": "dags/d.py",
@@ -123,8 +127,9 @@ def base() -> dict[str, Any]:
                 "reason": None,
                 "via": [],
                 "viaMore": 0,
-                "airflow": {
-                    "dag": "d",
+                "pipeline": {
+                    "tool": "airflow",
+                    "pipeline": "d",
                     "operator": "BashOperator",
                     "how": ["dbt run"],
                     "runs": ["a"],
@@ -137,7 +142,23 @@ def base() -> dict[str, Any]:
             },
         ],
         "owners": [{"owner": "o", "nodes": ["model.s.b"]}],
-        "airflow": {"analysed": True, "reason": None, "dagFiles": 1, "opaqueTasks": 0},
+        "pipelines": [
+            {
+                "tool": "airflow",
+                "analysed": True,
+                "reason": None,
+                "paths": ["dags"],
+                "files": 1,
+                "pipelines": 1,
+                "tasks": 1,
+                "consumers": 0,
+                "links": 1,
+                "unknowns": 0,
+                "opaqueTasks": 0,
+                "problems": [],
+            }
+        ],
+        "consumers": [],
         "unknowns": [{"subject": "model.s.b", "reference": "r", "reason": "why"}],
         "otherFiles": [{"path": "README.md", "status": "modified"}],
         "outsideProject": 0,
@@ -251,8 +272,8 @@ def reviews(draw) -> tuple[dict[str, Any], list[str]]:
     task.update(name=name(), owner=maybe(), file=maybe())
     dag = draw(st.none() | NAMES)
     must_show.append(dag or "")
-    task["airflow"].update(
-        dag=dag,
+    task["pipeline"].update(
+        pipeline=dag,
         how=[text() for _ in range(draw(st.integers(0, 2)))],
         runs=names(),
         tasks=names(),
@@ -260,6 +281,22 @@ def reviews(draw) -> tuple[dict[str, Any], list[str]]:
         notes=[text()],
     )
 
+    # A saved query's exports name tables from the manifest (task 7.8)
+    review["impacted"].append(
+        {
+            **model,
+            "id": "saved_query.s.q",
+            "kind": "consumer",
+            "tool": "dbt_semantic",
+            "subkind": "saved_query",
+            "name": name(),
+            "owner": maybe(),
+            "columns": [],
+            "reach": "model",
+            "via": [],
+            "exports": names(3),
+        }
+    )
     review["owners"] = [{"owner": maybe(), "nodes": [f"model.s.{text()}"]}]
     review["unknowns"] = [{"subject": name(), "reference": name(), "reason": text()}]
     review["otherFiles"] = [
@@ -287,7 +324,7 @@ def test_a_name_that_folds_to_nothing_is_a_code_span_of_its_own(empty):
     review = base()
     removed = [empty, "a`b", "<img src=x>", "@user", "![i](http://x.example/i.png)"]
     review["changedNodes"][0]["columns"]["removed"] = removed
-    review["impacted"][1]["airflow"]["dag"] = empty or None
+    review["impacted"][1]["pipeline"]["pipeline"] = empty or None
     markdown = render_markdown(review)
     codes, problems = parse(markdown)
     assert not problems
@@ -326,7 +363,7 @@ def over_the_limit(padding: int) -> tuple[dict[str, Any], list[str]]:
 
 
 @pytest.mark.parametrize("padding", range(0, 121, 15))
-def test_a_review_over_the_limit_is_cut_between_lines_with_every_span_closed(padding):
+def test_a_review_over_the_limit_is_cut_part_by_part_with_every_span_closed(padding):
     review, names = over_the_limit(padding)
     markdown = render_markdown(review)
     codes, problems = parse(markdown)
@@ -338,19 +375,26 @@ def test_a_review_over_the_limit_is_cut_between_lines_with_every_span_closed(pad
         if child.type == "text"
     ]
     assert not [t for t in texts if "`" in t], "a backtick outside a code span"
-    # Every span is a whole name: none was cut, and none swallowed what followed it
-    assert set(codes) <= {shown(n) for n in names} | {"HEAD", "main", "abc", "catalog.json", "o"}
+    # Every span is a whole name: none was cut, and none swallowed what followed it. The rest of
+    # the review is base()'s, whole
+    plain, _ = parse(render_markdown(base()))
+    assert set(codes) <= {shown(n) for n in names} | set(plain)
     assert len(markdown) <= MAX_CHARS
-    assert markdown.endswith(CUT_NOTE)
+    # The changed nodes are cut, with a count, and the sections after them are all there
+    assert re.search(r"\n\.\.\.and \d+ more changed nodes\.\n", markdown)
+    assert "### Pipelines" in markdown and "### Unknowns (1)" in markdown
+    assert not markdown.endswith(CUT_NOTE)
 
 
 def test_the_other_files_are_closed_when_the_cut_falls_among_them():
     review = base()
     review["otherFiles"] = [{"path": f"{i}/" + "f" * 110, "status": "modified"} for i in range(10)]
-    fits = render_markdown(review)
-    note = "n" * 500  # each note is "> note" and a blank line: 504 characters
-    review["notes"] = [note] * ((MAX_CHARS - len(fits)) // 504 + 1)
-    markdown = render_markdown(review)
+    whole = render_markdown(review)
+    details = whole.index("\n<details>")
+    # Lines before the review, so that the limit falls halfway through the other files
+    filler = MAX_CHARS - (details + (len(whole) - details) // 2)
+    text = ("x" * 99 + "\n") * (filler // 100) + whole
+    markdown = _cut(text)
     assert len(markdown) <= MAX_CHARS
     assert "\n<details><summary>" in markdown
     assert markdown.endswith("\n\n</details>\n\n" + CUT_NOTE)
@@ -370,7 +414,7 @@ def test_a_nodes_column_and_file_lists_are_cut_like_the_rows():
         added=many,
         typeChanged=[{"name": c, "before": "int", "after": "text"} for c in many],
     )
-    review["impacted"][1]["airflow"]["how"] = [f"how {i}" for i in range(8)]
+    review["impacted"][1]["pipeline"]["how"] = [f"how {i}" for i in range(8)]
     markdown = render_markdown(review)
     assert "`f99.sql` and 50 more" in markdown and "`f100.sql`" not in markdown
     assert "Removed: `c0`" in markdown and "`c99` and 50 more" in markdown

@@ -2,7 +2,8 @@
 // Validates everything the language server sends to the extension (design section 9).
 import * as z from 'zod';
 
-export const PROTOCOL_VERSION = 1;
+export const PROTOCOL_VERSION = 2;
+export const PROTOCOL_VERSIONS = [1, 2] as const;
 
 export const ErrorCode = {
   NotReady: -32001,
@@ -25,10 +26,12 @@ export type Uri = z.infer<typeof Uri>;
 export const Count = z.int().min(0);
 export type Count = z.infer<typeof Count>;
 
-export const NodeKind = z.enum(["model", "seed", "snapshot", "source", "exposure", "relation", "airflow_dag", "airflow_task", "column"]);
+/** pipeline, task and consumer are protocol 2, with a tool. In protocol 1 an Airflow DAG and task are airflow_dag and airflow_task, and no other pipeline, task or consumer is sent. */
+export const NodeKind = z.enum(["model", "seed", "snapshot", "source", "exposure", "relation", "airflow_dag", "airflow_task", "pipeline", "task", "consumer", "column"]);
 export type NodeKind = z.infer<typeof NodeKind>;
 
-export const EdgeKind = z.enum(["depends_on", "derives", "materialises", "orchestrates", "task_depends_on"]);
+/** loads, consumes and part_of are protocol 2: an edge of those kinds is never sent in protocol 1. */
+export const EdgeKind = z.enum(["depends_on", "derives", "materialises", "orchestrates", "task_depends_on", "loads", "consumes", "part_of"]);
 export type EdgeKind = z.infer<typeof EdgeKind>;
 
 export const Confidence = z.enum(["declared", "inferred", "heuristic"]);
@@ -60,6 +63,9 @@ export type ExportFormat = z.infer<typeof ExportFormat>;
 
 export const AirflowStage = z.enum(["pending", "scanning", "done", "failed"]);
 export type AirflowStage = z.infer<typeof AirflowStage>;
+
+export const ReaderStage = z.enum(["pending", "scanning", "done", "failed"]);
+export type ReaderStage = z.infer<typeof ReaderStage>;
 
 export const Position = z.strictObject({
   line: Count,
@@ -115,6 +121,8 @@ export const GraphNode = z.strictObject({
   columnLineage: LineageState.nullable(),
   columnLineageReason: Text.nullable(),
   pii: z.boolean(),
+  tool: Name.nullable().optional(),
+  subkind: Name.nullable().optional(),
 });
 export type GraphNode = z.infer<typeof GraphNode>;
 
@@ -157,6 +165,8 @@ export const ImpactedNode = z.strictObject({
   reason: Text.nullable(),
   location: Location.nullable(),
   owner: Name.nullable(),
+  tool: Name.nullable().optional(),
+  subkind: Name.nullable().optional(),
 });
 export type ImpactedNode = z.infer<typeof ImpactedNode>;
 
@@ -313,6 +323,21 @@ export const ImpactAirflow = z.strictObject({
 });
 export type ImpactAirflow = z.infer<typeof ImpactAirflow>;
 
+/** Protocol 2. How a pipeline or task relates to a change, for any tool: what it runs, how, the tasks derived for it, and the tasks it follows. */
+export const ImpactPipeline = z.strictObject({
+  tool: Name,
+  pipeline: Name.nullable(),
+  operator: Name.nullable(),
+  how: z.array(Name),
+  runs: z.array(Name),
+  runsMore: Count,
+  tasks: z.array(Name),
+  tasksMore: Count,
+  after: z.array(Name),
+  notes: z.array(Text),
+});
+export type ImpactPipeline = z.infer<typeof ImpactPipeline>;
+
 export const ReviewImpacted = z.strictObject({
   id: Id,
   kind: NodeKind,
@@ -328,6 +353,10 @@ export const ReviewImpacted = z.strictObject({
   via: z.array(ImpactEvidence).max(5),
   viaMore: Count,
   airflow: ImpactAirflow.nullable(),
+  tool: Name.nullable().optional(),
+  subkind: Name.nullable().optional(),
+  pipeline: ImpactPipeline.nullable().optional(),
+  exports: z.array(Name).max(20).optional(),
 });
 export type ReviewImpacted = z.infer<typeof ReviewImpacted>;
 
@@ -337,6 +366,112 @@ export const OwnerGroup = z.strictObject({
   nodes: z.array(Id),
 });
 export type OwnerGroup = z.infer<typeof OwnerGroup>;
+
+/** Protocol 2. What one reader looked at and found. analysed is false when nothing was read, and reason says why, so nobody reads that as nothing being affected. */
+export const ReaderSummary = z.strictObject({
+  tool: Name,
+  analysed: z.boolean(),
+  reason: Text.nullable(),
+  paths: z.array(Text),
+  files: Count,
+  pipelines: Count,
+  tasks: Count,
+  consumers: Count,
+  links: Count,
+  unknowns: Count,
+  opaqueTasks: Count,
+  problems: z.array(Text),
+});
+export type ReaderSummary = z.infer<typeof ReaderSummary>;
+
+/** Protocol 2. One reader: whether it is reading now, and what its last read found. */
+export const ReaderStatus = z.strictObject({
+  tool: Name,
+  stage: ReaderStage,
+  generation: Count,
+  message: Text.nullable(),
+  summary: ReaderSummary,
+});
+export type ReaderStatus = z.infer<typeof ReaderStatus>;
+
+/** Protocol 2. */
+export const PipelinesParams = z.strictObject({
+  nodes: z.array(Id).max(200).nullable(),
+  tools: z.array(Name).max(50).nullable().optional(),
+});
+export type PipelinesParams = z.infer<typeof PipelinesParams>;
+
+/** Protocol 2. A task, or a pipeline that is one link as a whole (a Cosmos DbtDag). */
+export const PipelineTask = z.strictObject({
+  id: Id,
+  kind: NodeKind,
+  tool: Name,
+  subkind: Name.nullable(),
+  name: Name,
+  operator: Name.nullable(),
+  owner: Name.nullable(),
+  how: z.array(Name),
+  nodes: z.array(Id),
+  derivedTasks: z.array(Name),
+  confidence: Confidence.nullable(),
+  origins: z.array(Origin).max(5),
+  notes: z.array(Text),
+  location: Location.nullable(),
+});
+export type PipelineTask = z.infer<typeof PipelineTask>;
+
+/** Protocol 2. */
+export const Pipeline = z.strictObject({
+  id: Id,
+  tool: Name,
+  subkind: Name.nullable(),
+  name: Name,
+  owner: Name.nullable(),
+  location: Location.nullable(),
+  tasks: z.array(PipelineTask),
+});
+export type Pipeline = z.infer<typeof Pipeline>;
+
+/** Protocol 2. The pipelines and tasks touching some nodes, or all of them, for each reader that reads pipelines (the Pipelines view). */
+export const PipelinesResult = z.strictObject({
+  readers: z.array(ReaderStatus),
+  pipelines: z.array(Pipeline),
+  unknowns: z.array(Unknown),
+});
+export type PipelinesResult = z.infer<typeof PipelinesResult>;
+
+/** Protocol 2. */
+export const ConsumersParams = z.strictObject({
+  nodes: z.array(Id).min(1).max(200),
+});
+export type ConsumersParams = z.infer<typeof ConsumersParams>;
+
+/** Protocol 2. How a consumer reads one node: the whole node, or the columns listed. */
+export const ConsumerRead = z.strictObject({
+  node: Id,
+  columns: z.array(Name),
+  confidence: Confidence,
+  origins: z.array(Origin).max(5),
+});
+export type ConsumerRead = z.infer<typeof ConsumerRead>;
+
+/** Protocol 2. Something that reads dbt's models from outside dbt: a metric, a dashboard, a report. */
+export const Consumer = z.strictObject({
+  id: Id,
+  tool: Name,
+  subkind: Name.nullable(),
+  name: Name,
+  owner: Name.nullable(),
+  location: Location.nullable(),
+  reads: z.array(ConsumerRead),
+});
+export type Consumer = z.infer<typeof Consumer>;
+
+/** Protocol 2. What reads some nodes, directly, and how (the Consumers view). */
+export const ConsumersResult = z.strictObject({
+  consumers: z.array(Consumer),
+});
+export type ConsumersResult = z.infer<typeof ConsumersResult>;
 
 /** What a scan of the DAG files looked at and found. analysed is false when none was read: the review then says that, rather than that no task is impacted. */
 export const AirflowSummary = z.strictObject({
@@ -450,6 +585,8 @@ export const ReviewResult = z.strictObject({
   impacted: z.array(ReviewImpacted),
   owners: z.array(OwnerGroup),
   airflow: AirflowSummary,
+  pipelines: z.array(ReaderSummary).optional(),
+  consumers: z.array(ReaderSummary).optional(),
   unknowns: z.array(Unknown),
   otherFiles: z.array(OtherFile),
   outsideProject: Count,
@@ -561,19 +698,22 @@ export const Status = z.strictObject({
   indexedAt: Name.nullable(),
   rules: RulesStatus,
   airflow: AirflowStatus,
+  readers: z.array(ReaderStatus).optional(),
 });
 export type Status = z.infer<typeof Status>;
 
 export const requests = {
-  'lineage/status': { params: EmptyParams, result: Status },
-  'lineage/refresh': { params: EmptyParams, result: Status },
-  'lineage/graph': { params: GraphParams, result: GraphResult },
-  'lineage/impact': { params: ImpactParams, result: ImpactResult },
-  'lineage/export': { params: ExportParams, result: ExportResult },
-  'lineage/nodesForFile': { params: NodesForFileParams, result: NodesForFileResult },
-  'lineage/node': { params: NodeParams, result: NodeResult },
-  'lineage/reviewChanges': { params: ReviewParams, result: ReviewResult },
-  'lineage/airflow': { params: AirflowParams, result: AirflowResult },
+  'lineage/status': { params: EmptyParams, result: Status, since: 1, until: 2 },
+  'lineage/refresh': { params: EmptyParams, result: Status, since: 1, until: 2 },
+  'lineage/graph': { params: GraphParams, result: GraphResult, since: 1, until: 2 },
+  'lineage/impact': { params: ImpactParams, result: ImpactResult, since: 1, until: 2 },
+  'lineage/export': { params: ExportParams, result: ExportResult, since: 1, until: 2 },
+  'lineage/nodesForFile': { params: NodesForFileParams, result: NodesForFileResult, since: 1, until: 2 },
+  'lineage/node': { params: NodeParams, result: NodeResult, since: 1, until: 2 },
+  'lineage/reviewChanges': { params: ReviewParams, result: ReviewResult, since: 1, until: 2 },
+  'lineage/airflow': { params: AirflowParams, result: AirflowResult, since: 1, until: 2 },
+  'lineage/pipelines': { params: PipelinesParams, result: PipelinesResult, since: 2, until: 2 },
+  'lineage/consumers': { params: ConsumersParams, result: ConsumersResult, since: 2, until: 2 },
 } as const;
 export type RequestMethod = keyof typeof requests;
 

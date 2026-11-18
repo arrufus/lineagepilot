@@ -13,6 +13,7 @@ import os
 import sys
 import time
 import zipfile
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -228,6 +229,54 @@ def test_the_known_advisories_pass_and_are_all_listed():
 def test_new_advisories_at_their_gate_fail(vulns, culprit):
     failures, _ = npm_audit_gate.evaluate(report(*vulns), PACKAGE)
     assert len(failures) == 1 and culprit in failures[0]
+
+
+# An advisory accepted until a date, in the tools only (ACCEPTED)
+
+PICOMATCH = "GHSA-fc5q-39xc-vjpf"
+BEFORE, AFTER = date(2026, 11, 17), date(2027, 2, 2)
+
+
+def picomatch(*effects, ghsa=PICOMATCH, name="picomatch"):
+    """picomatch's advisory, under tinyglobby, under the given direct dependencies."""
+    return report(
+        vuln(name, False, ["tinyglobby"], (ghsa, "high")),
+        vuln("tinyglobby", False, list(effects)),
+        *(vuln(direct, True, []) for direct in effects),
+    )
+
+
+def test_an_accepted_advisory_in_the_release_tools_passes_and_is_still_listed():
+    failures, lines = npm_audit_gate.evaluate(picomatch("@vscode/vsce", "ovsx"), PACKAGE, BEFORE)
+    assert failures == []
+    (line,) = lines
+    assert line.startswith(f"acc  high     {PICOMATCH} in picomatch, reaches @vscode/vsce, ovsx")
+    assert "accepted until 2027-02-01" in line
+
+
+@pytest.mark.parametrize("case, today", [
+    ("after its date", AFTER),
+    ("in what ships", BEFORE),
+    ("another advisory", BEFORE),
+    ("another package", BEFORE),
+])
+def test_an_accepted_advisory_fails_again_outside_what_was_accepted(case, today):
+    tools = ("@vscode/vsce", "ovsx")
+    found = {
+        "after its date": picomatch(*tools),
+        "in what ships": picomatch("@vscode/vsce", "vscode-languageclient"),
+        "another advisory": picomatch(*tools, ghsa="GHSA-new5"),
+        "another package": picomatch(*tools, name="micromatch"),
+    }[case]
+    failures, _ = npm_audit_gate.evaluate(found, PACKAGE, today)
+    assert len(failures) == 1 and failures[0].startswith("FAIL"), case
+
+
+def test_every_accepted_advisory_says_why_and_ends():
+    for ident, accepted in npm_audit_gate.ACCEPTED.items():
+        assert ident.startswith("GHSA-") and accepted.packages and accepted.why
+        # Accepted for a few months at a time, so that it is looked at again
+        assert accepted.until <= date(2027, 6, 1), ident
 
 
 def test_an_error_instead_of_a_report_fails(tmp_path, monkeypatch):

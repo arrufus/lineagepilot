@@ -23,7 +23,7 @@ Proposed order, after Gate G1 and after the Airflow scanner's known gaps are clo
 
 Two rules shape the order:
 
-- **Declarative first.** A tool whose definitions are YAML, LookML or TMDL files in the repository can be read exactly. A tool defined in Python can only be read as far as the AST allows. The held-out corpus showed how far that goes for Airflow: 17 of 106 links ([corpus/README.md](../corpus/README.md)).
+- **Declarative first.** A tool whose definitions are YAML, LookML or TMDL files in the repository can be read exactly. A tool defined in Python can only be read as far as the AST allows. The held-out corpus showed how far that goes for Airflow: 17 of 106 links ([corpus/airflow/README.md](../corpus/airflow/README.md)).
 - **No connections.** A tool that lives only in a SaaS service (Fivetran, Tableau Cloud, dbt Cloud jobs, warehouse query history) is read from an export file that the user makes with their own tools. LineagePilot never connects to it. Whether to ever add live connectors stays an open decision (D-12).
 
 Not proposed: a second transformation framework (SQLMesh, Dataform), data-quality tools, Prefect, Tableau and Metabase. Section 6.9 says why, and what evidence would change that.
@@ -540,7 +540,7 @@ The design's budgets must hold with every reader turned on:
 - impact within 300 ms;
 - the server within 500 MB.
 
-A review of 100 changed models, with every reader on, must also stay within the 300 ms set for impact. Each reader's own scan budget is set in the first week of its phase, from measurement on a heavy fixture, with the DAG scan as the reference (5.1–6.6 s cold, design §11). `server_budgets.py` grows a section for each reader, as it did for Phase 5.
+A review of 100 changed models, with every reader on, must also stay within the 300 ms set for impact. Each reader's own scan budget is set in the first week of its phase, from measurement on a heavy fixture, with the DAG scan as the reference (5.1–6.6 s cold, design §11). `server_budgets.py` grows a section for each reader, as it did for Phase 5. Task 7.10 measured them with Airflow and the semantic layer on, at 5,000 models: every budget holds, and a review of 100 changed models takes 250–258 ms (design §11).
 
 ---
 

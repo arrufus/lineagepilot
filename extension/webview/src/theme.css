@@ -11,7 +11,9 @@
   --lp-seed: var(--vscode-charts-purple);
   --lp-snapshot: var(--vscode-charts-orange);
   --lp-exposure: var(--vscode-charts-yellow);
-  --lp-airflow: var(--vscode-charts-red);
+  /* What runs dbt, of any tool, and what reads it from outside: exposures are dbt's consumers */
+  --lp-pipeline: var(--vscode-charts-red);
+  --lp-consumer: var(--vscode-charts-yellow);
   --lp-edge: var(--vscode-editorLineNumber-foreground, var(--lp-muted));
 }
 

@@ -7,8 +7,10 @@ plain dict in the shape the schema gives its result. Errors use the protocol's c
 
 from __future__ import annotations
 
+import functools
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import Any, TypeVar
 
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.impact import weakest
@@ -22,8 +24,9 @@ from lineagepilot_core.export import (
     pii_inventory_markdown,
     safe_filename,
 )
-from lineagepilot_core.graph.model import NodeKind, public_kind
+from lineagepilot_core.graph.model import NodeKind
 from lineagepilot_core.readers.airflow.view import airflow_view
+from lineagepilot_core.readers.views import consumers_view, pipelines_view
 from pygls.exceptions import JsonRpcServerError
 from pygls.uris import to_fs_path
 
@@ -32,6 +35,19 @@ from lineagepilot_lsp.context import GraphContext, clip
 from lineagepilot_lsp.project import DbtProject, relative_to
 
 DEFAULT_MAX_NODES = 2000
+
+_Handler = TypeVar("_Handler", bound=Callable[..., dict[str, Any]])
+
+
+def _batched(handler: _Handler) -> _Handler:
+    """A request that places many nodes: its locations are found in one batch (task 7.10)."""
+
+    @functools.wraps(handler)
+    def placed(ctx: GraphContext, *args: Any, **kwargs: Any) -> dict[str, Any]:
+        with ctx.batch():
+            return handler(ctx, *args, **kwargs)
+
+    return placed  # type: ignore[return-value]
 
 
 def unknown_node(ref: str) -> JsonRpcServerError:
@@ -69,6 +85,7 @@ def _edge_json(ctx: GraphContext, origin: str, step: Step, direction: Direction)
     }
 
 
+@_batched
 def graph(ctx: GraphContext, params: protocol.GraphParams) -> dict[str, Any]:
     granularity = Granularity(params.granularity)
     known = ctx.graph.columns if granularity is Granularity.COLUMN else ctx.graph.nodes
@@ -104,6 +121,7 @@ def graph(ctx: GraphContext, params: protocol.GraphParams) -> dict[str, Any]:
     }
 
 
+@_batched
 def impact(ctx: GraphContext, params: protocol.ImpactParams, column_stage: str) -> dict[str, Any]:
     for ref in params.targets:
         if ref not in ctx.graph.nodes and ref not in ctx.graph.columns:
@@ -115,7 +133,7 @@ def impact(ctx: GraphContext, params: protocol.ImpactParams, column_stage: str) 
         nodes.append(
             {
                 "id": hit.id,
-                "kind": public_kind(hit.kind, hit.tool),
+                "kind": hit.kind_name,
                 "name": clip(node.name),
                 "depth": hit.depth,
                 "granularity": hit.granularity.value,
@@ -124,6 +142,8 @@ def impact(ctx: GraphContext, params: protocol.ImpactParams, column_stage: str) 
                 "reason": clip(hit.reason),
                 "location": ctx.location(hit.id),
                 "owner": clip(node.owner),
+                "tool": node.tool,
+                "subkind": node.subkind,
             }
         )
     return {
@@ -214,6 +234,7 @@ def node(ctx: GraphContext, params: protocol.NodeParams) -> dict[str, Any]:
     }
 
 
+@_batched
 def airflow(ctx: GraphContext, params: protocol.AirflowParams, stage: str) -> dict[str, Any]:
     """The DAGs and tasks touching some nodes, or all of them, and where to open each."""
     view = airflow_view(ctx.graph, params.nodes)
@@ -222,6 +243,33 @@ def airflow(ctx: GraphContext, params: protocol.AirflowParams, stage: str) -> di
         for task in dag["tasks"]:
             task["location"] = ctx.location(task["id"])
     return {"stage": stage, **view}
+
+
+@_batched
+def pipelines(
+    ctx: GraphContext, params: protocol.PipelinesParams, readers: list[dict[str, Any]]
+) -> dict[str, Any]:
+    """The pipelines and tasks touching some nodes, or all of them, of every reader or the tools
+    asked for, and where to open each (protocol 2)."""
+    view = pipelines_view(ctx.graph, params.nodes, params.tools)
+    for pipeline in view["pipelines"]:
+        pipeline["location"] = ctx.location(pipeline["id"])
+        for task in pipeline["tasks"]:
+            task["location"] = ctx.location(task["id"])
+    tools = None if params.tools is None else set(params.tools)
+    return {"readers": [r for r in readers if tools is None or r["tool"] in tools], **view}
+
+
+@_batched
+def consumers(ctx: GraphContext, params: protocol.ConsumersParams) -> dict[str, Any]:
+    """What reads some nodes directly, how, and where to open it (protocol 2)."""
+    for ref in params.nodes:
+        if ref not in ctx.graph.nodes:
+            raise unknown_node(ref)
+    view = consumers_view(ctx.graph, params.nodes)
+    for consumer in view["consumers"]:
+        consumer["location"] = ctx.location(consumer["id"])
+    return view
 
 
 def changed_files(
@@ -245,6 +293,7 @@ def _relative(project: DbtProject, uri: str) -> str | None:
     return relative_to(Path(path), project.root) if path else None
 
 
+@_batched
 def review(
     ctx: GraphContext,
     params: protocol.ReviewParams,

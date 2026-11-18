@@ -1,9 +1,10 @@
 """CodeLens, hover and diagnostics (task 2.2, design section 7).
 
-- **CodeLens** on a model's SQL file, and on each entry in a YAML properties file:
-  ``↓ 14 models · 3 Airflow tasks · 1 exposure · PII``, counted at model level over
-  everything downstream. Clicking it runs ``lineagePilot.showImpact`` with the node ID
-  and the project root.
+- **CodeLens** on a model's SQL file, and on each entry in a YAML properties file, the semantic
+  layer's among them:
+  ``↓ 14 models · 1 exposure · 3 tasks (Airflow 2, Dagster 1) · PII``, counted at model level
+  over everything downstream. With one tool, ``3 Airflow tasks``. Clicking it runs
+  ``lineagePilot.showImpact`` with the node ID and the project root.
 - **Hover** on ``ref()`` and ``source()`` calls, and on the current model's columns: the
   direct upstream and downstream, each edge with its evidence (confidence and origin).
 - **Diagnostics** from the rules (design section 5.3): failures with the rule's
@@ -19,14 +20,16 @@ from __future__ import annotations
 
 import re
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from pathlib import Path
 from typing import Any
 
 from lineagepilot_core.analysis.impact import weakest
 from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, steps
 from lineagepilot_core.graph.ids import split_column_id
-from lineagepilot_core.graph.model import Edge, LineageState, Node, NodeKind, public_kind
+from lineagepilot_core.graph.model import Edge, LineageState, Node, NodeKind
+from lineagepilot_core.parsers.dbt_semantic import SEMANTIC_TOOL
+from lineagepilot_core.readers.tools import counted
 from lineagepilot_core.rules import Category, Evaluation, Result, RulePack, Severity
 
 from lineagepilot_lsp.context import GraphContext
@@ -41,17 +44,6 @@ LENS_KINDS = frozenset(
 )
 HOVER_LIST_LIMIT = 10
 DESCRIPTION_LIMIT = 300
-
-# Downstream kinds in CodeLens order: (kind, one, many)
-_LENS_WORDS = (
-    ("model", "model", "models"),
-    ("snapshot", "snapshot", "snapshots"),
-    ("seed", "seed", "seeds"),
-    ("source", "source", "sources"),
-    ("exposure", "exposure", "exposures"),
-    ("airflow_task", "Airflow task", "Airflow tasks"),
-    ("airflow_dag", "Airflow DAG", "Airflow DAGs"),
-)
 
 # LSP DiagnosticSeverity
 ERROR, WARNING, INFORMATION, HINT = 1, 2, 3, 4
@@ -86,18 +78,16 @@ def _range(span: Span | None, line: int = 0) -> dict[str, Any]:
 # CodeLens
 
 
-def lens_title(counts: dict[str, int], pii: bool) -> str:
-    parts = [
-        f"{n} {one if n == 1 else many}"
-        for kind, one, many in _LENS_WORDS
-        if (n := counts.get(kind))
-    ]
+def lens_title(counts: Mapping[tuple[str, str | None], int], pii: bool) -> str:
+    """``counts`` by kind and tool, as ``Impact.counts_by_tool`` gives them."""
+    parts = counted(counts)
     title = "↓ " + " · ".join(parts) if parts else "↓ nothing downstream"
     return f"{title} · PII" if pii else title
 
 
 def code_lenses(ctx: GraphContext, path: Path, text: str) -> list[dict[str, Any]]:
-    nodes = [n for n in ctx.nodes_for_file(path) if n.kind in LENS_KINDS]
+    # dbt's nodes, and the semantic layer's in its YAML (task 7.8)
+    nodes = [n for n in ctx.nodes_for_file(path) if n.kind in LENS_KINDS or n.tool == SEMANTIC_TOOL]
     if not nodes:
         return []
     entries = yaml_entries(text) if path.suffix in YAML_SUFFIXES else None
@@ -240,11 +230,18 @@ def _step_line(ctx: GraphContext, step: Step, label: str) -> str:
 
 def _node_label(ctx: GraphContext, node_id: str) -> str:
     node = ctx.graph.nodes[node_id]
-    return f"**{md(node.name)}** ({public_kind(node.kind, node.tool)})"
+    return f"**{md(node.name)}** ({_kind_words(node)})"
+
+
+def _kind_words(node: Node) -> str:
+    """``model``; for the semantic layer what the node is, ``metric``, not ``consumer``."""
+    if node.tool == SEMANTIC_TOOL and node.subkind:
+        return node.subkind.replace("_", " ")
+    return node.kind_name
 
 
 def node_markdown(ctx: GraphContext, node: Node, here: list[Node]) -> str:
-    lines = [f"### {md(node.name)}", f"{public_kind(node.kind, node.tool)} · {md(node.id)}"]
+    lines = [f"### {md(node.name)}", f"{node.kind_name} · {md(node.id)}"]
     if node.description:
         lines += ["", md(node.description[:DESCRIPTION_LIMIT])]
     upstream = sorted(
@@ -289,7 +286,10 @@ def column_markdown(ctx: GraphContext, column_id: str) -> str:
         lines += ["", f"**{title}** ({len(found)})"]
         for step in found[:HOVER_LIST_LIMIT]:
             other, name = split_column_id(step.ref)
-            label = f"**{md(ctx.graph.nodes[other].name)}.{md(name)}**"
+            owner = ctx.graph.nodes[other]
+            label = f"**{md(owner.name)}.{md(name)}**"
+            if owner.tool == SEMANTIC_TOOL:  # a semantic model's field, not the model's column
+                label += f" ({_kind_words(owner)})"
             lines.append(_step_line(ctx, step, label))
         if len(found) > HOVER_LIST_LIMIT:
             lines.append(f"- and {len(found) - HOVER_LIST_LIMIT} more")

@@ -20,7 +20,7 @@ from pathlib import Path
 import pytest
 
 from lineagepilot_core.readers.airflow.dag_static import discover_dag_files, glob_match, scan_dags
-from lineagepilot_core.readers.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.airflow.scan import scan_airflow
 from lineagepilot_core.readers.common.safe_io import (
     is_remote,
     read_capped,

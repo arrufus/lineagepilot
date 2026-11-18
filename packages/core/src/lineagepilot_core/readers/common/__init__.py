@@ -1,1 +1,1 @@
-"""Reading code every reader shares. Workspace input is untrusted, read as text and syntax only."""
+"""What every reader shares (task 7.2). Nothing here imports a reader."""

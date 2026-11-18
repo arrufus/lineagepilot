@@ -2,7 +2,7 @@
 import { strict as assert } from 'assert';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 
-import type { GraphNode, Location, NodeKind } from '../../src/protocol';
+import type { GraphNode, Location } from '../../src/protocol';
 import { DEFAULT_SETTINGS, type ViewSettings } from '../../src/webviewMessages';
 import DetailPanel from '../src/components/DetailPanel';
 import ImpactPanel from '../src/components/ImpactPanel';
@@ -20,8 +20,9 @@ function recorder<T extends string>(...names: T[]): { calls: [T, ...unknown[]][]
 suite('toolbar', () => {
   function toolbar(props: Partial<ToolbarProps> = {}) {
     const { calls, handlers } = recorder('onMode', 'onDepth', 'onDirection', 'onLayout', 'onToggleKind', 'onSearch', 'onRefresh', 'onRecentre', 'onSettings');
-    render(<Toolbar mode="model" canUseColumns depth={2} direction="both" layout="LR" kinds={['model', 'source']}
-      hiddenKinds={new Set<NodeKind>(['source'])} search="" {...handlers} {...props} />);
+    const kinds = [{ key: 'model', label: 'model' }, { key: 'source', label: 'source' }, { key: 'task:airflow', label: 'Airflow task' }];
+    render(<Toolbar mode="model" canUseColumns depth={2} direction="both" layout="LR" kinds={kinds}
+      hiddenKinds={new Set(['source'])} search="" {...handlers} {...props} />);
     return calls;
   }
 
@@ -54,15 +55,19 @@ suite('toolbar', () => {
     assert.equal((kinds.getByRole('checkbox', { name: 'model' }) as HTMLInputElement).checked, true);
     assert.equal((kinds.getByRole('checkbox', { name: 'source' }) as HTMLInputElement).checked, false);
     fireEvent.click(kinds.getByRole('checkbox', { name: 'source' }));
+    // A tool's kind is a filter of its own, named in plain text (task 7.6)
+    fireEvent.click(kinds.getByRole('checkbox', { name: 'Airflow task' }));
     fireEvent.change(screen.getByRole('searchbox', { name: 'Highlight nodes' }), { target: { value: 'orders' } });
     fireEvent.click(screen.getByRole('button', { name: 'Back to the focus' }));
     fireEvent.click(screen.getByRole('button', { name: 'Reload' }));
     fireEvent.click(screen.getByRole('button', { name: 'View settings' }));
-    assert.deepEqual(calls, [['onToggleKind', 'source'], ['onSearch', 'orders'], ['onRecentre'], ['onRefresh'], ['onSettings']]);
+    assert.deepEqual(calls, [
+      ['onToggleKind', 'source'], ['onToggleKind', 'task:airflow'], ['onSearch', 'orders'], ['onRecentre'], ['onRefresh'], ['onSettings'],
+    ]);
   });
 
   test('no kind filter for a graph of one kind', () => {
-    toolbar({ kinds: ['model'] });
+    toolbar({ kinds: [{ key: 'model', label: 'model' }] });
     assert.equal(screen.queryByRole('group', { name: 'Show' }), null);
   });
 });
@@ -97,6 +102,12 @@ suite('detail panel', () => {
     }
     assert.ok(about.getByText(/PII indicators: from tags, names or lineage, not verified exposure/));
     assert.ok(screen.getByText('model.shop.stg_orders'));
+  });
+
+  test("a tool's node says which tool and what the tool calls it (task 7.6)", () => {
+    const group = node('airflow:daily.marts', { kind: 'task', name: 'marts', tool: 'airflow', subkind: 'task_group', location: null });
+    panel({ node: group, detail: nodeResult(group) });
+    assert.ok(within(screen.getByRole('region', { name: 'About' })).getByText('Airflow task group'));
   });
 
   test('lists its columns, each one a way into column mode', () => {
@@ -218,6 +229,27 @@ suite('impact panel', () => {
   test('nothing downstream', () => {
     panel({ result: impactResult() });
     assert.ok(screen.getByText('Nothing downstream.'));
+  });
+
+  test("each tool's tasks and consumers apart, after dbt's own nodes (task 7.6)", () => {
+    panel({
+      result: impactResult({
+        counts: { consumer: 2, model: 1, task: 3 },
+        nodes: [
+          impacted('looker:view.orders', { kind: 'consumer', tool: 'looker', subkind: 'view' }),
+          impacted('dagster:nightly.load', { kind: 'task', tool: 'dagster', subkind: 'asset' }),
+          impacted('airflow:daily.marts', { kind: 'task', tool: 'airflow', subkind: 'task_group' }),
+          impacted('airflow:daily.run', { kind: 'task', tool: 'airflow', subkind: 'task' }),
+          impacted('metric.shop.revenue', { kind: 'consumer', tool: 'dbt_semantic', subkind: 'metric' }),
+          impacted('model.shop.customers'),
+        ],
+      }),
+    });
+    assert.ok(within(screen.getByRole('region', { name: 'Summary' })).getByText('tasks'));
+    const headings = screen.getAllByRole('heading', { level: 3 }).map((h) => h.textContent);
+    assert.deepEqual(headings, ['1 model', '2 Airflow tasks', '1 Dagster task', '1 dbt semantic layer consumer', '1 Looker consumer']);
+    const airflow = within(screen.getByRole('region', { name: 'Impacted Airflow tasks' }));
+    assert.deepEqual(airflow.getAllByRole('button').map((b) => b.textContent), ['marts', 'run']);
   });
 });
 

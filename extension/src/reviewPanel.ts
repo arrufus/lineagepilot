@@ -12,6 +12,7 @@ import { openOutsidePanel } from './panel';
 import type { ReviewResult } from './protocol';
 import { ReviewHostMessage, type ReviewProblem, ReviewWebviewMessage } from './reviewMessages';
 import type { ProjectServer } from './server';
+import { readersKey } from './status';
 import { webviewHtml } from './webviewHtml';
 
 export const REVIEW_VIEW_TYPE = 'lineagePilot.review';
@@ -212,7 +213,7 @@ export class ReviewPanel implements vscode.Disposable {
   private keyOfIndex(): string | undefined {
     const status = this.server.status;
     return status && !status.indexing
-      ? `${status.generation}:${status.state}:${status.columnLineage}:${status.airflow.generation}:${status.airflow.stage}`
+      ? `${status.generation}:${status.state}:${status.columnLineage}:${readersKey(status)}`
       : undefined;
   }
 

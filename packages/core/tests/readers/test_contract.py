@@ -1,72 +1,114 @@
-"""The reader contract (task 7.3), and Airflow as its first reader."""
+"""The reader contract and the registry (task 7.3), with Airflow as the first reader."""
 
 from __future__ import annotations
 
-import json
-
 import pytest
-from support import IMPACT_SHOP
+from support import copy_impact_shop
 
-from lineagepilot_core.graph.model import NodeKind
+from lineagepilot_core.graph.model import AIRFLOW, MetadataGraph, NodeKind
 from lineagepilot_core.indexer import index_project
-from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS
-from lineagepilot_core.readers.airflow.reader import READER as AIRFLOW_READER
-from lineagepilot_core.readers.airflow.workspace import ANNOTATION_FILE, scan_airflow
+from lineagepilot_core.readers.airflow.reader import AirflowReader
 from lineagepilot_core.readers.contract import Reader
-from lineagepilot_core.readers.registry import READERS, reader_for
+from lineagepilot_core.readers.registry import READERS, reader
 
 
-@pytest.mark.parametrize("reader", READERS, ids=lambda r: r.tool)
-def test_every_reader_keeps_the_contract(reader):
-    assert isinstance(reader, Reader)
-    assert reader.tool and reader.files and reader.option
-    assert reader.clean_paths(reader.default_paths) == list(reader.default_paths)
-    # A setting cannot point outside the workspace
-    assert reader.clean_paths(["../elsewhere", "/abs", "..", ""]) == []
-    for annotation in reader.annotation_files:
-        assert not annotation.startswith(("/", ".."))
+class Minimal:
+    """A reader for a tool with nothing in it: what any reader has to declare."""
+
+    tool = "minimal"
+    option = "minimalPaths"
+    default_paths = ("minimal",)
+    files = "the minimal files"
+    kinds = frozenset({NodeKind.CONSUMER})
+    origins = frozenset()
+
+    def clean_paths(self, paths):
+        return [p for p in paths if isinstance(p, str)]
+
+    def watch_globs(self, paths):
+        return [f"{p}/**" for p in paths]
+
+    def owns(self, relative, paths):
+        return any(relative.startswith(f"{p}/") for p in paths)
+
+    def read(self, project_root, workspace, paths, manifest):
+        return {}
+
+    def link(self, graph, scan):
+        return None
+
+    def unlink(self, graph):
+        pass
+
+    def mark_not_analysed(self, graph, reason):
+        pass
+
+    def summary_json(self, graph):
+        return {}
 
 
-def test_each_tool_has_one_reader():
-    tools = [r.tool for r in READERS]
-    assert len(tools) == len(set(tools))
-    assert reader_for("airflow") is AIRFLOW_READER
-    with pytest.raises(KeyError):
-        reader_for("no-such-tool")
+class TestRegistry:
+    def test_every_reader_keeps_the_contract_under_its_own_tool(self):
+        assert READERS
+        for tool, found in READERS.items():
+            assert isinstance(found, Reader) and found.tool == tool and reader(tool) is found
+            assert found.option and found.files and found.default_paths
+
+    def test_airflow_is_the_first_reader(self):
+        assert isinstance(reader(AIRFLOW), AirflowReader)
+        assert reader(AIRFLOW).option == "dagFolders"
+
+    def test_a_tool_with_no_reader_is_an_error(self):
+        with pytest.raises(KeyError):
+            reader("no_such_tool")
+
+    def test_a_reader_is_anything_that_keeps_the_contract(self):
+        assert isinstance(Minimal(), Reader)
+        no_link = type("NoLink", (), {k: v for k, v in vars(Minimal).items() if k != "link"})
+        assert not isinstance(no_link(), Reader)
 
 
-class TestAirflow:
-    reader = AIRFLOW_READER
+class TestAirflowDiscovery:
+    AIRFLOW = AirflowReader()
 
-    def test_discovery_keeps_the_dag_folders_setting(self):
-        assert self.reader.option == "dagFolders"
-        assert self.reader.default_paths == DEFAULT_DAG_FOLDERS
-        assert self.reader.annotation_files == (ANNOTATION_FILE,)
-        paths = self.reader.clean_paths(["dags", "../x", "orchestration/dags"])
-        assert paths == ["dags", "orchestration/dags"]
-        assert self.reader.watch_globs(paths) == ["dags/**/*.py", "orchestration/dags/**/*.py"]
-        assert self.reader.watches("dags/sub/d.py", paths)
-        assert not self.reader.watches("dags/d.txt", paths)
-        assert not self.reader.watches("other/d.py", paths)
+    def test_the_setting_is_cleaned_before_use(self):
+        found = self.AIRFLOW.clean_paths(["dags", "../escape", "/abs", 7, "C:/x", "a/**/dags"])
+        assert found == ["dags", "a/**/dags"]
 
-    def test_reading_is_the_dag_scan(self):
-        root = str(IMPACT_SHOP)
-        found = self.reader.read(root, root, ["**/dags"], None)
-        assert json.loads(json.dumps(found)) == found  # JSON, for the child process to write
-        assert found == scan_airflow(root, root, ["**/dags"], None)
+    def test_its_globs_are_python_files_under_each_folder(self):
+        assert self.AIRFLOW.watch_globs(["dags", "../escape"]) == ["dags/**/*.py"]
 
-    def test_linking_then_not_analysed_then_unlinked(self):
-        graph = index_project(IMPACT_SHOP).graph
-        before = set(graph.nodes)
-        root = str(IMPACT_SHOP)
-        summary = self.reader.link(graph, self.reader.read(root, root, ["**/dags"], None))
-        added = {n.id for n in graph.nodes.values() if n.tool == "airflow"}
-        assert added and summary.analysed and graph.summaries["airflow"] is summary
-        assert {graph.nodes[n].kind for n in added} == {NodeKind.PIPELINE, NodeKind.TASK}
+    @pytest.mark.parametrize(
+        ("relative", "owned"),
+        [
+            ("dags/d.py", True),
+            ("dags/sub/d.py", True),
+            ("team/dags/d.py", False),
+            ("dags/d.txt", False),
+            ("other/d.py", False),
+        ],
+    )
+    def test_which_files_are_its_own(self, relative, owned):
+        assert self.AIRFLOW.owns(relative, ["dags"]) is owned
 
-        self.reader.not_analysed(graph, "the DAG files are still being read")
-        assert set(graph.nodes) == before
-        assert graph.summaries["airflow"].reason == "the DAG files are still being read"
+    def test_a_pattern_finds_folders_anywhere(self):
+        assert self.AIRFLOW.owns("team/dags/d.py", list(self.AIRFLOW.default_paths))
 
-        self.reader.unlink(graph)
-        assert set(graph.nodes) == before and "airflow" not in graph.summaries
+
+class TestAirflowLifecycle:
+    def test_read_link_unlink(self, tmp_path):
+        root = copy_impact_shop(tmp_path / "impact_shop")
+        graph = index_project(root).graph
+        before = graph.stats()
+        airflow = reader(AIRFLOW)
+        scan = airflow.read(root, root, airflow.default_paths, None)
+        summary = airflow.link(graph, scan)
+        assert summary is graph.readers[AIRFLOW] and summary.analysed and summary.dags
+        airflow.unlink(graph)
+        assert graph.stats() == before and AIRFLOW not in graph.readers
+
+    def test_not_analysed_says_why(self):
+        graph = MetadataGraph()
+        reader(AIRFLOW).mark_not_analysed(graph, "the DAG files are still being read")
+        summary = graph.readers[AIRFLOW]
+        assert not summary.analysed and summary.reason == "the DAG files are still being read"

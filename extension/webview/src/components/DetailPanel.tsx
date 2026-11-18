@@ -6,7 +6,7 @@
 import { ArrowLeft, ArrowRight, Columns3, ExternalLink, Info, Shield, Target, TriangleAlert, X } from 'lucide-react';
 
 import type { GraphEdge, GraphNode, NodeResult, Unknown } from '../../../src/protocol';
-import { CONFIDENCE_LABELS, KIND_LABELS, plural, transformationLabel } from '../labels';
+import { CONFIDENCE_LABELS, kindLabel, plural, transformationLabel } from '../labels';
 
 export interface DetailPanelProps {
   node: GraphNode;
@@ -82,7 +82,7 @@ export default function DetailPanel(props: DetailPanelProps) {
       <section aria-label="About">
         <h3><Info size={14} aria-hidden="true" /> About</h3>
         <dl className="lp-facts">
-          <dt>Kind</dt><dd>{KIND_LABELS[node.kind]}</dd>
+          <dt>Kind</dt><dd>{kindLabel(node)}</dd>
           {node.layer && <><dt>Layer</dt><dd>{node.layer}</dd></>}
           {node.materialization && <><dt>Materialized as</dt><dd>{node.materialization}</dd></>}
           {node.owner && <><dt>Owner</dt><dd>{node.owner}</dd></>}

@@ -23,7 +23,6 @@ from lineagepilot_core.graph.model import (
     EdgeKind,
     MetadataGraph,
     Node,
-    public_kind,
 )
 
 from lineagepilot_lsp.locate import Locator, location_json
@@ -184,7 +183,7 @@ class GraphContext:
         self._columns_computing = columns_computing
         self._pii: PIIIndex | None = None
         self._pii_nodes: set[str] | None = None
-        self._downstream: dict[str, dict[str, int]] = {}
+        self._downstream: dict[str, dict[tuple[str, str | None], int]] = {}
 
     def forget_derived(self) -> None:
         """A DAG scan changed what is downstream of what."""
@@ -216,11 +215,11 @@ class GraphContext:
             self.graph, targets, max_depth=max_depth, column_lineage=self.on_demand.status
         )
 
-    def downstream_counts(self, node_id: str) -> dict[str, int]:
-        """Impacted nodes per kind, at model level (CodeLens)."""
+    def downstream_counts(self, node_id: str) -> dict[tuple[str, str | None], int]:
+        """Impacted nodes per kind and tool, at model level (CodeLens)."""
         counts = self._downstream.get(node_id)
         if counts is None:
-            counts = self._downstream[node_id] = impact(self.graph, [node_id]).counts()
+            counts = self._downstream[node_id] = impact(self.graph, [node_id]).counts_by_tool()
         return counts
 
     # Files
@@ -235,6 +234,10 @@ class GraphContext:
             package, _, inner = relative[len(packages) :].partition("/")
             nodes = [n for n in self.graph.nodes_for_file(inner) if n.package == package]
         return nodes
+
+    def batch(self):
+        """Many locations in one request, more cheaply (``Locator.batch``)."""
+        return self.locator.batch()
 
     def location(self, ref: str) -> dict[str, Any] | None:
         if ref in self.graph.columns:
@@ -265,12 +268,15 @@ class GraphContext:
                 "columnLineage": None,
                 "columnLineageReason": None,
                 "pii": bool(column.pii_type) or ref in self.pii.indicators,
+                "tool": None,
+                "subkind": None,
             }
         node = self.graph.node(ref)
-        status = self.graph.column_lineage.get(ref)
+        # A semantic model's fields are its columns: how well what they read is known
+        status = self.graph.column_lineage.get(ref) or self.graph.consumer_lineage.get(ref)
         return {
             "id": ref,
-            "kind": public_kind(node.kind, node.tool),
+            "kind": node.kind_name,
             "name": clip(node.name),
             "side": side,
             "depth": depth,
@@ -283,6 +289,8 @@ class GraphContext:
             "columnLineage": status.state.value if status else None,
             "columnLineageReason": clip(status.reason) if status else None,
             "pii": self.has_pii(ref),
+            "tool": node.tool,
+            "subkind": node.subkind,
         }
 
     def unknowns_json(self, refs: list[str]) -> list[dict[str, Any]]:

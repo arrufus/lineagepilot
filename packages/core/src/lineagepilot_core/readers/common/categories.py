@@ -1,15 +1,19 @@
-"""The named reasons a DAG file cannot be fully read (design section 6.2, task 5.4).
+"""The named reasons a file cannot be fully read (design section 6.2, task 5.4), for every reader.
 
 A dynamic DAG produces an ``unknown`` record at the call site rather than a guess. Each record
 carries one of these categories, so the review can say in one line what happened and what to do
-about it. Every category can be answered in the annotation file (task 5.2).
+about it. Every category can be answered in the annotation file (tasks 5.2 and 7.4). They began
+with the Airflow scanner; from task 7.2 they are shared, and each reader adds what its tool needs.
 """
 
 from __future__ import annotations
 
 from enum import Enum
 
-ANNOTATE = "Declare what it runs in .lineagepilot/airflow.yml."
+from lineagepilot_core.parsers.data_flow_annotations import LINEAGE_FILE
+
+# The way out of every unknown. airflow.yml is still read, but lineage.yml is the file (D-14).
+ANNOTATE = f"Declare what it runs in {LINEAGE_FILE}."
 
 
 class UnknownCategory(str, Enum):

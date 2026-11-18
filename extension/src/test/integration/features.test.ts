@@ -22,17 +22,53 @@ suite('LineagePilot features', () => {
     assert.equal(server.status.artifacts.manifest?.schemaVersion, 12);
   });
 
-  test('the Airflow view says a DAG file was read and that no task in it runs dbt', async () => {
-    const { airflowTree } = await api();
+  test('the Pipelines view, by tool, says a DAG file was read and that no task in it runs dbt', async () => {
+    const { pipelinesTree } = await api();
     const server = await readyServer();
-    await until('the DAG files to be read', 100_000, () => server.status.airflow.stage === 'done');
-    await airflowTree.showFile(undefined);
+    await until('the DAG files to be read', 100_000, () => server.status.readers?.find((r) => r.tool === 'airflow')?.stage === 'done');
+    const firstChild = () => {
+      const [airflow] = pipelinesTree.items;
+      return airflow?.type === 'tool' ? pipelinesTree.getTreeItem(pipelinesTree.getChildren(airflow)[0]).label : undefined;
+    };
+    await pipelinesTree.showFile(undefined);
     // The view may be refreshing itself as well, so wait for what it settles on
-    const [item] = await until('the message for no file', 30_000, () => (airflowTree.items[0]?.type === 'message' ? airflowTree.items : undefined));
-    assert.equal(airflowTree.getTreeItem(item).label, 'No task in the DAG files read runs dbt.');
-    await airflowTree.showFile(uri('models', 'marts', 'orders.sql'));
-    await until('the message for a model', 30_000, () => airflowTree.getTreeItem(airflowTree.items[0]).label === 'No task in the DAG files read runs this.');
-    assert.deepEqual(airflowTree.getChildren(airflowTree.items[0]), []);
+    await until('the message for no file', 30_000, () => firstChild() === 'No task in the DAG files read runs dbt.');
+    const airflow = pipelinesTree.getTreeItem(pipelinesTree.items[0]);
+    assert.equal(airflow.label, 'Airflow');
+    assert.equal(airflow.description, '0 DAGs · 0 tasks');
+    await pipelinesTree.showFile(uri('models', 'marts', 'orders.sql'));
+    await until('the message for a model', 30_000, () => firstChild() === 'No task in the DAG files read runs this.');
+    assert.deepEqual(pipelinesTree.getChildren(pipelinesTree.getChildren(pipelinesTree.items[0])[0]), []);
+  });
+
+  test('the Consumers view: the semantic layer reads the mart field by field, and no file shows its welcome', async () => {
+    const { consumersTree } = await api();
+    await readyServer();
+    await consumersTree.showFile(uri('models', 'marts', 'orders.sql'));
+    const [tool] = await until('the semantic layer', 30_000,
+      () => (consumersTree.items[0]?.type === 'tool' ? consumersTree.items : undefined));
+    assert.equal(consumersTree.getTreeItem(tool).label, 'dbt semantic layer');
+    const [consumer] = consumersTree.getChildren(tool);
+    const item = consumersTree.getTreeItem(consumer);
+    assert.deepEqual([item.label, item.description], ['orders', 'semantic model']);
+    assert.equal(item.command?.command, 'lineagePilot.openNode');
+    const [read] = consumersTree.getChildren(consumer);
+    assert.equal(consumersTree.getTreeItem(read).description, 'customer_id, order_id, order_total, ordered_at · declared');
+    // Nothing reads a staging model from outside dbt
+    await consumersTree.showFile(uri('models', 'staging', 'stg_orders.sql'));
+    const [message] = await until('the message for a model', 30_000,
+      () => (consumersTree.items[0]?.type === 'message' ? consumersTree.items : undefined));
+    assert.equal(consumersTree.getTreeItem(message).label, 'Nothing outside dbt is known to read this.');
+    await consumersTree.showFile(undefined);
+    assert.deepEqual(consumersTree.items, []);
+  });
+
+  test('both views show, trusted or not', async () => {
+    const { pipelinesView, consumersView } = await api();
+    for (const [id, view] of [['lineagePilot.pipelines', pipelinesView], ['lineagePilot.consumers', consumersView]] as const) {
+      await vscode.commands.executeCommand(`${id}.focus`);
+      await until(`${id} to show`, 10_000, () => view.visible);
+    }
   });
 
   test('CodeLens shows what is downstream of a model', async () => {
@@ -43,7 +79,8 @@ suite('LineagePilot features', () => {
       const lenses = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', orders);
       return lenses?.find((l) => l.command?.command === 'lineagePilot.showImpact');
     });
-    assert.equal(lens.command!.title, '↓ 1 model');
+    // The semantic layer is counted by what each node is
+    assert.equal(lens.command!.title, '↓ 1 model · 2 semantic models · 4 metrics · 1 saved query');
     assert.deepEqual(lens.command!.arguments, [`${J}.orders`, root()]);
     const sources = await vscode.workspace.openTextDocument(uri('models', 'staging', '__sources.yml'));
     const yaml = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', sources.uri);
@@ -88,7 +125,8 @@ suite('LineagePilot features', () => {
     assert.deepEqual(downstream.map((n) => n.node.name).sort(), ['order_items', 'orders']);
     assert.equal(downstream[0].edge?.confidence, 'declared');
     const next = (await lineageTree.getChildren(downstream.find((n) => n.node.name === 'orders'))) as NodeItem[];
-    assert.deepEqual(next.map((n) => n.node.name), ['customers']);
+    // The mart, and the semantic model on it
+    assert.deepEqual(next.map((n) => [n.node.name, n.node.kind]), [['customers', 'model'], ['orders', 'consumer']]);
     const upstream = (await lineageTree.getChildren(up)) as NodeItem[];
     assert.deepEqual(upstream.map((n) => n.node.kind), ['source']);
     const tree = lineageTree.getTreeItem(downstream[0]);

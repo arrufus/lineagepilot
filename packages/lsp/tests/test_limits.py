@@ -8,7 +8,7 @@ import sys
 
 import pytest
 
-from lineagepilot_lsp import indexing, limits, reading, worker
+from lineagepilot_lsp import indexing, limits, readers, worker
 
 
 def test_the_limit_scales_with_the_artifact_limit_within_the_machine():
@@ -75,11 +75,11 @@ def test_the_operating_system_stops_an_allocation_past_the_limit():
 def test_a_scan_over_the_cap_is_not_read(tmp_path, monkeypatch):
     path = tmp_path / "scan.json"
     path.write_text(json.dumps({"links": ["x" * 100]}))
-    monkeypatch.setattr(reading, "MAX_SCAN_BYTES", 50)
-    with pytest.raises(reading.ScanTooLarge):
-        reading._read(path)
-    monkeypatch.setattr(reading, "MAX_SCAN_BYTES", 1000)
-    assert reading._read(path) == {"links": ["x" * 100]}
+    monkeypatch.setattr(readers, "MAX_SCAN_BYTES", 50)
+    with pytest.raises(readers.ScanTooLarge):
+        readers._read(path)
+    monkeypatch.setattr(readers, "MAX_SCAN_BYTES", 1000)
+    assert readers._read(path) == {"links": ["x" * 100]}
 
 
 async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
@@ -87,7 +87,7 @@ async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
     PermissionError escaped stop(), so the server never finished shutting down."""
     import asyncio
 
-    scanner = reading.ReaderRunner.__new__(reading.ReaderRunner)
+    scanner = readers.ReaderRunner.__new__(readers.ReaderRunner)
 
     async def fails_in_cleanup():
         try:
@@ -104,4 +104,4 @@ async def test_a_scan_that_fails_as_it_is_stopped_does_not_stop_the_shutdown():
 def test_a_scan_is_read_by_its_size(tmp_path):
     path = tmp_path / "scan.json"
     path.write_text('{"links": []}')
-    assert reading._read(path) == {"links": []}
+    assert readers._read(path) == {"links": []}

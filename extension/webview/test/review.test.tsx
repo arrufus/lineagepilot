@@ -1,13 +1,13 @@
 // The Change Impact Review page against a fake extension (task 4.4): what it shows for a review,
 // for each way of not having one, and what it asks the extension to do.
 import { strict as assert } from 'assert';
-import { act, fireEvent, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 
 import type {
-  ChangedNode, ColumnDiff, ReviewImpacted, ReviewResult,
+  ChangedNode, ColumnDiff, ImpactPipeline, ReaderSummary, ReviewImpacted, ReviewResult,
 } from '../../src/protocol';
 import { ReviewHostMessage, ReviewWebviewMessage } from '../../src/reviewMessages';
-import ReviewApp, { shortRef } from '../src/review/ReviewApp';
+import ReviewApp, { shortRef, unknownGroups } from '../src/review/ReviewApp';
 import { ReviewTransport } from '../src/review/transport';
 
 class Host {
@@ -49,14 +49,29 @@ function changedNode(fields: Partial<ChangedNode> = {}): ChangedNode {
   };
 }
 
-function analysed(fields: Partial<ReviewResult['airflow']> = {}): ReviewResult['airflow'] {
-  return { ...{ analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] }, analysed: true, reason: null, dagFiles: 1, ...fields };
+/** What a reader read: Airflow's, analysed, with one file, unless the fields say otherwise. */
+function reader(fields: Partial<ReaderSummary> = {}): ReaderSummary {
+  return {
+    tool: 'airflow', analysed: true, reason: null, paths: ['**/dags'], files: 1, pipelines: 1, tasks: 1, consumers: 0, links: 1,
+    unknowns: 0, opaqueTasks: 0, problems: [], ...fields,
+  };
+}
+
+const NOT_ANALYSED = reader({ analysed: false, reason: 'the DAG files were not analysed', paths: [], files: 0, pipelines: 0, tasks: 0, links: 0 });
+
+/** How a task relates to the change, in protocol 2's words. */
+function detail(fields: Partial<ImpactPipeline> = {}): ImpactPipeline {
+  return { tool: 'airflow', pipeline: 'z', operator: 'BashOperator', how: ['dbt run'], runs: ['orders'], runsMore: 0, tasks: [], tasksMore: 0, after: [], notes: [], ...fields };
 }
 
 function task(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
+  const pipeline = detail(fields.pipeline ?? {});
+  const { tool, pipeline: dag, ...rest } = pipeline;
   return impacted({
     id: 'airflow:z.t',
-    kind: 'airflow_task',
+    kind: 'task',
+    tool: 'airflow',
+    subkind: 'task',
     name: 't',
     file: 'dags/z.py',
     reach: 'model',
@@ -65,8 +80,17 @@ function task(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
     columns: [],
     reason: null,
     via: [],
-    airflow: { dag: 'z', operator: 'BashOperator', how: ['dbt run'], runs: ['orders'], runsMore: 0, tasks: [], tasksMore: 0, after: [], notes: [] },
+    // Protocol 2 still sends protocol 1's Airflow detail, for one version
+    airflow: tool === 'airflow' ? { ...rest, dag: dag ?? '' } : null,
     ...fields,
+    pipeline,
+  });
+}
+
+function consumer(fields: Partial<ReviewImpacted> = {}): ReviewImpacted {
+  return impacted({
+    id: 'looker:view.orders', kind: 'consumer', tool: 'looker', subkind: 'view', name: 'orders', file: null, owner: 'bi',
+    columns: ['total'], reach: 'column', origins: ['annotation'], via: [], ...fields,
   });
 }
 
@@ -101,6 +125,8 @@ function review(fields: Partial<ReviewResult> = {}): ReviewResult {
     impacted: [impacted()],
     owners: [{ owner: 'growth', nodes: ['model.shop.customer_revenue'] }],
     airflow: { analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] },
+    pipelines: [NOT_ANALYSED],
+    consumers: [],
     unknowns: [],
     otherFiles: [],
     outsideProject: 0,
@@ -220,7 +246,7 @@ suite('review page', () => {
         impacted({ id: 'snapshot.shop.s', kind: 'snapshot', name: 's', confidence: 'declared', origins: ['manifest', 'catalog', 'annotation'] }),
       ],
       owners: [],
-      airflow: analysed(),
+      pipelines: [reader()],
     }));
     const models = screen.getByRole('table', { name: 'Impacted models' });
     const [first, second] = within(models).getAllByRole('row').slice(1);
@@ -230,16 +256,17 @@ suite('review page', () => {
     assert.equal(within(second).getAllByRole('cell')[0].textContent, 'Model levelColumns a, b');
     assert.match(within(second).getAllByRole('cell')[2].textContent ?? '', /and 3 more/);
     assert.ok(screen.getByRole('table', { name: 'Impacted exposures' }));
-    const tasks = screen.getByRole('table', { name: 'Impacted airflow tasks' });
+    const tasks = screen.getByRole('table', { name: 'Impacted Airflow tasks' });
     assert.ok(tasks.querySelector('.lp-edge-heuristic'));
     assert.match(screen.getByRole('table', { name: 'Impacted snapshots' }).textContent ?? '', /the manifest, the catalog, an annotation/);
-    assert.equal(screen.queryByText(/were not analysed/), null);
+    assert.equal(screen.queryByText(/Not analysed/), null);
   });
 
   test('without Airflow analysis it says so rather than listing none', async () => {
     await shown();
-    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow tasks' }));
-    assert.ok(screen.getByText(/Airflow DAGs were not analysed: the DAG files were not analysed/));
+    assert.ok(screen.getByRole('heading', { level: 2, name: 'Pipelines' }));
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow' }));
+    assert.ok(screen.getByText('Not analysed: the DAG files were not analysed.'));
   });
 
   test('tasks are shown by DAG, with what they run, how sure that is, and why', async () => {
@@ -251,23 +278,25 @@ suite('review page', () => {
           id: 'airflow:a.marts',
           name: 'marts',
           owner: 'platform',
-          airflow: {
-            ...task().airflow!, dag: 'a', how: ['dbt, through Cosmos'], runs: ['orders', 'revenue'], runsMore: 3, tasks: ['marts.orders.run'], tasksMore: 2,
+          subkind: 'task_group',
+          pipeline: detail({
+            pipeline: 'a', how: ['dbt, through Cosmos'], runs: ['orders', 'revenue'], runsMore: 3, tasks: ['marts.orders.run'], tasksMore: 2,
             notes: ['environment variable assumed unset'],
-          },
+          }),
         }),
         task({
           id: 'airflow:a.after',
           name: 'after',
-          airflow: { ...task().airflow!, dag: 'a', how: [], runs: [], after: ['marts'] },
+          pipeline: detail({ pipeline: 'a', how: [], runs: [], after: ['marts'] }),
         }),
-        task({ id: 'airflow:b', kind: 'airflow_dag', name: 'b', airflow: { ...task().airflow!, dag: 'b' } }),
+        task({ id: 'airflow:b', kind: 'pipeline', subkind: 'dag', name: 'b', pipeline: detail({ pipeline: 'b' }) }),
       ],
-      airflow: analysed({ opaqueTasks: 2 }),
+      pipelines: [reader({ opaqueTasks: 2 })],
       locations: { 'airflow:a.marts': { uri: 'file:///w/dags/a.py', range: { start: { line: 3, character: 0 }, end: { line: 3, character: 0 } } } },
     }));
-    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow tasks (4 tasks in 3 DAGs)' }));
-    const table = screen.getByRole('table', { name: 'Impacted airflow tasks' });
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow (4 tasks in 3 DAGs)' }));
+    const table = screen.getByRole('table', { name: 'Impacted Airflow tasks' });
+    assert.equal(within(table).getAllByRole('columnheader')[0].textContent, 'DAG');
     const rows = within(table).getAllByRole('row').slice(1);
     assert.deepEqual(rows.map((row) => row.querySelector('td')?.textContent), ['a', 'a', 'b', 'z']);
     const marts = rows[1];
@@ -285,12 +314,102 @@ suite('review page', () => {
   });
 
   test('DAG files that were read and touch nothing are said to', async () => {
-    await shown(review({ airflow: analysed({ dagFiles: 3 }) }));
+    await shown(review({ pipelines: [reader({ files: 3 })] }));
     assert.ok(screen.getByText(/No task in the 3 DAG files read runs a changed or downstream node/));
   });
 
-  test('a reference to a task reads without its prefix', () => {
+  test("a reference to a task or consumer reads without its tool", () => {
     assert.equal(shortRef('airflow:d.t'), 'd.t');
+    assert.equal(shortRef('looker:view.orders'), 'view.orders');
+  });
+
+  test("the sections in the design's order, each tool's pipelines apart (task 7.6)", async () => {
+    await shown(review({
+      impacted: [
+        impacted(),
+        task(),
+        task({ id: 'dagster:nightly.load', tool: 'dagster', subkind: 'asset', name: 'load', pipeline: detail({ tool: 'dagster', pipeline: 'nightly', operator: null }) }),
+        consumer(),
+      ],
+      pipelines: [reader(), reader({ tool: 'dagster', files: 2 })],
+      consumers: [reader({ tool: 'looker', consumers: 1, pipelines: 0, tasks: 0 })],
+      owners: [{ owner: 'growth', nodes: ['model.shop.customer_revenue'] }],
+    }));
+    const sections = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
+    assert.deepEqual(sections, ['Changed', 'Downstream impact', 'Pipelines', 'Consumers', 'Owners', 'Unknowns (0)']);
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow (1 task in 1 DAG)' }));
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Dagster (1 task in 1 pipeline)' }));
+    const dagster = screen.getByRole('table', { name: 'Impacted Dagster tasks' });
+    assert.equal(within(dagster).getAllByRole('columnheader')[0].textContent, 'pipeline');
+    assert.equal(within(dagster).getAllByRole('row')[1].querySelector('td')?.textContent, 'nightly');
+  });
+
+  test('consumers by tool, with the fields that break and how sure that is', async () => {
+    await shown(review({
+      impacted: [
+        consumer(),
+        consumer({ id: 'looker:explore.sales', name: 'sales', subkind: 'explore', columns: [], reach: 'model', reason: 'reads the whole model' }),
+        consumer({ id: 'tableau:finance/gl', tool: 'tableau', subkind: null, name: 'gl', confidence: 'declared', owner: null }),
+      ],
+      consumers: [reader({ tool: 'looker', consumers: 2 }), reader({ tool: 'powerbi', analysed: false, reason: 'no .SemanticModel folder was found' })],
+    }));
+    assert.deepEqual(
+      within(screen.getByRole('region', { name: 'Consumers' })).getAllByRole('heading', { level: 3 }).map((h) => h.textContent),
+      ['Looker (2)', 'Power BI', 'Tableau (1)']);
+    const looker = screen.getByRole('table', { name: 'Impacted Looker consumers' });
+    const [view, explore] = within(looker).getAllByRole('row').slice(1);
+    assert.match(within(view).getByRole('rowheader').textContent ?? '', /orders.*view/);
+    assert.equal(within(view).getAllByRole('cell')[0].textContent, 'Field total');
+    assert.equal(within(explore).getAllByRole('cell')[0].textContent, 'Model level: reads the whole model');
+    assert.ok(screen.getByText('Not analysed: no .SemanticModel folder was found.'));
+    assert.ok(screen.getByRole('table', { name: 'Impacted Tableau consumers' }));
+  });
+
+  test("a tool's reader that found nothing says so, and no reader of consumers means no section", async () => {
+    await shown(review({ consumers: [reader({ tool: 'looker', files: 4 })] }));
+    assert.ok(screen.getByText('No consumer in the 4 files read uses a changed or downstream node.'));
+    cleanup();
+    await shown(review({ consumers: [] }));
+    assert.equal(screen.queryByRole('heading', { level: 2, name: 'Consumers' }), null);
+  });
+
+  test("the semantic layer is dbt's, listed with its models", async () => {
+    await shown(review({
+      impacted: [
+        impacted(),
+        consumer({ id: 'metric.shop.revenue', tool: 'dbt_semantic', subkind: 'metric', name: 'revenue' }),
+        consumer({
+          id: 'saved_query.shop.weekly', tool: 'dbt_semantic', subkind: 'saved_query', name: 'weekly',
+          exports: ['exports.weekly', 'exports.weekly_by_region'],
+        }),
+      ],
+      consumers: [reader({ tool: 'dbt_semantic', consumers: 1 })],
+    }));
+    const semantic = screen.getByRole('table', { name: 'Impacted semantic layer' });
+    const [metric, query] = within(semantic).getAllByRole('rowheader');
+    assert.match(metric.textContent ?? '', /revenue.*metric/);
+    // A saved query's exports are the tables it writes (task 7.8)
+    assert.match(query.textContent ?? '', /weekly.*saved query.*exports exports\.weekly, exports\.weekly_by_region/);
+    assert.equal(screen.queryByRole('heading', { level: 2, name: 'Consumers' }), null);
+  });
+
+  test('unknowns by tool, dbt first', async () => {
+    const unknowns = [
+      { subject: 'looker:view.orders', reference: 'sql_table_name', reason: 'a Liquid template' },
+      { subject: 'model.shop.broken', reference: 'column lineage', reason: 'SQL could not be parsed' },
+      { subject: 'airflow:backfill', reference: 'not literal', reason: 'a loop' },
+      { subject: 'macros/m.sql', reference: 'changed file', reason: 'a macro' },
+      // A path with a colon names no tool, unless a reader or a row has that tool
+      { subject: 'odd:name.sql', reference: 'changed file', reason: 'a file' },
+      { subject: 'acme_bi:report', reference: 'x', reason: 'a tool this version does not know, but a row has' },
+    ];
+    const withAcme = review({ unknowns, impacted: [impacted(), consumer({ id: 'acme_bi:report', tool: 'acme_bi' })] });
+    assert.deepEqual(unknownGroups(withAcme).map(([name, found]) => [name, found.length]),
+      [['dbt', 3], ['acme_bi', 1], ['Airflow', 1], ['Looker', 1]]);
+    await shown(review({ unknowns: unknowns.slice(0, 4), summary: { ...review().summary, unknowns: 4 } }));
+    const section = within(screen.getByRole('region', { name: 'Unknowns (4)' }));
+    assert.deepEqual(section.getAllByRole('heading', { level: 3 }).map((h) => h.textContent), ['dbt (2)', 'Airflow (1)', 'Looker (1)']);
+    assert.ok(section.getByText('backfill'));
   });
 
   test('owners group what they own, by name, and nobody\'s nodes are shown', async () => {
@@ -298,7 +417,7 @@ suite('review page', () => {
       impacted: [impacted(), impacted({ id: 'model.shop.x', name: 'x', owner: null })],
       owners: [{ owner: 'growth', nodes: ['model.shop.customer_revenue'] }, { owner: null, nodes: ['model.shop.x', 'model.shop.gone'] }],
     }));
-    const list = screen.getByRole('heading', { level: 3, name: 'Owners' }).nextElementSibling as HTMLElement;
+    const list = screen.getByRole('heading', { level: 2, name: 'Owners' }).nextElementSibling as HTMLElement;
     assert.match(list.textContent ?? '', /growthcustomer_revenue/);
     assert.match(list.textContent ?? '', /No ownerx, model\.shop\.gone/);
   });

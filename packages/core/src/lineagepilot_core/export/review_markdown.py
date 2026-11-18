@@ -1,41 +1,57 @@
-"""The Change Impact Review as Markdown, for pasting into a pull request (task 4.4).
+"""The Change Impact Review as Markdown, for pasting into a pull request (tasks 4.4 and 7.7).
 
 This one function produces the text for both the panel's "Copy as Markdown" and ``lineagepilot
 review``, so they cannot differ. It reads only the review, whose order is already stable, and
 adds nothing about the machine or the time, so the same inputs give the same bytes.
 
+Its sections are in the order of design_next_phase section 7.5: what changed; dbt's nodes, with
+the semantic layer; the pipelines that run them, by tool and then by pipeline; the consumers that
+read them, by tool; the owners, across tools; the unknowns, by tool; then the other files.
+
 Almost everything here comes from the workspace, and the text is pasted where other people read
 it and where GitHub renders it. So a name never reaches the page as Markdown: names and paths are
 code spans, in which nothing is rendered and ``@team`` mentions nobody, and other text has its
-punctuation escaped. A long list is cut, with a count, to stay under GitHub's 65,536-character
-limit on a comment.
+punctuation escaped.
+
+GitHub refuses a comment over 65,536 characters. Each part of the review (each list, each table,
+and each tool's) is cut on its own, with a count of what it leaves out: the longest is cut first,
+a step at a time, until the whole fits. So a long list from one tool cannot push another tool's
+rows, or the unknowns, out of the review.
 """
 
 from __future__ import annotations
 
+import heapq
 import re
+from collections.abc import Callable
+from dataclasses import dataclass
 from typing import Any
+
+from lineagepilot_core.readers.tools import (
+    KIND_WORDS,
+    TOOL_LABELS,
+    count_key,
+    counted,
+    pipeline_word,
+    tool_label,
+    tool_of_id,
+)
 
 # GitHub refuses a comment over 65,536 characters; leave room for what a person adds
 MAX_CHARS = 60_000
-ROW_LIMITS = (100, 50, 25, 10)
+# How many rows a list or table shows, in the steps the longest part is cut by
+ROW_LIMITS = (100, 50, 25, 10, 5, 2, 1, 0)
 NAME_LIMIT = 120
 TEXT_LIMIT = 300
 CELL_TEXT_LIMIT = 120  # the Unknowns section has the whole reason
 SHORT_COMMIT = 12
 
-KIND_TITLES = {
-    "model": ("model", "models"),
-    "snapshot": ("snapshot", "snapshots"),
-    "seed": ("seed", "seeds"),
-    "source": ("source", "sources"),
-    "exposure": ("exposure", "exposures"),
-    "consumer": ("consumer", "consumers"),
-    "airflow_task": ("Airflow task", "Airflow tasks"),
-    "airflow_dag": ("Airflow DAG", "Airflow DAGs"),
-    "task": ("task", "tasks"),
-    "pipeline": ("pipeline", "pipelines"),
-}
+_KIND_WORDS = {kind: (one, many) for kind, one, many in KIND_WORDS}
+# dbt's own nodes, each kind a table of its own
+_DBT_KINDS = ("model", "snapshot", "seed", "source", "exposure")
+_PIPELINE_KINDS = ("pipeline", "task")
+# Consumers that are dbt's own, listed with dbt's nodes rather than with the other tools'
+_DBT_TOOLS = frozenset({"dbt_semantic"})
 _ORIGINS = {
     "manifest": "manifest",
     "compiled_sql": "compiled SQL",
@@ -43,7 +59,6 @@ _ORIGINS = {
     "dag_static": "DAG file",
     "annotation": "annotation",
 }
-_AIRFLOW_KINDS = ("airflow_task", "airflow_dag")
 _BASELINES = {
     "baseline_manifest": "the baseline manifest",
     "catalog": "`catalog.json`",
@@ -63,23 +78,52 @@ _ESCAPED = re.compile(r"([\\`*_\[\]<>|~&])")
 # comes before: GitHub's word characters are ASCII only, and an escaped backtick is just text.
 _LINKING = re.compile(r"[@#](?=\w)|:(?=//)|(?i:www)(?=\.)")
 _ZERO_WIDTH_SPACE = "\u200b"
-# The last line when even the shortest lists do not fit
+# The last line when even the shortest parts do not fit
 _CUT = "...and the rest of the review, which is too long for a GitHub comment."
 # Control characters, keeping the whitespace that _flatten then folds. Also the characters that
 # reorder text when displayed (bidirectional controls), which could disguise a name.
 _CONTROL = re.compile(r"[\x00-\x08\x0e-\x1f\x7f-\x9f\u200e\u200f\u202a-\u202e\u2066-\u2069]")
 
 
+@dataclass(frozen=True)
+class _Part:
+    """A part of the review: its lines for a number of rows. A heading is never cut."""
+
+    lines: Callable[[int], list[str]]
+    cut: bool = True
+
+
 def render_markdown(review: dict[str, Any]) -> str:
-    for limit in ROW_LIMITS:
-        text = _render(review, limit)
-        if len(text) <= MAX_CHARS:
-            return text
-    return _cut(text)
+    parts = _parts(review)
+    steps = [0] * len(parts)
+    rendered = [part.lines(ROW_LIMITS[0]) for part in parts]
+    sizes = [_size(lines) for lines in rendered]
+    total = sum(sizes)
+    # The longest part that can still be cut loses a step, and the others stay as they are
+    longest = [(-size, i) for i, size in enumerate(sizes) if parts[i].cut]
+    heapq.heapify(longest)
+    while total > MAX_CHARS and longest:
+        _, i = heapq.heappop(longest)
+        steps[i] += 1
+        rendered[i] = parts[i].lines(ROW_LIMITS[steps[i]])
+        total += _size(rendered[i]) - sizes[i]
+        sizes[i] = _size(rendered[i])
+        if steps[i] < len(ROW_LIMITS) - 1:
+            heapq.heappush(longest, (-sizes[i], i))
+    lines = [line for part in rendered for line in part]
+    while lines and not lines[-1]:
+        lines.pop()
+    text = "\n".join(lines) + "\n"
+    return text if len(text) <= MAX_CHARS else _cut(text)
+
+
+def _size(lines: list[str]) -> int:
+    return sum(len(line) + 1 for line in lines)
 
 
 def _cut(text: str) -> str:
-    """The whole lines that fit, then a note that the rest is missing.
+    """The whole lines that fit, then a note that the rest is missing: only when even every
+    part at its shortest is too long, such as with thousands of tools.
 
     Each line is complete, with every code span closed, so a cut between lines cannot leave one
     open; a cut inside a code span would turn the rest of its name into Markdown. The other
@@ -90,18 +134,35 @@ def _cut(text: str) -> str:
     return kept + (close if "\n<details>" in kept else "") + end
 
 
-def _render(review: dict[str, Any], row_limit: int) -> str:
-    lines: list[str] = [f"## Change impact review: {_code(review['project'] or 'dbt project')}", ""]
-    lines += [_compared_with(review), "", _headline(review), ""]
-    for note in review["notes"]:
+def _parts(review: dict[str, Any]) -> list[_Part]:
+    """The review's parts, in order. Each list, table and tool is a part that is cut on its own."""
+    head = [f"## Change impact review: {_code(review['project'] or 'dbt project')}", ""]
+    head += [_compared_with(review), "", _headline(review), ""]
+    parts = [_Part(lambda _: head, cut=False)]
+    if review["notes"]:
+        parts.append(_Part(lambda limit: _notes(review["notes"], limit)))
+    parts.append(_Part(lambda limit: _changed(review, limit)))
+    parts += _downstream(review)
+    parts += _pipelines(review)
+    parts += _consumers(review)
+    if review["owners"]:
+        parts.append(_Part(lambda limit: _owners(review["owners"], limit)))
+    parts += _unknowns(review)
+    parts.append(_Part(lambda limit: _other_files(review, limit)))
+    return parts
+
+
+def _heading(*lines: str) -> _Part:
+    return _Part(lambda _: [*lines, ""], cut=False)
+
+
+def _notes(notes: list[str], limit: int) -> list[str]:
+    lines = []
+    for note in notes[:limit]:
         lines += [f"> {_plain(note, 600)}", ""]
-    lines += _changed(review, row_limit)
-    lines += _downstream(review, row_limit)
-    lines += _unknowns(review, row_limit)
-    lines += _other_files(review, row_limit)
-    while lines and not lines[-1]:
-        lines.pop()
-    return "\n".join(lines) + "\n"
+    if len(notes) > limit:
+        lines += [f"...and {len(notes) - limit} more notes.", ""]
+    return lines
 
 
 def _compared_with(review: dict[str, Any]) -> str:
@@ -135,10 +196,15 @@ def _headline(review: dict[str, Any]) -> str:
         _count(summary["changedNodes"], "changed node"),
         _count(summary["changedColumns"], "changed column"),
     ]
-    kinds = summary["impacted"]
-    if kinds:
-        names = ", ".join(_of_kind(kinds[k], k) for k in KIND_TITLES if k in kinds)
-        parts.append(f"{sum(kinds.values())} impacted ({names})")
+    impacted = review["impacted"]
+    if impacted:
+        kinds: dict[tuple[str, str | None], int] = {}
+        for node in impacted:
+            key = count_key(node["kind"], node.get("tool"), node.get("subkind"))
+            kinds[key] = kinds.get(key, 0) + 1
+        # A tool's name comes from the workspace when no reader knows it
+        names = ", ".join(_plain(part, NAME_LIMIT) for part in counted(kinds))
+        parts.append(f"{len(impacted)} impacted ({names})")
     else:
         parts.append("nothing downstream")
     parts.append(_count(summary["unknowns"], "unknown"))
@@ -188,70 +254,120 @@ def _column_lines(diff: dict[str, Any], row_limit: int) -> list[str]:
     return lines
 
 
-def _downstream(review: dict[str, Any], row_limit: int) -> list[str]:
-    lines = ["### Downstream impact", ""]
+def _downstream(review: dict[str, Any]) -> list[_Part]:
+    """dbt's nodes, a table for each kind, then the semantic layer."""
     impacted = review["impacted"]
+    parts = [_heading("### Downstream impact")]
     if not impacted:
-        lines += ["Nothing is known to be downstream of the changed nodes.", ""]
-    for kind, (_, plural) in KIND_TITLES.items():
+        parts.append(_heading("Nothing is known to be downstream of the changed nodes."))
+    for kind in _DBT_KINDS:
         nodes = [n for n in impacted if n["kind"] == kind]
-        if not nodes or kind in _AIRFLOW_KINDS:
-            continue
-        lines += [f"#### {plural[0].upper()}{plural[1:]} ({len(nodes)})", ""]
-        lines += ["| Name | Reached | Confidence | Evidence | Owner |", "|---|---|---|---|---|"]
-        lines += [_impact_row(node) for node in nodes[:row_limit]]
-        lines += _more(len(nodes), row_limit, plural)
-        lines.append("")
-    lines += _airflow(review, row_limit)
-    owners = review["owners"]
-    if owners:
-        lines += ["#### Owners", "", "| Owner | Impacted |", "|---|---|"]
-        for entry in owners[:row_limit]:
-            nodes = entry["nodes"]
-            names = ", ".join(_cell_code(_short_id(n)) for n in nodes[:10])
-            more = f" and {len(nodes) - 10} more" if len(nodes) > 10 else ""
-            who = _cell_code(entry["owner"]) if entry["owner"] else "No owner"
-            lines.append(f"| {who} | {names}{more} |")
-        lines += _more(len(owners), row_limit, "owners")
-        lines.append("")
-    return lines
+        if nodes:
+            plural = _KIND_WORDS[kind][1]
+            parts.append(_table_part(f"{plural[0].upper()}{plural[1:]}", plural, nodes))
+    semantic = [n for n in impacted if n["kind"] == "consumer" and n.get("tool") in _DBT_TOOLS]
+    if semantic:
+        parts.append(_table_part("Semantic layer", "semantic layer nodes", semantic))
+    return parts
 
 
-def _airflow(review: dict[str, Any], row_limit: int) -> list[str]:
-    """The tasks by DAG, each with what it runs. A heuristic link is shown, with why it is one."""
-    summary = review["airflow"]
-    lines = ["#### Airflow tasks"]
-    if not summary["analysed"]:
-        reason = _plain(summary["reason"] or "they were not read")
-        return [*lines, "", f"Airflow DAGs were not analysed: {reason}", ""]
-    nodes = sorted(
-        (n for n in review["impacted"] if n["kind"] in _AIRFLOW_KINDS),
-        key=lambda n: (n["airflow"]["dag"] or "", n["kind"], n["name"]),
-    )
-    if nodes:
-        dags = {n["airflow"]["dag"] for n in nodes}
-        lines[0] += f" ({_count(len(nodes), 'task')} in {_count(len(dags), 'DAG')})"
-        lines += [
-            "",
-            "| DAG | Task | What it has to do with this | Confidence | Evidence | Owner |",
-        ]
-        lines += ["|---|---|---|---|---|---|"]
-        lines += [_airflow_row(node) for node in nodes[:row_limit]]
-        lines += _more(len(nodes), row_limit, "Airflow tasks")
-    else:
-        files = _count(summary["dagFiles"], "DAG file")
-        lines += ["", f"No task in the {files} read runs a changed or downstream node."]
-    if summary["opaqueTasks"]:
-        tasks = _count(summary["opaqueTasks"], "task")
-        lines += ["", f"{tasks} could not be read and do not mention dbt, so they are not listed."]
-    lines.append("")
-    return lines
+def _table_part(title: str, what: str, nodes: list[dict[str, Any]]) -> _Part:
+    """A table of impacted nodes: how each is reached, how sure that is, and whose it is."""
+
+    def lines(limit: int) -> list[str]:
+        rows = [f"#### {title} ({len(nodes)})", ""]
+        rows += ["| Name | Reached | Confidence | Evidence | Owner |", "|---|---|---|---|---|"]
+        rows += [_impact_row(node) for node in nodes[:limit]]
+        return [*rows, *_more(len(nodes), limit, what), ""]
+
+    return _Part(lines)
 
 
-def _airflow_row(node: dict[str, Any]) -> str:
-    detail = node["airflow"]
-    is_whole_dag = node["kind"] == "airflow_dag"
-    task = "The whole DAG" if is_whole_dag else _cell_code(node["name"])
+def _tools(summaries: list[dict[str, Any]], nodes: list[dict[str, Any]]) -> list[str]:
+    """The tools a section is about, by name: each reader's, and any other a row has."""
+    tools = {s["tool"] for s in summaries} | {n["tool"] for n in nodes if n.get("tool")}
+    return sorted(tools, key=lambda tool: (tool_label(tool).casefold(), tool))
+
+
+def _summary(summaries: list[dict[str, Any]], tool: str) -> dict[str, Any] | None:
+    return next((s for s in summaries if s["tool"] == tool), None)
+
+
+def _not_analysed(name: str, summary: dict[str, Any] | None, files: str) -> list[str] | None:
+    if summary is None or summary["analysed"]:
+        return None
+    reason = _sentence(_plain(summary["reason"] or f"the {files}s were not read"))
+    return [f"#### {name}", "", f"Not analysed: {reason}", ""]
+
+
+def _pipelines(review: dict[str, Any]) -> list[_Part]:
+    """Each tool's tasks, by pipeline, each with what it runs. A heuristic link is shown, with
+    why it is one."""
+    summaries = review.get("pipelines") or []
+    nodes = [n for n in review["impacted"] if n["kind"] in _PIPELINE_KINDS]
+    tools = _tools(summaries, nodes)
+    if not tools:
+        return []
+    parts = [_heading("### Pipelines")]
+    for tool in tools:
+        found = [n for n in nodes if n.get("tool") == tool]
+        parts.append(_pipeline_part(tool, _summary(summaries, tool), found))
+    return parts
+
+
+def _pipeline_part(tool: str, summary: dict[str, Any] | None, nodes: list[dict[str, Any]]) -> _Part:
+    name = _plain(tool_label(tool), NAME_LIMIT)
+    word = pipeline_word(tool, 1)
+    nodes = sorted(nodes, key=lambda n: (_detail(n)["pipeline"] or "", n["kind"], n["name"]))
+
+    def lines(limit: int) -> list[str]:
+        not_analysed = _not_analysed(name, summary, f"{word} file")
+        if not_analysed is not None:
+            return not_analysed
+        title = f"#### {name}"
+        rows: list[str] = []
+        if nodes:
+            pipelines = len({_detail(n)["pipeline"] for n in nodes})
+            in_pipelines = f"{pipelines} {pipeline_word(tool, pipelines)}"
+            title += f" ({_count(len(nodes), 'task')} in {in_pipelines})"
+            column = word[0].upper() + word[1:]
+            header = "Task | What it has to do with this | Confidence | Evidence | Owner"
+            rows += ["", f"| {column} | {header} |", "|---|---|---|---|---|---|"]
+            rows += [_task_row(node, word) for node in nodes[:limit]]
+            rows += _more(len(nodes), limit, f"{name} tasks")
+        elif summary is not None:
+            files = _count(summary["files"], f"{word} file")
+            rows += ["", f"No task in the {files} read runs a changed or downstream node."]
+        if summary is not None and summary["opaqueTasks"]:
+            tasks = _count(summary["opaqueTasks"], "task")
+            rows += [
+                "",
+                f"{tasks} could not be read and do not mention dbt, so they are not listed.",
+            ]
+        return [title, *rows, ""]
+
+    return _Part(lines)
+
+
+_NO_DETAIL: dict[str, Any] = {
+    "pipeline": None,
+    "how": [],
+    "runs": [],
+    "runsMore": 0,
+    "tasks": [],
+    "tasksMore": 0,
+    "after": [],
+    "notes": [],
+}
+
+
+def _detail(node: dict[str, Any]) -> dict[str, Any]:
+    return node.get("pipeline") or _NO_DETAIL
+
+
+def _task_row(node: dict[str, Any], word: str) -> str:
+    detail = _detail(node)
+    task = f"The whole {word}" if node["kind"] == "pipeline" else _cell_code(node["name"])
     if detail["tasks"]:
         shown = ", ".join(_cell_code(t) for t in detail["tasks"][:5])
         more = len(detail["tasks"]) - 5 + detail["tasksMore"]
@@ -272,9 +388,58 @@ def _airflow_row(node: dict[str, Any]) -> str:
         evidence += f": {_plain(detail['notes'][0], CELL_TEXT_LIMIT)}"
     owner = _cell_code(node["owner"]) if node["owner"] else "No owner"
     return (
-        f"| {_cell_code(detail['dag'] or '')} | {task} | {'; '.join(parts)} | "
+        f"| {_cell_code(detail['pipeline'] or '')} | {task} | {'; '.join(parts)} | "
         f"{_plain(node['confidence'])} | {evidence} | {owner} |"
     )
+
+
+def _consumers(review: dict[str, Any]) -> list[_Part]:
+    """What reads the changed nodes from outside dbt, by tool, with the fields of each that
+    break. Only when a reader of consumers is turned on, or something declares a consumer."""
+    summaries = [s for s in review.get("consumers") or [] if s["tool"] not in _DBT_TOOLS]
+    nodes = [
+        n for n in review["impacted"] if n["kind"] == "consumer" and n.get("tool") not in _DBT_TOOLS
+    ]
+    tools = _tools(summaries, nodes)
+    if not tools:
+        return []
+    parts = [_heading("### Consumers")]
+    for tool in tools:
+        found = [n for n in nodes if n.get("tool") == tool]
+        parts.append(_consumer_part(tool, _summary(summaries, tool), found))
+    return parts
+
+
+def _consumer_part(tool: str, summary: dict[str, Any] | None, nodes: list[dict[str, Any]]) -> _Part:
+    name = _plain(tool_label(tool), NAME_LIMIT)
+    table = _table_part(name, f"{name} consumers", nodes)
+
+    def lines(limit: int) -> list[str]:
+        not_analysed = _not_analysed(name, summary, "file")
+        if not_analysed is not None:
+            return not_analysed
+        if nodes:
+            return table.lines(limit)
+        files = _count(summary["files"] if summary else 0, "file")
+        return [
+            f"#### {name}",
+            "",
+            f"No consumer in the {files} read uses a changed or downstream node.",
+            "",
+        ]
+
+    return _Part(lines)
+
+
+def _owners(owners: list[dict[str, Any]], limit: int) -> list[str]:
+    lines = ["### Owners", "", "| Owner | Impacted |", "|---|---|"]
+    for entry in owners[:limit]:
+        nodes = entry["nodes"]
+        names = ", ".join(_cell_code(_short_id(n)) for n in nodes[:10])
+        more = f" and {len(nodes) - 10} more" if len(nodes) > 10 else ""
+        who = _cell_code(entry["owner"]) if entry["owner"] else "No owner"
+        lines.append(f"| {who} | {names}{more} |")
+    return [*lines, *_more(len(owners), limit, "owners"), ""]
 
 
 def _impact_row(node: dict[str, Any]) -> str:
@@ -284,14 +449,23 @@ def _impact_row(node: dict[str, Any]) -> str:
     if node["columns"]:
         shown = ", ".join(_cell_code(c) for c in node["columns"][:5])
         more = f" and {len(node['columns']) - 5} more" if len(node["columns"]) > 5 else ""
-        label = "Columns" if len(node["columns"]) > 1 else "Column"
+        # A consumer's columns are its fields: a metric's measures, a view's dimensions
+        word = "Field" if node["kind"] == "consumer" else "Column"
+        label = f"{word}s" if len(node["columns"]) > 1 else word
         columns = f"{label} {shown}{more}"
         reached = columns if node["reach"] == "column" else f"{reached}. {columns}"
     owner = _cell_code(node["owner"]) if node["owner"] else "No owner"
-    return (
-        f"| {_cell_code(node['name'])} | {reached} | {_plain(node['confidence'])} | "
-        f"{_evidence(node)} | {owner} |"
-    )
+    name = _cell_code(node["name"])
+    about = []
+    if node.get("tool") and node.get("subkind"):
+        about.append(_plain(node["subkind"].replace("_", " "), NAME_LIMIT))
+    if node.get("exports"):  # a saved query's: the tables it writes change too
+        about.append(f"exports {', '.join(_cell_code(e) for e in node['exports'][:3])}")
+        if len(node["exports"]) > 3:
+            about[-1] += f" and {len(node['exports']) - 3} more"
+    if about:
+        name += f" ({'; '.join(about)})"
+    return f"| {name} | {reached} | {_plain(node['confidence'])} | {_evidence(node)} | {owner} |"
 
 
 def _evidence(node: dict[str, Any]) -> str:
@@ -306,19 +480,42 @@ def _evidence(node: dict[str, Any]) -> str:
     return f"{origins}, from {shown}" + (f" and {more} more" if more > 0 else "")
 
 
-def _unknowns(review: dict[str, Any], row_limit: int) -> list[str]:
+def _unknowns(review: dict[str, Any]) -> list[_Part]:
+    """The unknowns, a list for each tool, dbt's first."""
     unknowns = review["unknowns"]
-    lines = [f"### Unknowns ({len(unknowns)})", ""]
+    parts = [_heading(f"### Unknowns ({len(unknowns)})")]
     if not unknowns:
-        return [*lines, "None.", ""]
-    for unknown in unknowns[:row_limit]:
+        return [*parts, _heading("None.")]
+    groups = _unknown_groups(review)
+    for name, found in groups:
+        title = f"#### {name} ({len(found)})" if len(groups) > 1 else None
+        parts.append(
+            _Part(lambda limit, title=title, found=found: _unknown_list(title, found, limit))
+        )
+    return parts
+
+
+def _unknown_groups(review: dict[str, Any]) -> list[tuple[str, list[dict[str, Any]]]]:
+    """A review's unknowns are about a node, a column or a changed file. A pipeline's, task's or
+    consumer's ID starts with its tool; anything else is dbt's."""
+    known = set(TOOL_LABELS) | {n["tool"] for n in review["impacted"] if n.get("tool")}
+    known |= {s["tool"] for s in (review.get("pipelines") or []) + (review.get("consumers") or [])}
+    groups: dict[str, list[dict[str, Any]]] = {}
+    for unknown in review["unknowns"]:
+        tool = tool_of_id(unknown["subject"])
+        name = _plain(tool_label(tool), NAME_LIMIT) if tool in known else "dbt"
+        groups.setdefault(name, []).append(unknown)
+    return sorted(groups.items(), key=lambda group: (group[0] != "dbt", group[0].casefold()))
+
+
+def _unknown_list(title: str | None, unknowns: list[dict[str, Any]], limit: int) -> list[str]:
+    lines = [title, ""] if title else []
+    for unknown in unknowns[:limit]:
         lines.append(
             f"- {_code(unknown['subject'])}, {_code(unknown['reference'])}: "
             f"{_plain(unknown['reason'])}"
         )
-    lines += _more(len(unknowns), row_limit, "unknowns")
-    lines.append("")
-    return lines
+    return [*lines, *_more(len(unknowns), limit, "unknowns"), ""]
 
 
 def _other_files(review: dict[str, Any], row_limit: int) -> list[str]:
@@ -340,6 +537,7 @@ def _other_files(review: dict[str, Any], row_limit: int) -> list[str]:
 
 
 def _more(total: int, limit: int, what: str) -> list[str]:
+    """How many more there are, after a blank line so that a table or a list ends first."""
     return [f"\n...and {total - limit} more {what}."] if total > limit else []
 
 
@@ -347,13 +545,12 @@ def _count(count: int, singular: str) -> str:
     return f"{count} {singular}{'' if count == 1 else 's'}"
 
 
-def _of_kind(count: int, kind: str) -> str:
-    singular, plural = KIND_TITLES.get(kind) or (_plain(kind), _plain(f"{kind}s"))
-    return f"{count} {singular if count == 1 else plural}"
-
-
 def _title(kind: str) -> str:
-    return KIND_TITLES[kind][0] if kind in KIND_TITLES else _plain(kind)
+    return _KIND_WORDS[kind][0] if kind in _KIND_WORDS else _plain(kind)
+
+
+def _sentence(text: str) -> str:
+    return text if text.endswith((".", "!", "?")) else f"{text}."
 
 
 def _label(labels: dict[str, str], value: str) -> str:
@@ -362,8 +559,10 @@ def _label(labels: dict[str, str], value: str) -> str:
 
 
 def _short_id(node_id: str) -> str:
-    if node_id.startswith("airflow:"):
-        return node_id.removeprefix("airflow:")
+    """``orders`` for ``model.shop.orders``; ``daily.marts`` for ``airflow:daily.marts``."""
+    tool = tool_of_id(node_id)
+    if tool is not None:
+        return node_id[len(tool) + 1 :]
     return node_id.rsplit(".", 1)[-1] or node_id
 
 
