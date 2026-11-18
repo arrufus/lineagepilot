@@ -10,6 +10,7 @@ from collections.abc import Iterable
 from typing import Any
 
 from lineagepilot_core.graph.model import (
+    AIRFLOW,
     AirflowSummary,
     Confidence,
     Edge,
@@ -17,9 +18,9 @@ from lineagepilot_core.graph.model import (
     MetadataGraph,
     Node,
     NodeKind,
-    public_kind,
+    legacy_kind,
 )
-from lineagepilot_core.readers.airflow.link import AIRFLOW, AIRFLOW_ORIGINS, is_airflow
+from lineagepilot_core.readers.airflow.link import AIRFLOW_ORIGINS, is_airflow
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
 # Free text from the workspace is cut to this many characters (design section 9)
@@ -60,6 +61,25 @@ def summary_json(summary: AirflowSummary | None) -> dict[str, Any]:
     }
 
 
+def reader_summary_json(summary: AirflowSummary | None) -> dict[str, Any]:
+    """The Airflow reader's summary as the protocol's ``ReaderSummary`` (protocol 2)."""
+    old = summary_json(summary)
+    return {
+        "tool": AIRFLOW,
+        "analysed": old["analysed"],
+        "reason": old["reason"],
+        "paths": old["folders"],
+        "files": old["dagFiles"],
+        "pipelines": old["dags"],
+        "tasks": old["tasks"],
+        "consumers": summary.consumers if summary is not None else 0,
+        "links": old["links"],
+        "unknowns": old["unknowns"],
+        "opaqueTasks": old["opaqueTasks"],
+        "problems": old["problems"],
+    }
+
+
 def airflow_view(graph: MetadataGraph, nodes: Iterable[str] | None = None) -> dict[str, Any]:
     """Every DAG and task, or with ``nodes`` only those that run or read one of them directly."""
     wanted = None if nodes is None else set(nodes)
@@ -87,7 +107,7 @@ def airflow_view(graph: MetadataGraph, nodes: Iterable[str] | None = None) -> di
             ),
             key=lambda u: (u["subject"], u["reference"], u["reason"]),
         ),
-        "summary": summary_json(graph.summaries.get(AIRFLOW)),
+        "summary": summary_json(graph.airflow),
     }
 
 
@@ -113,7 +133,7 @@ def _task_json(node: Node, edges: list[Edge]) -> dict[str, Any]:
     weakest = max(confidences, key=_STRENGTH.index) if confidences else None
     return {
         "id": node.id,
-        "kind": public_kind(node.kind, node.tool),
+        "kind": legacy_kind(node.kind_name, node.tool),  # lineage/airflow keeps protocol 1's
         "name": _clip(node.name),
         "operator": _clip(node.properties.get("operator")),
         "owner": _clip(node.owner),

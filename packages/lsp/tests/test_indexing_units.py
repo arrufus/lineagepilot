@@ -13,7 +13,6 @@ from pathlib import Path
 
 import pytest
 from conftest import FIXTURE
-from lineagepilot_core.readers.airflow.reader import READER
 from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 
 from lineagepilot_lsp import indexing, worker
@@ -27,7 +26,7 @@ from lineagepilot_lsp.indexing import (
 )
 from lineagepilot_lsp.project import read_project
 from lineagepilot_lsp.server import Options, converter
-from lineagepilot_lsp.watch import Change, Debouncer, classify, watchers
+from lineagepilot_lsp.watch import Change, Debouncer, classify
 
 # Project file
 
@@ -108,58 +107,26 @@ def test_classify(tmp_path):
     write_project(tmp_path / "p", "name: x\n")
     project = read_project(tmp_path / "p")
     root, workspace = project.root, tmp_path
-    dags = ["dags", "../escape"]
+    dags = {"airflow": ["dags", "../escape"]}
 
     def kind(path: Path):
-        found = classify(project, workspace, [(READER, READER.clean_paths(dags))], path)
+        found = classify(project, workspace, dags, path)
         return found and found[0]
 
     assert kind(root / "target" / "manifest.json") is Change.ARTIFACTS
     assert kind(root / "target" / "catalog.json") is Change.ARTIFACTS
     assert kind(root / "target" / "run_results.json") is None
     assert kind(root / ".lineagepilot" / "rules.yml") is Change.RULES
+    assert kind(root / ".lineagepilot" / "lineage.yml") is Change.READERS
+    assert kind(root / ".lineagepilot" / "airflow.yml") is Change.READERS
+    assert kind(root / ".lineagepilot" / "other.yml") is None
     assert kind(root / "dbt_project.yml") is Change.PROJECT
     assert kind(root / "models" / "a.sql") is Change.SOURCES
-    assert kind(workspace / "dags" / "sub" / "d.py") is Change.READER
+    assert kind(workspace / "dags" / "sub" / "d.py") is Change.READERS
     assert kind(workspace / "dags" / "d.txt") is None
     assert kind(workspace / "other" / "d.py") is None
     assert kind(tmp_path.parent / "escape" / "d.py") is None
-    assert classify(project, None, [(READER, dags)], workspace / "dags" / "d.py") is None
-
-
-class _Looker:
-    """A second reader, enough of one for the watch: its files and its annotation file."""
-
-    tool, files, option = "looker", "the LookML files", "lookerPaths"
-    default_paths = ("**",)
-    annotation_files = (".lineagepilot/lineage.yml",)
-
-    def clean_paths(self, paths):
-        return list(paths)
-
-    def watch_globs(self, paths):
-        return [f"{p}/*.lkml" for p in paths]
-
-    def watches(self, relative, paths):
-        return relative.endswith(".lkml")
-
-
-def test_the_watch_serves_every_reader(tmp_path):
-    write_project(tmp_path / "p", "name: x\n")
-    project = read_project(tmp_path / "p")
-    readers = [(READER, ["dags"]), (_Looker(), ["views"])]
-
-    globs = [w.glob_pattern.pattern for w in watchers(project, tmp_path, readers)]
-    assert {".lineagepilot/airflow.yml", ".lineagepilot/lineage.yml"} <= set(globs)
-    assert {"dags/**/*.py", "views/*.lkml"} <= set(globs)
-
-    def found(path: Path):
-        return classify(project, tmp_path, readers, path)
-
-    assert found(tmp_path / "dags" / "d.py") == (Change.READER, "dags/d.py", "airflow")
-    assert found(tmp_path / "views" / "v.lkml") == (Change.READER, "views/v.lkml", "looker")
-    assert found(project.root / ".lineagepilot" / "lineage.yml").tool == "looker"
-    assert found(project.root / ".lineagepilot" / "airflow.yml").tool == "airflow"
+    assert classify(project, None, dags, workspace / "dags" / "d.py") is None
 
 
 async def test_debouncer_coalesces():

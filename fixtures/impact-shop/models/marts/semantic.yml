@@ -1,0 +1,81 @@
+version: 2
+
+# The semantic layer on the orders mart (task 7.8). Renaming orders.order_total breaks the
+# order_total measure and the order_size dimension, and so revenue, large_orders,
+# average_order_value and the weekly_revenue saved query. order_count reads only order_id.
+
+semantic_models:
+  - name: orders
+    description: Orders, for the semantic layer.
+    model: ref('orders')
+    config:
+      meta:
+        owner: finance-data
+    defaults:
+      agg_time_dimension: ordered_at
+    entities:
+      - name: order
+        type: primary
+        expr: order_id
+      - name: customer
+        type: foreign
+        expr: customer_id
+    dimensions:
+      - name: ordered_at
+        type: time
+        type_params:
+          time_granularity: day
+      - name: order_size
+        type: categorical
+        expr: case when order_total >= 100 then 'large' else 'small' end
+    measures:
+      - name: order_total
+        description: Revenue, summed.
+        agg: sum
+      - name: orders_placed
+        agg: count
+        expr: order_id
+
+metrics:
+  - name: revenue
+    label: Revenue
+    type: simple
+    type_params:
+      measure: order_total
+    config:
+      meta:
+        owner: finance-analytics
+  - name: order_count
+    label: Orders placed
+    type: simple
+    type_params:
+      measure: orders_placed
+  - name: large_orders
+    label: Large orders
+    type: simple
+    type_params:
+      measure: orders_placed
+    filter: "{{ Dimension('order__order_size') }} = 'large'"
+  - name: average_order_value
+    label: Average order value
+    type: ratio
+    type_params:
+      numerator: revenue
+      denominator: order_count
+
+saved_queries:
+  - name: weekly_revenue
+    description: Revenue by week, for the finance export.
+    config:
+      group: operations
+    query_params:
+      metrics:
+        - revenue
+        - average_order_value
+      group_by:
+        - "TimeDimension('order__ordered_at', 'week')"
+    exports:
+      - name: weekly_revenue
+        config:
+          export_as: table
+          schema: exports

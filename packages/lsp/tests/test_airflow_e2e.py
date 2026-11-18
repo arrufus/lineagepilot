@@ -14,11 +14,13 @@ from conftest import REPO, age_sources
 from lineagepilot_core.cli import main as cli_main
 from lineagepilot_core.gitdiff import git_changes
 from lineagepilot_core.project import read_project
-from lineagepilot_core.readers.airflow.reader import READER
+from lineagepilot_core.readers.registry import reader
 from lsprotocol import types
 
 from lineagepilot_lsp import protocol
-from lineagepilot_lsp.reading import ReaderRunner, ReaderStage
+from lineagepilot_lsp.readers import ReaderRunner, ReaderStage
+
+AIRFLOW = reader("airflow")
 
 SHOP = REPO / "fixtures" / "impact-shop"
 RENAME = SHOP / "changes" / "rename-order-total"
@@ -122,10 +124,11 @@ async def test_a_changed_dag_file_is_read_again(start, shop):
     assert BASH not in {t["id"] for d in result["dags"] for t in d["tasks"]}
 
 
-async def test_the_annotation_file_is_read_again(start, shop):
+@pytest.mark.parametrize("name", ["lineage.yml", "airflow.yml"])
+async def test_the_annotation_file_is_read_again(start, shop, name):
     client, status = await ready(start, shop)
     generation = status["airflow"]["generation"]
-    annotation = shop / ".lineagepilot" / "airflow.yml"
+    annotation = shop / ".lineagepilot" / name
     annotation.parent.mkdir()
     annotation.write_text(
         "pipelines:\n"
@@ -143,6 +146,18 @@ async def test_the_annotation_file_is_read_again(start, shop):
     task = next(t for d in result["dags"] for t in d["tasks"] if t["id"] == "airflow:loader.load")
     assert task["confidence"] == "declared" and task["owner"] == "ingest"
     assert task["origins"] == ["annotation"]
+
+
+async def test_with_both_files_the_status_says_which_was_ignored(start, shop):
+    folder = shop / ".lineagepilot"
+    folder.mkdir()
+    consumer = f"{{id: tableau:gl, consumes: [{ORDERS}]}}"
+    (folder / "lineage.yml").write_text(f"consumers:\n  - {consumer}\n")
+    (folder / "airflow.yml").write_text("path_map:\n  /app: .\n")
+    _, status = await ready(start, shop)
+    assert status["airflow"]["summary"]["problems"] == [
+        ".lineagepilot/airflow.yml was ignored: .lineagepilot/lineage.yml is read instead"
+    ]
 
 
 async def test_a_new_manifest_is_scanned_with_its_own_selectors(start, shop):
@@ -287,7 +302,7 @@ class TestTheScanner:
     async def test_an_interpreter_that_cannot_start_is_a_failure_with_words(self, tmp_path):
         changes = []
         scanner = ReaderRunner(
-            READER,
+            AIRFLOW,
             self.project(tmp_path),
             tmp_path,
             ["dags"],
@@ -302,9 +317,9 @@ class TestTheScanner:
 
     async def test_a_reader_that_dies_is_a_failure_with_words(self, tmp_path):
         scanner = ReaderRunner(
-            READER, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
+            AIRFLOW, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
         )
-        scanner.request_body = lambda output: {"task": "read", "tool": "airflow"}  # no paths
+        scanner.request_body = lambda output: {"task": "read"}  # no tool: the reader fails
         scanner.start("k")
         await scanner.wait()
         assert scanner.stage is ReaderStage.FAILED and "KeyError" in scanner.message
@@ -312,7 +327,7 @@ class TestTheScanner:
     async def test_a_later_scan_overtakes_an_earlier_one(self, tmp_path):
         calls = []
         scanner = ReaderRunner(
-            READER,
+            AIRFLOW,
             self.project(tmp_path),
             tmp_path,
             ["dags"],
@@ -330,7 +345,7 @@ class TestTheScanner:
 
     async def test_stop_kills_it(self, tmp_path):
         scanner = ReaderRunner(
-            READER, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
+            AIRFLOW, self.project(tmp_path), tmp_path, ["dags"], tmp_path / "out", lambda: None
         )
         scanner.start("a")
         await scanner.stop()

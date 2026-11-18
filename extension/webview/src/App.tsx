@@ -4,7 +4,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Columns3, X } from 'lucide-react';
 
-import type { GraphNode, ImpactResult, NodeKind, NodeResult } from '../../src/protocol';
+import type { GraphNode, ImpactResult, NodeResult } from '../../src/protocol';
 import { DEFAULT_SETTINGS, type Focus, type Granularity, type ViewSettings } from '../../src/webviewMessages';
 import DetailPanel from './components/DetailPanel';
 import ImpactPanel from './components/ImpactPanel';
@@ -12,7 +12,7 @@ import LineageGraph from './components/LineageGraph';
 import SettingsPanel from './components/SettingsPanel';
 import Toolbar, { type Direction } from './components/Toolbar';
 import { fromResult, kindsIn, merge, neighbours, type ViewGraph } from './graph/model';
-import { KIND_LABELS, plural } from './labels';
+import { kindLabel, plural } from './labels';
 import type { Transport } from './transport';
 
 export const DEFAULT_DEPTH = 2;
@@ -38,7 +38,7 @@ export default function App({ transport }: { transport: Transport }) {
   const [settings, setSettings] = useState<ViewSettings>(DEFAULT_SETTINGS);
   const [depth, setDepth] = useState(restored?.depth ?? DEFAULT_DEPTH);
   const [direction, setDirection] = useState<Direction>(restored?.direction ?? 'both');
-  const [hiddenKinds, setHiddenKinds] = useState<Set<NodeKind>>(new Set());
+  const [hiddenKinds, setHiddenKinds] = useState<Set<string>>(new Set());
   const [search, setSearch] = useState('');
   const [view, setView] = useState<ViewGraph | null>(null);
   const [loading, setLoading] = useState(false);
@@ -233,7 +233,7 @@ export default function App({ transport }: { transport: Transport }) {
               </button>
             </header>
             {picker.columns.length === 0
-              ? <p className="lp-muted">This {KIND_LABELS[picker.node.kind]} has no known columns. Run dbt docs generate to read them from the warehouse.</p>
+              ? <p className="lp-muted">This {kindLabel(picker.node)} has no known columns. Run dbt docs generate to read them from the warehouse.</p>
               : (
                 <ul className="lp-list">
                   {picker.columns.map((c) => (

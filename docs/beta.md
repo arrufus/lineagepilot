@@ -41,7 +41,7 @@ Otherwise pivot, for example to a CI-only product on the same core, or stop ([im
   - it is a closed beta, for four weeks, from a named start date;
   - it runs locally: no account, no server, no warehouse connection, and no network connections at all;
   - you will ask for a three-minute check-in once a week, and for bugs and ideas as issues;
-  - what it does not do yet. The Airflow scanner is honest but often cannot tell: on repositories it had never seen, it linked 17 of 106 tasks and listed most of the rest as unknown ([corpus/README.md](../corpus/README.md)). Say this up front. A team that expects every task linked will be disappointed in week one.
+  - what it does not do yet. The Airflow scanner is honest but often cannot tell: on repositories it had never seen, it linked 17 of 106 tasks and listed most of the rest as unknown ([corpus/airflow/README.md](../corpus/airflow/README.md)). Say this up front. A team that expects every task linked will be disappointed in week one.
 
 ## Inviting a team
 

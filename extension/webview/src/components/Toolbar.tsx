@@ -1,11 +1,10 @@
 // The graph's controls (task 3.3): model or column mode, depth, direction, layout, filters by
-// node kind, and a search that highlights matching nodes.
+// node kind and tool (task 7.6), and a search that highlights matching nodes.
 
 import { Columns3, LocateFixed, Network, RefreshCw, Search, Settings } from 'lucide-react';
 
-import type { NodeKind } from '../../../src/protocol';
 import type { Granularity } from '../../../src/webviewMessages';
-import { KIND_LABELS } from '../labels';
+import type { KindFilter } from '../graph/model';
 
 export type Direction = 'both' | 'upstream' | 'downstream';
 export const MAX_DEPTH = 10;
@@ -16,14 +15,14 @@ export interface ToolbarProps {
   depth: number;
   direction: Direction;
   layout: 'LR' | 'TB';
-  kinds: NodeKind[];
-  hiddenKinds: Set<NodeKind>;
+  kinds: KindFilter[];
+  hiddenKinds: Set<string>;
   search: string;
   onMode(mode: Granularity): void;
   onDepth(depth: number): void;
   onDirection(direction: Direction): void;
   onLayout(layout: 'LR' | 'TB'): void;
-  onToggleKind(kind: NodeKind): void;
+  onToggleKind(key: string): void;
   onSearch(search: string): void;
   onRefresh(): void;
   onRecentre(): void;
@@ -71,9 +70,9 @@ export default function Toolbar(props: ToolbarProps) {
         <fieldset className="lp-kinds">
           <legend>Show</legend>
           {kinds.map((kind) => (
-            <label key={kind}>
-              <input type="checkbox" checked={!hiddenKinds.has(kind)} onChange={() => props.onToggleKind(kind)} />
-              {KIND_LABELS[kind]}
+            <label key={kind.key}>
+              <input type="checkbox" checked={!hiddenKinds.has(kind.key)} onChange={() => props.onToggleKind(kind.key)} />
+              {kind.label}
             </label>
           ))}
         </fieldset>

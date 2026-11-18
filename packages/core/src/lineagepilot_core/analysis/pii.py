@@ -51,7 +51,7 @@ _MASKING_INDICATORS = (
 CONSUMPTION_LAYERS = frozenset({"gold", "marts", "mart", "consumption", "reporting", "analytics"})
 
 _SQL_KINDS = frozenset({NodeKind.MODEL, NodeKind.SNAPSHOT})
-# What uses a node with PII downstream: an exposure, a task that runs it, or a consumer
+# What uses a node that holds PII, outside the models: exposures, tasks and consumers
 _USER_KINDS = frozenset({NodeKind.EXPOSURE, NodeKind.TASK, NodeKind.CONSUMER})
 
 
@@ -146,7 +146,10 @@ class PIIIndex:
 def pii_index(graph: MetadataGraph) -> PIIIndex:
     """Direct indicators, then the flow of PII along every lineage path."""
     index = PIIIndex()
-    direct = {cid: c for cid, c in graph.columns.items() if c.pii_type and _dbt(graph, c)}
+    # Indicators are about dbt's columns: the flow stops at a consumer's column. Which consumers
+    # use a node with PII is in ``PIIExposureReport.consumers``, at the level of the node.
+    in_dbt = {cid for cid, c in graph.columns.items() if graph.nodes[c.node_id].kind in DBT_KINDS}
+    direct = {cid: c for cid, c in graph.columns.items() if c.pii_type and cid in in_dbt}
     # column -> the direct, unmasked PII origins that reach it
     origins: dict[str, set[str]] = {}
     queue: deque[str] = deque()
@@ -160,9 +163,9 @@ def pii_index(graph: MetadataGraph) -> PIIIndex:
         cid = queue.popleft()
         carried = origins[cid]
         for step in steps(graph, cid, Direction.DOWNSTREAM, Granularity.COLUMN):
+            if step.ref not in in_dbt:
+                continue
             target = graph.columns[step.ref]
-            if not _dbt(graph, target):
-                continue  # a consumer's column reads PII; it is not an indicator (D-9)
             if is_masked(target):
                 origins.setdefault(step.ref, set())  # reached, but the flow stops here
                 continue
@@ -210,11 +213,6 @@ def pii_index(graph: MetadataGraph) -> PIIIndex:
     index.indicators = dict(sorted(index.indicators.items()))
     index.unknown = _unknown_downstream(graph, index.nodes())
     return index
-
-
-def _dbt(graph: MetadataGraph, column: Column) -> bool:
-    """PII indicators are on the columns of dbt nodes only, never a pipeline's or consumer's."""
-    return graph.nodes[column.node_id].kind in DBT_KINDS
 
 
 def _types(direct: dict[str, Column], origins: Iterable[str]) -> set[str]:

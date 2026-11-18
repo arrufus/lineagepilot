@@ -11,14 +11,14 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from conftest import REPO, age_sources
+from conftest import REPO, age_sources, validate_v1
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.cli import main as cli_main
 from lineagepilot_core.gitdiff import git_changes
 from lineagepilot_core.project import read_project
 from pygls.exceptions import JsonRpcException
 
-from lineagepilot_lsp import protocol, worker
+from lineagepilot_lsp import legacy, protocol, worker
 from lineagepilot_lsp.server import LineagePilotServer, Options
 
 S = "model.impact_shop"
@@ -67,8 +67,8 @@ def as_params(root: Path, base: str = "main", manifest: str | None = None) -> di
     }
 
 
-async def ready(start, root):
-    client, _ = await start(root=root)
+async def ready(start, root, versions: list[int] | None = None):
+    client, _ = await start(root=root, options={"protocolVersions": versions} if versions else None)
     status = await client.wait_for_update(
         lambda u: not u["indexing"] and u["airflow"]["stage"] in ("done", "failed")
     )
@@ -101,8 +101,9 @@ async def test_the_acceptance_scenario_end_to_end(start, shop):
 
 
 async def test_the_panel_and_the_cli_produce_identical_output(start, shop):
-    # Exit evidence for task 4.5: the same repository through the server and the command line
-    client = await ready(start, shop)
+    # Exit evidence for task 4.5: the same repository through the server and the command line,
+    # which writes the newest protocol's shape
+    client = await ready(start, shop, [2])
     panel = await reviewed(client, as_params(shop))
     out = io.StringIO()
     assert (
@@ -114,6 +115,21 @@ async def test_the_panel_and_the_cli_produce_identical_output(start, shop):
     assert cli_main(args, out) == 0
     headless = json.loads(out.getvalue())
     assert {k: v for k, v in panel.items() if k != "locations"} == headless
+
+
+async def test_a_protocol_1_client_gets_protocol_1s_review(start, shop):
+    """Task 7.5: the same review, as a client built before protocol 2 can read it."""
+    client = await ready(start, shop, [1])
+    panel = await reviewed(client, as_params(shop))
+    validate_v1("ReviewResult", panel)
+    out = io.StringIO()
+    args = ["review", "--project-dir", str(shop), "--base", "main", "--no-cache", "--json"]
+    assert cli_main(args, out) == 0
+    expected = legacy.answer("lineage/reviewChanges", json.loads(out.getvalue()))
+    assert {k: v for k, v in panel.items() if k != "locations"} == expected
+    group = next(n for n in panel["impacted"] if n["id"] == "airflow:daily_marts.marts")
+    assert group["kind"] == "airflow_task" and "tool" not in group and group["airflow"]["dag"]
+    assert panel["summary"]["impacted"]["airflow_task"] == 4
 
 
 async def test_the_result_is_the_same_on_every_run_and_in_any_order(start, shop):

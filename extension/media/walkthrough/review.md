@@ -14,4 +14,4 @@ The review compares what the compiled SQL selects, so run `dbt compile` after an
 
 1. Open **Source Control**, choose **Initialize Repository**, and commit everything. The sample's `.gitignore` keeps `target/` out.
 2. **Apply the Sample Change** renames `order_total` to `total_usd` in `models/marts/orders.sql` and puts the manifest `dbt compile` would write in `target/`.
-3. **Review Changes**. The rename reaches four models, the dashboard and four Airflow tasks, with their owners. The unparseable model and the DAG that builds tasks in a loop are under Unknowns.
+3. **Review Changes**. The rename reaches four models, the dashboard, the metrics and the saved query of the dbt semantic layer, and four Airflow tasks, with their owners. The unparseable model and the DAG that builds tasks in a loop are under Unknowns.

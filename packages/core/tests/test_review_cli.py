@@ -24,7 +24,7 @@ from lineagepilot_core.gitdiff import GitError, git_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
 from lineagepilot_core.readers.airflow.link import link_airflow
-from lineagepilot_core.readers.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.airflow.scan import scan_airflow
 
 pytestmark = pytest.mark.skipif(shutil.which("git") is None, reason="needs git")
 
@@ -266,7 +266,7 @@ class TestAirflowInTheCommands:
     def test_no_airflow_says_so(self, repo):
         apply_rename(repo)
         code, text = run("--project-dir", str(repo), "--base", "main", "--no-airflow")
-        assert code == EXIT_OK and "Airflow DAGs were not analysed: --no-airflow was given" in text
+        assert code == EXIT_OK and "#### Airflow\n\nNot analysed: --no-airflow was given." in text
         assert "`daily_marts`" not in text
 
     def test_dag_folders_and_the_workspace_can_be_named(self, repo):
@@ -287,7 +287,7 @@ class TestAirflowInTheCommands:
         out = io.StringIO()
         code = main(["impact", "orders", "--project-dir", str(repo), "--json"], out)
         data = json.loads(out.getvalue())
-        assert code == EXIT_OK and data["counts"]["airflow_task"] >= 3
+        assert code == EXIT_OK and data["counts"]["task"] >= 3
 
     def test_the_airflow_command_as_text_and_json(self, repo):
         out = io.StringIO()

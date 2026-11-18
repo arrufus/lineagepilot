@@ -118,13 +118,19 @@ def test_the_samples_walkthrough_gives_the_review_its_readme_promises(tmp_path):
     out = io.StringIO()
     main(["review", "--project-dir", str(root), "--no-cache", "--json"], out=out)
     review = json.loads(out.getvalue())
-    assert review["summary"]["impacted"] == {"airflow_task": 4, "exposure": 1, "model": 4}
+    # The CLI writes protocol 2's kinds: an Airflow task is a task, with its tool on the row
+    assert review["summary"]["impacted"] == {"consumer": 6, "exposure": 1, "model": 4, "task": 4}
+    assert {n["tool"] for n in review["impacted"] if n["kind"] == "task"} == {"airflow"}
+    # The semantic layer on the mart: the metric that only counts orders is at model level
+    semantic = {n["name"]: n["reach"] for n in review["impacted"] if n["kind"] == "consumer"}
+    assert semantic["revenue"] == "column" and semantic["order_count"] == "model"
     assert review["summary"]["unknowns"] == 2
     [orders] = review["changedNodes"]
     assert orders["columns"]["removed"] == ["order_total"] and orders["columns"]["added"] == ["total_usd"]
     assert {u["subject"] for u in review["unknowns"]} == {"airflow:backfill", "model.impact_shop.broken_report"}
     readme = (ROOT / "sample-extras" / "README.md").read_text(encoding="utf-8")
-    assert "reaches four models, the dashboard and four Airflow tasks" in readme
+    assert "reaches four models, the dashboard, the metrics whose measures and filters read" in readme
+    assert "`order_count` counts orders and reads no renamed column" in readme
 
 
 # The third-party notices (task 6.2)

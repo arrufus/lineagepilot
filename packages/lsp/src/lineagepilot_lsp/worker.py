@@ -15,11 +15,13 @@ parse as the project's own: with ``"task": "baseline"`` in the request this repo
 
     {"event": "baseline", "baseline": {...}}   what the review needs from that manifest
 
-A reader of another tool runs the same way, for what it costs to read the manifest: a DAG scan, for
-Airflow. With ``"task": "read"`` and the reader's ``"tool"`` it writes what it found to ``output``,
-which can be large, and reports
+A reader runs the same way, for what it costs to read the manifest. With ``"task": "read"`` and
+the reader's ``"tool"``, it writes what it read to ``output``, which can be large, and reports
 
     {"event": "read", "tool": ..., "path": ...}
+
+The reader is looked up by its tool in ``lineagepilot_core.readers.registry``, never named by
+module: a request can only choose among the readers that exist.
 
 stdout carries nothing else. Logging goes to stderr, which the server forwards.
 """
@@ -36,7 +38,7 @@ from typing import Any, TextIO
 
 from lineagepilot_core.analysis.baseline import load_baseline_manifest
 from lineagepilot_core.indexer import DEFAULT_MAX_ARTIFACT_BYTES, IndexResult, index_project
-from lineagepilot_core.readers.registry import reader_for
+from lineagepilot_core.readers.registry import reader
 from lineagepilot_core.snapshot import SnapshotCache
 
 from lineagepilot_lsp import limits
@@ -102,15 +104,14 @@ def describe(result: IndexResult) -> dict[str, Any]:
     }
 
 
-def _write_read(request: dict[str, Any]) -> None:
-    reader = reader_for(request["tool"])
-    found = reader.read(
+def _write_scan(request: dict[str, Any]) -> None:
+    scan = reader(request["tool"]).read(
         request["projectDir"], request["workspace"], request["paths"], request.get("manifest")
     )
     output = Path(request["output"])
     output.parent.mkdir(parents=True, exist_ok=True)
     temporary = output.with_suffix(".tmp")
-    temporary.write_text(json.dumps(found), encoding="utf-8")
+    temporary.write_text(json.dumps(scan), encoding="utf-8")
     os.replace(temporary, output)
 
 
@@ -152,7 +153,7 @@ def main(request: dict[str, Any], out: TextIO | None = None) -> int:
 
     if request.get("task") == "read":
         try:
-            _write_read(request)
+            _write_scan(request)
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             emit({"event": "failed", "message": f"{type(e).__name__}: {e}"})

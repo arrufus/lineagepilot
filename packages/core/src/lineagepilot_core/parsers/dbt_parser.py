@@ -15,6 +15,8 @@ fixes spike S2 called for (``spikes/s2-parse-perf/README.md``):
   has (finding 4c), and its column lookup was the O(columns x nodes) loop that broke the
   cold-index budget (suspicion 1). Column lineage comes from compiled SQL (task 1.9).
 - Dependencies that do not resolve to a parsed node become ``RawUnresolved`` records.
+- The dbt semantic layer is read too (task 7.8): semantic models, metrics and saved queries, with
+  what each reads (``dbt_semantic.py``).
 - Everything read from the manifest is type-checked first: the workspace is untrusted
   input (design section 10), and one malformed field should cost one node at most.
 """
@@ -29,7 +31,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from lineagepilot_core.parsers import _json
+from lineagepilot_core.parsers import _json, dbt_semantic
 from lineagepilot_core.parsers.base import (
     MetadataParser,
     ParseErrorSeverity,
@@ -44,6 +46,7 @@ from lineagepilot_core.parsers.base import (
     source_sha256,
 )
 from lineagepilot_core.parsers.dbt_config import DbtParserConfig
+from lineagepilot_core.parsers.dbt_semantic import SEMANTIC_KEYS
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +56,16 @@ SUPPORTED_SCHEMA_VERSION = 12
 # Lineage nodes read from manifest["nodes"]. Tests are read only as evidence of testing.
 NODE_TYPES = ("model", "seed", "snapshot")
 # Every resource type that can become a RawNode, so other prefixes are "not indexed".
-INDEXED_PREFIXES = ("model.", "seed.", "snapshot.", "source.", "exposure.")
+INDEXED_PREFIXES = (
+    "model.",
+    "seed.",
+    "snapshot.",
+    "source.",
+    "exposure.",
+    "semantic_model.",
+    "metric.",
+    "saved_query.",
+)
 
 _SCHEMA_URL = re.compile(r"/manifest/v(\d+)\.json$")
 
@@ -121,7 +133,7 @@ def structural_problems(manifest: Any, support: SchemaSupport) -> list[str]:
     ]
     problems += [
         f"'{key}' is not an object"
-        for key in ("sources", "exposures", "parent_map")
+        for key in ("sources", "exposures", "parent_map", *SEMANTIC_KEYS.values())
         if key in manifest and not isinstance(manifest[key], dict)
     ]
     if problems or support in (SchemaSupport.SUPPORTED, SchemaSupport.OLDER):
@@ -284,6 +296,7 @@ class DbtParser(MetadataParser):
         self._process_nodes(manifest, _dict(catalog.get("nodes")), parser_config, tests, result)
         self._process_sources(manifest, _dict(catalog.get("sources")), parser_config, tests, result)
         self._process_exposures(manifest, parser_config, result)
+        self._process_semantic_layer(manifest, result)
         self._build_lineage(result)
         self._extract_domains(result)
         self._extract_tags(result)
@@ -441,6 +454,50 @@ class DbtParser(MetadataParser):
                 )
                 continue
             result.nodes.append(raw)
+
+    def _process_semantic_layer(self, manifest: dict[str, Any], result: ParseResult) -> None:
+        """Semantic models, metrics and saved queries, and what each reads."""
+        for resource_type, key in SEMANTIC_KEYS.items():
+            for node_id, entry in _dict(manifest.get(key)).items():
+                try:
+                    entry = _require_dict(entry)
+                    meta = _meta(entry)
+                    config = _dict(entry.get("config"))
+                    depends_on = _deps(entry)
+                    raw = RawNode(
+                        unique_id=node_id,
+                        resource_type=resource_type,
+                        name=_require_str(entry, "name"),
+                        package_name=_str(entry.get("package_name")),
+                        domain_name=self._infer_domain(entry, meta),
+                        description=_str(entry.get("description")),
+                        depends_on=depends_on,
+                        owner=_owner(meta),
+                        group=_str(entry.get("group")) or _str(config.get("group")),
+                        meta=meta,
+                        tags=_str_list(entry.get("tags")),
+                        config=config,
+                        original_file_path=_str(entry.get("original_file_path")),
+                        properties={"label": _str(entry.get("label"))},
+                    )
+                    if resource_type == "semantic_model":
+                        result.semantic_models.append(
+                            dbt_semantic.semantic_model(node_id, entry, depends_on)
+                        )
+                    elif resource_type == "metric":
+                        read = dbt_semantic.metric(node_id, entry)
+                        raw.properties["type"] = read.metric_type
+                        result.metrics.append(read)
+                    else:
+                        read_query = dbt_semantic.saved_query(node_id, entry)
+                        raw.properties["exports"] = read_query.exports
+                        result.saved_queries.append(read_query)
+                except Exception as e:  # untrusted input: lose one node, never the index
+                    result.add_error(
+                        f"Error processing {resource_type} {node_id}: {e}", location=node_id
+                    )
+                    continue
+                result.nodes.append(raw)
 
     def _node_to_raw(
         self, node_id: str, node: dict[str, Any], config: DbtParserConfig, tests: TestIndex

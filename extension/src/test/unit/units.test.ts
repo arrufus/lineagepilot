@@ -8,7 +8,7 @@ import { RestartPolicy } from '../../backoff';
 import { errorCode, isNotReady, parseNotification, ProtocolError, request } from '../../lineage';
 import { projectOf, projectsFrom } from '../../projects';
 import * as protocol from '../../protocol';
-import { age, describe as describeProject, statusBar } from '../../status';
+import { age, describe as describeProject, readersKey, statusBar } from '../../status';
 import { which } from '../../which';
 
 const EXAMPLES = JSON.parse(fs.readFileSync(
@@ -60,8 +60,13 @@ function status(overrides: Partial<protocol.Status> = {}): protocol.Status {
   return { ...base, ...overrides };
 }
 
+const AIRFLOW_READ: protocol.ReaderSummary = {
+  tool: 'airflow', analysed: false, reason: 'the DAG files were not analysed', paths: [], files: 0, pipelines: 0, tasks: 0,
+  consumers: 0, links: 0, unknowns: 0, opaqueTasks: 0, problems: [],
+};
+
 const EXAMPLE_STATUS: protocol.Status = {
-  protocolVersion: 1,
+  protocolVersion: 2,
   server: { version: '0.1.0', python: '3.13.3', executable: '/py', pid: 1, isolated: true, modules: {} },
   project: { root: '/w/shop', name: 'shop', problems: [] },
   trusted: true,
@@ -84,6 +89,7 @@ const EXAMPLE_STATUS: protocol.Status = {
   indexedAt: null,
   rules: { pack: null, packLoaded: false, restricted: false, problems: [], findings: 0, score: null, coverage: null },
   airflow: { stage: 'done', generation: 1, summary: { analysed: false, reason: 'the DAG files were not analysed', dagFiles: 0, dags: 0, tasks: 0, links: 0, unknowns: 0, opaqueTasks: 0, folders: [], problems: [] } },
+  readers: [{ tool: 'airflow', stage: 'done', generation: 1, message: null, summary: AIRFLOW_READ }],
 };
 
 suite('status bar', () => {
@@ -116,6 +122,16 @@ suite('status bar', () => {
     assert.match(one({ root: '/w', problem: 'no Python 3.10+ found' }).text, /\$\(error\) Lineage: no Python/);
     const undated = status({ artifacts: { manifest: null, catalog: null } });
     assert.equal(one({ root: '/w', status: undated }).text, '$(type-hierarchy) Lineage: 1,204 nodes');
+  });
+
+  test("one key for every reader's read, which changes when any starts or ends (task 7.6)", () => {
+    const reading = (tool: string, generation: number, stage: protocol.ReaderStatus['stage']) =>
+      ({ tool, stage, generation, message: null, summary: { ...AIRFLOW_READ, tool } });
+    assert.equal(readersKey(status()), 'airflow:1:done');
+    assert.equal(readersKey(status({ readers: [reading('airflow', 2, 'scanning'), reading('dagster', 1, 'done')] })),
+      'airflow:2:scanning,dagster:1:done');
+    assert.equal(readersKey(status({ readers: undefined })), '');
+    assert.equal(readersKey(undefined), '');
   });
 
   test('several projects add up, and the worst state shows', () => {
@@ -170,9 +186,20 @@ suite('protocol', () => {
 
   test('every method names its params and result', () => {
     assert.deepEqual(Object.keys(protocol.requests).sort(), [
-      'lineage/airflow',
-      'lineage/export', 'lineage/graph', 'lineage/impact', 'lineage/node', 'lineage/nodesForFile', 'lineage/refresh', 'lineage/reviewChanges', 'lineage/status',
+      'lineage/airflow', 'lineage/consumers',
+      'lineage/export', 'lineage/graph', 'lineage/impact', 'lineage/node', 'lineage/nodesForFile', 'lineage/pipelines',
+      'lineage/refresh', 'lineage/reviewChanges', 'lineage/status',
     ]);
+  });
+
+  test('each method says which protocol versions have it (task 7.5)', () => {
+    assert.deepEqual([...protocol.PROTOCOL_VERSIONS], [1, 2]);
+    const versions = (method: keyof typeof protocol.requests) =>
+      [protocol.requests[method].since, protocol.requests[method].until];
+    assert.deepEqual(versions('lineage/airflow'), [1, 2]);
+    assert.deepEqual(versions('lineage/pipelines'), [2, 2]);
+    assert.deepEqual(versions('lineage/consumers'), [2, 2]);
+    assert.deepEqual(versions('lineage/graph'), [1, 2]);
   });
 });
 

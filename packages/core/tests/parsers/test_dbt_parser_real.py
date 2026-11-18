@@ -16,6 +16,8 @@ from support import REAL_PROJECTS, project_config, raw_manifest
 from lineagepilot_core.parsers import DbtParser, ParseResult, SchemaSupport
 
 INDEXED_NODE_TYPES = {"model", "seed", "snapshot"}
+# Read from their own keys, as sources and exposures are (task 7.8)
+TOP_LEVEL_KEYS = ("sources", "exposures", "semantic_models", "metrics", "saved_queries")
 
 
 def parse(name: str, catalog: bool = True) -> ParseResult:
@@ -29,11 +31,17 @@ def project(request: pytest.FixtureRequest) -> tuple[str, dict[str, Any], ParseR
 
 
 def expected_node_ids(manifest: dict[str, Any]) -> set[str]:
-    return (
-        {uid for uid, n in manifest["nodes"].items() if n["resource_type"] in INDEXED_NODE_TYPES}
-        | set(manifest["sources"])
-        | set(manifest["exposures"])
-    )
+    ids = {uid for uid, n in manifest["nodes"].items() if n["resource_type"] in INDEXED_NODE_TYPES}
+    for key in TOP_LEVEL_KEYS:
+        ids |= set(manifest.get(key, {}))
+    return ids
+
+
+def entry_of(manifest: dict[str, Any], uid: str) -> dict[str, Any]:
+    for key in ("nodes", *TOP_LEVEL_KEYS):
+        if uid in manifest.get(key, {}):
+            return manifest[key][uid]
+    return {}
 
 
 def test_parses_cleanly_as_a_supported_schema(project):
@@ -59,7 +67,7 @@ def test_edges_match_depends_on_exactly(project):
     indexed = expected_node_ids(manifest)
     expected = set()
     for uid in indexed:
-        entry = manifest["nodes"].get(uid) or manifest["exposures"].get(uid) or {}
+        entry = entry_of(manifest, uid)
         expected |= {(dep, uid) for dep in entry.get("depends_on", {}).get("nodes", [])}
     assert {(e.upstream_id, e.downstream_id) for e in result.edges} == expected
     assert len(result.edges) == len(expected)
@@ -215,13 +223,23 @@ def test_catalog_supplies_column_types():
 
 
 def test_fusion_and_core_agree_on_the_graph():
-    """Same project, two engines: same nodes, edges and tests (S2, Fusion outcome)."""
+    """Same project, two engines: same nodes, edges and tests (S2, Fusion outcome). Fusion 2.0.9
+    leaves the semantic layer out of the manifest it writes for dbt compile: its lists are empty,
+    so with Fusion the review has no metrics to list (task 7.8)."""
     core, fusion = parse("pilot-1.12", catalog=False), parse("pilot-fusion-2.0")
+    semantic = {"semantic_model", "metric", "saved_query"}
+    assert {n.resource_type for n in fusion.nodes} & semantic == set()
+    assert fusion.semantic_models == fusion.metrics == fusion.saved_queries == []
 
     def shape(r: ParseResult) -> tuple[Any, ...]:
+        dbt = {n.unique_id for n in r.nodes if n.resource_type not in semantic}
         return (
-            sorted((n.unique_id, n.test_count) for n in r.nodes),
-            sorted((e.upstream_id, e.downstream_id) for e in r.edges),
+            sorted((n.unique_id, n.test_count) for n in r.nodes if n.unique_id in dbt),
+            sorted(
+                (e.upstream_id, e.downstream_id)
+                for e in r.edges
+                if {e.upstream_id, e.downstream_id} <= dbt
+            ),
         )
 
     assert shape(core) == shape(fusion)

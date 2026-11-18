@@ -9,8 +9,8 @@ import * as vscode from 'vscode';
 
 import type { ReviewResult } from '../../protocol';
 import type { ReviewPanel } from '../../reviewPanel';
-import type { DagItem, TaskItem } from '../../views/airflowTree';
-import { api, ran, readyServer, root, until } from '../integration/helpers';
+import type { PipelineItem, TaskItem } from '../../views/pipelinesTree';
+import { api, ran, readerOf, readyServer, root, until } from '../integration/helpers';
 
 const S = 'model.impact_shop';
 
@@ -48,13 +48,13 @@ suite('acceptance: rename a mart column', () => {
     overlay(path.join(root(), 'changes', 'rename-order-total'), root());
     await until('the server to index the new manifest', 120_000, () => {
       const status = server.status;
-      return status.generation > generation && !status.indexing && status.columnLineage === 'done' && status.airflow.stage === 'done' ? status : undefined;
+      return status.generation > generation && !status.indexing && status.columnLineage === 'done' && readerOf(status)?.stage === 'done' ? status : undefined;
     });
 
     panel = (await vscode.commands.executeCommand<ReviewPanel>('lineagePilot.reviewChanges', root()))!;
     review = await until('the review of the rename', 90_000, async () => {
       const latest = panel.latest;
-      if (latest?.airflow.analysed && latest.changedNodes.some((n) => n.columns.removed.length > 0)) {
+      if (latest?.pipelines?.find((r) => r.tool === 'airflow')?.analysed && latest.changedNodes.some((n) => n.columns.removed.length > 0)) {
         return latest;
       }
       await panel.run();
@@ -90,7 +90,23 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(exposure?.owner, 'Revenue Analytics');
     const owners = new Map(review.owners.map((o) => [o.owner, o.nodes]));
     assert.deepEqual(owners.get('growth-analytics'), [`${S}.customer_revenue`]);
-    assert.deepEqual(owners.get('operations'), [`${S}.order_counts`]);
+    // A dbt group owns a model and the semantic layer's saved query
+    assert.deepEqual(owners.get('operations'), [`${S}.order_counts`, 'saved_query.impact_shop.weekly_revenue']);
+  });
+
+  test('the review lists the metric and the saved query that use the column, with their owners', () => {
+    const revenue = review.impacted.find((n) => n.id === 'metric.impact_shop.revenue');
+    assert.deepEqual([revenue?.kind, revenue?.tool, revenue?.subkind], ['consumer', 'dbt_semantic', 'metric']);
+    // Reached through the measure it reads
+    assert.deepEqual([revenue?.reach, revenue?.columns], ['column', ['order_total']]);
+    assert.equal(revenue?.owner, 'finance-analytics');
+    const query = review.impacted.find((n) => n.id === 'saved_query.impact_shop.weekly_revenue');
+    assert.equal(query?.owner, 'operations');
+    assert.deepEqual(query?.exports, ['exports.weekly_revenue']);
+    // The metric that only counts orders reads no renamed column
+    assert.equal(review.impacted.find((n) => n.id === 'metric.impact_shop.order_count')?.reach, 'model');
+    assert.match(review.markdown, /#### Semantic layer \(6\)/);
+    assert.match(review.markdown, /\| `revenue` \(metric\) \| Field `order_total` \|/);
   });
 
   test('a deliberately unparseable model appears under Unknowns', () => {
@@ -100,13 +116,14 @@ suite('acceptance: rename a mart column', () => {
   });
 
   test('the review lists the Airflow task and its owner', () => {
-    assert.equal(review.airflow.analysed, true);
+    assert.deepEqual(review.pipelines?.map((r) => [r.tool, r.analysed]), [['airflow', true]]);
     const group = review.impacted.find((n) => n.id === 'airflow:daily_marts.marts');
-    assert.equal(group?.kind, 'airflow_task');
+    // Protocol 2's words (D-9): a task, of Airflow, that Airflow calls a task group
+    assert.deepEqual([group?.kind, group?.tool, group?.subkind], ['task', 'airflow', 'task_group']);
     assert.equal(group?.owner, 'data-platform');
-    assert.equal(group?.airflow?.dag, 'daily_marts');
-    assert.deepEqual(group?.airflow?.how, ['dbt, through Cosmos']);
-    assert.ok(group?.airflow?.tasks.includes('marts.orders.run'));
+    assert.equal(group?.pipeline?.pipeline, 'daily_marts');
+    assert.deepEqual(group?.pipeline?.how, ['dbt, through Cosmos']);
+    assert.ok(group?.pipeline?.tasks.includes('marts.orders.run'));
     const owners = new Map(review.owners.map((o) => [o.owner, o.nodes]));
     assert.ok(owners.get('data-platform')?.includes('airflow:daily_marts.marts'));
     assert.match(review.markdown, /\| `daily_marts` \| `marts`\. Derived: /);
@@ -120,7 +137,7 @@ suite('acceptance: rename a mart column', () => {
 
   test('a task that runs after the changed one is listed too', () => {
     const after = review.impacted.find((n) => n.id === 'airflow:daily_marts.notify_finance');
-    assert.deepEqual(after?.airflow?.after, ['marts']);
+    assert.deepEqual(after?.pipeline?.after, ['marts']);
   });
 
   test('a task created in a loop is an unknown at its call site', () => {
@@ -138,25 +155,27 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(editor?.selection.active.line, 21);
   });
 
-  test('the Airflow view shows the DAGs and tasks of the open model', async () => {
-    const { airflowTree } = await api();
-    await airflowTree.showFile(vscode.Uri.file(path.join(root(), 'models', 'marts', 'order_counts.sql')));
+  test('the Pipelines view shows the DAGs and tasks of the open model, under Airflow', async () => {
+    const { pipelinesTree } = await api();
+    await pipelinesTree.showFile(vscode.Uri.file(path.join(root(), 'models', 'marts', 'order_counts.sql')));
     // Type-only imports and .type: these tests load out/, and the extension runs from its bundle
+    const [airflow] = pipelinesTree.items;
+    assert.equal(pipelinesTree.getTreeItem(airflow).label, 'Airflow');
     const dags = await until('the DAGs that run the model', 30_000, () => {
-      const found = airflowTree.items.filter((item) => item.type === 'dag');
+      const found = pipelinesTree.getChildren(pipelinesTree.items[0]).filter((item) => item.type === 'pipeline');
       return found.length > 0 ? found : undefined;
     });
-    assert.deepEqual(dags.map((item) => (item as DagItem).dag.name), ['daily_marts', 'operations']);
-    const tasks = airflowTree.getChildren(dags[1]);
+    assert.deepEqual(dags.map((item) => (item as PipelineItem).pipeline.name), ['daily_marts', 'operations']);
+    const tasks = pipelinesTree.getChildren(dags[1]);
     assert.deepEqual(tasks.map((item) => (item as TaskItem).task.name), ['refresh_counts']);
-    const tree = airflowTree.getTreeItem(tasks[0]);
+    const tree = pipelinesTree.getTreeItem(tasks[0]);
     assert.equal(tree.description, 'dbt run · heuristic');
     assert.equal(tree.command?.command, 'lineagePilot.openNode');
-    const unknowns = airflowTree.items.find((item) => item.type === 'unknowns');
+    const unknowns = pipelinesTree.getChildren(pipelinesTree.items[0]).find((item) => item.type === 'unknowns');
     assert.ok(unknowns);
-    assert.equal(airflowTree.getTreeItem(unknowns).label, 'Could not be read (1)');
-    const [unknown] = airflowTree.getChildren(unknowns);
-    assert.equal(airflowTree.getTreeItem(unknown).label, 'backfill');
+    assert.equal(pipelinesTree.getTreeItem(unknowns).label, 'Could not be read (1)');
+    const [unknown] = pipelinesTree.getChildren(unknowns);
+    assert.equal(pipelinesTree.getTreeItem(unknown).label, 'backfill');
   });
 
   test('CodeLens counts the tasks', async () => {
@@ -183,11 +202,11 @@ suite('acceptance: rename a mart column', () => {
     const server = await readyServer();
     const dag = path.join(root(), 'dags', 'operations.py');
     const before = fs.readFileSync(dag, 'utf8');
-    const generation = server.status.airflow.generation;
+    const generation = readerOf(server.status)!.generation;
     fs.writeFileSync(dag, before.replace('--select order_counts', '--select nothing_called_this'));
     try {
       await until('the DAG file to be read again', 30_000, () =>
-        server.status.airflow.generation > generation && server.status.airflow.stage === 'done');
+        readerOf(server.status)!.generation > generation && readerOf(server.status)!.stage === 'done');
       const edited = await until('the review to follow', 30_000, async () => {
         await panel.run();
         return panel.latest?.unknowns.some((u) => u.reference === 'selects nothing') ? panel.latest : undefined;
@@ -206,7 +225,7 @@ suite('acceptance: rename a mart column', () => {
   test('the annotation file answers an unknown, and the review follows', async () => {
     const server = await readyServer();
     const file = path.join(root(), '.lineagepilot', 'airflow.yml');
-    const generation = server.status.airflow.generation;
+    const generation = readerOf(server.status)!.generation;
     fs.writeFileSync(file, [
       'acknowledged:',
       '  - file: dags/backfill.py',
@@ -220,7 +239,7 @@ suite('acceptance: rename a mart column', () => {
     ].join('\n'));
     try {
       await until('the annotation file to be read', 30_000, () =>
-        server.status.airflow.generation > generation && server.status.airflow.stage === 'done');
+        readerOf(server.status)!.generation > generation && readerOf(server.status)!.stage === 'done');
       const answered = await until('the review to follow', 30_000, async () => {
         await panel.run();
         return panel.latest?.impacted.some((n) => n.id === 'airflow:backfill.backfill_all') ? panel.latest : undefined;

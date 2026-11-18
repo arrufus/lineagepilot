@@ -14,6 +14,8 @@ section 8, tasks 4.2 and 4.3).
 4. Group the result, with its evidence and owners, and list every unknown met on the way.
 
 Airflow tasks come through the ``orchestrates`` edges a DAG scan adds (task 5.3), grouped by DAG.
+The semantic layer's metrics and saved queries come through ``consumes`` edges (task 7.8), down to
+the measures and dimensions that read a changed column; a changed semantic YAML is a definition.
 Heuristic links are shown by default and labelled: most correct links are heuristic (spike S3), so
 hiding them would hide most of the real ones.
 
@@ -42,6 +44,7 @@ from lineagepilot_core.graph.column_lineage import SQL_KINDS
 from lineagepilot_core.graph.ids import column_id, normalise_identifier, split_column_id
 from lineagepilot_core.graph.model import (
     DBT_KINDS,
+    PIPELINE_KINDS,
     ColumnLineageStatus,
     Confidence,
     EdgeKind,
@@ -49,12 +52,13 @@ from lineagepilot_core.graph.model import (
     Node,
     NodeKind,
     Unresolved,
-    public_kind,
 )
 from lineagepilot_core.parsers.base import source_sha256
+from lineagepilot_core.parsers.dbt_semantic import SEMANTIC_TOOL
 from lineagepilot_core.project import PROJECT_FILE, DbtProject, relative_to
-from lineagepilot_core.readers.airflow.link import AIRFLOW, is_airflow
+from lineagepilot_core.readers.airflow.link import is_airflow
 from lineagepilot_core.readers.airflow.view import summary_json
+from lineagepilot_core.readers.views import reader_summaries
 
 # Free text from the workspace is cut to this many characters (design section 9)
 TEXT_LIMIT = 4000
@@ -64,8 +68,10 @@ MAX_SOURCE_BYTES = 5_000_000
 MAX_EVIDENCE = 5
 # How many of the nodes a task runs, and the task ids Cosmos derives for them, are listed
 MAX_TASK_DETAIL = 20
+# How many of a saved query's exports are listed
+MAX_EXPORTS = 20
 
-# Impacted nodes in this order of their public kinds (D-9: a tool's tasks before its pipelines)
+# The order of the review's rows, by the kind as it is written out (``kind_name``)
 KIND_ORDER = (
     "model",
     "snapshot",
@@ -251,7 +257,9 @@ def review_changes(
         "changedNodes": changed_nodes,
         "impacted": impacted,
         "owners": _owners(impacted),
-        "airflow": summary_json(graph.summaries.get(AIRFLOW)),
+        "airflow": summary_json(graph.airflow),
+        "pipelines": reader_summaries(graph, PIPELINE_KINDS),
+        "consumers": reader_summaries(graph, {NodeKind.CONSUMER}),
         "unknowns": _deduplicated(unknowns),
         "otherFiles": other_files,
         "outsideProject": outside_project,
@@ -284,14 +292,17 @@ class _Touched:
 
 def _nodes_for(graph: MetadataGraph, path: str, project: DbtProject | None) -> list[Node]:
     # A DAG file in the project defines tasks, and its change is not followed: it is listed
-    nodes = [n for n in graph.nodes_for_file(path) if n.kind in DBT_KINDS]
+    nodes = [n for n in graph.nodes_for_file(path) if _in_manifest(n)]
     packages = (project.packages_path if project else "dbt_packages").rstrip("/") + "/"
     if not nodes and path.startswith(packages):
         package, _, inner = path[len(packages) :].partition("/")
-        nodes = [
-            n for n in graph.nodes_for_file(inner) if n.package == package and n.kind in DBT_KINDS
-        ]
+        nodes = [n for n in graph.nodes_for_file(inner) if n.package == package and _in_manifest(n)]
     return nodes
+
+
+def _in_manifest(node: Node) -> bool:
+    """dbt's own nodes, the semantic layer's among them."""
+    return node.kind in DBT_KINDS or node.tool == SEMANTIC_TOOL
 
 
 def _is_output(path: str, project: DbtProject) -> bool:
@@ -300,7 +311,10 @@ def _is_output(path: str, project: DbtProject) -> bool:
 
 
 def _role(node: Node, file: ChangedFile) -> str:
-    """How a file relates to a node. A YAML file only describes what it defines."""
+    """How a file relates to a node. A YAML file only describes what it defines, except for the
+    semantic layer, whose YAML is its definition."""
+    if node.tool == SEMANTIC_TOOL:
+        return "definition"
     if node.kind is NodeKind.EXPOSURE or file.path.endswith(_YAML_SUFFIXES):
         return "properties"
     return "definition"
@@ -341,6 +355,8 @@ def _compare_columns(
 ) -> dict[str, Any]:
     if entry.definition is None:
         return _not_compared("only its properties file changed")
+    if node.tool == SEMANTIC_TOOL:
+        return _not_compared("a change to the semantic layer is followed as a whole")
     if node.kind not in SQL_KINDS:
         return _unknown_columns(f"a {node.kind.value} has no compiled SQL to compare")
     file = entry.definition
@@ -462,7 +478,7 @@ def _changed_column_ids(graph: MetadataGraph, node_id: str, diff: dict[str, Any]
 def _changed_node(node: Node, entry: _Touched, diff: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": node.id,
-        "kind": public_kind(node.kind, node.tool),
+        "kind": node.kind_name,
         "name": clip(node.name),
         "owner": clip(node.owner or node.group),
         "status": entry.status,
@@ -531,8 +547,9 @@ def _impacted_json(
     traced = by_column and hit.granularity is Granularity.COLUMN
     confidence = hit.confidence if traced else weakest(hit.confidence, Confidence.INFERRED)
     reason = hit.reason
-    airflow = _airflow_detail(graph, node, hit) if is_airflow(node) else None
-    if airflow is not None:
+    pipeline = _pipeline_detail(graph, node, hit) if node.kind in PIPELINE_KINDS else None
+    airflow = _airflow_detail(pipeline) if pipeline is not None and is_airflow(node) else None
+    if pipeline is not None:
         reason = None
     elif not traced and reason is None:
         reason = (
@@ -549,7 +566,7 @@ def _impacted_json(
     )
     return {
         "id": hit.id,
-        "kind": public_kind(hit.kind, hit.tool),
+        "kind": node.kind_name,
         "name": clip(node.name),
         "owner": clip(node.owner or node.group),
         "file": clip(node.file_path),
@@ -557,15 +574,35 @@ def _impacted_json(
         "reach": "column" if traced else "model",
         "confidence": confidence.value,
         "origins": sorted({origin for v in via for origin in v["origins"]}),
-        "columns": sorted(clip(split_column_id(c)[1]) for c in hit.columns),
+        # A metric's are the fields it reads: it has no columns of its own
+        "columns": sorted(clip(split_column_id(c)[1]) for c in (*hit.columns, *hit.reads)),
         "reason": clip(reason),
         "via": via[:MAX_EVIDENCE],
         "viaMore": max(0, len(via) - MAX_EVIDENCE),
         "airflow": airflow,
+        "tool": node.tool,
+        "subkind": node.subkind,
+        "pipeline": pipeline,
+        "exports": _exports(node),
     }
 
 
-def _airflow_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dict[str, Any]:
+def _exports(node: Node) -> list[str]:
+    """The tables a saved query's exports write (task 7.8)."""
+    exports = node.properties.get("exports") if node.tool == SEMANTIC_TOOL else None
+    if not isinstance(exports, list):
+        return []
+    names = [clip(e.get("relation") or e.get("name")) for e in exports if isinstance(e, dict)]
+    return [name for name in names if name][:MAX_EXPORTS]
+
+
+def _airflow_detail(pipeline: dict[str, Any]) -> dict[str, Any]:
+    """Protocol 1's detail for an Airflow task or DAG, kept for one protocol version."""
+    detail = {key: value for key, value in pipeline.items() if key not in ("tool", "pipeline")}
+    return {"dag": pipeline["pipeline"], **detail}
+
+
+def _pipeline_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dict[str, Any]:
     """What a task has to do with the change: the nodes it runs or reads, and the tasks it follows.
 
     For Cosmos the file states one link for the whole group; the task ids here are derived from
@@ -588,7 +625,8 @@ def _airflow_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dict
     tasks = sorted({task for source in runs for task in derived.get(source, ())})
     names = sorted(graph.nodes[source].name for source in runs)
     return {
-        "dag": clip(properties.get("dag")),
+        "tool": node.tool,
+        "pipeline": clip(properties.get("pipeline") or properties.get("dag")),
         "operator": clip(properties.get("operator")),
         "how": sorted(clip(h) for h in how),
         "runs": [clip(n) for n in names[:MAX_TASK_DETAIL]],

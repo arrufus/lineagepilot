@@ -19,12 +19,9 @@ from lineagepilot_core.export.graph import ExportFormat
 from lineagepilot_core.graph.model import Confidence, EdgeKind, NodeKind, Origin
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.readers.airflow.link import link_airflow, mark_not_analysed, unlink_airflow
+from lineagepilot_core.readers.airflow.scan import scan_airflow, scan_workspace
 from lineagepilot_core.readers.airflow.view import airflow_view, summary_json
-from lineagepilot_core.readers.airflow.workspace import (
-    default_workspace,
-    scan_airflow,
-    scan_workspace,
-)
+from lineagepilot_core.readers.common.workspace import default_workspace
 from lineagepilot_core.rules import evaluate
 from lineagepilot_core.snapshot import from_dict, to_dict
 
@@ -58,11 +55,7 @@ def linked(tmp_path_factory):
 class TestAcceptanceFixture:
     def test_the_cosmos_group_is_one_node_with_derived_task_ids(self, linked):
         group = linked.nodes[GROUP]
-        assert (
-            group.kind is NodeKind.TASK
-            and group.tool == "airflow"
-            and group.owner == "data-platform"
-        )
+        assert group.kind is NodeKind.TASK and group.owner == "data-platform"
         assert group.properties["operator"] == "DbtTaskGroup"
         assert group.properties["tasks"][ORDERS] == ["marts.orders.run", "marts.orders.test"]
         assert group.properties["tasks"][REVENUE] == ["marts.customer_revenue_run"]
@@ -105,7 +98,7 @@ class TestAcceptanceFixture:
         found = [u for u in linked.unresolved if u.subject == "airflow:backfill"]
         assert found and found[0].reference == "loop or factory"
         assert found[0].reason.startswith("dags/backfill.py:12:")
-        assert ".lineagepilot/airflow.yml" in found[0].reason
+        assert ".lineagepilot/lineage.yml" in found[0].reason
         assert found[0].evidence.location.start_line == 11
 
     def test_every_impact_lists_the_unknowns_from_the_dag_files(self, linked):
@@ -113,13 +106,11 @@ class TestAcceptanceFixture:
         assert any(u.subject == "airflow:backfill" for u in unknowns)
 
     def test_a_task_that_does_not_touch_this_project_is_not_a_node(self, linked):
-        ids = {
-            n.id for n in linked.nodes.values() if n.kind is NodeKind.TASK and n.tool == "airflow"
-        }
+        ids = {n.id for n in linked.nodes.values() if n.kind is NodeKind.TASK}
         assert GROUP in ids and "airflow:unrelated.t" not in ids
 
     def test_the_summary(self, linked):
-        summary = linked.summaries["airflow"]
+        summary = linked.airflow
         assert summary.analysed and summary.dag_files == 3 and summary.dags == 3
         assert summary.tasks >= 4 and summary.links >= 5 and summary.unknowns == 1
 
@@ -146,7 +137,7 @@ class TestReLinking:
         assert graph.stats() != from_dict(copy.deepcopy(before)).stats()
         unlink_airflow(graph)
         assert to_dict(graph) == before
-        assert "airflow" not in graph.summaries
+        assert graph.airflow is None
         assert graph.nodes_for_file("dags/daily_marts.py") == []
 
     def test_linking_twice_is_linking_once(self, indexed, scan):
@@ -170,7 +161,7 @@ class TestReLinking:
     def test_not_analysed_says_why(self, indexed):
         graph = from_dict(json.loads(json.dumps(to_dict(indexed))))
         mark_not_analysed(graph, "still reading")
-        assert summary_json(graph.summaries.get("airflow"))["reason"] == "still reading"
+        assert summary_json(graph.airflow)["reason"] == "still reading"
         assert summary_json(None)["analysed"] is False
 
 
@@ -248,7 +239,7 @@ class TestPaths:
         root, project = workspace_with(tmp_path, "pass\n", "path_map:\n  /x: ../../..\n")
         graph, scan = linked_graph(root, project)
         assert "leaves the workspace" in scan["annotations"]["problems"][0]
-        assert graph.summaries["airflow"].problems == tuple(scan["annotations"]["problems"])
+        assert graph.airflow.problems == tuple(scan["annotations"]["problems"])
 
     def test_a_link_to_another_project_is_counted_and_not_read(self, tmp_path):
         root, project = workspace_with(
@@ -400,14 +391,14 @@ class TestAnnotations:
     )
     def test_what_cannot_be_used_is_reported(self, tmp_path, text, problem):
         graph, _ = self.annotated(tmp_path, text)
-        assert any(problem in p for p in graph.summaries["airflow"].problems)
+        assert any(problem in p for p in graph.airflow.problems)
 
     def test_a_huge_annotation_file_is_refused(self, tmp_path, monkeypatch):
         from lineagepilot_core.parsers import data_flow_annotations
 
         monkeypatch.setattr(data_flow_annotations, "MAX_ANNOTATION_BYTES", 5)
         graph, _ = self.annotated(tmp_path, "path_map:\n  /x: .\n")
-        assert any("under 5 bytes" in p for p in graph.summaries["airflow"].problems)
+        assert any("under 5 bytes" in p for p in graph.airflow.problems)
 
 
 class TestWhatTheGraphSays:
@@ -493,6 +484,5 @@ class TestWhatTheGraphSays:
         (root / "dags" / "d.py").unlink()
         graph, _ = linked_graph(root, project)
         assert (
-            not graph.summaries["airflow"].analysed
-            and "no DAG files were found in dags" in graph.summaries["airflow"].reason
+            not graph.airflow.analysed and "no DAG files were found in dags" in graph.airflow.reason
         )

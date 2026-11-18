@@ -117,7 +117,7 @@ flowchart LR
 
 **Process model**: one language server per dbt project, that is per folder with a `dbt_project.yml` in any workspace folder. Usually that is one per workspace folder; a repository with several dbt projects gets one each, so a failure in one never affects another (task 2.1). Multi-root workspaces work the same way. The transport is **stdio only**: the extension never opens a network port.
 
-The server is told at initialise which project it serves, whether the workspace is trusted, and where to cache snapshots (`context.storageUri`). It indexes in a child process (section 11), and the editor watches the files for it: `target/manifest.json` and `catalog.json` (re-index, debounced), `dbt_project.yml` (follow moved paths), the files dbt reads to build the manifest (the staleness warning), `.lineagepilot/rules.yml` at the project root (re-run the rules), and the Airflow DAG folders and `.lineagepilot/airflow.yml` (read the DAG files again).
+The server is told at initialise which project it serves, whether the workspace is trusted, and where to cache snapshots (`context.storageUri`). It indexes in a child process (section 11), and the editor watches the files for it: `target/manifest.json` and `catalog.json` (re-index, debounced), `dbt_project.yml` (follow moved paths), the files dbt reads to build the manifest (the staleness warning), `.lineagepilot/rules.yml` at the project root (re-run the rules), and the Airflow DAG folders and the annotation file, `.lineagepilot/lineage.yml` or `airflow.yml` (read the DAG files again).
 
 ### 4.1 Components
 
@@ -277,7 +277,7 @@ Other rules from S3:
 
 S3's evidence is in-sample: the scanner was built while reading the same repositories. A held-out corpus of 10 or more repositories, labelled before tuning, is the Phase 5 exit test (beads LP-56q.5).
 
-**What the held-out corpus found** ([corpus/README.md](../corpus/README.md)). On 106 links in 17 unseen repositories, the frozen scanner got 17 right, a miss rate of **84.0%**: 78 links were reported as unknown at the line that caused them, 9 left no record, 2 were wrong, and there were no false positives. So S3's 0% says little about other repositories. The scanner rarely misleads, but it often cannot tell. Three general gaps make up 62 of the 89 misses: `os.environ["AIRFLOW_HOME"]` with no default (LP-0o1), helpers imported from another file (LP-z2x) and container paths that match no project by their tail (LP-c05). After the freeze only the silent links were changed, into unknowns, because silence breaks the plan's definition of done. The correct count did not move. A tuned scanner needs a fresh corpus (LP-aax): this one has now been read.
+**What the held-out corpus found** ([corpus/airflow/README.md](../corpus/airflow/README.md)). On 106 links in 17 unseen repositories, the frozen scanner got 17 right, a miss rate of **84.0%**: 78 links were reported as unknown at the line that caused them, 9 left no record, 2 were wrong, and there were no false positives. So S3's 0% says little about other repositories. The scanner rarely misleads, but it often cannot tell. Three general gaps make up 62 of the 89 misses: `os.environ["AIRFLOW_HOME"]` with no default (LP-0o1), helpers imported from another file (LP-z2x) and container paths that match no project by their tail (LP-c05). After the freeze only the silent links were changed, into unknowns, because silence breaks the plan's definition of done. The correct count did not move. A tuned scanner needs a fresh corpus (LP-aax): this one has now been read.
 
 **Reused**: `data_flow_annotations.py` (YAML mappings for anything the scanner cannot see). **New**: the `lineagepilot_core.airflow` package, with `dag_static.py` at its centre, grown from the spike. It takes over from `dbt_manifest_resolver.py`, whose selector rules were a simplification S3 showed to be wrong.
 
@@ -294,7 +294,7 @@ S3's evidence is in-sample: the scanner was built while reading the same reposit
 
 **Where DAG files are looked for.** `lineagePilot.airflow.dagFolders`, relative to the workspace folder. The default, `**/dags`, finds any folder called `dags` up to six levels down, because most monorepos keep theirs below something like `airflow/`. The workspace is what DAG files and the modules they import must be inside, and may be larger than the project: `dags/` beside `dbt/`. When no file is found the review says where it looked.
 
-**The annotation file** is `.lineagepilot/airflow.yml` at the project root (task 5.2), the way out of every unknown:
+**The annotation file** is `.lineagepilot/lineage.yml` at the project root, the way out of every unknown. Phase 5 named it `.lineagepilot/airflow.yml` (task 5.2), which is still read. Since 0.3.0 the file serves every tool, and also declares consumers (D-14, task 7.4, [design_next_phase.md §7.3](design_next_phase.md#73-annotation-file)):
 
 ```yaml
 path_map:                         # where a path in a DAG file really is, relative to the project
@@ -516,6 +516,46 @@ On Linux, the scan adds about 4 MB to Phase 4's 375 and 372 MB. macOS reads high
 | Column lineage complete, cold | 26.6 s | 26.5–26.7 s |
 | A review of 100 changed models | 130 ms | 128–134 ms |
 
+**Every reader on** (Phase 7, task 7.10, `packages/lsp/scripts/server_budgets.py`, 18 November 2026). The same kind of 5,000-model project, rebuilt with spike S2's generator and dbt 1.12.6, on an Apple M4 with Python 3.14. Each reader gets a heavy workload of its own:
+
+- Airflow, as in Phase 5: 51 DAG files, 2,000 shell tasks and a Cosmos DAG over every model, which gives 6,437 links.
+- The dbt semantic layer: a semantic model on 1,207 of the 1,251 marts, 3,751 metrics (one on each mart filtered on a dimension computed by an expression), 121 saved queries. That is 8,999 fields and 13,603 column-level reads, written in 13 YAML files, 2.1 MB in all. The graph grows from 13,056 nodes to 20,186.
+
+Three runs with every reader on, and one with none (memory on macOS is the current RSS, not the peak):
+
+| Measure | Every reader on | No reader | Budget |
+|---|---|---|---|
+| Lineage ready, warm | 0.94–0.95 s | 0.84 s | 1 s |
+| Lineage ready, cold | 3.55–3.65 s | 3.13 s | none at 5,000 models |
+| The Airflow scan linked, warm and cold | 2.2 s and 4.8–4.9 s | | |
+| The semantic layer read from the manifest, and linked (in one process) | 24 ms and 210–219 ms | | |
+| CodeLens p95, on model files | 1.2–1.3 ms | 0.6 ms | 100 ms |
+| CodeLens on a semantic YAML file, about 400 entries | 23–28 ms | | 100 ms |
+| Impact, worst of 20 sources | 1.1–1.2 ms | 0.6 ms | 300 ms |
+| A review of 100 changed models | 250–258 ms | 50–51 ms | 300 ms |
+| A review of 100 changed marts | 45–54 ms | 17–22 ms | |
+| Server memory | 374–443 MB | 353–356 MB | 500 MB |
+
+Every budget holds, the review of 100 models with the least room: 85% of its 300 ms. About 90 ms of it is the core's review of nearly 4,000 impacted rows, about 90 ms is reading the semantic YAML's entries the first time a node in them is placed, and the rest is sending a 4.7 MB answer to the client. The readers add about 0.1 s to the warm start: 7,000 more nodes in the snapshot.
+
+**The measurement found two faults, both fixed before the numbers above.**
+
+- *Placing thousands of rows.* A review places every row it lists, so the panel can open it: nearly 4,000 here. Each was checked from the project's root with about 10 `lstat` calls, 247 ms in all. A request now places its nodes in one batch (`Locator.batch`): each folder is checked once, then each file with one `lstat`, and nothing is kept after the request.
+- *Positions in large YAML files.* PyYAML's composer is pure Python in the extension, and read the semantic layer's 2.1 MB of YAML in 1.4 s, on the first request that placed a semantic node and on each CodeLens request on such a file. `block_yaml.py` reads dbt's plain block YAML a line at a time, in 89 ms. It hands PyYAML anything else it does not read, and gives exactly PyYAML's positions (a differential test on 600 generated files).
+
+Before the fixes, a review of 100 models took 425–442 ms; with the semantic YAML written out as a project would have it, 1.2 s.
+
+**After merging the Entry phase** (18 November 2026). The numbers above are from the private line before the merge, which wrote a snapshot as one JSON document, as format 2 did. The merge brought in LP-dtt's batched snapshots and E.1–E.3's scanner fixes. The harness was run on the trees before and after the merge, alternating, twice each, on the same machine:
+
+| Measure, every reader on | Before the merge | After the merge | Budget |
+|---|---|---|---|
+| Lineage ready, warm | 0.94 s | 0.94 s | 1 s |
+| A review of 100 changed models | 252–261 ms | 231–251 ms | 300 ms |
+| Server memory | 423–443 MB | 331–416 MB | 500 MB |
+| The Airflow scan linked, warm | 2.2 s | 2.2–2.4 s | |
+
+The merge slows nothing that has a budget, and it brings LP-dtt's memory saving to the larger graph. The warm start has 6% of room, and a busy machine takes it. Four earlier runs of the merged tree were made while other work was running. They took 0.98–1.04 s for the warm start and 245–306 ms for a cold review of 100 models, and one of them missed both budgets. So a missed budget is checked by running both trees again, alternating, on an idle machine, before it is taken for a regression.
+
 **The graph webview in a browser** (Phase 3 exit, beads LP-08j, `extension/webview/perf/`, 4 November 2026): the production bundle under the webview's CSP, in Chrome 156 on an Apple M4 with a 60 Hz display, in a 1600×913 page, on a layered graph of 500 models and 931 edges. Chrome is not VS Code's own Chromium, and this machine is slower than the M4 Max above, so the figures indicate rather than reproduce what the editor does.
 
 | Measure | 500 nodes (8 runs) | 1,000 nodes (1 run) |
@@ -587,7 +627,7 @@ packages/lsp/    lineagepilot_lsp    (pygls server; pyproject.toml, uv.lock)
 fixtures/        dbt project workspaces shared by the core, server and extension tests
 extension/       VS Code extension (package.json, src/, webview/, scripts/bundle_libs.py)
 protocol/        the lineage/* JSON Schema, its generator and contract examples
-corpus/          the held-out DAG corpus: labels, scorer and results (the Phase 5 exit)
+corpus/          held-out corpora, a folder per tool with its labels and results, and one scorer (the Phase 5 exit, task 7.9)
 docs/            this design and the implementation plan
 ```
 
@@ -633,7 +673,7 @@ How the Airflow linkage is tested (Phase 5):
 - **On `fixtures/impact-shop`**, the acceptance scenario: a Cosmos group that consumes the mart, a shell task, a SQL task and a task in a loop. A golden file pins the Markdown.
 - **Over stdio**, the panel and `lineagepilot review` must agree with the tasks in; a changed DAG file, a changed annotation file and a new manifest each start a new scan; a file that would write a marker when run never does.
 - **In VS Code**, every workspace is planted with such a file, and the acceptance scenario runs with the real `vscode.git`.
-- **On a held-out corpus**, labelled blind before the scanner was frozen (`corpus/`, the Phase 5 exit). It needs third-party repositories, so it is run by hand, not in CI.
+- **On a held-out corpus**, labelled blind before the scanner was frozen (`corpus/airflow/`, the Phase 5 exit). It needs third-party repositories, so it is run by hand, not in CI.
 
 **Acceptance scenario**, adapted from the commercial review. The fixture is a source, a staging model, a mart, an exposure, and a Cosmos DAG task that consumes the mart. Rename a mart column, then confirm that:
 

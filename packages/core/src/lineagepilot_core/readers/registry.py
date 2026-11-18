@@ -1,15 +1,17 @@
-"""The readers the language server runs, in order (task 7.3). Each later phase adds its own."""
+"""Every reader, by tool (task 7.3). A reader is added here in the phase that builds it.
+
+The set is closed: a reader is never named by a workspace, a setting or a request, only looked up
+here by the tool's name.
+"""
 
 from __future__ import annotations
 
-from lineagepilot_core.readers.airflow.reader import READER as AIRFLOW_READER
+from lineagepilot_core.readers.airflow.reader import AirflowReader
 from lineagepilot_core.readers.contract import Reader
 
-READERS: tuple[Reader, ...] = (AIRFLOW_READER,)
+READERS: dict[str, Reader] = {reader.tool: reader for reader in (AirflowReader(),)}
 
 
-def reader_for(tool: str) -> Reader:
-    for reader in READERS:
-        if reader.tool == tool:
-            return reader
-    raise KeyError(f"no reader for {tool!r}")
+def reader(tool: str) -> Reader:
+    """The reader for a tool; ``KeyError`` for a tool with none."""
+    return READERS[tool]

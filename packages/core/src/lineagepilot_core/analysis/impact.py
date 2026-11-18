@@ -6,6 +6,11 @@ not computed yet), the whole downstream model is impacted at model level, marked
 ``inferred``, and everything below it too. Exposures and Airflow tasks have no columns,
 so they are impacted when any column of a node they use or run is.
 
+A consumer whose reads are known column by column (``graph.consumer_lineage``: the semantic
+layer, task 7.8) is impacted as a model with known column lineage is: through the ``consumes``
+edges of its columns, such as a semantic model's measure, or through the columns it reads itself,
+as a metric reads a measure. What reads such a node uses the whole of it.
+
 From a changed node, impact is model level throughout.
 
 Each impacted node carries a confidence: the strongest, over the paths that reach it, of
@@ -20,19 +25,27 @@ from collections import deque
 from collections.abc import Callable, Iterable
 from dataclasses import dataclass, field
 
-from lineagepilot_core.analysis.traversal import Direction, Granularity, Step, steps
+from lineagepilot_core.analysis.traversal import (
+    Direction,
+    Granularity,
+    Step,
+    column_readers,
+    steps,
+)
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import (
     ColumnLineageStatus,
     Confidence,
     Edge,
+    EdgeKind,
     LineageState,
     MetadataGraph,
     NodeKind,
     Origin,
     Unresolved,
-    public_kind,
+    kind_name,
 )
+from lineagepilot_core.readers.tools import count_key
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
 _SQL_KINDS = frozenset({NodeKind.MODEL, NodeKind.SNAPSHOT})
@@ -61,7 +74,16 @@ class ImpactedNode:
     reason: str | None = None
     # (from ref, step) pairs that reached this node or its columns
     via: list[tuple[str, Step]] = field(default_factory=list)
-    tool: str | None = None  # for a pipeline, task or consumer (D-9)
+    tool: str | None = None  # for a pipeline, task or consumer
+    subkind: str | None = None  # what its tool calls it
+    # The columns of other nodes it was reached through, when it reads them itself, as a metric
+    # reads a measure (column granularity). Sorted.
+    reads: list[str] = field(default_factory=list)
+
+    @property
+    def kind_name(self) -> str:
+        """The kind as it is written out (``kind_name``)."""
+        return kind_name(self.kind, self.tool)
 
 
 @dataclass
@@ -73,12 +95,20 @@ class Impact:
     truncated: bool = False
 
     def counts(self) -> dict[str, int]:
-        """Impacted nodes per public kind, for summaries such as CodeLens."""
+        """Impacted nodes per kind, for the protocol's impact result and the CLI."""
         counts: dict[str, int] = {}
         for node in self.nodes.values():
-            kind = public_kind(node.kind, node.tool)
-            counts[kind] = counts.get(kind, 0) + 1
+            counts[node.kind_name] = counts.get(node.kind_name, 0) + 1
         return dict(sorted(counts.items()))
+
+    def counts_by_tool(self) -> dict[tuple[str, str | None], int]:
+        """Impacted nodes per kind and tool, the tool None for dbt's own (CodeLens says
+        ``3 tasks (Airflow 2, Dagster 1)``). The semantic layer's by what each is: ``4 metrics``."""
+        counts: dict[tuple[str, str | None], int] = {}
+        for node in self.nodes.values():
+            key = count_key(node.kind_name, node.tool, node.subkind)
+            counts[key] = counts.get(key, 0) + 1
+        return dict(sorted(counts.items(), key=lambda item: (item[0][0], item[0][1] or "")))
 
 
 @dataclass(slots=True)
@@ -145,6 +175,8 @@ def impact(
             )
             for step in column_steps:
                 visit(ref, step, depth)
+            for step in sorted(column_readers(graph, ref), key=_order):
+                visit(ref, step, depth)
             reached_by_column = {split_column_id(s.ref)[0] for s in column_steps}
             for step in model_steps:
                 downstream = graph.nodes[step.ref]
@@ -161,13 +193,25 @@ def impact(
                 elif downstream.kind is NodeKind.SOURCE:
                     if step.ref not in reached_by_column:
                         visit(ref, step, depth, "the source does not list this column")
+                elif (reads := graph.consumer_lineage.get(step.ref)) is not None:
+                    if reads.state is not LineageState.UNKNOWN:
+                        continue  # its consumes edges say exactly which columns it reads
+                    visit(ref, step, depth, f"column lineage unknown: {reads.reason}")
                 else:  # exposures and Airflow tasks use the whole node
                     visit(ref, step, depth, "uses the whole node")
         else:
+            # What reads a consumer that a column reached, such as a saved query reading a
+            # metric, uses the whole of it
+            whole = (
+                "uses the whole node"
+                if graph.nodes[ref].kind is NodeKind.CONSUMER
+                and any(origin in graph.columns for origin, _, _ in hits[ref].via)
+                else None
+            )
             for step in sorted(
                 steps(graph, ref, Direction.DOWNSTREAM, Granularity.MODEL), key=_order
             ):
-                visit(ref, step, depth)
+                visit(ref, step, depth, whole)
 
     result = Impact(targets, truncated=truncated)
     confidence = _confidences(graph, hits, targets)
@@ -224,29 +268,45 @@ def _collect(
         node_id = split_column_id(ref)[0] if is_column else ref
         if node_id in changed_nodes and is_column:
             continue  # another column of a changed node; the node is a target, not impacted
+        reads = [] if is_column else _read_columns(graph, hit)
+        by_column = is_column or bool(reads)
         entry = result.nodes.get(node_id)
         if entry is None:
             entry = ImpactedNode(
                 id=node_id,
                 kind=graph.nodes[node_id].kind,
-                tool=graph.nodes[node_id].tool,
                 depth=hit.depth,
-                granularity=Granularity.COLUMN if is_column else Granularity.MODEL,
+                granularity=Granularity.COLUMN if by_column else Granularity.MODEL,
                 confidence=confidence[ref],
+                tool=graph.nodes[node_id].tool,
+                subkind=graph.nodes[node_id].subkind,
             )
             result.nodes[node_id] = entry
         else:
             entry.depth = min(entry.depth, hit.depth)
             entry.confidence = strongest(entry.confidence, confidence[ref])
-            if not is_column:
+            if not by_column:
                 entry.granularity = Granularity.MODEL
         if is_column:
             entry.columns.append(ref)
         elif hit.fallback and entry.reason is None:
             entry.reason = hit.fallback
+        entry.reads.extend(reads)
         entry.via.extend((origin, step) for origin, step, _ in hit.via)
     for entry in result.nodes.values():
         entry.columns.sort()
+        entry.reads.sort()
+
+
+def _read_columns(graph: MetadataGraph, hit: _Hit) -> list[str]:
+    """The columns a node was reached through, if it was reached only by reading columns itself,
+    as a metric reads a measure; otherwise nothing, and it is reached at model level."""
+    reads = [
+        origin
+        for origin, step, fallback in hit.via
+        if origin in graph.columns and not fallback and step.edges[0].kind is EdgeKind.CONSUMES
+    ]
+    return reads if len(reads) == len(hit.via) else []
 
 
 def _unknowns(graph: MetadataGraph, hits: dict[str, _Hit], result: Impact) -> None:

@@ -12,6 +12,8 @@ DBT_FIXTURES = Path(__file__).parent / "fixtures" / "dbt"
 # A project with real artifacts from before and after a column rename; see its PROVENANCE.json
 IMPACT_SHOP = Path(__file__).parents[3] / "fixtures" / "impact-shop"
 RENAME = IMPACT_SHOP / "changes" / "rename-order-total"
+# The same project's semantic layer in the YAML dbt 1.12 prefers, parsed by dbt (task 7.8)
+SEMANTIC_V2 = IMPACT_SHOP / "variants" / "semantic-v2" / "target" / "manifest.json"
 
 # Real artifacts written by dbt (spike S2), as opposed to legacy-v11, which is hand-written
 REAL_PROJECTS = ("pilot-1.12", "pilot-fusion-2.0", "synth-24")
@@ -34,7 +36,7 @@ def project_config(name: str, catalog: bool = True) -> dict[str, str]:
 
 def copy_impact_shop(destination: Path) -> Path:
     """A working copy of the project as deployed, with target/ ignored as in a real repository."""
-    ignore = shutil.ignore_patterns("changes", "make_fixture.py", "PROVENANCE.json")
+    ignore = shutil.ignore_patterns("changes", "variants", "make_fixture.py", "PROVENANCE.json")
     shutil.copytree(IMPACT_SHOP, destination, ignore=ignore)
     (destination / ".gitignore").write_text("target/\n", encoding="utf-8")
     return destination

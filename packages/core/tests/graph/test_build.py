@@ -35,15 +35,24 @@ def test_every_parsed_node_and_column_is_in_the_graph(project):
     _, result, graph = project
     dbt_nodes = {n.id for n in graph.nodes.values() if n.kind is not NodeKind.RELATION}
     assert dbt_nodes == {n.unique_id for n in result.nodes}
-    assert len(graph.columns) == len(result.columns)
+    # The semantic layer's fields are columns too, under their semantic model (task 7.8)
+    semantic = {c.id for c in graph.columns.values() if graph.nodes[c.node_id].tool}
+    assert len(graph.columns) - len(semantic) == len(result.columns)
+    fields = {(s.node_id, f.name.lower()) for s in result.semantic_models for f in s.fields}
+    assert {(graph.columns[c].node_id, graph.columns[c].name.lower()) for c in semantic} == fields
     for column in graph.columns.values():
         assert column.id == f"{column.node_id}#{column.name.lower()}"  # duckdb folds to lower
 
 
 def test_depends_on_edges_match_the_parse(project):
+    """What a consumer depends on, it reads: a consumes edge from it, the other way round."""
     _, result, graph = project
+    consumers = {n.id for n in graph.nodes.values() if n.kind is NodeKind.CONSUMER}
+    parsed = {(e.upstream_id, e.downstream_id) for e in result.edges}
     edges = {(e.upstream, e.downstream) for e in graph.edges if e.kind is EdgeKind.DEPENDS_ON}
-    assert edges == {(e.upstream_id, e.downstream_id) for e in result.edges}
+    assert edges == {(up, down) for up, down in parsed if down not in consumers}
+    reads = {(e.downstream, e.upstream) for e in graph.edges if e.kind is EdgeKind.CONSUMES}
+    assert {(up, down) for up, down in parsed if down in consumers} <= reads
 
 
 def test_every_relation_is_materialised_by_its_node(project):
@@ -67,12 +76,17 @@ def test_manifest_evidence_names_the_artifact_and_the_file(project):
     metadata = raw_manifest(name)["metadata"]
     for edge in graph.edges:
         (evidence,) = edge.evidence
-        assert (evidence.origin, evidence.confidence) == (Origin.MANIFEST, Confidence.DECLARED)
+        assert evidence.origin is Origin.MANIFEST
         assert evidence.artifact.sha256 == digest
         assert evidence.artifact.generated_at == metadata["generated_at"]
         assert evidence.artifact.dbt_version == metadata["dbt_version"]
-        source = graph.node(edge.downstream if edge.kind is EdgeKind.DEPENDS_ON else edge.upstream)
+        end = edge.downstream if edge.kind is EdgeKind.DEPENDS_ON else edge.upstream
+        source = graph.node(end.partition("#")[0])  # a semantic model's field reads a column
         assert evidence.location.path == source.file_path
+        if source.tool is None:
+            assert evidence.confidence is Confidence.DECLARED
+        else:  # the semantic layer's expressions are parsed
+            assert evidence.confidence in (Confidence.DECLARED, Confidence.INFERRED)
 
 
 def test_parse_records_artifact_hashes():
@@ -120,12 +134,12 @@ def test_snowflake_folds_column_names_to_upper(write_json, manifest_of):
 def test_unresolved_records_carry_evidence(write_json, manifest_of):
     manifest = manifest_of("pilot-1.12")
     manifest["nodes"]["model.pilot_shop.customers"]["depends_on"]["nodes"].append(
-        "metric.pilot_shop.revenue"
+        "analysis.pilot_shop.revenue"
     )
     graph = build_dbt_graph(DbtParser().parse({"manifest_path": str(write_json(manifest))}))
     (record,) = graph.unresolved_for("model.pilot_shop.customers")
-    assert record.reference == "metric.pilot_shop.revenue"
-    assert record.reason == "metric nodes are not indexed"
+    assert record.reference == "analysis.pilot_shop.revenue"
+    assert record.reason == "analysis nodes are not indexed"
     assert record.evidence.location.path == "models/marts/customers.sql"
 
 
@@ -182,7 +196,8 @@ def test_catalog_presence_is_recorded():
     for node in graph.nodes.values():
         if node.kind is not NodeKind.RELATION:
             assert node.in_catalog is (node.id in catalogued), node.id
-    assert all(c.in_catalog for c in graph.columns.values())
+    dbt_columns = [c for c in graph.columns.values() if graph.nodes[c.node_id].tool is None]
+    assert dbt_columns and all(c.in_catalog for c in dbt_columns)
     assert not any(c.in_catalog for c in build("pilot-1.12", catalog=False).columns.values())
     customers = graph.node("model.pilot_shop.customers")
     assert (customers.language, customers.compiled_path) == (

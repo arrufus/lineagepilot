@@ -49,10 +49,31 @@ def load() -> dict[str, Any]:
         for role in ("params", "result"):
             if pair[role] not in defs:
                 raise SchemaError(f"{method} {role}: no $defs entry {pair[role]}")
+        unknown = set(pair) - {"params", "result", "since", "until", "description"}
+        if unknown:
+            raise SchemaError(f"{method}: unknown keys {sorted(unknown)}")
     for method, name in schema["x-notifications"].items():
         if name not in defs:
             raise SchemaError(f"{method}: no $defs entry {name}")
+    versions = schema.get("x-protocol-versions")
+    if (
+        not isinstance(versions, list)
+        or not versions
+        or versions != sorted(set(versions))
+        or schema.get("x-protocol-version") != versions[-1]
+    ):
+        raise SchemaError("x-protocol-versions must be ascending and end with x-protocol-version")
+    for method in schema["x-requests"]:
+        since, until = request_versions(schema, method)
+        if since not in versions or until not in versions or since > until:
+            raise SchemaError(f"{method}: since and until must be protocol versions, in order")
     return schema
+
+
+def request_versions(schema: dict[str, Any], method: str) -> tuple[int, int]:
+    """The first and last protocol versions a request is in: every version unless it says."""
+    pair, versions = schema["x-requests"][method], schema["x-protocol-versions"]
+    return pair.get("since", versions[0]), pair.get("until", versions[-1])
 
 
 def check_node(node: Any, path: str, defs: dict[str, Any], top: bool = False) -> None:
@@ -207,6 +228,7 @@ def typescript(schema: dict[str, Any]) -> str:
         "import * as z from 'zod';",
         "",
         f"export const PROTOCOL_VERSION = {schema['x-protocol-version']};",
+        f"export const PROTOCOL_VERSIONS = {json.dumps(schema['x-protocol-versions'])} as const;",
         "",
         "export const ErrorCode = {",
         *(f"  {name}: {code}," for name, code in schema["x-error-codes"].items()),
@@ -222,7 +244,11 @@ def typescript(schema: dict[str, Any]) -> str:
         lines.append("")
     lines.append("export const requests = {")
     for method, pair in schema["x-requests"].items():
-        lines.append(f"  '{method}': {{ params: {pair['params']}, result: {pair['result']} }},")
+        since, until = request_versions(schema, method)
+        lines.append(
+            f"  '{method}': {{ params: {pair['params']}, result: {pair['result']}, "
+            f"since: {since}, until: {until} }},"
+        )
     lines += ["} as const;", "export type RequestMethod = keyof typeof requests;", ""]
     lines.append("export const notifications = {")
     for method, name in schema["x-notifications"].items():
@@ -410,9 +436,13 @@ def python(schema: dict[str, Any]) -> str:
         "from typing import Any, ClassVar, Literal",
         "",
         f"PROTOCOL_VERSION = {schema['x-protocol-version']}",
+        f"PROTOCOL_VERSIONS = {tuple(schema['x-protocol-versions'])!r}",
         "",
         "# method -> (params definition, result definition)",
         f"REQUESTS = {json.dumps({m: [p['params'], p['result']] for m, p in schema['x-requests'].items()}, indent=4)}",
+        "",
+        "# method -> (first, last) protocol version that has it",
+        f"REQUEST_VERSIONS = {json.dumps({m: list(request_versions(schema, m)) for m in schema['x-requests']}, indent=4)}",
         "",
         "# method -> params definition",
         f"NOTIFICATIONS = {json.dumps(schema['x-notifications'], indent=4)}",

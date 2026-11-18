@@ -167,7 +167,7 @@ def sql_output_columns(
     try:
         ast = parse_one(sql, dialect=dialect)
     except Exception as e:  # sqlglot raises several types; hostile SQL can recurse deeply
-        return None, f"SQL could not be parsed: {_short(e)}"
+        return None, f"SQL could not be parsed: {short_error(e)}"
     if not isinstance(ast, exp.Query):
         return None, f"not a query ({type(ast).__name__})"
     try:
@@ -180,7 +180,7 @@ def sql_output_columns(
         )
         names = list(qualified.named_selects)
     except Exception as e:
-        return None, f"the output columns could not be read: {_short(e)}"
+        return None, f"the output columns could not be read: {short_error(e)}"
     if not names or any(name == "*" or name.endswith(".*") for name in names):
         return None, "a * could not be expanded; run dbt docs generate"
     return names, None
@@ -201,7 +201,7 @@ def _trace(
     try:
         ast = parse_one(sql, dialect=dialect)
     except Exception as e:  # sqlglot raises several types; hostile SQL can recurse deeply
-        return _unknown(f"SQL could not be parsed: {_short(e)}")
+        return _unknown(f"SQL could not be parsed: {short_error(e)}")
     if not isinstance(ast, exp.Query):
         return _unknown(f"not a query ({type(ast).__name__})")
 
@@ -212,7 +212,7 @@ def _trace(
     try:
         nodes = lineage(None, ast, schema, dialect=dialect, trim_selects=False, copy=False)
     except Exception as e:
-        return _unknown(f"column lineage failed: {_short(e)}")
+        return _unknown(f"column lineage failed: {short_error(e)}")
     if not isinstance(nodes, dict):  # pragma: no cover - sqlglot returns a dict for column=None
         nodes = {nodes.name: nodes}
 
@@ -309,7 +309,8 @@ def _source_order(item: tuple[tuple[TableRef, str], int]) -> tuple:
     return (table.parts, column)
 
 
-def _short(error: Exception) -> str:
+def short_error(error: Exception) -> str:
+    """A parse error in one line: its type, and the start of what it says."""
     # sqlglot underlines the bad token with terminal escapes, and quotes the SQL as it found it
     text = _CONTROL.sub("", _ANSI.sub("", str(error)))
     text = " ".join(text.split())

@@ -282,7 +282,10 @@ class TestRuleInputs:
         assert sources["customers"] == "tag"
         assert sources["stg_orders"] == "pattern"
         assert sources["locations"] is None
-        assert {n.layer_source for n in result.nodes if n.resource_type != "model"} == {"default"}
+        seeds_and_sources = [n for n in result.nodes if n.resource_type in ("seed", "source")]
+        assert {n.layer_source for n in seeds_and_sources} == {"default"}
+        # The semantic layer has no layer
+        assert {n.layer for n in result.nodes if n.resource_type == "metric"} == {None}
 
     def test_contract_primary_keys(self, write_json, manifest_of):
         manifest = manifest_of("pilot-1.12")
@@ -296,7 +299,7 @@ class TestRuleInputs:
         customers["columns"]["customer_id"]["constraints"] = [{"type": "primary_key"}]
         customers["constraints"] = "not-a-list"
         result = DbtParser().parse({"manifest_path": str(write_json(manifest))})
-        by_name = {n.name: n for n in result.nodes}
+        by_name = {n.name: n for n in result.nodes if n.resource_type == "model"}
         assert by_name["orders"].primary_key == ["order_id", "location_id"]
         assert by_name["customers"].primary_key == ["customer_id"]
         assert by_name["stg_orders"].primary_key == []

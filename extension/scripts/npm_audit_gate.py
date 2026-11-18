@@ -18,6 +18,10 @@ ReDoS that reaches vsce and ovsx needs a glob pattern from the repository itself
 fail only on critical: they never reach a user or a token, and their known high advisory
 (serialize-javascript under mocha) needs attacker-chosen input to serialise, which a test run
 does not have. Every advisory is printed, gated or not.
+
+An advisory above its gate with no fix can be accepted in ACCEPTED: by its ID, in the packages
+named, while it reaches only dev dependencies, never what ships, and only until its date, when it
+fails again so that someone looks at it again. An accepted one is still printed, marked "acc".
 """
 
 from __future__ import annotations
@@ -25,6 +29,8 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from dataclasses import dataclass
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -33,6 +39,29 @@ RELEASE_TOOLS = {"@vscode/vsce", "ovsx", "esbuild"}
 SHIPPED_LEVEL = "high"
 RELEASE_TOOLS_LEVEL = "high"
 OTHER_DEV_LEVEL = "critical"
+
+
+@dataclass(frozen=True)
+class Accepted:
+    """An advisory accepted in the tools, with why, and until when."""
+
+    packages: frozenset[str]
+    until: date
+    why: str
+
+
+ACCEPTED = {
+    # Added 17 November 2026. The ReDoS needs a glob pattern the attacker chooses. vsce and ovsx
+    # (through tinyglobby) glob only the patterns in this repository's .vscodeignore and
+    # package.json, and whoever can change those can change the build. No picomatch is patched:
+    # the advisory covers every version, to 4.0.7, and the newest vsce (4.1.1) still uses it.
+    "GHSA-fc5q-39xc-vjpf": Accepted(
+        packages=frozenset({"picomatch"}),
+        until=date(2027, 2, 1),
+        why="picomatch's ReDoS needs an attacker's glob; the release tools glob only this "
+        "repository's patterns, and no picomatch is patched yet",
+    ),
+}
 
 
 def reached(vulnerabilities: dict, name: str) -> set[str]:
@@ -59,8 +88,21 @@ def gate_for(direct: str, package: dict) -> str:
     return SHIPPED_LEVEL  # not in package.json: treat it as shipped
 
 
-def evaluate(report: dict, package: dict) -> tuple[list[str], list[str]]:
+def accepted(ident: str, name: str, direct: set[str], package: dict, today: date) -> bool:
+    """Whether an advisory over its gate is accepted: see ACCEPTED."""
+    found = ACCEPTED.get(ident)
+    dev, shipped = package.get("devDependencies", {}), package.get("dependencies", {})
+    return (
+        found is not None
+        and name in found.packages
+        and today <= found.until
+        and all(d in dev and d not in shipped for d in direct)
+    )
+
+
+def evaluate(report: dict, package: dict, today: date | None = None) -> tuple[list[str], list[str]]:
     """(failures, every advisory as a line) for npm's JSON report."""
+    today = today or date.today()
     if "error" in report or not isinstance(report.get("vulnerabilities"), dict):
         detail = report.get("error", {}).get("summary") if isinstance(report.get("error"), dict) else None
         return [f"no audit report from npm{': ' + detail if detail else ''}"], []
@@ -75,7 +117,11 @@ def evaluate(report: dict, package: dict) -> tuple[list[str], list[str]]:
             direct = reached(vulnerabilities, name) or {name}
             gate = min((gate_for(d, package) for d in direct), key=LEVELS.index)
             failed = LEVELS.index(severity) >= LEVELS.index(gate)
-            line = (f"{'FAIL' if failed else 'ok  '} {severity:8} {ident} in {name}, "
+            mark = "FAIL" if failed else "ok  "
+            if failed and accepted(ident, name, direct, package, today):
+                failed, mark = False, "acc "
+                gate += f", accepted until {ACCEPTED[ident].until.isoformat()}: {ACCEPTED[ident].why}"
+            line = (f"{mark} {severity:8} {ident} in {name}, "
                     f"reaches {', '.join(sorted(direct))} (gate: {gate})")
             lines.append(line)
             if failed:

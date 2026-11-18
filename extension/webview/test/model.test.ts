@@ -72,6 +72,23 @@ suite('graph model', () => {
     assert.equal(withoutModels.edges.length, 0);
   });
 
+  test("each tool's kind is a filter of its own (task 7.6)", () => {
+    const view = fromResult(graph('model.shop.a', [
+      node('model.shop.a'),
+      node('airflow:daily.run', { kind: 'task', tool: 'airflow', subkind: 'task', side: 'upstream', depth: 1 }),
+      node('airflow:daily.marts', { kind: 'task', tool: 'airflow', subkind: 'task_group', side: 'upstream', depth: 1 }),
+      node('dagster:nightly.load', { kind: 'task', tool: 'dagster', side: 'upstream', depth: 1 }),
+      node('looker:view.a', { kind: 'consumer', tool: 'looker', side: 'downstream', depth: 1 }),
+    ], []), 1);
+    assert.deepEqual(kindsIn(view), [
+      { key: 'task:airflow', label: 'Airflow task' },
+      { key: 'task:dagster', label: 'Dagster task' },
+      { key: 'consumer:looker', label: 'Looker consumer' },
+      { key: 'model', label: 'model' },
+    ]);
+    assert.deepEqual(visible(view, new Set(['task:airflow'])).nodes.map((n) => n.id).sort(), ['dagster:nightly.load', 'looker:view.a', 'model.shop.a']);
+  });
+
   test('search matches names and IDs, ignoring case and spaces', () => {
     const orders = node('model.shop.orders');
     assert.equal(matches(orders, ''), true);
@@ -82,7 +99,7 @@ suite('graph model', () => {
 
   test('kinds and neighbours', () => {
     const view = fromResult(ordersGraph(), 2);
-    assert.deepEqual(kindsIn(view), ['model', 'source']);
+    assert.deepEqual(kindsIn(view), [{ key: 'model', label: 'model' }, { key: 'source', label: 'source' }]);
     const { upstream, downstream } = neighbours(view, 'model.shop.orders');
     assert.deepEqual(upstream.map((e) => e.upstream), ['model.shop.stg_orders']);
     assert.deepEqual(downstream.map((e) => e.downstream), ['model.shop.customers_report']);

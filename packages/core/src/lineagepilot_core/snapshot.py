@@ -5,11 +5,11 @@ unresolved records and column-lineage states. Spike S2 found JSON loads faster t
 Artifact versions and evidence records are stored once, in tables, and referenced by index,
 because thousands of edges share them.
 
-The file is JSON lines (format 3): a header object, then each section's records in batches of
-up to ``BATCH``, one JSON array per line. Decoding the whole document at once, as format 2 did,
-held a 315 MB tree at 5,000 models before the graph existed, and Python kept that memory: the
-loaded graph cost 372 MB of the server's memory instead of 248 MB (LP-dtt). Batches keep the
-load as fast.
+The file is JSON lines (since format 3; format 4 adds the semantic layer): a header object,
+then each section's records in batches of up to ``BATCH``, one JSON array per line. Decoding
+the whole document at once, as format 2 did, held a 315 MB tree at 5,000 models before the
+graph existed, and Python kept that memory: the loaded graph cost 372 MB of the server's
+memory instead of 248 MB (LP-dtt). Batches keep the load as fast.
 
 Snapshots are keyed by the sha256 of the manifest and catalog, the snapshot format and
 the core version, so a changed artifact or an upgraded LineagePilot never reads a stale
@@ -51,7 +51,8 @@ from lineagepilot_core.parsers import _json
 
 logger = logging.getLogger(__name__)
 
-# 4: nodes carry a tool and a subkind; pipeline, task and consumer kinds (D-9, task 7.1)
+# 3: JSON lines, read a batch at a time (LP-dtt). 4: the semantic layer is part of the graph
+# built from the same manifest, with how completely each consumer's reads are known (task 7.8)
 SNAPSHOT_FORMAT = 4
 # Records per line: enough that decoding stays as fast as one document, few enough that a
 # batch decoded at a time costs little memory
@@ -158,6 +159,10 @@ def to_dict(graph: MetadataGraph) -> dict[str, Any]:
             for node_id, status in graph.column_lineage.items()
         },
         "output_columns": graph.output_columns,
+        "consumer_lineage": {
+            node_id: [status.state.value, status.reason]
+            for node_id, status in graph.consumer_lineage.items()
+        },
     }
 
 
@@ -281,6 +286,9 @@ def _from_dict(data: Any, records: Callable[[str], Iterable[Any]]) -> MetadataGr
         graph.node(node_id)  # must exist
         # Thousands of models share a few hundred column names (design section 11)
         graph.output_columns[node_id] = [sys.intern(name) for name in names]
+    for node_id, (state, reason) in data["consumer_lineage"].items():
+        graph.node(node_id)  # must exist
+        graph.consumer_lineage[node_id] = ColumnLineageStatus(LineageState(state), reason)
     return graph
 
 

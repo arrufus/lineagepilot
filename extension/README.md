@@ -2,17 +2,18 @@
 
 See what is upstream and downstream of the model you are editing, and what a change to it would reach, from the dbt artifacts already in your workspace. LineagePilot runs locally: no server, no account, no warehouse connection.
 
-> **Preview.** What LineagePilot shows is accurate as far as it goes, and it says where it could not tell: anything it cannot check is listed under **Unknowns**, never left out. The Airflow linkage is the part to judge carefully. On 106 task links in 17 repositories it had never seen, it linked 17 correctly and listed most of the rest as unknown; 2 were wrong, and it made no link where there was none. See [Airflow](#airflow).
+> **Preview.** What LineagePilot shows is accurate as far as it goes, and it says where it could not tell: anything it cannot check is listed under **Unknowns**, never left out. The Airflow linkage is the part to judge carefully. On 35 task links in 12 repositories it had never seen, it linked 15 correctly and listed 19 of the other 20 as unknown. One was wrong, and it made no link where there was none. See [Airflow](#airflow).
 
 ## What you get
 
-- **CodeLens** on each model file and on each entry in a YAML properties file: everything downstream, for example `↓ 14 models · 1 exposure · 3 Airflow tasks · PII`. Click it to see the downstream in the Lineage view.
+- **CodeLens** on each model file and on each entry in a YAML properties file: everything downstream, for example `↓ 14 models · 1 exposure · 2 metrics · 3 Airflow tasks · PII`. Click it to see the downstream in the Lineage view.
 - **Hovers** on `ref()` and `source()` calls, and on the columns of the model you are editing: the direct upstream and downstream, with how each link is known (declared in the manifest, inferred from compiled SQL) and the column-lineage state.
 - **Problems**: conformance and PII rules, each linked to its documentation. Results LineagePilot could not check are shown as "Not checked", never as passes. PII findings are *indicators*, from tags, names and lineage, not verified exposure.
 - **Lineage view** in the activity bar: the upstream and downstream of the open file, one level at a time. Click a node to open it.
-- **Airflow view** in the activity bar: the DAGs and tasks that run or read the open model, or all of them, each with how sure the link is and why, then what could not be read. Click one to open its DAG file at the task. DAG files are only ever parsed, never imported or run. See [Airflow](#airflow).
-- **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges (the view moves along with them), Enter for details, O to open.
-- **Change Impact Review** (**Review Changes**, or the compare icon on the Lineage view): what your branch and working tree change, against the merge-base with the default branch or a base you choose. It shows each changed model and its columns as a diff, then what that reaches, grouped by models, exposures, Airflow tasks and owners, each with how sure it is and what says so, then an **Unknowns** section for everything that could not be checked. **Copy as Markdown** puts it on the clipboard for your pull request; `lineagepilot review` prints the same text for the same inputs. See [Reviewing a change](#reviewing-a-change).
+- **Pipelines view** in the activity bar, grouped by tool: for Airflow, the DAGs and tasks that run or read the open model, or all of them, each with how sure the link is and why, then what could not be read. Click one to open its DAG file at the task. DAG files are only ever parsed, never imported or run. See [Airflow](#airflow).
+- **Consumers view** in the activity bar, grouped by tool: what reads the open model from outside dbt, such as a metric or a dashboard, and which of its columns.
+- **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind and tool, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges (the view moves along with them), Enter for details, O to open.
+- **Change Impact Review** (**Review Changes**, or the compare icon on the Lineage view): what your branch and working tree change, against the merge-base with the default branch or a base you choose. It shows each changed model and its columns as a diff, then what that reaches, grouped by models, exposures and the dbt semantic layer (down to the metrics whose measures read a changed column), then the pipelines that run them and the consumers that read them, each by tool, then owners, each with how sure it is and what says so, then an **Unknowns** section for everything that could not be checked. **Copy as Markdown** puts it on the clipboard for your pull request; `lineagepilot review` prints the same text for the same inputs. See [Reviewing a change](#reviewing-a-change).
 - **Status bar**: node count and manifest age, or a warning when model files are newer than the manifest.
 - **Commands** (LineagePilot: …): Show Lineage Graph, Analyze Impact of Current Model, Review Changes, Refresh dbt Artifacts, Re-index Lineage, Export Lineage Graph (JSON, Mermaid, DOT, GraphML, Cypher), Export PII Inventory (Markdown, CSV), Show Status, Restart Language Server, Show Output, Open Sample Project, Apply the Sample Change.
 
@@ -20,6 +21,7 @@ See what is upstream and downstream of the model you are editing, and what a cha
 
 - A dbt project with `target/manifest.json`, from `dbt parse`, `dbt compile` or `dbt docs generate`. Manifest schema v12 (dbt 1.8 to 1.12, and Fusion) is supported.
 - For column lineage: compiled SQL (`dbt compile`) and `target/catalog.json` (`dbt docs generate`). Without them, column lineage shows as *unknown* and impact falls back to whole models.
+- The dbt semantic layer is read from the manifest, written either way, with measures or in dbt 1.12's newer form. dbt Fusion leaves it out of the manifest (as of Fusion 2.0.9), so with Fusion no metrics are shown.
 - **Python 3.10 or later.** LineagePilot looks, in order, at the `lineagePilot.python.interpreterPath` setting, the Python extension's selected interpreter, `python3` on `PATH` (`py -3` on Windows), and Pythons installed by [uv](https://docs.astral.sh/uv/). If it finds none and uv is installed, it offers to have uv download one; nothing is downloaded without your consent.
 
 Large projects index in the background: the model-level lineage is ready in seconds, and column lineage follows. The index is cached, so reopening a project is fast.
@@ -47,10 +49,10 @@ When it is installed, VS Code opens the **Get Started with LineagePilot** walkth
 **No dbt project to hand?** **LineagePilot: Open Sample Project** copies a small project written for LineagePilot to a folder you choose and opens it. It has real dbt 1.12 artifacts, three Airflow DAG files and a prepared change, and needs neither dbt nor Airflow:
 
 1. Trust the folder when VS Code asks. The review needs Git, which Restricted Mode turns off.
-2. Open `models/marts/orders.sql` for the CodeLens, hovers, the Lineage and Airflow views and the graph.
+2. Open `models/marts/orders.sql` for the CodeLens, hovers, the Lineage and Pipelines views and the graph.
 3. In **Source Control**, initialize a repository and commit everything.
 4. **LineagePilot: Apply the Sample Change** renames a column of the mart, and puts the manifest `dbt compile` would write in `target/`.
-5. **LineagePilot: Review Changes** shows what the rename reaches: four models, a dashboard and four Airflow tasks, with their owners, and two unknowns.
+5. **LineagePilot: Review Changes** shows what the rename reaches: four models, a dashboard, the metrics and the saved query of the dbt semantic layer, and four Airflow tasks, with their owners, and two unknowns.
 
 The sample's own `README.md` says what each file is for.
 
@@ -104,29 +106,47 @@ LineagePilot reads your DAG files as syntax, to work out which tasks run which m
 - dbt commands in `BashOperator`, `KubernetesPodOperator`, `DockerOperator` and `SSHOperator`, including `cd x && dbt run`, several commands in one string, and `docker exec`.
 - SQL operators: which dbt models' tables their SQL reads or writes.
 - Task order, from `>>`, `<<`, `set_upstream`, `set_downstream` and `chain()`.
-- Values from constants in other workspace files, `Path(__file__)`, environment variable defaults and local helper functions.
+- Values from constants in other workspace files, `Path(__file__)`, environment variable defaults, local helper functions, and helper functions imported from other workspace files, one level deep.
+- A path built on an environment variable with no default, such as `$AIRFLOW_HOME/dbt`, matched by the path after the variable.
+- dbt run in a container: a path that matches no project is mapped through the task's bind mounts, or else to the workspace's only dbt project.
 
 Links are labelled by how sure they are. **Most are `heuristic`**, because a path in a DAG file is usually a path inside a container, or depends on an environment variable's default. They are shown anyway, with the reason, because hiding them would hide most of the real ones.
 
-What cannot be read is listed as an unknown, at the line that caused it, rather than guessed: tasks built in a loop or a factory, from a `manifest.json` read when Airflow parses the file, by a wrapper class or a function imported from another file; selectors that need dbt's state; Jinja or shell variables; a remote manifest; a generated project; a DAG file that cannot load. [corpus/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/README.md) says how often the scanner gets it right on repositories it had never seen, and why it misses.
+What cannot be read is listed as an unknown, at the line that caused it, rather than guessed: tasks built in a loop or a factory, from a `manifest.json` read when Airflow parses the file, by a wrapper class or a helper two levels deep; selectors that need dbt's state; Jinja or shell variables; a remote manifest; a generated project; a DAG file that cannot load. [corpus/airflow/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/airflow/README.md) says how often the scanner gets it right on repositories it had never seen, and why it misses.
 
-To answer an unknown, or to tell LineagePilot where a container path really is, put `.lineagepilot/airflow.yml` at the root of the dbt project:
+`lineagepilot airflow` prints the same scan on the command line.
+
+## The annotation file
+
+What LineagePilot cannot read, you can declare in `.lineagepilot/lineage.yml` at the root of the dbt project: a path inside a container, what a task does, an unknown you have answered, and what reads your models from outside dbt.
 
 ```yaml
 path_map:
   /usr/local/airflow/dbt: .       # a path in a DAG file, and where that is, relative to the project
 pipelines:
   - pipeline_id: finance_gl       # a DAG
+    tool: airflow                 # the default
     owner: finance-eng
     tasks:
       - task_id: load_gl
         consumes: [model.finance.stg_accounts, analytics.staging.raw_transactions]
         produces: [analytics.facts.gl]
+consumers:                        # what reads your models, when no file in the repository says so
+  - id: tableau:finance/gl_overview
+    owner: finance-analytics
+    consumes:
+      - model.finance.fct_gl            # the whole model
+      - model.finance.fct_gl#amount     # one column of it
 acknowledged:                     # unknowns you have answered
   - file: dags/factory.py
 ```
 
-`lineagepilot airflow` prints the same scan on the command line.
+- **References** are a dbt node's ID, a table's name (`analytics.facts.gl`), or a model's name when only one model has it. A table found by part of its name is shown as `heuristic`.
+- **A consumer** is shown in the **Consumers** view, the lineage graph, CodeLens and **Review Changes**, under its tool. Start its `id` with the tool (`tableau:`), or give it a `tool:`. A consumer that names only columns is listed only when one of those columns changes; one that names a model is listed whenever the model changes.
+- **What cannot be used**, such as a name that matches no node or a column the model does not list, is shown as an unknown. Problems with the file itself, such as an entry with no `id`, are in the tooltip on **Airflow** in the **Pipelines** view.
+- **`.lineagepilot/airflow.yml`**, the file's name before 0.3.0, is still read. When both files exist, `lineage.yml` is read, and the status says the other was ignored.
+
+The file is read with the DAG files, and read again whenever it changes.
 
 ## Custom rules
 
@@ -151,7 +171,7 @@ In the editor:
 - **No CodeLens**: check that `editor.codeLens` is on. A model the manifest does not know yet, such as a new file, has none until you run `dbt parse`.
 - **Columns show as unknown**: column lineage needs compiled SQL (`dbt compile`) and `target/catalog.json` (`dbt docs generate`). A model whose SQL cannot be parsed stays unknown, and the review lists it under Unknowns.
 - **Refresh dbt Artifacts is unavailable**: the workspace is not trusted, and dbt never runs in Restricted Mode. Otherwise, when dbt is not on `PATH`, set `lineagePilot.dbt.executablePath` in your user settings. On Windows it must point at `dbt.exe`, not a batch file.
-- **The Airflow view is empty**: LineagePilot looks in folders called `dags`. Set `lineagePilot.airflow.dagFolders` if yours are elsewhere. DAG files over 2 MB are not read, nor more than 5,000 files. **No task in the DAG files read runs dbt** means it read them and found nothing that runs dbt: see [Airflow](#airflow) for what it understands, and use `.lineagepilot/airflow.yml` for the rest.
+- **The Pipelines view shows nothing under Airflow**: LineagePilot looks in folders called `dags`. Set `lineagePilot.airflow.dagFolders` if yours are elsewhere. DAG files over 2 MB are not read, nor more than 5,000 files. **No task in the DAG files read runs dbt** means it read them and found nothing that runs dbt: see [Airflow](#airflow) for what it understands, and use the [annotation file](#the-annotation-file) for the rest.
 
 In the review:
 

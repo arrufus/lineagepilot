@@ -11,5 +11,5 @@
     "forceConsistentCasingInFileNames": true,
     "noEmit": true
   },
-  "include": ["src", "test", "../src/protocol.ts", "../src/webviewMessages.ts", "../src/reviewMessages.ts"]
+  "include": ["src", "test", "../src/protocol.ts", "../src/kinds.ts", "../src/webviewMessages.ts", "../src/reviewMessages.ts"]
 }

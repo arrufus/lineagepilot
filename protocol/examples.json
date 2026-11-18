@@ -49,9 +49,28 @@
         { "id": "airflow:daily.marts", "kind": "airflow_task", "name": "marts", "operator": "DbtTaskGroup", "owner": null, "how": ["dbt run"], "nodes": ["model.shop.orders"], "derivedTasks": ["marts.orders.run"], "confidence": "heuristic", "origins": ["dag_static"], "notes": [], "location": null }
       ] }
     ], "unknowns": [{ "subject": "airflow:backfill", "reference": "loop or factory", "reason": "dags/b.py:3: created in a loop" }] } },
-    { "type": "AirflowStatus", "value": { "stage": "scanning", "generation": 2, "summary": { "analysed": false, "reason": "not read", "dagFiles": 0, "dags": 0, "tasks": 0, "links": 0, "unknowns": 0, "opaqueTasks": 0, "folders": [], "problems": [] } } }
+    { "type": "AirflowStatus", "value": { "stage": "scanning", "generation": 2, "summary": { "analysed": false, "reason": "not read", "dagFiles": 0, "dags": 0, "tasks": 0, "links": 0, "unknowns": 0, "opaqueTasks": 0, "folders": [], "problems": [] } } },
+    { "type": "PipelinesParams", "value": { "nodes": ["model.shop.orders"] } },
+    { "type": "PipelinesParams", "value": { "nodes": null, "tools": ["airflow", "dagster"] } },
+    { "type": "ReaderStatus", "value": { "tool": "airflow", "stage": "done", "generation": 2, "message": null, "summary": { "tool": "airflow", "analysed": true, "reason": null, "paths": ["**/dags"], "files": 3, "pipelines": 2, "tasks": 5, "consumers": 0, "links": 4, "unknowns": 1, "opaqueTasks": 0, "problems": [] } } },
+    { "type": "PipelinesResult", "value": { "readers": [{ "tool": "airflow", "stage": "failed", "generation": 1, "message": "reading them took longer than 120 s", "summary": { "tool": "airflow", "analysed": true, "reason": null, "paths": ["**/dags"], "files": 3, "pipelines": 2, "tasks": 5, "consumers": 0, "links": 4, "unknowns": 1, "opaqueTasks": 0, "problems": [] } }], "pipelines": [
+      { "id": "airflow:daily", "tool": "airflow", "subkind": "dag", "name": "daily", "owner": null, "location": null, "tasks": [
+        { "id": "airflow:daily.marts", "kind": "task", "tool": "airflow", "subkind": "task_group", "name": "marts", "operator": "DbtTaskGroup", "owner": "platform", "how": ["dbt run"], "nodes": ["model.shop.orders"], "derivedTasks": ["marts.orders.run"], "confidence": "heuristic", "origins": ["dag_static"], "notes": [], "location": null }
+      ] }
+    ], "unknowns": [] } },
+    { "type": "ConsumersParams", "value": { "nodes": ["model.shop.orders"] } },
+    { "type": "ConsumersResult", "value": { "consumers": [
+      { "id": "tableau:finance/gl", "tool": "tableau", "subkind": null, "name": "finance/gl", "owner": "finance", "location": null, "reads": [
+        { "node": "model.shop.orders", "columns": ["amount"], "confidence": "declared", "origins": ["annotation"] }
+      ] }
+    ] } },
+    { "type": "ImpactPipeline", "value": { "tool": "dagster", "pipeline": "nightly", "operator": null, "how": [], "runs": ["orders"], "runsMore": 0, "tasks": [], "tasksMore": 0, "after": [], "notes": [] } }
   ],
   "invalid": [
+    { "type": "ConsumersParams", "value": { "nodes": [] }, "why": "at least one node" },
+    { "type": "PipelinesParams", "value": { "tools": null }, "why": "nodes is required, even if null" },
+    { "type": "ReaderStatus", "value": { "tool": "airflow", "stage": "later", "generation": 0, "message": null, "summary": {} }, "why": "not a stage" },
+    { "type": "GraphEdge", "value": { "kind": "reads", "upstream": "a", "downstream": "b", "relation": null, "confidence": "declared", "origins": [], "transformation": null }, "why": "not an edge kind" },
     { "type": "EmptyParams", "value": null, "why": "a request must carry a params object (S1 finding 4)" },
     { "type": "EmptyParams", "value": { "extra": 1 }, "why": "unknown key" },
     { "type": "GraphParams", "value": { "direction": "downstream", "depth": 1, "granularity": "model" }, "why": "root is required" },

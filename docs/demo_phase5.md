@@ -388,7 +388,7 @@ Do not open **Review Changes** in this window. VS Code turns its Git extension o
 
 > **Say:** Everything so far ran on a project we wrote. Here's what happens on repositories we hadn't seen.
 
-1. **The result.** Open `$REPO/corpus/README.md` and preview it (⇧⌘V, or Ctrl+Shift+V). An agent that never saw the scanner labelled 106 links in 17 public repositories. We froze the scanner, recorded its hash and scored it once:
+1. **The result.** Open `$REPO/corpus/airflow/README.md` and preview it (⇧⌘V, or Ctrl+Shift+V). An agent that never saw the scanner labelled 106 links in 17 public repositories. We froze the scanner, recorded its hash and scored it once:
 
    | What the scanner did | Links |
    |---|---|

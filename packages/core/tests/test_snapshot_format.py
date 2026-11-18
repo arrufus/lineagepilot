@@ -25,8 +25,9 @@ MODEL_OF_FORMAT = {
     2: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
     # The same model, written as JSON lines in batches (LP-dtt)
     3: "97e717244a3dcfe9a82a679ad3b7420900be58e9a142ad3d1f2ab4cfacb797b0",
-    # Pipeline, task and consumer kinds, with a tool and a subkind on each node (D-9)
-    4: "5b7abe11c88e22b048a451abceaece5bd9bde5bbba00d60e03a10c2d9cce1c92",
+    # Phase 7: pipeline, task and consumer kinds with a tool and a subkind, the edges loads,
+    # consumes and part_of, and the dbt semantic layer in the graph (tasks 7.1 and 7.8)
+    4: "434b7ff483c9e1ad7eb1e002af4458fa81027e4c1a2ef56e3c5135c854a2d633",
 }
 
 

@@ -159,6 +159,11 @@ def test_pilot_shop_lineage():
         ("source.pilot_shop.ecom.raw_customers", 1),
         ("model.pilot_shop.stg_customers", 2),
         ("model.pilot_shop.customers", 3),
+        # The semantic layer reads the mart: a semantic model, then what uses it (task 7.8)
+        ("semantic_model.pilot_shop.customers", 4),
+        ("metric.pilot_shop.customers_served", 5),
+        ("saved_query.pilot_shop.revenue_by_customer_type", 5),
+        ("metric.pilot_shop.spend_per_customer", 6),
     ]
     up = traverse(graph, ["model.pilot_shop.customers"], UP)
     assert len(up.found()) == 14

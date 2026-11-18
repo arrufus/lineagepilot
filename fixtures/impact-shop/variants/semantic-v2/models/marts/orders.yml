@@ -1,0 +1,62 @@
+version: 2
+
+# The same semantic layer as models/marts/semantic.yml, in the YAML dbt 1.12 prefers: the
+# semantic model is the mart itself, its fields are on its columns, and the metrics aggregate
+# over it with no measures.
+
+models:
+  - name: orders
+    description: The orders mart.
+    meta:
+      owner: finance-data
+    semantic_model: true
+    agg_time_dimension: ordered_at
+    columns:
+      - name: order_id
+        description: The order's key.
+        entity:
+          name: order
+          type: primary
+        data_tests:
+          - not_null
+          - unique
+      - name: order_total
+        description: The order's total in US dollars.
+      - name: customer_id
+        description: Who placed the order.
+        entity:
+          name: customer
+          type: foreign
+      - name: ordered_at
+        granularity: day
+        dimension: time
+    derived_semantics:
+      dimensions:
+        - name: order_size
+          type: categorical
+          expr: case when order_total >= 100 then 'large' else 'small' end
+    metrics:
+      - name: revenue
+        label: Revenue
+        type: simple
+        agg: sum
+        expr: order_total
+        config:
+          meta:
+            owner: finance-analytics
+      - name: order_count
+        label: Orders placed
+        type: simple
+        agg: count
+        expr: order_id
+      - name: large_orders
+        label: Large orders
+        type: simple
+        agg: count
+        expr: order_id
+        filter: "{{ Dimension('order__order_size') }} = 'large'"
+      - name: average_order_value
+        label: Average order value
+        type: ratio
+        numerator: revenue
+        denominator: order_count

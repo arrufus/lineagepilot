@@ -1,10 +1,10 @@
-"""The metadata graph (design section 5).
+"""The metadata graph (design section 5, and design_next_phase section 7.1 for Phase 7).
 
-Nodes are dbt nodes, physical relations, and what readers of other tools find beside them
-(D-9): ``pipeline`` and ``task`` nodes, such as Airflow's DAGs and tasks, and ``consumer`` nodes,
-such as a metric or a dashboard. Each of those names its tool in ``Node.tool``. Columns belong to
-nodes, a consumer's included. Edges point the way data or control flows, from ``upstream`` to
-``downstream``:
+Nodes are dbt nodes and physical relations; pipelines and tasks, such as Airflow DAGs and
+their tasks; and consumers, which read dbt's models from outside it, such as a metric or a
+dashboard. A pipeline, task or consumer has a ``tool`` (``airflow``, ``dbt_semantic``...) and
+may have a ``subkind`` (DAG, job, metric, view...). Columns belong to nodes, a consumer's
+columns too. Edges point the way data or control flows, from ``upstream`` to ``downstream``:
 
 | Kind              | Upstream -> downstream                                    |
 |-------------------|-----------------------------------------------------------|
@@ -14,8 +14,9 @@ nodes, a consumer's included. Edges point the way data or control flows, from ``
 | ``orchestrates``  | task -> the dbt node it runs                              |
 | ``task_depends_on`` | upstream task -> downstream task                        |
 | ``loads``         | task -> the relation or source it writes                  |
-| ``consumes``      | node or column -> the consumer, or consumer column, that reads it |
-| ``part_of``       | a part -> what holds it: a view -> its explore -> its dashboard |
+| ``consumes``      | consumer (or its column) -> the node (or column) it reads |
+| ``part_of``       | a part -> what it is part of: a field to its view, a view |
+|                   | to its explore, a table to its model                      |
 
 Every edge carries evidence: where it came from, how sure it is, which artifact version
 it was read from, and where to navigate to. An edge found by more than one source keeps
@@ -39,29 +40,38 @@ class NodeKind(str, Enum):
     SOURCE = "source"
     EXPOSURE = "exposure"
     RELATION = "relation"
-    PIPELINE = "pipeline"  # an Airflow DAG, a Dagster job, a Databricks job...
-    TASK = "task"  # a step of a pipeline
-    CONSUMER = "consumer"  # what reads the data: a metric, a semantic model, a dashboard...
+    PIPELINE = "pipeline"
+    TASK = "task"
+    CONSUMER = "consumer"
 
 
 DBT_KINDS = frozenset(
     {NodeKind.MODEL, NodeKind.SEED, NodeKind.SNAPSHOT, NodeKind.SOURCE, NodeKind.EXPOSURE}
 )
-# What a reader of another tool adds beside the dbt graph. ``Node.tool`` says which tool. Rules and
-# PII indicators never apply to them: they stay with ``DBT_KINDS``.
-TOOL_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK, NodeKind.CONSUMER})
+PIPELINE_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK})
+# The kinds that carry a tool
+TOOL_KINDS = PIPELINE_KINDS | {NodeKind.CONSUMER}
 
-# The names protocol version 1, the review's JSON and the CLI give the kinds of Airflow's nodes.
-# The protocol gets the generic kinds, through its version negotiation, in task 7.5.
-_PUBLIC_KINDS = {
-    (NodeKind.PIPELINE, "airflow"): "airflow_dag",
-    (NodeKind.TASK, "airflow"): "airflow_task",
+AIRFLOW = "airflow"
+# How protocol 1 wrote an Airflow DAG and task, before the generic kinds (task 7.5). A protocol 1
+# client still gets these, lineage/airflow always does, and they name the review's Airflow rows
+# until its sections are by tool (task 7.7).
+_LEGACY_KINDS = {
+    (NodeKind.PIPELINE.value, AIRFLOW): "airflow_dag",
+    (NodeKind.TASK.value, AIRFLOW): "airflow_task",
 }
 
 
-def public_kind(kind: NodeKind, tool: str | None = None) -> str:
-    """A kind as the protocol, the review's JSON and the CLI name it."""
-    return _PUBLIC_KINDS.get((kind, tool), kind.value)
+def kind_name(kind: NodeKind, tool: str | None = None) -> str:
+    """The kind as protocol 2, the CLI and the exports write it: ``task``, with the tool beside
+    it, whatever the tool. ``tool`` is taken so a caller need not know which kinds have one."""
+    return kind.value
+
+
+def legacy_kind(kind: str, tool: str | None) -> str:
+    """A kind as written out (``kind_name``), as protocol 1 wrote it: ``airflow_task`` for an
+    Airflow task. A kind protocol 1 did not have is returned as it is."""
+    return _LEGACY_KINDS.get((kind, tool), kind)
 
 
 # Up to this many pieces of evidence on an edge, a list search is cheaper than a set
@@ -158,14 +168,17 @@ class Node:
     source_sha256: str | None = None  # of a model's source text, as the manifest saw it
     in_catalog: bool = False  # catalog.json has an entry for it
     primary_key: list[str] = field(default_factory=list)  # contract primary-key columns
-    # For a pipeline, task or consumer: the tool it comes from (airflow, dbt_semantic, looker...),
-    # and what it is there (dag, task, metric, explore...)
-    tool: str | None = None
-    subkind: str | None = None
+    tool: str | None = None  # for a pipeline, task or consumer: airflow, dbt_semantic...
+    subkind: str | None = None  # what the tool calls it: dag, job, metric, view...
 
     @property
     def has_tests(self) -> bool:
         return self.test_count > 0
+
+    @property
+    def kind_name(self) -> str:
+        """The kind as it is written out (see ``kind_name``)."""
+        return kind_name(self.kind, self.tool)
 
 
 @dataclass(slots=True)
@@ -230,9 +243,7 @@ class ColumnLineageStatus:
 
 @dataclass(frozen=True, slots=True)
 class AirflowSummary:
-    """What a DAG scan looked at and found (task 5.3). Not part of a snapshot.
-
-    It is the graph's summary for the tool ``airflow``."""
+    """What a DAG scan looked at and found (task 5.3). Not part of a snapshot."""
 
     analysed: bool
     reason: str | None = None  # why not, or why nothing was found
@@ -245,6 +256,7 @@ class AirflowSummary:
     opaque_tasks: int = 0  # commands that cannot be read and do not mention dbt
     annotation_file: str | None = None
     problems: tuple[str, ...] = ()
+    consumers: int = 0  # declared in the annotation file (task 7.4)
 
 
 class GraphError(ValueError):
@@ -276,8 +288,24 @@ class MetadataGraph:
         # its columns in the graph, which also hold what the catalog and the docs list: the
         # Change Impact Review compares this with a baseline. Absent when it cannot be known.
         self.output_columns: dict[str, list[str]] = {}
-        # What each reader's last run found, by tool; a tool that is absent has not run
-        self.summaries: dict[str, AirflowSummary] = {}
+        # How completely each consumer's reads are known, column by column: the semantic layer's
+        # nodes (task 7.8). A consumer here that is not unknown is impacted through the consumes
+        # edges of its columns only; any other is impacted when any column of what it reads is.
+        self.consumer_lineage: dict[str, ColumnLineageStatus] = {}
+        # What each reader's last scan found, by tool. Not part of a snapshot.
+        self.readers: dict[str, AirflowSummary] = {}
+
+    @property
+    def airflow(self) -> AirflowSummary | None:
+        """What the last DAG scan found; None until one has been applied."""
+        return self.readers.get(AIRFLOW)
+
+    @airflow.setter
+    def airflow(self, summary: AirflowSummary | None) -> None:
+        if summary is None:
+            self.readers.pop(AIRFLOW, None)
+        else:
+            self.readers[AIRFLOW] = summary
 
     # Building
 
@@ -414,11 +442,11 @@ class MetadataGraph:
     def unresolved_for(self, subject: str) -> list[Unresolved]:
         return [u for u in self.unresolved if u.subject == subject]
 
-    def stats(self) -> dict[str, Any]:
-        """Counts, with each node kind as the protocol names it (``public_kind``)."""
+    def stats(self, legacy: bool = False) -> dict[str, Any]:
+        """Counts, with node kinds as written out, or with ``legacy`` as protocol 1 wrote them."""
         node_kinds: dict[str, int] = defaultdict(int)
         for node in self.nodes.values():
-            node_kinds[public_kind(node.kind, node.tool)] += 1
+            node_kinds[legacy_kind(node.kind_name, node.tool) if legacy else node.kind_name] += 1
         edge_kinds: dict[str, int] = defaultdict(int)
         for edge in self._edges.values():
             edge_kinds[edge.kind.value] += 1

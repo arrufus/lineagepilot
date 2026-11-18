@@ -107,9 +107,12 @@ def pilot():
 
 def test_graph_view_of_the_whole_project(pilot):
     view = graph_view(pilot)
-    assert {n.kind for n in view.nodes} == {"model", "seed", "source"}
-    assert {e.kind for e in view.edges} == {"depends_on"}
-    assert len(view.edges) == 14
+    assert {n.kind for n in view.nodes} == {"model", "seed", "source", "consumer"}
+    assert {e.kind for e in view.edges} == {"depends_on", "consumes"}
+    assert sum(e.kind == "depends_on" for e in view.edges) == 14
+    # The semantic layer: 3 semantic models read their marts, 4 metrics and a saved query read
+    # them and each other, and the saved query groups by a semantic model's dimension
+    assert sum(e.kind == "consumes" for e in view.edges) == 10
 
 
 def test_graph_view_scope_columns_and_relations(pilot):
@@ -138,11 +141,10 @@ def test_every_format_is_deterministic(pilot, fmt):
 
 def test_json_export_shape(pilot):
     data = json.loads(export_graph(graph_view(pilot), ExportFormat.JSON))
-    assert (data["format"], data["version"]) == ("lineagepilot-graph", 2)
+    assert (data["format"], data["version"]) == ("lineagepilot-graph", 1)
     assert data["nodes"][0].keys() == {
         "id",
         "kind",
-        "tool",
         "name",
         "layer",
         "domain",

@@ -1,0 +1,18 @@
+version: 2
+
+saved_queries:
+  - name: weekly_revenue
+    description: Revenue by week, for the finance export.
+    config:
+      group: operations
+    query_params:
+      metrics:
+        - revenue
+        - average_order_value
+      group_by:
+        - "TimeDimension('order__ordered_at', 'week')"
+    exports:
+      - name: weekly_revenue
+        config:
+          export_as: table
+          schema: exports

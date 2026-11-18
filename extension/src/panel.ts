@@ -4,8 +4,9 @@
 import * as vscode from 'vscode';
 
 import { isInside } from './interpreter';
-import { Location, type Status } from './protocol';
+import { Location } from './protocol';
 import type { ProjectServer } from './server';
+import { readersKey } from './status';
 import {
   DEFAULT_SETTINGS, type Focus, HostMessage, ViewSettings, WebviewMessage,
 } from './webviewMessages';
@@ -55,10 +56,6 @@ export async function openOutsidePanel(
   }
   const viewColumn = panel.viewColumn === vscode.ViewColumn.One ? vscode.ViewColumn.Two : vscode.ViewColumn.One;
   await openLocation(location, { viewColumn, preserveFocus });
-}
-
-function scanKey(status: Status | undefined): string {
-  return status ? `${status.airflow.generation}:${status.airflow.stage}` : '';
 }
 
 export class LineagePanel implements vscode.Disposable {
@@ -154,7 +151,7 @@ export class LineagePanel implements vscode.Disposable {
       case 'ready':
         this.ready = true;
         this.generation = this.server.status?.generation ?? 0;
-        this.scan = scanKey(this.server.status);
+        this.scan = readersKey(this.server.status);
         await this.post({
           type: 'init',
           project: { name: this.server.name, root: this.server.project.root },
@@ -202,12 +199,12 @@ export class LineagePanel implements vscode.Disposable {
     if (!this.ready || !status || status.indexing) {
       return;
     }
-    // A DAG scan arriving changes what the graph shows, with the same index
-    if (status.generation === this.generation && scanKey(status) === this.scan) {
+    // A reader finishing a read changes what the graph shows, with the same index
+    if (status.generation === this.generation && readersKey(status) === this.scan) {
       return;
     }
     this.generation = status.generation;
-    this.scan = scanKey(status);
+    this.scan = readersKey(status);
     void this.post({ type: 'indexUpdated', generation: status.generation, ready: status.state === 'ready' });
   }
 

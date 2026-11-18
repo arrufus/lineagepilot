@@ -7,6 +7,12 @@ import type { Status } from './protocol';
 
 export type Level = 'ok' | 'busy' | 'warning' | 'error';
 
+/** Where every reader is, as one string that changes when any of them starts or finishes a read,
+ * so a view knows to ask again. */
+export function readersKey(status: Status | undefined): string {
+  return (status?.readers ?? []).map((r) => `${r.tool}:${r.generation}:${r.stage}`).join(',');
+}
+
 export interface ProjectView {
   root: string;
   // Set when the server is not running: why

@@ -6,6 +6,8 @@
 | Physical table   | ``relation:<database>.<schema>.<identifier>``         |
 | Column           | ``<node id>#<column name>``                           |
 | Airflow DAG/task | ``airflow:<dag_id>`` / ``airflow:<dag_id>.<task_id>`` |
+| Declared task    | ``<tool>:<pipeline>.<task>``                          |
+| Declared consumer| ``<tool>:<name>``                                     |
 
 Physical names and column names are normalised to the adapter's case rules, so the same
 table or column reconciles across the manifest, the catalog, compiled SQL and DAG files
@@ -107,3 +109,9 @@ def airflow_dag_id(dag_id: str) -> str:
 
 def airflow_task_id(dag_id: str, task_id: str) -> str:
     return f"{AIRFLOW_PREFIX}{dag_id}.{task_id}"
+
+
+def pipeline_task_id(tool: str, pipeline: str, task: str) -> str:
+    """``<tool>:<pipeline>.<task>`` (design_next_phase section 7.1). For Airflow it is the same
+    ID as ``airflow_task_id``, so saved views keep working."""
+    return f"{tool}:{pipeline}.{task}"

@@ -11,7 +11,7 @@ One server runs per dbt project, over stdio only. The client passes, in
 - ``trusted``: VS Code Workspace Trust. Untrusted workspaces get built-in rules only.
 - ``storagePath``: where to cache graph snapshots (default: a temporary directory).
 - ``columnLineage``, ``maxArtifactMB``, ``debounceMs``.
-- Each reader's paths setting (``Reader.option``): ``dagFolders`` for Airflow.
+- Each reader's paths, under the reader's option: ``dagFolders`` for Airflow.
 """
 
 from __future__ import annotations
@@ -32,8 +32,7 @@ from typing import Any
 
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.analysis.review import baseline_inputs
-from lineagepilot_core.graph.model import MetadataGraph
-from lineagepilot_core.readers.airflow.link import AIRFLOW
+from lineagepilot_core.graph.model import AIRFLOW, MetadataGraph
 from lineagepilot_core.readers.airflow.view import summary_json
 from lineagepilot_core.readers.registry import READERS
 from lineagepilot_core.rules import (
@@ -50,7 +49,7 @@ from pygls.protocol import LanguageServerProtocol, default_converter, lsp_method
 from pygls.protocol.json_rpc import JsonRPCNotification, JsonRPCRequestMessage
 from pygls.uris import to_fs_path
 
-from lineagepilot_lsp import __version__, features, methods, protocol, worker
+from lineagepilot_lsp import __version__, features, legacy, methods, protocol, worker
 from lineagepilot_lsp.context import GraphContext, clip
 from lineagepilot_lsp.indexing import (
     ColumnStage,
@@ -60,20 +59,21 @@ from lineagepilot_lsp.indexing import (
     run_worker,
 )
 from lineagepilot_lsp.project import DbtProject, read_project
-from lineagepilot_lsp.reading import ReaderRunner, ReaderStage
+from lineagepilot_lsp.readers import ReaderRunner, ReaderStage
 from lineagepilot_lsp.watch import (
+    ALL_READERS,
     RULES_FILE,
     Change,
     Debouncer,
-    Watched,
     classify,
     watchers,
 )
 
 logger = logging.getLogger(__name__)
 
-# The lineage/* protocol versions this server speaks (design section 9)
-PROTOCOL_VERSIONS = (protocol.PROTOCOL_VERSION,)
+# The lineage/* protocol versions this server speaks (design section 9). It builds every answer in
+# the newest, and ``legacy`` turns it into protocol 1 for a client that negotiated that.
+PROTOCOL_VERSIONS = protocol.PROTOCOL_VERSIONS
 MAX_STATUS_ERRORS = 50
 DEFAULT_MAX_ARTIFACT_MB = 512
 SOURCE_DEBOUNCE_S = 0.5
@@ -116,9 +116,9 @@ class Options:
     column_lineage: bool = True
     max_artifact_mb: float = DEFAULT_MAX_ARTIFACT_MB
     debounce_s: float = 1.0
-    # Each reader's paths setting, by tool, as the client sent it
+    # Each reader's paths, by tool: the setting as given, cleaned by the reader before use
     reader_paths: dict[str, list[str]] = field(
-        default_factory=lambda: {r.tool: list(r.default_paths) for r in READERS}
+        default_factory=lambda: {tool: list(r.default_paths) for tool, r in READERS.items()}
     )
 
     @classmethod
@@ -141,10 +141,9 @@ class Options:
             options.max_artifact_mb = data["maxArtifactMB"]
         if _number(data.get("debounceMs")) and data["debounceMs"] >= 0:
             options.debounce_s = data["debounceMs"] / 1000
-        for reader in READERS:
+        for tool, reader in READERS.items():
             if isinstance(data.get(reader.option), list):
-                paths = [f for f in data[reader.option] if isinstance(f, str)]
-                options.reader_paths[reader.tool] = paths
+                options.reader_paths[tool] = [f for f in data[reader.option] if isinstance(f, str)]
         return options
 
 
@@ -165,14 +164,13 @@ class LineagePilotServer(LanguageServer):
         self.project: DbtProject | None = None
         self.workspace_root: Path | None = None
         self.index: ProjectIndex | None = None
-        self.readers: dict[str, ReaderRunner] = {}  # by tool
+        self.readers: dict[str, ReaderRunner] = {}
         self.context: GraphContext | None = None
         self.rule_pack: RulePack | None = None
         self.evaluation: Evaluation | None = None
         self.published: dict[str, int] = {}  # file URI -> fingerprint of its diagnostics
         self._temp_storage: str | None = None
         self._debouncers: dict[Change, Debouncer] = {}
-        self._reader_debouncers: dict[str, Debouncer] = {}  # by tool
         self._background: set[asyncio.Task[Any]] = set()
         # The last baseline manifest read, by what it was read for
         self._baseline: tuple[Any, ManifestBaseline] | None = None
@@ -220,25 +218,16 @@ class LineagePilotServer(LanguageServer):
             Change.SOURCES: Debouncer(SOURCE_DEBOUNCE_S, self.sources_changed),
             Change.PROJECT: Debouncer(self.options.debounce_s, lambda _: self.reload_project()),
             Change.RULES: Debouncer(self.options.debounce_s, lambda _: self.rules_changed()),
+            Change.READERS: Debouncer(self.options.debounce_s, self.readers_changed),
         }
-        for reader, paths in self.watched():
-            tool = reader.tool
-            self._reader_debouncers[tool] = Debouncer(
-                self.options.debounce_s, lambda files, tool=tool: self.reader_files_changed(tool)
-            )
-            self.readers[tool] = ReaderRunner(
-                reader,
-                self.project,
-                self.workspace_root or self.project.root,
-                paths,
-                self.cache_dir() / tool,
-                lambda tool=tool: self.reader_finished(tool),
-            )
+        self.readers = {
+            tool: self._runner(tool, paths) for tool, paths in self.options.reader_paths.items()
+        }
         self.load_rules()
         self.index.start()
 
     async def stop_indexing(self) -> None:
-        for debouncer in (*self._debouncers.values(), *self._reader_debouncers.values()):
+        for debouncer in self._debouncers.values():
             debouncer.cancel()
         for runner in self.readers.values():
             await runner.stop()
@@ -268,7 +257,7 @@ class LineagePilotServer(LanguageServer):
             )
             return
         options = types.DidChangeWatchedFilesRegistrationOptions(
-            watchers=watchers(self.project, self.workspace_root, self.watched())
+            watchers=watchers(self.project, self.workspace_root, self.options.reader_paths)
         )
         await self.client_register_capability_async(
             types.RegistrationParams(
@@ -289,14 +278,15 @@ class LineagePilotServer(LanguageServer):
             return
         for event in params.changes:
             found = classify(
-                self.project, self.workspace_root, self.watched(), Path(to_fs_path(event.uri))
+                self.project,
+                self.workspace_root,
+                self.options.reader_paths,
+                Path(to_fs_path(event.uri)),
             )
             if found is None:
                 continue
-            kind, relative, tool = found
-            if kind is Change.READER and tool in self._reader_debouncers:
-                self._reader_debouncers[tool].push([relative])
-            elif kind is Change.ARTIFACTS:
+            kind, relative = found
+            if kind is Change.ARTIFACTS:
                 self.index.request()
             elif kind in self._debouncers:
                 self._debouncers[kind].push([relative])
@@ -328,54 +318,61 @@ class LineagePilotServer(LanguageServer):
         self.refresh_rules()
         self.notify_index_updated()
 
-    def watched(self) -> Watched:
-        """Each reader with its paths setting, cleaned: nothing outside the workspace."""
-        return [
-            (reader, reader.clean_paths(self.options.reader_paths.get(reader.tool, ())))
-            for reader in READERS
-        ]
+    def _runner(self, tool: str, paths: list[str]) -> ReaderRunner:
+        assert self.project is not None
+        reader = READERS[tool]
+        runner = ReaderRunner(
+            reader,
+            self.project,
+            self.workspace_root or self.project.root,
+            reader.clean_paths(paths),
+            self.cache_dir() / tool,
+            lambda: self.reader_changed(runner),
+        )
+        return runner
 
-    def reader_files_changed(self, tool: str) -> None:
-        runner = self.readers[tool]
-        runner.invalidate()
-        if self.context is not None:
-            runner.start(_manifest_key(self.context.graph))
+    def readers_changed(self, tools: set[str]) -> None:
+        """A reader's files changed, or the annotation file every reader reads."""
+        for tool, runner in self.readers.items():
+            if tool in tools or ALL_READERS in tools:
+                runner.invalidate()
+                if self.context is not None:
+                    runner.start(_manifest_key(self.context.graph))
 
     def link_readers(self, graph: MetadataGraph) -> None:
-        """Put what each reader read on a new graph: what it holds, if it read this manifest, or
-        what it reads next.
+        """Put each reader's scan on a new graph: the one held, if it read this manifest, or a new
+        one.
 
-        A model-level graph and then the full graph come from one manifest, so one reading serves
+        A model-level graph and then the full graph come from one manifest, so one scan serves
         both. Until it is in, the review says the reader's files are still being read.
         """
         key = _manifest_key(graph)
         for runner in self.readers.values():
             if runner.current_for(key) and runner.scan is not None:
-                self.apply_reading(runner, graph)
+                self.apply_scan(runner, graph)
                 continue
-            runner.reader.not_analysed(graph, f"{runner.reader.files} are still being read")
+            runner.reader.mark_not_analysed(graph, f"{runner.reader.files} are still being read")
             if not runner.scanning_for(key):
                 runner.start(key)
 
-    def apply_reading(self, runner: ReaderRunner, graph: MetadataGraph) -> None:
-        """Link what was read, and let it go unless the full graph of this manifest is to come."""
+    def apply_scan(self, runner: ReaderRunner, graph: MetadataGraph) -> None:
+        """Link the scan, and let it go unless the full graph of this manifest is still to come."""
         assert runner.scan is not None and self.index is not None
         runner.reader.link(graph, runner.scan)
         if self.index.columns is not ColumnStage.COMPUTING and not self.index.indexing:
             runner.release()
 
-    def reader_finished(self, tool: str) -> None:
-        """A reader finished, or failed."""
-        runner = self.readers[tool]
+    def reader_changed(self, runner: ReaderRunner) -> None:
+        """A reader's scan finished, or failed."""
         context = self.context
         if context is not None:
             graph = context.graph
             if runner.stage is ReaderStage.FAILED:
                 reason = f"{runner.reader.files} could not be read: {runner.message}"
-                runner.reader.not_analysed(graph, reason)
+                runner.reader.mark_not_analysed(graph, reason)
             elif runner.current_for(_manifest_key(graph)) and runner.scan is not None:
-                self.apply_reading(runner, graph)
-            else:  # the manifest moved on while it read
+                self.apply_scan(runner, graph)
+            else:  # the manifest moved on while this scan ran
                 runner.start(_manifest_key(graph))
             context.forget_derived()
             gc.freeze()
@@ -512,7 +509,7 @@ class LineagePilotServer(LanguageServer):
         index = self.index
         project = self.project
         graph = index.graph if index else None
-        stats = graph.stats() if graph is not None else None
+        stats = graph.stats(legacy=self.protocol_version == 1) if graph is not None else None
         return {
             "protocolVersion": self.protocol_version,
             "server": {
@@ -558,19 +555,40 @@ class LineagePilotServer(LanguageServer):
             "indexedAt": index.indexed_at if index else None,
             "rules": self.rules_status(),
             "airflow": self.airflow_status(),
+            **({"readers": self.reader_statuses()} if self.protocol_version != 1 else {}),
         }
 
-    def airflow_stage(self) -> str:
-        runner = self.readers.get(AIRFLOW)
+    def reader_stage(self, tool: str) -> str:
+        runner = self.readers.get(tool)
         return runner.stage.value if runner else ReaderStage.PENDING.value
 
+    def reader_statuses(self) -> list[dict[str, Any]]:
+        """Every reader: whether it is reading, why it failed if it did, and what it found in the
+        loaded graph (protocol 2)."""
+        graph = self.context.graph if self.context else None
+        found = []
+        for tool, reader in sorted(READERS.items()):
+            runner = self.readers.get(tool)
+            found.append(
+                {
+                    "tool": tool,
+                    "stage": self.reader_stage(tool),
+                    "generation": runner.generation if runner else 0,
+                    "message": clip(runner.message) if runner else None,
+                    "summary": reader.summary_json(graph),
+                }
+            )
+        return found
+
     def airflow_status(self) -> dict[str, Any]:
+        """The Airflow reader's status, in the shape of protocol version 1 (task 7.5 adds one per
+        reader)."""
         graph = self.context.graph if self.context else None
         runner = self.readers.get(AIRFLOW)
         return {
-            "stage": self.airflow_stage(),
+            "stage": self.reader_stage(AIRFLOW),
             "generation": runner.generation if runner else 0,
-            "summary": summary_json(graph.summaries.get(AIRFLOW) if graph is not None else None),
+            "summary": summary_json(graph.airflow if graph is not None else None),
         }
 
     def _artifacts(self) -> dict[str, Any]:
@@ -602,13 +620,30 @@ class LineagePilotServer(LanguageServer):
             self.index.start()
         return self.status()
 
-    def check_protocol(self) -> None:
+    def check_protocol(self, method: str) -> None:
+        """A version is negotiated, and has ``method``: lineage/pipelines is not in protocol 1."""
         if self.protocol_version is None:
             raise JsonRpcServerError(
                 f"no lineage protocol version in common: the client speaks "
                 f"{self.options.protocol_versions or 'none'}, the server {list(PROTOCOL_VERSIONS)}",
                 protocol.ErrorCode.PROTOCOL_MISMATCH,
             )
+        since, until = protocol.REQUEST_VERSIONS[method]
+        if not since <= self.protocol_version <= until:
+            raise JsonRpcServerError(
+                f"{method} is in protocol {since} to {until}, and this client speaks "
+                f"{self.protocol_version}",
+                protocol.ErrorCode.PROTOCOL_MISMATCH,
+            )
+
+    def answer(self, method: str, result: dict[str, Any]) -> dict[str, Any]:
+        """``result`` in the version the client negotiated (see ``legacy``)."""
+        if self.protocol_version != 1:
+            return result
+        try:
+            return legacy.answer(method, result)
+        except legacy.Unrepresentable as e:
+            raise methods.unknown_node(e.ref) from None
 
     def ready_context(self) -> GraphContext:
         """The loaded graph's context, or a NotReady error saying why there is none."""
@@ -775,48 +810,61 @@ def create_server() -> LineagePilotServer:
 
     @server.feature("lineage/status")
     def on_status(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        _params(ls, protocol.EmptyParams, params)
+        _params(ls, "lineage/status", protocol.EmptyParams, params)
         return ls.status()
 
     @server.feature("lineage/refresh")
     def on_refresh(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        _params(ls, protocol.EmptyParams, params)
+        _params(ls, "lineage/refresh", protocol.EmptyParams, params)
         return ls.refresh()
 
     @server.feature("lineage/graph")
     def on_graph(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.GraphParams, params)
-        return methods.graph(ls.ready_context(), checked)
+        checked = _params(ls, "lineage/graph", protocol.GraphParams, params)
+        return ls.answer("lineage/graph", methods.graph(ls.ready_context(), checked))
 
     @server.feature("lineage/impact")
     def on_impact(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.ImpactParams, params)
-        return methods.impact(ls.ready_context(), checked, ls.column_stage())
+        checked = _params(ls, "lineage/impact", protocol.ImpactParams, params)
+        found = methods.impact(ls.ready_context(), checked, ls.column_stage())
+        return ls.answer("lineage/impact", found)
 
     @server.feature("lineage/export")
     def on_export(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.ExportParams, params)
+        checked = _params(ls, "lineage/export", protocol.ExportParams, params)
         return methods.export(ls.ready_context(), checked)
 
     @server.feature("lineage/node")
     def on_node(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.NodeParams, params)
-        return methods.node(ls.ready_context(), checked)
+        checked = _params(ls, "lineage/node", protocol.NodeParams, params)
+        return ls.answer("lineage/node", methods.node(ls.ready_context(), checked))
 
     @server.feature("lineage/reviewChanges")
     async def on_review(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.ReviewParams, params)
-        return await ls.review_changes(checked)
+        checked = _params(ls, "lineage/reviewChanges", protocol.ReviewParams, params)
+        return ls.answer("lineage/reviewChanges", await ls.review_changes(checked))
 
     @server.feature("lineage/airflow")
     def on_airflow(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.AirflowParams, params)
-        return methods.airflow(ls.ready_context(), checked, ls.airflow_stage())
+        checked = _params(ls, "lineage/airflow", protocol.AirflowParams, params)
+        return methods.airflow(ls.ready_context(), checked, ls.reader_stage(AIRFLOW))
+
+    @server.feature("lineage/pipelines")
+    def on_pipelines(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, "lineage/pipelines", protocol.PipelinesParams, params)
+        return methods.pipelines(ls.ready_context(), checked, ls.reader_statuses())
+
+    @server.feature("lineage/consumers")
+    def on_consumers(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
+        checked = _params(ls, "lineage/consumers", protocol.ConsumersParams, params)
+        return methods.consumers(ls.ready_context(), checked)
 
     @server.feature("lineage/nodesForFile")
     def on_nodes_for_file(ls: LineagePilotServer, params: Any) -> dict[str, Any]:
-        checked = _params(ls, protocol.NodesForFileParams, params)
-        return methods.nodes_for_file(ls.ready_context(), checked)
+        checked = _params(ls, "lineage/nodesForFile", protocol.NodesForFileParams, params)
+        return ls.answer(
+            "lineage/nodesForFile", methods.nodes_for_file(ls.ready_context(), checked)
+        )
 
     return server
 
@@ -832,9 +880,11 @@ def _document(ls: LineagePilotServer, uri: str) -> tuple[Path, str] | None:
         return None
 
 
-def _params(ls: LineagePilotServer, record: type[protocol._Record], params: Any) -> Any:
-    """Check the protocol version, then validate the params against the shared schema."""
-    ls.check_protocol()
+def _params(
+    ls: LineagePilotServer, method: str, record: type[protocol._Record], params: Any
+) -> Any:
+    """Check the protocol version has ``method``, then validate the params against the schema."""
+    ls.check_protocol(method)
     try:
         return record.from_json(params)
     except protocol.ValidationError as e:

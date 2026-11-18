@@ -23,17 +23,16 @@ from lineagepilot_core.analysis.impact import Impact, impact
 from lineagepilot_core.analysis.review import baseline_inputs, review_changes
 from lineagepilot_core.gitdiff import GitError, git_changes
 from lineagepilot_core.graph.ids import column_id
-from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph, public_kind
+from lineagepilot_core.graph.model import DBT_KINDS, MetadataGraph
 from lineagepilot_core.indexer import IndexResult, IndexStatus, index_project
+from lineagepilot_core.parsers.dbt_semantic import SEMANTIC_TOOL
 from lineagepilot_core.project import DbtProject, read_project
 from lineagepilot_core.readers.airflow.dag_static import DEFAULT_DAG_FOLDERS
 from lineagepilot_core.readers.airflow.link import link_airflow, mark_not_analysed
-from lineagepilot_core.readers.airflow.workspace import (
-    default_workspace,
-    scan_airflow,
-    scan_workspace,
-)
+from lineagepilot_core.readers.airflow.scan import scan_airflow, scan_workspace
 from lineagepilot_core.readers.common.categories import explanation, label
+from lineagepilot_core.readers.common.declared import link_declared, read_declared
+from lineagepilot_core.readers.common.workspace import default_workspace
 from lineagepilot_core.snapshot import SnapshotCache
 
 EXIT_OK, EXIT_UNKNOWN, EXIT_USAGE = 0, 1, 2
@@ -168,6 +167,9 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
     # After the index, which has cached its snapshot: a DAG scan is never part of one
     if args.no_airflow:
         mark_not_analysed(result.graph, "--no-airflow was given")
+        # The annotation file's consumers are not in the DAG files: they are read all the same
+        declared = read_declared(args.project_dir, args.workspace)
+        link_declared(result.graph, declared["consumers"], declared["file"])
     else:
         scan = scan_airflow(
             args.project_dir,
@@ -293,7 +295,11 @@ def _resolve_node(graph: MetadataGraph, name: str, project_dir: Path) -> list[st
             by_file = []
     if by_file:
         return [n.id for n in by_file]
-    return sorted(n.id for n in graph.nodes.values() if n.kind in DBT_KINDS and n.name == name)
+    named = [n for n in graph.nodes.values() if n.name == name]
+    # dbt's nodes first; a metric, say, by its name when no model has it
+    return sorted(n.id for n in named if n.kind in DBT_KINDS) or sorted(
+        n.id for n in named if n.tool == SEMANTIC_TOOL
+    )
 
 
 def _index_json(result: IndexResult) -> dict[str, Any]:
@@ -352,7 +358,7 @@ def _impact_json(found: Impact) -> dict[str, Any]:
         "nodes": [
             {
                 "id": n.id,
-                "kind": public_kind(n.kind, n.tool),
+                "kind": n.kind_name,
                 "depth": n.depth,
                 "granularity": n.granularity.value,
                 "confidence": n.confidence.value,
@@ -382,7 +388,7 @@ def _impact_text(graph: MetadataGraph, found: Impact) -> str:
             if node.columns:
                 columns = "  [" + ", ".join(c.partition("#")[2] for c in node.columns) + "]"
             lines.append(
-                f"  {node.depth:>3}  {public_kind(node.kind, node.tool):<12} {node.id:<{width}}  "
+                f"  {node.depth:>3}  {node.kind_name:<12} {node.id:<{width}}  "
                 f"{node.confidence.value:<9} {node.granularity.value}{columns}{detail}"
             )
     if found.truncated:

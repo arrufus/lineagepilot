@@ -15,7 +15,9 @@ from lineagepilot_core.graph.model import (
     Node,
     NodeKind,
     Origin,
+    kind_name,
 )
+from lineagepilot_core.readers.tools import KIND_WORDS
 from lineagepilot_core.rules.model import (
     Category,
     Evaluation,
@@ -35,11 +37,49 @@ DECLARED = Evidence(Origin.MANIFEST, Confidence.DECLARED)
 
 def test_lens_titles():
     assert features.lens_title({}, False) == "↓ nothing downstream"
-    assert features.lens_title({"model": 1}, True) == "↓ 1 model · PII"
-    counts = {"model": 14, "airflow_task": 3, "exposure": 1, "airflow_dag": 1, "seed": 2}
+    assert features.lens_title({("model", None): 1}, True) == "↓ 1 model · PII"
+    counts = {
+        ("model", None): 14,
+        ("task", "airflow"): 3,
+        ("exposure", None): 1,
+        ("pipeline", "airflow"): 1,
+        ("seed", None): 2,
+    }
     assert features.lens_title(counts, False) == (
         "↓ 14 models · 2 seeds · 1 exposure · 3 Airflow tasks · 1 Airflow DAG"
     )
+
+
+def test_lens_titles_by_tool():
+    """Design_next_phase section 7.4: one tool is named in front, several are counted after."""
+    counts = {
+        ("model", None): 14,
+        ("task", "airflow"): 2,
+        ("task", "dagster"): 1,
+        ("consumer", "looker"): 3,
+        ("consumer", "powerbi"): 1,
+        ("exposure", None): 1,
+        ("pipeline", "airflow"): 1,
+        ("pipeline", "dagster"): 1,
+    }
+    assert features.lens_title(counts, False) == (
+        "↓ 14 models · 1 exposure · 3 tasks (Airflow 2, Dagster 1) · 2 pipelines "
+        "(Airflow 1, Dagster 1) · 4 consumers (Looker 3, Power BI 1)"
+    )
+    # A tool with no name of its own is shown as it is written; a node with no tool as other
+    assert features.lens_title({("consumer", "acme_bi"): 2}, False) == "↓ 2 acme_bi consumers"
+    assert features.lens_title({("task", None): 1, ("task", "dagster"): 1}, False) == (
+        "↓ 2 tasks (Dagster 1, other 1)"
+    )
+    assert features.lens_title({("pipeline", "dagster"): 1}, False) == "↓ 1 Dagster pipeline"
+
+
+def test_every_kind_downstream_has_a_lens_word():
+    """A pipeline, task or consumer of any tool is counted, not dropped (task 7.1)."""
+    kinds = {kind_name(k) for k in NodeKind if k is not NodeKind.RELATION}
+    assert kinds <= {kind for kind, _, _ in KIND_WORDS}
+    for kind in kinds:
+        assert features.lens_title({(kind, "x"): 1}, False) != "↓ nothing downstream"
 
 
 def test_markdown_escaping():

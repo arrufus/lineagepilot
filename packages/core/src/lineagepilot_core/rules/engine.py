@@ -6,7 +6,14 @@ import logging
 from collections.abc import Iterable
 from dataclasses import replace
 
-from lineagepilot_core.graph.model import Evidence, Location, MetadataGraph, Node, Origin
+from lineagepilot_core.graph.model import (
+    DBT_KINDS,
+    Evidence,
+    Location,
+    MetadataGraph,
+    Node,
+    Origin,
+)
 from lineagepilot_core.rules.builtin import builtin_rules
 from lineagepilot_core.rules.model import (
     Evaluation,
@@ -59,7 +66,8 @@ def evaluate(
     for rule in active:
         counts = evaluation.counts.setdefault(rule.id, {})
         for node in nodes:
-            if node.kind not in rule.resource_types:
+            # Rules are about dbt: never a pipeline, task or consumer, whatever a rule declares
+            if node.kind not in rule.resource_types or node.kind not in DBT_KINDS:
                 continue
             subjects = graph.columns_of(node.id) if rule.scope is Scope.COLUMN else [None]
             for column in subjects:

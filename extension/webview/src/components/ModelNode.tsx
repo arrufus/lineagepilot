@@ -3,10 +3,10 @@
 
 import { memo, type KeyboardEvent } from 'react';
 import { Handle, type Node, type NodeProps, Position } from '@xyflow/react';
-import { Camera, Clock, Database, FileText, Package, Plus, Shield, Table, TriangleAlert, Workflow } from 'lucide-react';
+import { Camera, ChartColumn, Clock, Database, FileText, Package, Plus, Shield, Table, TriangleAlert, Workflow } from 'lucide-react';
 
 import type { GraphEdge, GraphNode } from '../../../src/protocol';
-import { KIND_LABELS } from '../labels';
+import { kindLabel } from '../labels';
 
 export interface NodeActions {
   onSelect(node: GraphNode): void;
@@ -37,6 +37,9 @@ const ICONS = {
   relation: Table,
   airflow_dag: Workflow,
   airflow_task: Clock,
+  pipeline: Workflow,
+  task: Clock,
+  consumer: ChartColumn,
   column: Table,
 } as const;
 
@@ -62,6 +65,7 @@ export function handleNodeKey(event: KeyboardEvent, node: GraphNode, actions: No
 function ModelNode({ data, selected }: NodeProps<LineageFlowNode>) {
   const { node, actions, canExpand, dimmed, horizontal } = data;
   const Icon = ICONS[node.kind] ?? Database;
+  // A tool's nodes share their kind's colour; the tool is named on the badge, never by a logo
   const classes = ['lp-node', `lp-kind-${node.kind}`];
   if (node.side === 'root') classes.push('lp-node-root');
   if (selected) classes.push('lp-node-selected');
@@ -74,7 +78,7 @@ function ModelNode({ data, selected }: NodeProps<LineageFlowNode>) {
         <div className="lp-node-text">
           <div className="lp-node-name" title={node.id}>{node.name}</div>
           <div className="lp-node-badges">
-            <span className="lp-badge lp-badge-kind">{KIND_LABELS[node.kind]}</span>
+            <span className="lp-badge lp-badge-kind">{kindLabel(node)}</span>
             {node.layer && <span className="lp-badge">{node.layer}</span>}
             {node.materialization && <span className="lp-badge lp-badge-quiet">{node.materialization}</span>}
             {node.pii && (

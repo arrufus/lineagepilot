@@ -67,32 +67,44 @@ async def test_code_lens_on_a_model_file(start, workspace):
     client, _ = await ready(start)
     [lens] = await lenses(client, workspace / "models" / "marts" / "orders.sql")
     assert lens.range.start == types.Position(line=0, character=0)
-    assert lens.command.title == "↓ 1 model"
+    # The semantic layer is counted by what each node is (task 7.8)
+    assert lens.command.title == "↓ 1 model · 2 semantic models · 4 metrics · 1 saved query"
     assert lens.command.command == "lineagePilot.showImpact"
     assert list(lens.command.arguments) == [f"{J}.orders", str(workspace.resolve())]
     [lens] = await lenses(client, workspace / "models" / "marts" / "customers.sql")
-    assert lens.command.title == "↓ nothing downstream · PII"
+    assert lens.command.title == "↓ 1 semantic model · 2 metrics · 1 saved query · PII"
 
 
 async def test_code_lens_on_yaml_entries(start, workspace):
     client, _ = await ready(start)
     orders_yml = workspace / "models" / "marts" / "orders.yml"
-    [lens] = await lenses(client, orders_yml)
-    assert lens.range.start.line == line_of(orders_yml, "- name: orders")
+    by_node = {lens.command.arguments[0]: lens for lens in await lenses(client, orders_yml)}
+    # The model, and the semantic model and metrics the file defines (task 7.8)
+    assert set(by_node) == {
+        f"{J}.orders",
+        "semantic_model.pilot_shop.orders",
+        "metric.pilot_shop.revenue",
+        "metric.pilot_shop.orders_placed",
+    }
+    assert by_node[f"{J}.orders"].range.start.line == line_of(orders_yml, "- name: orders")
+    revenue = by_node["metric.pilot_shop.revenue"]
+    assert revenue.range.start.line == line_of(orders_yml, "- name: revenue")
+    assert revenue.command.title == "↓ 1 metric · 1 saved query"
     sources = workspace / "models" / "staging" / "__sources.yml"
     found = await lenses(client, sources)
     assert len(found) == 5
     by_line = {lens.range.start.line: lens.command for lens in found}
     raw_orders = by_line[line_of(sources, "- name: raw_orders")]
     assert list(raw_orders.arguments)[0] == "source.pilot_shop.ecom.raw_orders"
-    assert raw_orders.title == "↓ 4 models"
+    assert raw_orders.title == "↓ 4 models · 2 semantic models · 4 metrics · 1 saved query"
 
 
 async def test_code_lens_follows_unsaved_yaml(start, workspace):
     client, _ = await ready(start)
     orders_yml = workspace / "models" / "marts" / "orders.yml"
     open_document(client, orders_yml, "\n\n\n" + orders_yml.read_text())
-    [lens] = await lenses(client, orders_yml)
+    found = await lenses(client, orders_yml)
+    lens = next(lens for lens in found if lens.command.arguments[0] == f"{J}.orders")
     assert lens.range.start.line == line_of(orders_yml, "- name: orders") + 3
 
 
@@ -161,7 +173,9 @@ async def test_hover_on_a_column(start, workspace):
     assert value.startswith("### customers.lifetime\\_spend")
     assert "**Derived from** (1)" in value
     assert "**orders.order\\_total** · aggregate · inferred, compiled sql" in value
-    assert "**Feeds** (0)" in value
+    # The customers semantic model's measure reads it: a field, named as one
+    assert "**Feeds** (1)" in value
+    assert "**customers.lifetime\\_spend** (semantic model) · declared, manifest" in value
 
 
 async def test_hover_elsewhere(start, workspace):

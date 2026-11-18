@@ -20,7 +20,7 @@ from lineagepilot_core.export.review_markdown import MAX_CHARS, render_markdown
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
 from lineagepilot_core.readers.airflow.link import link_airflow
-from lineagepilot_core.readers.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.airflow.scan import scan_airflow
 
 GOLDEN = Path(__file__).parents[1] / "fixtures" / "review" / "rename-order-total.md"
 BASE = BaseRef("origin/main", "0123456789abcdef0123456789abcdef01234567")
@@ -63,7 +63,7 @@ _RENDER_SCRIPT = """
 import sys
 from pathlib import Path
 from lineagepilot_core.readers.airflow.link import link_airflow
-from lineagepilot_core.readers.airflow.workspace import scan_airflow
+from lineagepilot_core.readers.airflow.scan import scan_airflow
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
@@ -92,6 +92,25 @@ def test_separate_processes_agree_whatever_the_hash_seed(root):
 def test_no_machine_detail_is_in_the_text(root):
     text = render(root)
     assert str(root) not in text and str(Path.home()) not in text
+
+
+def reader(tool="airflow", **fields):
+    """What a reader read, as the review has it: analysed, one file, nothing linked."""
+    return {
+        "tool": tool,
+        "analysed": True,
+        "reason": None,
+        "paths": ["dags"],
+        "files": 1,
+        "pipelines": 0,
+        "tasks": 0,
+        "consumers": 0,
+        "links": 0,
+        "unknowns": 0,
+        "opaqueTasks": 0,
+        "problems": [],
+        **fields,
+    }
 
 
 def minimal(**overrides):
@@ -163,6 +182,8 @@ def minimal(**overrides):
             "folders": ["dags"],
             "problems": [],
         },
+        "pipelines": [reader()],
+        "consumers": [],
         "unknowns": [{"subject": "model.s.b", "reference": "r", "reason": "why"}],
         "otherFiles": [{"path": "README.md", "status": "modified"}],
         "outsideProject": 0,
@@ -231,6 +252,9 @@ def assert_safe(markdown: str) -> None:
         "## Change impact review",
         "### Changed",
         "### Downstream impact",
+        "### Pipelines",
+        "### Consumers",
+        "### Owners",
         "### Unknowns",
         "#### ",
     )
@@ -283,9 +307,24 @@ def test_a_huge_review_is_cut_to_fit_a_github_comment_and_says_so():
     assert "#### Models (3000)" in markdown and "### Unknowns (3000)" in markdown
 
 
-def test_an_impossibly_long_review_is_still_cut_to_the_limit():
-    # Between lines, so no code span is cut open (LP-SEC-02), and it says so
+def test_long_notes_are_cut_like_any_list():
     review = minimal(notes=["n" * 500] * 400)
+    markdown = render_markdown(review)
+    assert len(markdown) <= MAX_CHARS
+    assert re.search(r"\.\.\.and \d+ more notes\.", markdown)
+    # Everything after the notes is still there
+    assert "### Unknowns (1)" in markdown and "</details>" in markdown
+
+
+def test_an_impossibly_long_review_is_still_cut_to_the_limit():
+    # Thousands of tools are thousands of parts, each a heading at least. Between lines, so no
+    # code span is cut open (LP-SEC-02), and it says so
+    review = minimal()
+    row = review["impacted"][0]
+    review["impacted"] = [
+        {**row, "id": f"t{i}:c", "kind": "consumer", "tool": f"t{i}", "subkind": None}
+        for i in range(5000)
+    ]
     markdown = render_markdown(review)
     assert MAX_CHARS - 600 < len(markdown) <= MAX_CHARS
     assert markdown.endswith(
@@ -304,7 +343,8 @@ def test_an_impossibly_long_review_is_still_cut_to_the_limit():
         ({"changedNodes": []}, "No changed file maps to a node."),
         ({"unknowns": []}, "### Unknowns (0)\n\nNone."),
         ({"otherFiles": [], "outsideProject": 1}, "1 file outside this dbt project"),
-        ({"airflow": {"analysed": False, "reason": "not yet"}}, "Airflow DAGs were not analysed"),
+        ({"pipelines": [reader(analysed=False, reason="no")]}, "Airflow\n\nNot analysed: no."),
+        ({"pipelines": [reader(files=3)]}, "No task in the 3 DAG files read runs a changed"),
         ({"project": None}, "`dbt project`"),
     ],
 )  # fmt: skip
@@ -363,3 +403,176 @@ def test_the_text_is_stable_json_serialisable_input():
     # The server sends the review over JSON; the text it renders must not depend on that
     review = minimal()
     assert render_markdown(json.loads(json.dumps(review))) == render_markdown(review)
+
+
+# Sections by tool (task 7.7, design_next_phase section 7.5)
+
+EVERY_SECTION = Path(__file__).parents[1] / "fixtures" / "review" / "every-section.md"
+
+
+def hit(node_id, kind, name, tool=None, subkind=None, **fields):
+    """An impacted row, of any kind and tool."""
+    return {
+        "id": node_id,
+        "kind": kind,
+        "name": name,
+        "owner": None,
+        "file": None,
+        "depth": 2,
+        "reach": "model",
+        "confidence": "declared",
+        "origins": ["annotation"],
+        "columns": [],
+        "reason": None,
+        "via": [],
+        "viaMore": 0,
+        "tool": tool,
+        "subkind": subkind,
+        "pipeline": None,
+        **fields,
+    }
+
+
+def task(node_id, name, tool, pipeline, **fields):
+    detail = {
+        "tool": tool,
+        "pipeline": pipeline,
+        "operator": None,
+        "how": ["dbt run"],
+        "runs": ["b"],
+        "runsMore": 0,
+        "tasks": [],
+        "tasksMore": 0,
+        "after": [],
+        "notes": [],
+    }
+    return hit(
+        node_id, "task", name, tool, "task", confidence="heuristic", pipeline=detail, **fields
+    )
+
+
+def every_section():
+    """A review with something in each section, from several tools."""
+    review = minimal()
+    review["impacted"] += [
+        hit("exposure.s.dash", "exposure", "dash", owner="bi"),
+        hit("metric.shop.revenue", "consumer", "revenue", "dbt_semantic", "metric"),
+        task("airflow:daily.run_b", "run_b", "airflow", "daily", owner="etl"),
+        task("dagster:nightly.load_b", "load_b", "dagster", "nightly"),
+        hit(
+            "looker:view.b",
+            "consumer",
+            "b",
+            "looker",
+            "view",
+            reach="column",
+            columns=["total", "id"],
+            confidence="inferred",
+            owner="bi",
+        ),
+        hit("tableau:finance/gl", "consumer", "gl", "tableau"),
+    ]
+    review["pipelines"] = [reader(), reader("dagster", paths=["defs.yaml"], files=2)]
+    review["consumers"] = [
+        reader("dbt_semantic"),
+        reader("looker", paths=["**/*.lkml"], files=3),
+        reader("powerbi", analysed=False, reason="no .SemanticModel folder was found"),
+    ]
+    review["owners"] += [
+        {"owner": "bi", "nodes": ["exposure.s.dash", "looker:view.b"]},
+        {"owner": "etl", "nodes": ["airflow:daily.run_b"]},
+    ]
+    review["unknowns"] += [
+        {"subject": "airflow:backfill", "reference": "loop or factory", "reason": "a loop"},
+        {"subject": "looker:view.b", "reference": "sql_table_name", "reason": "a Liquid template"},
+        {"subject": "macros/m.sql", "reference": "changed file", "reason": "a macro"},
+    ]
+    review["summary"]["unknowns"] = len(review["unknowns"])
+    return review
+
+
+def test_every_section_in_the_design_s_order():
+    markdown = render_markdown(every_section())
+    assert markdown == EVERY_SECTION.read_text(encoding="utf-8"), (
+        "the output changed: if that is intended, regenerate "
+        "tests/fixtures/review/every-section.md and read the diff"
+    )
+    headings = re.findall(r"^#{2,4} .*$", markdown, flags=re.M)
+    assert headings == [
+        "## Change impact review: `shop`",
+        "### Changed",
+        "### Downstream impact",
+        "#### Models (1)",
+        "#### Exposures (1)",
+        "#### Semantic layer (1)",
+        "### Pipelines",
+        "#### Airflow (1 task in 1 DAG)",
+        "#### Dagster (1 task in 1 pipeline)",
+        "### Consumers",
+        "#### Looker (1)",
+        "#### Power BI",
+        "#### Tableau (1)",
+        "### Owners",
+        "### Unknowns (4)",
+        "#### dbt (2)",
+        "#### Airflow (1)",
+        "#### Looker (1)",
+    ]
+    # The semantic layer is counted as dbt's own nodes are, by what each is
+    assert (
+        "7 impacted (1 model, 1 exposure, 1 metric, 2 tasks (Airflow 1, Dagster 1), 2 consumers"
+        in (markdown)
+    )
+
+
+def test_one_tool_s_long_list_is_cut_and_every_other_section_stays_whole():
+    review = every_section()
+    looker = next(n for n in review["impacted"] if n.get("tool") == "looker")
+    review["impacted"] += [
+        {**looker, "id": f"looker:view.v{i}", "name": f"view_{i}_" + "v" * 100} for i in range(3000)
+    ]
+    review["unknowns"] += [
+        {"subject": f"looker:view.v{i}", "reference": "r" * 50, "reason": "why " * 50}
+        for i in range(3000)
+    ]
+    whole = render_markdown(every_section())
+    markdown = render_markdown(review)
+    assert len(markdown) <= MAX_CHARS
+    # Looker's rows and unknowns are cut, each with a count
+    assert re.search(r"\n\.\.\.and \d+ more Looker consumers\.\n", markdown)
+    assert re.search(r"\n\.\.\.and \d+ more unknowns\.\n", markdown)
+    # Everything else is as it was without them, each section and each other tool's rows
+    for section in ("#### Airflow (1 task in 1 DAG)", "#### Dagster", "#### Power BI"):
+        start = whole.index(section)
+        end = whole.index("\n\n#### ", start + 1)
+        assert whole[start:end] in markdown, section
+    for unknown in ("`airflow:backfill`", "`macros/m.sql`", "`model.s.b`"):
+        assert unknown in markdown
+    assert "### Owners" in markdown and "<details><summary>Other changed files" in markdown
+
+
+def test_the_longest_part_is_cut_first():
+    review = minimal()
+    row = review["impacted"][0]
+    review["impacted"] = [
+        {**row, "id": f"model.s.m{i}", "name": f"m{i}" + "m" * 100} for i in range(800)
+    ] + [{**row, "id": f"exposure.s.e{i}", "kind": "exposure", "name": f"e{i}"} for i in range(80)]
+    markdown = render_markdown(review)
+    assert len(markdown) <= MAX_CHARS
+    # The models are cut until the review fits; the shorter exposures table keeps every row
+    assert re.search(r"\.\.\.and \d+ more models\.", markdown)
+    assert "more exposures" not in markdown and "`e79`" in markdown
+
+
+def test_a_path_with_a_colon_is_dbt_s_unknown_and_an_unnamed_tool_is_its_own():
+    review = minimal()
+    review["impacted"].append(hit("acme_bi:report", "consumer", "report", "acme_bi"))
+    review["unknowns"] = [
+        {"subject": "odd:name.sql", "reference": "changed file", "reason": "a file"},
+        {"subject": "acme_bi:report", "reference": "x", "reason": "a tool nobody named"},
+        {"subject": "zzz:thing", "reference": "x", "reason": "no reader or row has zzz"},
+    ]
+    markdown = render_markdown(review)
+    assert "#### dbt (2)" in markdown and "#### acme\\_bi (1)" in markdown
+    # A tool this version does not name is shown as it is written, its consumers and unknowns too
+    assert "### Consumers\n\n#### acme\\_bi (1)\n\n| Name |" in markdown

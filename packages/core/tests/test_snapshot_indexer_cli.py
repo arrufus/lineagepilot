@@ -382,7 +382,8 @@ class TestCli:
         assert code == 0
         lines = out.splitlines()
         assert lines[0] == "Impact of model.pilot_shop.stg_orders#order_total"
-        assert lines[1] == "  2 impacted: 2 model"
+        # Two marts, and the semantic layer on them: two measures, revenue and what uses it
+        assert lines[1] == "  7 impacted: 5 consumer, 2 model"
         assert "model.pilot_shop.orders" in lines[2] and "[order_total]" in lines[2]
 
     def test_impact_json_by_file(self, project):
@@ -407,22 +408,23 @@ class TestCli:
     def test_impact_with_nothing_downstream_and_unknowns(self, project):
         code, out = run(
             "impact",
-            "customers",
+            "revenue_by_customer_type",  # a saved query, by its name: no model has it
             "--project-dir",
             str(project),
             "--no-cache",
             "--no-column-lineage",
         )
         assert code == 0 and "Nothing downstream." in out
+        assert "saved_query.pilot_shop.revenue_by_customer_type" in out
 
     def test_impact_reports_unknowns(self, project):
         manifest = project / "target" / "manifest.json"
         data = json.loads(manifest.read_text())
-        data["nodes"]["model.pilot_shop.orders"]["depends_on"]["nodes"].append("metric.x.y")
+        data["nodes"]["model.pilot_shop.orders"]["depends_on"]["nodes"].append("analysis.x.y")
         manifest.write_text(json.dumps(data))
         code, out = run("impact", "stg_orders", "--project-dir", str(project), "--no-cache")
         assert "Unknowns (1):" in out
-        assert "model.pilot_shop.orders: metric.x.y: metric nodes are not indexed" in out
+        assert "model.pilot_shop.orders: analysis.x.y: analysis nodes are not indexed" in out
 
     def test_impact_problems(self, project, tmp_path):
         code, out = run(

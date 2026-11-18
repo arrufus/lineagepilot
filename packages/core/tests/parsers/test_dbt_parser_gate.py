@@ -178,9 +178,13 @@ def test_missing_manifest_path_is_an_error():
     assert "Invalid configuration" in errors(result)[0]
 
 
+# pilot-1.12's 21 dbt nodes, and its semantic layer: 3 semantic models, 4 metrics, 1 saved query
+PILOT_NODES = 21 + 8
+
+
 def test_parse_accepts_a_config_object():
     config = DbtParserConfig(manifest_path=DBT_FIXTURES / "pilot-1.12" / "manifest.json")
-    assert len(DbtParser().parse(config).nodes) == 21
+    assert len(DbtParser().parse(config).nodes) == PILOT_NODES
 
 
 def test_validate_config():
@@ -197,7 +201,7 @@ def test_unreadable_catalog_is_a_warning(write_json, tmp_path):
     result = DbtParser().parse({**project_config("pilot-1.12"), "catalog_path": str(catalog)})
     assert not result.has_errors
     assert "Invalid JSON" in errors(result, ParseErrorSeverity.WARNING)[0]
-    assert len(result.nodes) == 21
+    assert len(result.nodes) == PILOT_NODES
 
 
 def test_catalog_that_is_not_an_object_is_a_warning(write_json):
@@ -225,7 +229,7 @@ def test_a_malformed_node_costs_only_that_node(write_json, manifest_of):
     assert "model.pilot_shop.stg_customers" in warnings[0] and "'name'" in warnings[0]
     assert "source.pilot_shop.ecom.raw_orders" in warnings[1]
     ids = {n.unique_id for n in result.nodes}
-    assert len(ids) == 19
+    assert len(ids) == PILOT_NODES - 2
     assert {"model.pilot_shop.orders", "model.pilot_shop.stg_orders"} <= ids
     # Edges into the two lost nodes are kept as unresolved, never dropped
     assert {(u.node_id, u.reference) for u in result.unresolved} == {
@@ -246,15 +250,20 @@ def test_a_malformed_exposure_costs_only_that_exposure(write_json, manifest_of):
 def test_unresolved_dependencies_are_recorded_with_a_reason(write_json, manifest_of):
     manifest = manifest_of("pilot-1.12")
     deps = manifest["nodes"]["model.pilot_shop.customers"]["depends_on"]["nodes"]
-    deps += ["model.pilot_shop.ghost", "metric.pilot_shop.revenue", deps[0]]
+    deps += ["model.pilot_shop.ghost", "analysis.pilot_shop.revenue", deps[0]]
+    deps += ["metric.pilot_shop.ghost"]
     result = parse_manifest(write_json, manifest)
     unresolved = {(u.node_id, u.reference): u.reason for u in result.unresolved}
     assert unresolved == {
         ("model.pilot_shop.customers", "model.pilot_shop.ghost"): (
             "not found among the parsed nodes"
         ),
-        ("model.pilot_shop.customers", "metric.pilot_shop.revenue"): (
-            "metric nodes are not indexed"
+        ("model.pilot_shop.customers", "analysis.pilot_shop.revenue"): (
+            "analysis nodes are not indexed"
+        ),
+        # The semantic layer is indexed since task 7.8
+        ("model.pilot_shop.customers", "metric.pilot_shop.ghost"): (
+            "not found among the parsed nodes"
         ),
     }
     # The duplicated dependency gives one edge

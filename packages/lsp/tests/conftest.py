@@ -13,6 +13,7 @@ instead: then the interpreters need nothing installed, as for a user.
 from __future__ import annotations
 
 import asyncio
+import json
 import os
 import shutil
 import sys
@@ -28,9 +29,14 @@ from pygls.protocol.json_rpc import JsonRPCResponseMessage
 from pytest_lsp import LanguageClient
 from pytest_lsp.client import register_lsp_features
 
+from lineagepilot_lsp import protocol
 from lineagepilot_lsp.server import converter
 
 REPO = Path(__file__).resolve().parents[3]
+# Protocol 1, as a client built before protocol 2 validates what it receives (task 7.5)
+V1_DEFS = json.loads((REPO / "protocol" / "v1" / "lineage-protocol.schema.json").read_text())[
+    "$defs"
+]
 FIXTURE = REPO / "fixtures" / "pilot-shop"
 CORE_FIXTURES = REPO / "packages" / "core" / "tests" / "fixtures" / "dbt"
 WAIT_S = 60.0
@@ -199,3 +205,14 @@ async def start(server_python, workspace, tmp_path):
             raise AssertionError("the server did not exit after shutdown") from None
         finally:
             await client.stop()
+
+
+def validate_v1(type_name: str, value: Any) -> None:
+    """Hold an answer to protocol 1's schema, as an old client's strict validators would: a key
+    or a value protocol 1 did not have is an error."""
+    current = protocol.DEFS
+    protocol.DEFS = V1_DEFS
+    try:
+        protocol.validate(type_name, value)
+    finally:
+        protocol.DEFS = current
