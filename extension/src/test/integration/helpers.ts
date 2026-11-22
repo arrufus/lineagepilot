@@ -49,6 +49,11 @@ export function readerOf(status: Status | undefined, tool = 'airflow'): ReaderSt
   return status?.readers?.find((reader) => reader.tool === tool);
 }
 
+/** Every reader has finished, done or failed: they read in parallel and end in any order (task 8.2). */
+export function readersSettled(status: Status | undefined): boolean {
+  return (status?.readers ?? []).every((reader) => reader.stage === 'done' || reader.stage === 'failed');
+}
+
 export async function api(): Promise<LineagePilotApi> {
   const extension = vscode.extensions.getExtension<LineagePilotApi>(EXTENSION_ID);
   if (!extension) {

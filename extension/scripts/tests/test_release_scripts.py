@@ -118,19 +118,30 @@ def test_the_samples_walkthrough_gives_the_review_its_readme_promises(tmp_path):
     out = io.StringIO()
     main(["review", "--project-dir", str(root), "--no-cache", "--json"], out=out)
     review = json.loads(out.getvalue())
-    # The CLI writes protocol 2's kinds: an Airflow task is a task, with its tool on the row
-    assert review["summary"]["impacted"] == {"consumer": 6, "exposure": 1, "model": 4, "task": 4}
-    assert {n["tool"] for n in review["impacted"] if n["kind"] == "task"} == {"airflow"}
+    # The CLI writes protocol 2's kinds: an Airflow task is a task, with its tool on the row. A
+    # Dagster job and schedule are pipelines (task 8.9)
+    assert review["summary"]["impacted"] == {
+        "consumer": 6, "exposure": 1, "model": 4, "pipeline": 2, "task": 8,
+    }
+    tasks = [n["tool"] for n in review["impacted"] if n["kind"] == "task"]
+    assert (tasks.count("airflow"), tasks.count("dagster")) == (4, 4)
+    dagster = {n["subkind"] for n in review["impacted"] if n["tool"] == "dagster"}
+    assert dagster == {"dbt_assets", "job", "schedule", "asset"}
     # The semantic layer on the mart: the metric that only counts orders is at model level
     semantic = {n["name"]: n["reach"] for n in review["impacted"] if n["kind"] == "consumer"}
     assert semantic["revenue"] == "column" and semantic["order_count"] == "model"
-    assert review["summary"]["unknowns"] == 2
+    assert review["summary"]["unknowns"] == 3
     [orders] = review["changedNodes"]
     assert orders["columns"]["removed"] == ["order_total"] and orders["columns"]["added"] == ["total_usd"]
-    assert {u["subject"] for u in review["unknowns"]} == {"airflow:backfill", "model.impact_shop.broken_report"}
+    assert {u["subject"] for u in review["unknowns"]} == {
+        "airflow:backfill", "dagster:operations.snapshots", "model.impact_shop.broken_report",
+    }
     readme = (ROOT / "sample-extras" / "README.md").read_text(encoding="utf-8")
     assert "reaches four models, the dashboard, the metrics whose measures and filters read" in readme
     assert "`order_count` counts orders and reads no renamed column" in readme
+    assert "four Airflow tasks, and the Dagster definitions, job and schedule" in readme
+    assert "the two Dagster assets that read them" in readme
+    assert "the Dagster asset that runs dbt from Python are under **Unknowns**" in readme
 
 
 # The third-party notices (task 6.2)

@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from lineagepilot_core.readers.airflow.reader import AirflowReader
 from lineagepilot_core.readers.contract import Reader
+from lineagepilot_core.readers.dagster.reader import DagsterReader
 
-READERS: dict[str, Reader] = {reader.tool: reader for reader in (AirflowReader(),)}
+READERS: dict[str, Reader] = {reader.tool: reader for reader in (AirflowReader(), DagsterReader())}
 
 
 def reader(tool: str) -> Reader:

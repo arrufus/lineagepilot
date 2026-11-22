@@ -8,6 +8,21 @@ import * as vscode from 'vscode';
 import type { GroupItem, NodeItem } from '../../views/lineageTree';
 import { api, codeOf, J, position, readyServer, root, until, uri } from './helpers';
 
+/**
+ * Show a file in the views as a user does: open it, and no file closes every editor. The extension
+ * also refreshes the views with the active editor's file whenever a reader's state changes, so a
+ * file shown only by calling a view could be replaced mid-test (LP-d78). The views are asked
+ * directly as well, for when the active editor is already that file.
+ */
+async function showInViews(file: vscode.Uri | undefined, ...trees: { showFile(uri: vscode.Uri | undefined): Promise<void> }[]): Promise<void> {
+  if (file) {
+    await vscode.window.showTextDocument(file);
+  } else {
+    await vscode.commands.executeCommand('workbench.action.closeAllEditors');
+  }
+  await Promise.all(trees.map((tree) => tree.showFile(file)));
+}
+
 suite('LineagePilot features', () => {
   suiteSetup(async function () {
     this.timeout(180_000);
@@ -30,13 +45,12 @@ suite('LineagePilot features', () => {
       const [airflow] = pipelinesTree.items;
       return airflow?.type === 'tool' ? pipelinesTree.getTreeItem(pipelinesTree.getChildren(airflow)[0]).label : undefined;
     };
-    await pipelinesTree.showFile(undefined);
-    // The view may be refreshing itself as well, so wait for what it settles on
+    await showInViews(undefined, pipelinesTree);
     await until('the message for no file', 30_000, () => firstChild() === 'No task in the DAG files read runs dbt.');
     const airflow = pipelinesTree.getTreeItem(pipelinesTree.items[0]);
     assert.equal(airflow.label, 'Airflow');
     assert.equal(airflow.description, '0 DAGs · 0 tasks');
-    await pipelinesTree.showFile(uri('models', 'marts', 'orders.sql'));
+    await showInViews(uri('models', 'marts', 'orders.sql'), pipelinesTree);
     await until('the message for a model', 30_000, () => firstChild() === 'No task in the DAG files read runs this.');
     assert.deepEqual(pipelinesTree.getChildren(pipelinesTree.getChildren(pipelinesTree.items[0])[0]), []);
   });
@@ -44,7 +58,7 @@ suite('LineagePilot features', () => {
   test('the Consumers view: the semantic layer reads the mart field by field, and no file shows its welcome', async () => {
     const { consumersTree } = await api();
     await readyServer();
-    await consumersTree.showFile(uri('models', 'marts', 'orders.sql'));
+    await showInViews(uri('models', 'marts', 'orders.sql'), consumersTree);
     const [tool] = await until('the semantic layer', 30_000,
       () => (consumersTree.items[0]?.type === 'tool' ? consumersTree.items : undefined));
     assert.equal(consumersTree.getTreeItem(tool).label, 'dbt semantic layer');
@@ -55,12 +69,12 @@ suite('LineagePilot features', () => {
     const [read] = consumersTree.getChildren(consumer);
     assert.equal(consumersTree.getTreeItem(read).description, 'customer_id, order_id, order_total, ordered_at · declared');
     // Nothing reads a staging model from outside dbt
-    await consumersTree.showFile(uri('models', 'staging', 'stg_orders.sql'));
+    await showInViews(uri('models', 'staging', 'stg_orders.sql'), consumersTree);
     const [message] = await until('the message for a model', 30_000,
       () => (consumersTree.items[0]?.type === 'message' ? consumersTree.items : undefined));
     assert.equal(consumersTree.getTreeItem(message).label, 'Nothing outside dbt is known to read this.');
-    await consumersTree.showFile(undefined);
-    assert.deepEqual(consumersTree.items, []);
+    await showInViews(undefined, consumersTree);
+    await until('the welcome for no file', 30_000, () => consumersTree.items.length === 0);
   });
 
   test('both views show, trusted or not', async () => {

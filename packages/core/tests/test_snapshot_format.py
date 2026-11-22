@@ -28,6 +28,8 @@ MODEL_OF_FORMAT = {
     # Phase 7: pipeline, task and consumer kinds with a tool and a subkind, the edges loads,
     # consumes and part_of, and the dbt semantic layer in the graph (tasks 7.1 and 7.8)
     4: "434b7ff483c9e1ad7eb1e002af4458fa81027e4c1a2ef56e3c5135c854a2d633",
+    # Phase 8: the origin dagster_defs, and ReaderSummary for readers after Airflow (task 8.2)
+    5: "74ec3c0d702d6b86d41d63a9d6eb72792fc843a6d449bd7f6bed7f278533934f",
 }
 
 

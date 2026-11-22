@@ -614,7 +614,8 @@ def _pipeline_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dic
     for origin, step in hit.via:
         source = origin.partition("#")[0]
         edge = step.edges[0]
-        if edge.kind is EdgeKind.ORCHESTRATES:
+        # What it runs, or reads, as a Dagster asset that is not dbt's does (D-b)
+        if edge.kind in (EdgeKind.ORCHESTRATES, EdgeKind.CONSUMES):
             runs.add(source)
             if edge.transformation:
                 how.add(edge.transformation)
@@ -624,7 +625,7 @@ def _pipeline_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dic
     derived = properties.get("tasks", {})
     tasks = sorted({task for source in runs for task in derived.get(source, ())})
     names = sorted(graph.nodes[source].name for source in runs)
-    return {
+    detail = {
         "tool": node.tool,
         "pipeline": clip(properties.get("pipeline") or properties.get("dag")),
         "operator": clip(properties.get("operator")),
@@ -636,6 +637,11 @@ def _pipeline_detail(graph: MetadataGraph, node: Node, hit: ImpactedNode) -> dic
         "after": sorted(clip(graph.nodes[source].name) for source in after)[:MAX_TASK_DETAIL],
         "notes": [clip(n) for n in properties.get("notes", ())],
     }
+    # A Dagster schedule's job and cron, which the review shows beside what it runs (task 8.9)
+    for key in ("job", "cron"):
+        if isinstance(properties.get(key), str):
+            detail[key] = clip(properties[key])
+    return detail
 
 
 def _step_evidence(step: Step) -> dict[str, Any]:

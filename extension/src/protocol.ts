@@ -37,7 +37,7 @@ export type EdgeKind = z.infer<typeof EdgeKind>;
 export const Confidence = z.enum(["declared", "inferred", "heuristic"]);
 export type Confidence = z.infer<typeof Confidence>;
 
-export const Origin = z.enum(["manifest", "compiled_sql", "catalog", "dag_static", "annotation"]);
+export const Origin = z.enum(["manifest", "compiled_sql", "catalog", "dag_static", "annotation", "dagster_defs"]);
 export type Origin = z.infer<typeof Origin>;
 
 export const Direction = z.enum(["upstream", "downstream", "both"]);
@@ -335,6 +335,8 @@ export const ImpactPipeline = z.strictObject({
   tasksMore: Count,
   after: z.array(Name),
   notes: z.array(Text),
+  job: Name.optional(),
+  cron: Name.optional(),
 });
 export type ImpactPipeline = z.infer<typeof ImpactPipeline>;
 

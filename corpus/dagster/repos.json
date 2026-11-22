@@ -1,0 +1,421 @@
+{
+  "selected_on": "2026-11-20",
+  "queries": [
+    {
+      "number": 1,
+      "search": "\"from dagster_dbt import\" dbt_assets language:Python",
+      "command": "gh search code '\"from dagster_dbt import\" dbt_assets language:Python' --limit 50 --json repository,path",
+      "hits_returned": 50,
+      "hits_examined": 7,
+      "taken": {
+        "3": "nchiht/brazilian_ecommerce_data_platform",
+        "4": "mateo-velez/dbt-gcp-dagster-etl-pipeline",
+        "7": "Cam0505/4DStack"
+      },
+      "passed_over": {
+        "1": "dagster-io/dagster (dagster-io organisation)",
+        "5": "dagster-io/dagster",
+        "6": "dagster-io/dagster"
+      },
+      "rejected_hits": {
+        "2": "mathisdrn/orca"
+      },
+      "stopped_after": "hit 7 (Cam0505/4DStack), the third repository taken; hits 8-50 were not evaluated"
+    },
+    {
+      "number": 2,
+      "search": "DbtProjectComponent in defs.yaml files",
+      "command": "gh search code 'DbtProjectComponent' --filename defs.yaml --limit 50 --json repository,path",
+      "hits_returned": 50,
+      "hits_examined": 20,
+      "taken": {
+        "18": "vbalalian/estore-analytics",
+        "19": "shawnmartin-py/plex-ingest",
+        "20": "DevelopmentFinanceObservatory/pipelines"
+      },
+      "passed_over": {
+        "1-12": "dagster-io/dagster (dagster-io organisation)",
+        "14": "dagster-io/project-dagster-university",
+        "15": "dagster-io/ebook-scaling-data-teams"
+      },
+      "rejected_hits": {
+        "13": "cianfhoghlaim/cianfhoghlaim",
+        "16": "fosk06/dagster-jaffle-platform-demo",
+        "17": "leeroopedia/workflow-dagster-io-dagster-dbt-integration"
+      },
+      "stopped_after": "hit 20 (DevelopmentFinanceObservatory/pipelines), the third repository taken; hits 21-50 were not evaluated"
+    },
+    {
+      "number": 3,
+      "search": "load_assets_from_dbt_project language:Python",
+      "command": "gh search code 'load_assets_from_dbt_project language:Python' --limit 50 --json repository,path",
+      "hits_returned": 50,
+      "hits_examined": 15,
+      "taken": {
+        "10": "airbytehq/open-data-stack",
+        "14": "flyanakin/CountMoney",
+        "15": "lelouvincx/goodreads-elt-pipeline"
+      },
+      "passed_over": {
+        "11": "dagster-io/fake-star-detector (dagster-io organisation)"
+      },
+      "rejected_hits": {
+        "1": "paradime-io/paradime-dagster-dbt",
+        "2": "GuinsooLab/sheenflow",
+        "3": "Cjks108/snowdbtpj",
+        "4": "egafdharmawan/DBT_Dagster",
+        "5": "merlinepedra/DAGSTER",
+        "6": "BrenoFariasdaSilva/Dagster-Template",
+        "7": "shanku007/pro-orch",
+        "8": "deme-amadou/dbt-snowflake-perfect",
+        "9": "haroldjm79/Repository",
+        "12": "quantile-development/dagster-meltano",
+        "13": "open-radiogenomics/lung-sarg"
+      },
+      "stopped_after": "hit 15 (lelouvincx/goodreads-elt-pipeline), the third repository taken; hits 16-50 were not evaluated"
+    },
+    {
+      "number": 4,
+      "search": "dagster_dbt define_asset_job language:Python",
+      "command": "gh search code 'dagster_dbt define_asset_job language:Python' --limit 50 --json repository,path",
+      "hits_returned": 50,
+      "hits_examined": 13,
+      "taken": {
+        "7": "edwinweber/dbt_duckdb_demo_public",
+        "11": "srdp-hub/srdp",
+        "13": "Odunpo/lakehouse-prototype"
+      },
+      "passed_over": {
+        "1-4": "dagster-io/dagster (dagster-io organisation)",
+        "5": "dagster-io/dagster-open-platform",
+        "8": "dagster-io/dagster-open-platform",
+        "9": "Cjks108/snowdbtpj (already rejected under query 3)",
+        "10": "open-radiogenomics/lung-sarg (already rejected under query 3)",
+        "12": "egafdharmawan/DBT_Dagster (already rejected under query 3)"
+      },
+      "rejected_hits": {
+        "6": "Tinasavasapphavat/dagster-clickhouse-dbt"
+      },
+      "stopped_after": "hit 13 (Odunpo/lakehouse-prototype), the third repository taken; hits 14-50 were not evaluated"
+    }
+  ],
+  "excluded": [
+    "Repositories in the dagster-io organisation (passed over, not counted as rejections).",
+    "Forks (none of the candidates checked was a fork by GitHub's record).",
+    "Unchanged copies of a Dagster or dbt Labs tutorial or example, including copies that change only names or cosmetics, and copies of Dagster's own source tree.",
+    "Repositories whose dbt project is not in the same repository, or that do not use Dagster with dagster-dbt (or run dbt from Dagster code).",
+    "Repositories whose files cannot be fetched. As in the Airflow corpora, a repository whose files at the HEAD commit total over 200 MB was turned down as too large to fetch for scoring."
+  ],
+  "repos": [
+    {
+      "repo": "nchiht/brazilian_ecommerce_data_platform",
+      "url": "https://github.com/nchiht/brazilian_ecommerce_data_platform",
+      "sha": "08fe1350482b6a289294ec5ea691f625c800bbcd",
+      "license": "none found (read as data only)",
+      "query": 1,
+      "hit": 3,
+      "apis": [
+        "@dbt_assets"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "mateo-velez/dbt-gcp-dagster-etl-pipeline",
+      "url": "https://github.com/mateo-velez/dbt-gcp-dagster-etl-pipeline",
+      "sha": "993a316278efc01bbbf16aa53562ce907bf08742",
+      "license": "none found (read as data only)",
+      "query": 1,
+      "hit": 4,
+      "apis": [
+        "@dbt_assets"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "Cam0505/4DStack",
+      "url": "https://github.com/Cam0505/4DStack",
+      "sha": "d893c2bd1d1f81c2d52ff0ec3630d45f170bbe27",
+      "license": "none found (read as data only)",
+      "query": 1,
+      "hit": 7,
+      "apis": [
+        "@asset with dbt resource cli()",
+        "@dbt_assets",
+        "ScheduleDefinition",
+        "define_asset_job"
+      ],
+      "links": 13,
+      "resolved": 13,
+      "unknown": 0
+    },
+    {
+      "repo": "vbalalian/estore-analytics",
+      "url": "https://github.com/vbalalian/estore-analytics",
+      "sha": "b7423d0711dfcb3ce226aeede191179c9266d297",
+      "license": "MIT",
+      "query": 2,
+      "hit": 18,
+      "apis": [
+        "CustomOmniComponent (OmniComponent subclass) document AssetSpec deps",
+        "DbtProjectComponent",
+        "ScheduleDefinition",
+        "define_asset_job"
+      ],
+      "links": 6,
+      "resolved": 5,
+      "unknown": 1
+    },
+    {
+      "repo": "shawnmartin-py/plex-ingest",
+      "url": "https://github.com/shawnmartin-py/plex-ingest",
+      "sha": "25cd7ed3c276eb0238136a95017f29017df180df",
+      "license": "MIT",
+      "query": 2,
+      "hit": 19,
+      "apis": [
+        "@asset deps",
+        "DbtProjectComponent",
+        "ScheduleDefinition",
+        "define_asset_job"
+      ],
+      "links": 5,
+      "resolved": 5,
+      "unknown": 0
+    },
+    {
+      "repo": "DevelopmentFinanceObservatory/pipelines",
+      "url": "https://github.com/DevelopmentFinanceObservatory/pipelines",
+      "sha": "d7891ba3d5781015ce9d505ccfe6abca4478094a",
+      "license": "MIT",
+      "query": 2,
+      "hit": 20,
+      "apis": [
+        "@asset deps",
+        "@asset deps (factory build_dc_export_asset)",
+        "DbtProjectComponent"
+      ],
+      "links": 14,
+      "resolved": 14,
+      "unknown": 0
+    },
+    {
+      "repo": "airbytehq/open-data-stack",
+      "url": "https://github.com/airbytehq/open-data-stack",
+      "sha": "132ad818bcc89619c4e69bd1599d4d1c27f91943",
+      "license": "MIT",
+      "query": 3,
+      "hit": 10,
+      "apis": [
+        "load_assets_from_dbt_project"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "flyanakin/CountMoney",
+      "url": "https://github.com/flyanakin/CountMoney",
+      "sha": "9a42c6240fb631df9be035bd2054764ad41f09ac",
+      "license": "none found (read as data only)",
+      "query": 3,
+      "hit": 14,
+      "apis": [
+        "ScheduleDefinition",
+        "define_asset_job",
+        "load_assets_from_dbt_project"
+      ],
+      "links": 3,
+      "resolved": 3,
+      "unknown": 0
+    },
+    {
+      "repo": "lelouvincx/goodreads-elt-pipeline",
+      "url": "https://github.com/lelouvincx/goodreads-elt-pipeline",
+      "sha": "57a0d0b1dad220594a122e1eaa531e36af38a613",
+      "license": "MIT",
+      "query": 3,
+      "hit": 15,
+      "apis": [
+        "load_assets_from_dbt_project"
+      ],
+      "links": 1,
+      "resolved": 1,
+      "unknown": 0
+    },
+    {
+      "repo": "edwinweber/dbt_duckdb_demo_public",
+      "url": "https://github.com/edwinweber/dbt_duckdb_demo_public",
+      "sha": "18befdbacc54350511e903735707dbde88510403",
+      "license": "MIT",
+      "query": 4,
+      "hit": 7,
+      "apis": [
+        "@asset deps",
+        "@asset deps (factory _make_export_gold_asset)",
+        "@asset deps (factory _make_export_silver_asset)",
+        "ScheduleDefinition",
+        "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+        "define_asset_job"
+      ],
+      "links": 53,
+      "resolved": 53,
+      "unknown": 0
+    },
+    {
+      "repo": "srdp-hub/srdp",
+      "url": "https://github.com/srdp-hub/srdp",
+      "sha": "8b477b7f4db63661419a0761dfac01e13a7d43ce",
+      "license": "MPL-2.0",
+      "query": 4,
+      "hit": 11,
+      "apis": [
+        "@dbt_assets",
+        "ScheduleDefinition",
+        "define_asset_job"
+      ],
+      "links": 4,
+      "resolved": 4,
+      "unknown": 0
+    },
+    {
+      "repo": "Odunpo/lakehouse-prototype",
+      "url": "https://github.com/Odunpo/lakehouse-prototype",
+      "sha": "e56db41487de2b4c130206dd3e0ffc913f58d3ac",
+      "license": "none found (read as data only)",
+      "query": 4,
+      "hit": 13,
+      "apis": [
+        "@dbt_assets",
+        "define_asset_job (factory create_jobs)"
+      ],
+      "links": 8,
+      "resolved": 8,
+      "unknown": 0
+    }
+  ],
+  "totals": {
+    "links": 110,
+    "resolved": 109,
+    "unknown": 1,
+    "unsure": 2
+  },
+  "rejected": [
+    {
+      "repo": "mathisdrn/orca",
+      "query": 1,
+      "hit": 2,
+      "reason": "its files at HEAD total about 420 MB (committed DuckLake Parquet data), over the 200 MB limit the Airflow corpora used"
+    },
+    {
+      "repo": "cianfhoghlaim/cianfhoghlaim",
+      "query": 2,
+      "hit": 13,
+      "reason": "the hit is a defs.yaml.planned file, which Dagster does not load; and its files at HEAD total over 1.5 GB (the tree listing is truncated), over the 200 MB limit"
+    },
+    {
+      "repo": "fosk06/dagster-jaffle-platform-demo",
+      "query": 2,
+      "hit": 16,
+      "reason": "its files at HEAD total about 426 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "leeroopedia/workflow-dagster-io-dagster-dbt-integration",
+      "query": 2,
+      "hit": 17,
+      "reason": "a repackaged copy of Dagster's documentation project project_dbt (the same defs.yaml, select tag:daily, taxi models)"
+    },
+    {
+      "repo": "paradime-io/paradime-dagster-dbt",
+      "query": 3,
+      "hit": 1,
+      "reason": "a copy of the dagster-dbt library; its dbt projects are the library's test fixtures, with no Dagster code of its own using them"
+    },
+    {
+      "repo": "GuinsooLab/sheenflow",
+      "query": 3,
+      "hit": 2,
+      "reason": "a renamed copy of Dagster's own source tree"
+    },
+    {
+      "repo": "Cjks108/snowdbtpj",
+      "query": 3,
+      "hit": 3,
+      "reason": "the hit is inside a committed virtualenv's dagster_dbt; the files at HEAD total about 264 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "egafdharmawan/DBT_Dagster",
+      "query": 3,
+      "hit": 4,
+      "reason": "the hit is inside a committed virtualenv's dagster_dbt; the files at HEAD total about 254 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "merlinepedra/DAGSTER",
+      "query": 3,
+      "hit": 5,
+      "reason": "a copy of Dagster's own source tree"
+    },
+    {
+      "repo": "BrenoFariasdaSilva/Dagster-Template",
+      "query": 3,
+      "hit": 6,
+      "reason": "a copy of Dagster's own source tree (python_modules/libraries/dagster-dbt)"
+    },
+    {
+      "repo": "shanku007/pro-orch",
+      "query": 3,
+      "hit": 7,
+      "reason": "a copy of Dagster's own source tree (python_modules/libraries/dagster-dbt)"
+    },
+    {
+      "repo": "deme-amadou/dbt-snowflake-perfect",
+      "query": 3,
+      "hit": 8,
+      "reason": "the hit is inside a committed virtualenv's dagster_dbt; the files at HEAD total about 262 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "haroldjm79/Repository",
+      "query": 3,
+      "hit": 9,
+      "reason": "the hit is inside a committed .venv's dagster_dbt; the files at HEAD total about 293 MB, over the 200 MB limit"
+    },
+    {
+      "repo": "quantile-development/dagster-meltano",
+      "query": 3,
+      "hit": 12,
+      "reason": "a library (a Meltano plugin for Dagster); no dbt project in the repository"
+    },
+    {
+      "repo": "open-radiogenomics/lung-sarg",
+      "query": 3,
+      "hit": 13,
+      "reason": "the load_assets_from_dbt_project call is commented out (dbt_assets = []), and the dbt project has no models"
+    },
+    {
+      "repo": "Tinasavasapphavat/dagster-clickhouse-dbt",
+      "query": 4,
+      "hit": 6,
+      "reason": "no dbt project in the repository"
+    }
+  ],
+  "shortfalls": "None against the aim: 12 repositories, three from each search. The links are uneven: edwinweber/dbt_duckdb_demo_public alone holds 53 of the 110 links, 36 of them assets made in loops by two factories, so pooled results should also be read per repository. Only one link expects unknown (an Omni component whose documents come from outside the repository), so the corpus says little about rightly unknown links. No repository commits a dbt manifest, so every model set is a stand-in worked out from project files. Two links are marked UNSURE:.",
+  "selection_notes": "Searches run on 2026-11-20 with gh search code, in the order 1 to 4, each with --limit 50. Hits were taken in the order returned, none skipped for being easy or hard. Each candidate was checked with gh api (fork flag, size, default branch, license) and by listing its tree at the default branch's HEAD; the repositories taken were then fetched at that commit as data, the way corpus/score.py fetch does (git init, remote add, shallow fetch of the SHA, checkout of FETCH_HEAD with no submodules). Two differences: the sandbox refused 'git -c ...' options, so fetch and checkout ran in fresh repositories whose hooks folder held only git's .sample files, with no global hooksPath set (no repository hook could run), and LFS smudging was turned off with GIT_LFS_SKIP_SMUDGE=1 instead of -c filter.lfs.smudge=. Stopping points: query 1 after hit 7, query 2 after hit 20, query 3 after hit 15, query 4 after hit 13; later hits were not evaluated. Each repository is pinned to the 40-character SHA of its default branch's HEAD when it was chosen (DevelopmentFinanceObservatory/pipelines's default branch is dev). Sizes are the sum of blob sizes in the tree at HEAD, from the GitHub API.",
+  "conventions": [
+    "A unit is a dbt_assets definition, a job, a schedule, a non-dbt asset that depends directly on a dbt asset, or an op or asset that runs the dbt CLI itself (dbt_cli). Sensors, automation conditions, asset checks and assets upstream of dbt are out_of_scope.",
+    "id is <unit>:<name>; name is the name Dagster gives the unit: the function name (or name=) of an asset or @dbt_assets function; the job's name=; for a ScheduleDefinition without name=, the job's name plus _schedule (the variable is in reason); for load_assets_from_dbt_project, the variable it is assigned to; for a component in a defs.yaml, the folder holding the defs.yaml; for an asset whose key has a prefix, the key's parts joined with '/'.",
+    "line is the decorator of a decorated function, the call of define_asset_job, ScheduleDefinition or load_assets_from_dbt_project, and the 'type:' line of a defs.yaml.",
+    "A unit made by a factory in another file has file and line at the factory's call site, and the factory's location in reason. A unit made by a helper in the same file has line at its definition inside the helper, and the call site in reason. Units made in a loop are one link each, with the same file and line.",
+    "registered_in is the file whose Definitions or @repository includes the unit, directly or through a schedule that targets the job. For code under a defs folder loaded by load_from_defs_folder it is the file calling load_from_defs_folder, unless a Definitions object in the unit's own module lists it. A unit that is defined but not registered is still labelled, with registered_in null.",
+    "Model sets follow dagster-dbt's rules, read from its source at the pinned versions: the default select of @dbt_assets, DbtProjectComponent and load_assets_from_dbt_project is fqn:* with no exclude; seeds and snapshots are assets too and go in other_nodes (dagster-dbt 0.17's load_assets_from_dbt_project without use_build_command makes assets of models only, but no project loaded that way here has seeds or snapshots); ephemeral models get no asset and are left out (none of the twelve projects has one); the default asset key is [schema, name] when the node's config sets schema, else [name], unless meta.dagster.asset_key is set.",
+    "dbt's bare selector is its fqn method, which also matches the fqn without the package name, so 'bronze' selects every node under models/bronze.",
+    "A job's or schedule's models are the dbt nodes its selection resolves to among the registered definitions. A job that runs dbt only through a plain asset calling the dbt CLI is labelled with the models that command selects.",
+    "A dbt_assets unit is labelled by its definition's select and exclude, even when its body passes a narrower command to dbt; the reason says so.",
+    "selection_as_written is verbatim from the code (null when a definition has no select); helper functions are expanded in reason. deps_as_written is verbatim from the asset's definition, from the factory for factory-made assets, and [] for other units.",
+    "dagster_pins are the requirement strings as written; a package listed with no version appears as its bare name; when two files pin different versions, both are given with their files.",
+    "dbt_projects lists the repository's own dbt projects, including any that no Dagster code uses; dbt_project.yml files inside dbt_packages or a virtualenv are not listed.",
+    "Model sets were worked out with a script of the labeller's own that applies dbt's selection rules to project text (dbt_project.yml configs, SQL config() blocks, YAML properties, ref() and source() calls; fqn, path, tag, config.*, resource_type, source and file methods; +, n+ and @ graph operators; unions, intersections and --exclude), then checked by eye. It is not the reader, and nothing from the repositories was imported, executed or installed."
+  ]
+}

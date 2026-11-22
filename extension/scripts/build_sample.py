@@ -32,6 +32,7 @@ INCLUDE = [
     "macros",
     "seeds",
     "dags",
+    "dagster",
     "target/manifest.json",
     "target/catalog.json",
     "changes/rename-order-total",

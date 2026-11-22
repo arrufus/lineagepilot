@@ -1,0 +1,5 @@
+# The operations team's code location, loaded from its definitions file
+load_from:
+  - python_file:
+      relative_path: definitions.py
+      location_name: operations

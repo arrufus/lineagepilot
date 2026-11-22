@@ -2,7 +2,7 @@
 
 Compared with the merge-base of `HEAD` and `origin/main` (`0123456789ab`). Manifest written `2026-11-17T19:15:15.206996Z` by dbt `1.12.6`.
 
-**1 changed node · 2 changed columns · 15 impacted (4 models, 1 exposure, 1 semantic model, 4 metrics, 1 saved query, 4 Airflow tasks) · 4 unknowns**
+**1 changed node · 2 changed columns · 21 impacted (4 models, 1 exposure, 1 semantic model, 4 metrics, 1 saved query, 8 tasks (Airflow 4, Dagster 4), 2 Dagster pipelines) · 5 unknowns**
 
 > catalog.json lists what the warehouse held when dbt docs generate last ran. If a changed model was built before that, a rename no longer shows as a change: set a baseline manifest to compare with what is deployed.
 
@@ -52,6 +52,17 @@ Compared with the merge-base of `HEAD` and `origin/main` (`0123456789ab`). Manif
 | `operations` | `export_orders` | reads: `orders` | heuristic | DAG file `dags/operations.py` | `operations-eng` |
 | `operations` | `refresh_counts` | dbt run: `order_counts` | heuristic | DAG file `dags/operations.py`: no project\_dir: dbt uses its working directory; assumed the only dbt project in the workspace | `operations-eng` |
 
+#### Dagster (2 dbt asset definitions, 1 job, 1 schedule and 2 assets in 2 code locations)
+
+| Code location | Definition | What it has to do with this | Confidence | Evidence | Owner |
+|---|---|---|---|---|---|
+| `operations` | dbt asset definition `operations_dbt` | dbt, through Dagster: `order_counts` | inferred | Dagster definitions `dagster/operations/definitions.py` | No owner |
+| `operations` | job `hourly_counts` | dbt, through Dagster: `order_counts` | inferred | Dagster definitions `dagster/operations/definitions.py` | No owner |
+| `operations` | schedule `hourly_counts_schedule` | dbt, through Dagster: `order_counts`; job `hourly_counts`, `0 * * * *` | inferred | Dagster definitions `dagster/operations/definitions.py` | No owner |
+| `operations` | asset `order_counts_export` | reads, as a Dagster asset: `order_counts` | inferred | Dagster definitions `dagster/operations/definitions.py` | No owner |
+| `operations` | asset `revenue_forecast` | reads, as a Dagster asset: `customer_revenue` | inferred | Dagster definitions `dagster/operations/definitions.py` | No owner |
+| `shop-analytics` | dbt asset definition `marts` | dbt, through Dagster: `customer_revenue`, `orders`, `revenue_tiers` | inferred | Dagster definitions `dagster/analytics/src/shop_analytics/defs/marts/defs.yaml` | No owner |
+
 ### Owners
 
 | Owner | Impacted |
@@ -63,9 +74,9 @@ Compared with the merge-base of `HEAD` and `origin/main` (`0123456789ab`). Manif
 | `growth-analytics` | `customer_revenue` |
 | `operations` | `order_counts`, `weekly_revenue` |
 | `operations-eng` | `operations.export_orders`, `operations.refresh_counts` |
-| No owner | `average_order_value`, `large_orders`, `order_count`, `broken_report`, `revenue_tiers` |
+| No owner | `operations.operations_dbt`, `operations.order_counts_export`, `operations.revenue_forecast`, `operations/job/hourly_counts`, `operations/schedule/hourly_counts_schedule`, `shop-analytics.marts`, `average_order_value`, `large_orders`, `order_count`, `broken_report` and 1 more |
 
-### Unknowns (4)
+### Unknowns (5)
 
 #### dbt (3)
 
@@ -75,7 +86,11 @@ Compared with the merge-base of `HEAD` and `origin/main` (`0123456789ab`). Manif
 
 #### Airflow (1)
 
-- `airflow:backfill`, `loop or factory`: dags/backfill.py:12: inside a for-loop (line 11): tasks created a dynamic number of times; shell command not statically resolvable: an f-string part is not resolvable (loop variable of the for-loop at line 11). Tasks are created a number of times that is only known when the file runs. Declare what …
+- `airflow:backfill`, `loop or factory`: dags/backfill.py:12: inside a for-loop (line 11): tasks created a dynamic number of times; shell command not statically resolvable: an f-string part is not resolvable (loop variable of the for-loop at line 11). Tasks or assets are made a number of times that is only known when the file runs. Declar…
+
+#### Dagster (1)
+
+- `dagster:operations.snapshots`, `dbt from Python`: dagster/operations/definitions.py:42: snapshots() runs dbt from Python (subprocess.run); what it runs is not read. dbt is run from Python code inside a task or an asset, which is not analysed. Declare what it runs in .lineagepilot/lineage.yml.
 
 <details><summary>Other changed files (3)</summary>
 

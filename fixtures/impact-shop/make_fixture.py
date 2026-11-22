@@ -40,7 +40,7 @@ HERE = Path(__file__).resolve().parent
 CHANGE = HERE / "changes" / "rename-order-total"
 VARIANT = HERE / "variants" / "semantic-v2"
 IGNORE = shutil.ignore_patterns(
-    "target", "changes", "variants", "dags", "make_fixture.py", "PROVENANCE.json"
+    "target", "changes", "variants", "dags", "dagster", "make_fixture.py", "PROVENANCE.json"
 )
 PROFILE = """impact_shop:
   target: dev
@@ -120,8 +120,9 @@ def main() -> None:
             "about": "A small dbt project of our own for the Change Impact Review: a source, a "
             "staging model, a mart, its downstream models, an exposure, a semantic layer with "
             "metrics and a saved query, owners and a deliberately unparseable model (design "
-            "section 14). Regenerate it with make_fixture.py. Tests that change files work on a "
-            "copy of this folder, never on it.",
+            "section 14). Airflow DAG files in dags/ and two Dagster code locations in dagster/ "
+            "run it; they are read, never run, and dbt does not see them. Regenerate it with "
+            "make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
             "licence": "Written for this repository; not derived from jaffle-shop.",
             "dbt": f"{version('dbt-core')} + dbt-duckdb {version('dbt-duckdb')}",
             "steps": {

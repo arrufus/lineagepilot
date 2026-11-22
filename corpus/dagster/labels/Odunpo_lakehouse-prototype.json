@@ -1,0 +1,214 @@
+{
+  "repo": "Odunpo/lakehouse-prototype",
+  "url": "https://github.com/Odunpo/lakehouse-prototype",
+  "sha": "e56db41487de2b4c130206dd3e0ffc913f58d3ac",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "dagster_dbt_data_vault"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.8.13",
+    "dagster-dbt": "dagster-dbt==0.24.13"
+  },
+  "dbt_projects": [
+    "dbt_project"
+  ],
+  "out_of_scope": [
+    {
+      "file": "dagster_dbt_data_vault/raw_data/assets/assets_factory.py",
+      "what": "raw_data/users and raw_data/accounts assets from raw_data/config.yml, upstream of the dbt sources"
+    },
+    {
+      "file": "dagster_dbt_data_vault/raw_data/jobs/jobs_factory.py",
+      "what": "jobs for the raw_data assets; no dbt"
+    },
+    {
+      "file": "dagster_dbt_data_vault/raw_data/sensors/sensors_factory.py",
+      "what": "sensors"
+    },
+    {
+      "file": "dagster_dbt_data_vault/dbt/sensors/sensors_factory.py",
+      "what": "asset sensors requesting the dbt jobs"
+    },
+    {
+      "file": "dagster_dbt_data_vault/optimizations/jobs/jobs.py",
+      "what": "table compaction and snapshot expiry op jobs; no dbt"
+    },
+    {
+      "file": "dagster_dbt_data_vault/optimizations/schedules/schedules.py",
+      "what": "schedules for the optimisation jobs; no dbt"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_bank",
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "name": "dbt_bank",
+      "file": "dagster_dbt_data_vault/dbt/assets/assets.py",
+      "line": 32,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "h_accounts",
+        "h_users",
+        "l_users_accounts",
+        "parsed_accounts",
+        "parsed_users",
+        "s_accounts",
+        "s_users"
+      ],
+      "other_nodes": [],
+      "reason": "@dbt_assets(manifest=get_dbt_manifest_path(), dagster_dbt_translator=...) with no select: all seven models. The translator changes source keys and groups only. Manifest not committed; set from project files."
+    },
+    {
+      "id": "job:parsed_users_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "parsed_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "parsed_users"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['parsed_data', 'parsed_users']), the default key of model parsed_users, whose config() sets schema='parsed_data'."
+    },
+    {
+      "id": "job:parsed_accounts_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "parsed_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "parsed_accounts"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['parsed_data', 'parsed_accounts']), the default key of model parsed_accounts, whose config() sets schema='parsed_data'."
+    },
+    {
+      "id": "job:h_users_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "h_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "h_users"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['data_vault', 'h_users']), the default key of model h_users, whose config() sets schema='data_vault'."
+    },
+    {
+      "id": "job:h_accounts_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "h_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "h_accounts"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['data_vault', 'h_accounts']), the default key of model h_accounts, whose config() sets schema='data_vault'."
+    },
+    {
+      "id": "job:s_users_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "s_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "s_users"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['data_vault', 's_users']), the default key of model s_users, whose config() sets schema='data_vault'."
+    },
+    {
+      "id": "job:s_accounts_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "s_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "s_accounts"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['data_vault', 's_accounts']), the default key of model s_accounts, whose config() sets schema='data_vault'."
+    },
+    {
+      "id": "job:l_users_accounts_job",
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "name": "l_users_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "registered_in": "dagster_dbt_data_vault/__init__.py",
+      "project_path": "dbt_project",
+      "package": "bank_data",
+      "selection_as_written": "selection=[AssetKey([job_conf.asset.prefix, job_conf.asset.name])]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "l_users_accounts"
+      ],
+      "other_nodes": [],
+      "reason": "One job per entry of dagster_dbt_data_vault/dbt/config.yml, made by create_jobs (dbt/jobs/jobs_factory.py, define_asset_job at line 12) and named <asset name>_job by create_job_configurations; this entry selects AssetKey(['data_vault', 'l_users_accounts']), the default key of model l_users_accounts, whose config() sets schema='data_vault'."
+    }
+  ]
+}

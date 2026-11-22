@@ -52,8 +52,9 @@ from lineagepilot_core.parsers import _json
 logger = logging.getLogger(__name__)
 
 # 3: JSON lines, read a batch at a time (LP-dtt). 4: the semantic layer is part of the graph
-# built from the same manifest, with how completely each consumer's reads are known (task 7.8)
-SNAPSHOT_FORMAT = 4
+# built from the same manifest, with how completely each consumer's reads are known (task 7.8).
+# 5: the origin dagster_defs, and a summary for any reader (task 8.2)
+SNAPSHOT_FORMAT = 5
 # Records per line: enough that decoding stays as fast as one document, few enough that a
 # batch decoded at a time costs little memory
 BATCH = 1000

@@ -313,6 +313,33 @@ suite('review page', () => {
     assert.ok(host.posted.some((m) => m.type === 'openFile' && m.location.uri === 'file:///w/dags/a.py'));
   });
 
+  test("Dagster's rows by code location: definitions, each job with its schedules, then assets (task 8.9)", async () => {
+    const dagster = (subkind: string, name: string, kind: 'task' | 'pipeline', extra: Partial<ImpactPipeline> = {}) => task({
+      id: `dagster:loc.${name}`, kind, tool: 'dagster', subkind, name, origins: ['dagster_defs'], confidence: 'inferred',
+      pipeline: detail({ tool: 'dagster', pipeline: 'loc', operator: null, how: ['dbt, through Dagster'], ...extra }),
+    });
+    await shown(review({
+      impacted: [
+        dagster('asset', 'features', 'task', { how: ['reads, as a Dagster asset'] }),
+        dagster('schedule', 'daily', 'pipeline', { job: 'b_job', cron: '0 6 * * *' }),
+        dagster('job', 'b_job', 'pipeline'),
+        dagster('job', 'a_job', 'pipeline'),
+        dagster('dbt_assets', 'shop', 'task'),
+      ],
+      pipelines: [reader({ tool: 'dagster', files: 2 })],
+    }));
+    assert.ok(screen.getByRole('heading', {
+      level: 3, name: 'Dagster (1 dbt asset definition, 2 jobs, 1 schedule and 1 asset in 1 code location)',
+    }));
+    const table = screen.getByRole('table', { name: 'Impacted Dagster tasks' });
+    const headers = within(table).getAllByRole('columnheader').map((h) => h.textContent);
+    assert.deepEqual(headers.slice(0, 2), ['Code location', 'Definition']);
+    const rows = within(table).getAllByRole('row').slice(1).map((row) => within(row).getAllByRole('rowheader')[0].textContent);
+    assert.deepEqual(rows, ['dbt asset definition shop', 'job a_job', 'job b_job', 'schedule daily', 'asset features']);
+    const schedule = within(table).getAllByRole('row')[4];
+    assert.match(schedule.textContent ?? '', /Job b_job, 0 6 \* \* \*/);
+  });
+
   test('DAG files that were read and touch nothing are said to', async () => {
     await shown(review({ pipelines: [reader({ files: 3 })] }));
     assert.ok(screen.getByText(/No task in the 3 DAG files read runs a changed or downstream node/));
@@ -338,9 +365,9 @@ suite('review page', () => {
     const sections = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent);
     assert.deepEqual(sections, ['Changed', 'Downstream impact', 'Pipelines', 'Consumers', 'Owners', 'Unknowns (0)']);
     assert.ok(screen.getByRole('heading', { level: 3, name: 'Airflow (1 task in 1 DAG)' }));
-    assert.ok(screen.getByRole('heading', { level: 3, name: 'Dagster (1 task in 1 pipeline)' }));
+    assert.ok(screen.getByRole('heading', { level: 3, name: 'Dagster (1 asset in 1 code location)' }));
     const dagster = screen.getByRole('table', { name: 'Impacted Dagster tasks' });
-    assert.equal(within(dagster).getAllByRole('columnheader')[0].textContent, 'pipeline');
+    assert.equal(within(dagster).getAllByRole('columnheader')[0].textContent, 'Code location');
     assert.equal(within(dagster).getAllByRole('row')[1].querySelector('td')?.textContent, 'nightly');
   });
 

@@ -1,0 +1,190 @@
+{
+  "repo": "vbalalian/estore-analytics",
+  "url": "https://github.com/vbalalian/estore-analytics",
+  "sha": "b7423d0711dfcb3ce226aeede191179c9266d297",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dagster-project/src/dagster_project"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.12.18",
+    "dagster-dbt": "dagster-dbt==0.28.18"
+  },
+  "dbt_projects": [
+    "dbt-project"
+  ],
+  "out_of_scope": [
+    {
+      "file": "dagster-project/src/dagster_project/defs/assets/source_assets.py",
+      "what": "AssetSpecs gcs/raw_events_files and estore_raw/events, upstream of the dbt source estore_raw.events"
+    },
+    {
+      "file": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "what": "gcs_to_bq_load_job, an op job loading raw files into BigQuery; no dbt"
+    },
+    {
+      "file": "dagster-project/src/dagster_project/defs/sensors/dbt_run_on_load_sensor.py",
+      "what": "run status sensor requesting dbt_job"
+    },
+    {
+      "file": "dagster-project/src/dagster_project/defs/sensors/gcs_new_file_sensor.py",
+      "what": "sensor for gcs_to_bq_load_job"
+    },
+    {
+      "file": "dagster-project/src/dagster_project/defs/sensors/run_failure_sensor.py",
+      "what": "run failure sensor"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt",
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "name": "dbt",
+      "file": "dagster-project/src/dagster_project/defs/dbt/defs.yaml",
+      "line": 1,
+      "registered_in": "dagster-project/src/dagster_project/definitions.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dim_categories",
+        "dim_products",
+        "dim_user_rfm",
+        "dim_users",
+        "fct_events",
+        "fct_sessions",
+        "metrics_churn",
+        "stg_events"
+      ],
+      "other_nodes": [
+        "snapshot.snap_user_rfm",
+        "snapshot.snap_user_status"
+      ],
+      "reason": "DbtProjectComponent with no select: the default fqn:* gives all eight models and the two YAML-defined snapshots (snapshots/*.yml, dbt 1.9 style). The translation template puts snapshots in group dbt_snapshots and every other node in dbt_models. Loaded by load_from_defs_folder."
+    },
+    {
+      "id": "job:dbt_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "dbt_job",
+      "file": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "line": 15,
+      "registered_in": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": "selection=AssetSelection.groups(\"dbt_models\")",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dim_categories",
+        "dim_products",
+        "dim_user_rfm",
+        "dim_users",
+        "fct_events",
+        "fct_sessions",
+        "metrics_churn",
+        "stg_events"
+      ],
+      "other_nodes": [],
+      "reason": "Group dbt_models is every dbt node that is not a snapshot (the component's group_name template); the project has no seeds, so it is the eight models. No other asset is in that group."
+    },
+    {
+      "id": "job:dbt_snapshot_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "dbt_snapshot_job",
+      "file": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "line": 21,
+      "registered_in": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": "selection=AssetSelection.assets([\"snapshots\", \"snap_user_rfm\"], [\"snapshots\", \"snap_user_status\"])",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [],
+      "other_nodes": [
+        "snapshot.snap_user_rfm",
+        "snapshot.snap_user_status"
+      ],
+      "reason": "Selects the two snapshots by key: the default key is [schema, name] and both set config schema: snapshots. No models."
+    },
+    {
+      "id": "schedule:dbt_job_schedule",
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "name": "dbt_job_schedule",
+      "file": "dagster-project/src/dagster_project/defs/schedules/__init__.py",
+      "line": 5,
+      "registered_in": "dagster-project/src/dagster_project/definitions.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": "job=dbt_job",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dim_categories",
+        "dim_products",
+        "dim_user_rfm",
+        "dim_users",
+        "fct_events",
+        "fct_sessions",
+        "metrics_churn",
+        "stg_events"
+      ],
+      "other_nodes": [],
+      "reason": "daily_pipeline_schedule (no name=, so Dagster names it dbt_job_schedule) runs dbt_job: the eight models. Picked up by load_from_defs_folder."
+    },
+    {
+      "id": "schedule:dbt_snapshot_job_schedule",
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "name": "dbt_snapshot_job_schedule",
+      "file": "dagster-project/src/dagster_project/defs/schedules/__init__.py",
+      "line": 11,
+      "registered_in": "dagster-project/src/dagster_project/definitions.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": "job=dbt_snapshot_job",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [],
+      "other_nodes": [
+        "snapshot.snap_user_rfm",
+        "snapshot.snap_user_status"
+      ],
+      "reason": "weekly_snapshot_schedule (no name=) runs dbt_snapshot_job: the two snapshots, no models."
+    },
+    {
+      "id": "asset:omni_ingest",
+      "unit": "asset",
+      "api": "CustomOmniComponent (OmniComponent subclass) document AssetSpec deps",
+      "name": "omni_ingest",
+      "file": "dagster-project/src/dagster_project/defs/omni_ingest/defs.yaml",
+      "line": 1,
+      "registered_in": "dagster-project/src/dagster_project/definitions.py",
+      "project_path": "dbt-project",
+      "package": "estore",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "spec.replace_attributes(deps=deps)"
+      ],
+      "expect": "unknown",
+      "unknown_reason": "The Omni document assets and their queries come from the Omni workspace's state, fetched from its API at run time (defs_state is gitignored). Which documents exist, and which dbt models their queries read, cannot be read from the files.",
+      "models": [],
+      "other_nodes": [],
+      "reason": "Non-dbt assets (Omni documents) that depend directly on dbt models. components/custom_omni.py get_asset_spec builds each document's deps from its queries' tables and the joins in omni/BigQuery/*.topic.yaml, keyed through target/manifest.json; the documents themselves come from outside the repository."
+    }
+  ]
+}

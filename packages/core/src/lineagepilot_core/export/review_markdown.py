@@ -29,9 +29,11 @@ from typing import Any
 
 from lineagepilot_core.readers.tools import (
     KIND_WORDS,
+    ROW_WORDS,
     TOOL_LABELS,
     count_key,
     counted,
+    group_word,
     pipeline_word,
     tool_label,
     tool_of_id,
@@ -58,6 +60,7 @@ _ORIGINS = {
     "catalog": "catalog",
     "dag_static": "DAG file",
     "annotation": "annotation",
+    "dagster_defs": "Dagster definitions",
 }
 _BASELINES = {
     "baseline_manifest": "the baseline manifest",
@@ -284,8 +287,10 @@ def _table_part(title: str, what: str, nodes: list[dict[str, Any]]) -> _Part:
 
 
 def _tools(summaries: list[dict[str, Any]], nodes: list[dict[str, Any]]) -> list[str]:
-    """The tools a section is about, by name: each reader's, and any other a row has."""
-    tools = {s["tool"] for s in summaries} | {n["tool"] for n in nodes if n.get("tool")}
+    """The tools a section is about, by name: each reader's, and any other a row has. A reader that
+    read and found none of its tool's files has nothing to say here (task 8.2)."""
+    readers = {s["tool"] for s in summaries if not (s["analysed"] and not s["files"])}
+    tools = readers | {n["tool"] for n in nodes if n.get("tool")}
     return sorted(tools, key=lambda tool: (tool_label(tool).casefold(), tool))
 
 
@@ -318,7 +323,7 @@ def _pipelines(review: dict[str, Any]) -> list[_Part]:
 def _pipeline_part(tool: str, summary: dict[str, Any] | None, nodes: list[dict[str, Any]]) -> _Part:
     name = _plain(tool_label(tool), NAME_LIMIT)
     word = pipeline_word(tool, 1)
-    nodes = sorted(nodes, key=lambda n: (_detail(n)["pipeline"] or "", n["kind"], n["name"]))
+    nodes = sorted(nodes, key=_row_order)
 
     def lines(limit: int) -> list[str]:
         not_analysed = _not_analysed(name, summary, f"{word} file")
@@ -328,10 +333,13 @@ def _pipeline_part(tool: str, summary: dict[str, Any] | None, nodes: list[dict[s
         rows: list[str] = []
         if nodes:
             pipelines = len({_detail(n)["pipeline"] for n in nodes})
-            in_pipelines = f"{pipelines} {pipeline_word(tool, pipelines)}"
-            title += f" ({_count(len(nodes), 'task')} in {in_pipelines})"
-            column = word[0].upper() + word[1:]
-            header = "Task | What it has to do with this | Confidence | Evidence | Owner"
+            in_pipelines = f"{pipelines} {group_word(tool, pipelines)}"
+            title += f" ({_what(nodes)} in {in_pipelines})"
+            group = group_word(tool, 1)
+            column = group[0].upper() + group[1:]
+            labelled = all(n.get("subkind") in _ROWS for n in nodes)
+            task = "Definition" if labelled else "Task"
+            header = f"{task} | What it has to do with this | Confidence | Evidence | Owner"
             rows += ["", f"| {column} | {header} |", "|---|---|---|---|---|---|"]
             rows += [_task_row(node, word) for node in nodes[:limit]]
             rows += _more(len(nodes), limit, f"{name} tasks")
@@ -365,9 +373,42 @@ def _detail(node: dict[str, Any]) -> dict[str, Any]:
     return node.get("pipeline") or _NO_DETAIL
 
 
+_ROWS = {subkind: (rank, one, many) for rank, (subkind, one, many) in enumerate(ROW_WORDS)}
+
+
+def _row_order(node: dict[str, Any]) -> tuple[Any, ...]:
+    """By pipeline; Dagster's by definitions, then each job with its schedules, then assets."""
+    detail = _detail(node)
+    subkind = node.get("subkind")
+    if subkind not in _ROWS:
+        return (detail["pipeline"] or "", 0, node["kind"], "", node["name"])
+    if subkind in ("job", "schedule"):
+        job = node["name"] if subkind == "job" else detail.get("job") or node["name"]
+        return (detail["pipeline"] or "", 1, job, _ROWS[subkind][0], node["name"])
+    return (detail["pipeline"] or "", 0 if subkind == "dbt_assets" else 2, "", 0, node["name"])
+
+
+def _what(nodes: list[dict[str, Any]]) -> str:
+    """How many rows there are, by what each is when every one is labelled, as Dagster's are."""
+    if not all(n.get("subkind") in _ROWS for n in nodes):
+        return _count(len(nodes), "task")
+    counts = []
+    for subkind, (_, one, many) in sorted(_ROWS.items(), key=lambda kv: kv[1][0]):
+        found = sum(n.get("subkind") == subkind for n in nodes)
+        if found:
+            counts.append(f"{found} {one if found == 1 else many}")
+    return counts[0] if len(counts) == 1 else f"{', '.join(counts[:-1])} and {counts[-1]}"
+
+
 def _task_row(node: dict[str, Any], word: str) -> str:
     detail = _detail(node)
-    task = f"The whole {word}" if node["kind"] == "pipeline" else _cell_code(node["name"])
+    subkind = node.get("subkind")
+    if subkind in _ROWS:
+        task = f"{_ROWS[subkind][1]} {_cell_code(node['name'])}"
+    elif node["kind"] == "pipeline":
+        task = f"The whole {word}"
+    else:
+        task = _cell_code(node["name"])
     if detail["tasks"]:
         shown = ", ".join(_cell_code(t) for t in detail["tasks"][:5])
         more = len(detail["tasks"]) - 5 + detail["tasksMore"]
@@ -382,6 +423,9 @@ def _task_row(node: dict[str, Any], word: str) -> str:
         parts.append(f"{how}: {names}" + (f" and {more} more" if more > 0 else ""))
     if detail["after"]:
         parts.append("runs after " + ", ".join(_cell_code(n) for n in detail["after"][:5]))
+    if detail.get("job"):
+        cron = f", {_cell_code(detail['cron'])}" if detail.get("cron") else ""
+        parts.append(f"job {_cell_code(detail['job'])}{cron}")
     origins = ", ".join(_label(_ORIGINS, o) for o in node["origins"])
     evidence = origins + (f" {_cell_code(node['file'])}" if node["file"] else "")
     if detail["notes"]:

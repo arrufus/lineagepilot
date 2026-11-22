@@ -15,6 +15,7 @@ import zipfile
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -62,7 +63,10 @@ class FakeGitHub(vr.GitHub):
                  "extension / build", "extension / test (windows-latest, 3.10)", "secret-scan / gitleaks",
                  "github-release"]
         self.job_list = [{"id": i, "name": n, "status": "completed", "conclusion": "success"} for i, n in enumerate(names)]
-        self.job_list += [{"id": 90, "name": "marketplace", "status": "completed", "conclusion": "skipped"},
+        # A tag's run skips the Marketplace sign-in check, which runs only by hand from main, and here
+        # the registries, which are off
+        self.job_list += [{"id": 89, "name": "marketplace-sign-in", "status": "completed", "conclusion": "skipped"},
+                          {"id": 90, "name": "marketplace", "status": "completed", "conclusion": "skipped"},
                           {"id": 91, "name": "open-vsx", "status": "completed", "conclusion": "skipped"}]
         self.log: str | None = "##[group]Run mkdir -p release\r\n" + log_line(sha256)
         self.attested: list[str] = []
@@ -124,7 +128,7 @@ def test_a_complete_release_from_the_private_repository_passes(tmp_path):
     passed = " | ".join(c.text for c in report.checks if c.ok)
     for expected in ("not as a draft or a pre-release", "it is the latest release", "its author is github-actions[bot]",
                      f"it holds {VSIX} and SHA256SUMS", "as in SHA256SUMS and as GitHub recorded on upload",
-                     "the VSIX is LineagePilot 0.1.1", f"at {COMMIT[:7]} succeeded", "all 9 of its jobs passed",
+                     "the VSIX is LineagePilot 0.1.1", f"at {COMMIT[:7]} succeeded", "all 10 of its jobs passed",
                      "logged the same SHA-256"):
         assert expected in passed, expected
     assert notes(report) == [
@@ -291,11 +295,28 @@ def test_failed_and_missing_jobs_fail(tmp_path):
 def test_a_test_job_that_was_skipped_is_not_a_pass():
     jobs = [{"name": n, "status": "completed", "conclusion": "success"} for n in vr.REQUIRED_JOBS]
     assert vr.job_problems(jobs) == []
+    # The registries' jobs, when they are off, and the sign-in check, which runs only by hand, are not due
+    not_due = [{"name": n, "status": "completed", "conclusion": "skipped"}
+               for n in ("marketplace", "open-vsx", "marketplace-sign-in")]
+    assert vr.job_problems(jobs + not_due) == []
     jobs[2]["conclusion"] = "skipped"
     jobs.append({"name": "extension / test (macos-latest, 3.13)", "status": "queued", "conclusion": None})
     assert vr.job_problems(jobs) == ["lsp: skipped", "extension / test (macos-latest, 3.13): queued"]
     # A required name is a job, or a prefix before " / ": a longer name is another job
     assert "no core job" in vr.job_problems([{"name": "corex", "status": "completed", "conclusion": "success"}])
+
+
+def test_the_jobs_a_release_run_may_skip_are_the_ones_the_workflow_runs_only_sometimes():
+    # LP-dai: marketplace-sign-in came with Trusted Publishing and runs only by hand from main, so
+    # every release run skips it. It was not listed, and the check failed 0.3.0's complete release.
+    # A job given a condition must be listed here, or run whenever a tag is pushed
+    workflow_path = ROOT.parent / ".github" / "workflows" / "lineagepilot-release.yml"
+    jobs = yaml.safe_load(workflow_path.read_text(encoding="utf-8"))["jobs"]
+    conditions = {name: job.get("if") for name, job in jobs.items()}
+    assert {n for n, c in conditions.items() if c and "LP_PUBLISH_REGISTRIES" in c} == set(vr.REGISTRY_JOBS)
+    assert {n for n, c in conditions.items() if c and "workflow_dispatch" in c} == set(vr.MANUAL_JOBS)
+    others = {n: c for n, c in conditions.items() if n not in vr.REGISTRY_JOBS + vr.MANUAL_JOBS}
+    assert set(others.values()) <= {None, "github.event_name == 'push'"}, others
 
 
 def test_a_logged_hash_that_differs_fails_and_a_deleted_log_is_noted(tmp_path):

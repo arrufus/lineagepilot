@@ -11,7 +11,7 @@ import subprocess
 from pathlib import Path
 
 import pytest
-from conftest import REPO, age_sources, validate_v1
+from conftest import REPO, age_sources, review_when_read, settled, validate_v1
 from lineagepilot_core.analysis.baseline import ManifestBaseline
 from lineagepilot_core.cli import main as cli_main
 from lineagepilot_core.gitdiff import git_changes
@@ -69,9 +69,7 @@ def as_params(root: Path, base: str = "main", manifest: str | None = None) -> di
 
 async def ready(start, root, versions: list[int] | None = None):
     client, _ = await start(root=root, options={"protocolVersions": versions} if versions else None)
-    status = await client.wait_for_update(
-        lambda u: not u["indexing"] and u["airflow"]["stage"] in ("done", "failed")
-    )
+    status = await client.wait_for_update(settled)
     assert status["state"] == "ready", status
     return client
 
@@ -120,7 +118,7 @@ async def test_the_panel_and_the_cli_produce_identical_output(start, shop):
 async def test_a_protocol_1_client_gets_protocol_1s_review(start, shop):
     """Task 7.5: the same review, as a client built before protocol 2 can read it."""
     client = await ready(start, shop, [1])
-    panel = await reviewed(client, as_params(shop))
+    panel = await review_when_read(client, as_params(shop))
     validate_v1("ReviewResult", panel)
     out = io.StringIO()
     args = ["review", "--project-dir", str(shop), "--base", "main", "--no-cache", "--json"]

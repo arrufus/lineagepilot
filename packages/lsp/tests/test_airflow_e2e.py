@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import asyncio
 import io
+import re
 import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import urlparse
 
 import pytest
-from conftest import REPO, age_sources
+from conftest import REPO, age_sources, review_when_read, settled
 from lineagepilot_core.cli import main as cli_main
 from lineagepilot_core.gitdiff import git_changes
 from lineagepilot_core.project import read_project
@@ -46,7 +47,7 @@ def scanned(update: dict) -> bool:
 
 async def ready(start, root, options=None):
     client, _ = await start(root=root, options=options)
-    status = await client.wait_for_update(lambda u: scanned(u) and u["state"] == "ready")
+    status = await client.wait_for_update(lambda u: settled(u) and u["state"] == "ready")
     return client, status
 
 
@@ -87,7 +88,8 @@ async def test_codelens_counts_the_tasks(start, shop):
             )
         )
     )
-    assert "Airflow tasks" in lenses[0].command.title
+    # The shop's Dagster code locations run the model too (task 8.9): tasks are counted by tool
+    assert re.search(r"\d+ tasks \(Airflow \d+, Dagster \d+\)", lenses[0].command.title)
     # A scan that arrives after the first lens asks the editor to refresh them
     assert client.lens_refreshes >= 1
 
@@ -252,8 +254,8 @@ async def test_the_panel_and_the_command_agree_with_the_tasks_in(start, shop, tm
     age_sources(shop)
     client, _ = await ready(start, shop)
     changes = git_changes(read_project(shop), "main")
-    review = await client.request(
-        "lineage/reviewChanges",
+    review = await review_when_read(
+        client,
         {
             "changedFiles": [
                 {
