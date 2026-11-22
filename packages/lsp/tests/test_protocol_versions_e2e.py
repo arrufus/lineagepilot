@@ -12,7 +12,7 @@ import shutil
 from pathlib import Path
 
 import pytest
-from conftest import REPO, age_sources, validate_v1
+from conftest import REPO, age_sources, settled, validate_v1
 
 from lineagepilot_lsp import protocol
 
@@ -34,9 +34,7 @@ def shop(tmp_path) -> Path:
 async def ready(start, root, versions):
     client, init = await start(root=root, options={"protocolVersions": versions})
     assert init.capabilities.experimental["lineagePilot"]["protocolVersion"] == versions[-1]
-    status = await client.wait_for_update(
-        lambda u: not u["indexing"] and u["airflow"]["stage"] in ("done", "failed")
-    )
+    status = await client.wait_for_update(settled)
     assert status["state"] == "ready", status
     return client
 
@@ -50,8 +48,12 @@ class TestProtocol2:
         client = await ready(start, shop, [1, 2])
         status = await client.request("lineage/status")
         protocol.validate("Status", status)
-        [airflow] = status["readers"]
+        airflow, dagster = status["readers"]
         assert airflow["tool"] == "airflow" and airflow["stage"] == "done"
+        # The shop's two Dagster code locations, and the one pattern in them that cannot be read
+        assert dagster["tool"] == "dagster" and dagster["stage"] == "done"
+        assert dagster["summary"]["analysed"] and dagster["summary"]["files"] == 5
+        assert dagster["summary"]["unknowns"] == 1 and dagster["summary"]["problems"] == []
         assert airflow["summary"]["analysed"] and airflow["summary"]["files"] >= 1
         assert airflow["summary"]["pipelines"] == status["airflow"]["summary"]["dags"]
         assert status["counts"]["nodeKinds"]["task"] >= 1
@@ -73,15 +75,27 @@ class TestProtocol2:
         client = await ready(start, shop, [2])
         result = await client.request("lineage/pipelines", {"nodes": [ORDERS]})
         protocol.validate("PipelinesResult", result)
-        assert [r["tool"] for r in result["readers"]] == ["airflow"]
+        assert [r["tool"] for r in result["readers"]] == ["airflow", "dagster"]
         tasks = {t["id"]: t for p in result["pipelines"] for t in p["tasks"]}
         assert tasks[GROUP]["kind"] == "task" and tasks[GROUP]["tool"] == "airflow"
         assert ORDERS in tasks[GROUP]["nodes"] and tasks[GROUP]["location"] is not None
         daily = next(p for p in result["pipelines"] if p["id"] == "airflow:daily_marts")
         assert daily["tool"] == "airflow" and daily["subkind"] == "dag"
+        # The shop's dbt component makes the mart a Dagster asset (task 8.9)
+        marts = tasks["dagster:shop-analytics.marts"]
+        assert (marts["tool"], marts["subkind"]) == ("dagster", "dbt_assets")
         everything = await client.request("lineage/pipelines", {"nodes": None, "tools": None})
         assert len(everything["pipelines"]) >= len(result["pipelines"])
-        other = await client.request("lineage/pipelines", {"nodes": None, "tools": ["dagster"]})
+        dagster = await client.request("lineage/pipelines", {"nodes": None, "tools": ["dagster"]})
+        assert [r["tool"] for r in dagster["readers"]] == ["dagster"]
+        assert {p["id"] for p in dagster["pipelines"]} == {
+            "dagster:shop-analytics",
+            "dagster:operations",
+            "dagster:operations/job/hourly_counts",
+            "dagster:operations/schedule/hourly_counts_schedule",
+        }
+        assert [u["subject"] for u in dagster["unknowns"]] == ["dagster:operations.snapshots"]
+        other = await client.request("lineage/pipelines", {"nodes": None, "tools": ["looker"]})
         assert other == {"readers": [], "pipelines": [], "unknowns": []}
 
     async def test_consumers_of_a_node(self, start, shop):

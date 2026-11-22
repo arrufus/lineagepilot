@@ -12,6 +12,7 @@ from typing import Any
 
 from lineagepilot_core.graph.ids import split_column_id
 from lineagepilot_core.graph.model import (
+    AIRFLOW,
     PIPELINE_KINDS,
     Confidence,
     Edge,
@@ -26,7 +27,9 @@ _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
 # Free text from the workspace is cut to this many characters (design section 9)
 _TEXT_LIMIT = 4000
 # What a task does to a dbt node: runs it, or writes the table a source reads
-_TASK_EDGES = (EdgeKind.ORCHESTRATES, EdgeKind.LOADS)
+# What puts a task in the Pipelines view: what it runs, loads, or reads, as a Dagster asset that
+# is not dbt's reads a dbt node (D-b, task 8.7)
+_TASK_EDGES = (EdgeKind.ORCHESTRATES, EdgeKind.LOADS, EdgeKind.CONSUMES)
 
 
 def _clip(text: str | None) -> str | None:
@@ -38,12 +41,18 @@ def _clip(text: str | None) -> str | None:
 def reader_summaries(
     graph: MetadataGraph | None, kinds: Iterable[NodeKind]
 ) -> list[dict[str, Any]]:
-    """What each reader that adds nodes of these kinds read into ``graph``, by tool."""
+    """What each reader that adds nodes of these kinds read into ``graph``, by tool.
+
+    Airflow is always listed, as protocol 1 had it: without a scan it says the DAG files were not
+    analysed. Any other reader is listed once it has read into ``graph``, or been marked not
+    analysed there, so a caller that never asked for it, such as the CLI before task 8.9, does not
+    put a "not analysed" in every review."""
     wanted = frozenset(kinds)
     return [
         READERS[tool].summary_json(graph)
         for tool in sorted(READERS)
         if READERS[tool].kinds & wanted
+        and (tool == AIRFLOW or (graph is not None and tool in graph.readers))
     ]
 
 
@@ -157,6 +166,10 @@ def consumers_view(graph: MetadataGraph, nodes: Iterable[str]) -> dict[str, Any]
     reads: dict[str, dict[str, dict[str, Any]]] = {}
 
     def read(consumer: str, node_id: str, edge: Edge, column: str | None) -> None:
+        # Only consumers: a task that reads a node, such as a Dagster asset, is in the Pipelines
+        # view, under its pipeline (D-b)
+        if graph.nodes[consumer].kind is not NodeKind.CONSUMER:
+            return
         entry = reads.setdefault(consumer, {}).setdefault(node_id, {"columns": set(), "edges": []})
         entry["edges"].append(edge)
         if column is not None:

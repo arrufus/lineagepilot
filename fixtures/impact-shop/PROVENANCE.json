@@ -1,5 +1,5 @@
 {
- "about": "A small dbt project of our own for the Change Impact Review: a source, a staging model, a mart, its downstream models, an exposure, a semantic layer with metrics and a saved query, owners and a deliberately unparseable model (design section 14). Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
+ "about": "A small dbt project of our own for the Change Impact Review: a source, a staging model, a mart, its downstream models, an exposure, a semantic layer with metrics and a saved query, owners and a deliberately unparseable model (design section 14). Airflow DAG files in dags/ and two Dagster code locations in dagster/ run it; they are read, never run, and dbt does not see them. Regenerate it with make_fixture.py. Tests that change files work on a copy of this folder, never on it.",
  "licence": "Written for this repository; not derived from jaffle-shop.",
  "dbt": "1.12.6 + dbt-duckdb 1.11.1",
  "steps": {

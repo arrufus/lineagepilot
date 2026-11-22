@@ -30,12 +30,35 @@ TOOL_LABELS = {
 # What a tool calls its pipelines, where that is not "pipeline": (one, many)
 PIPELINE_WORDS = {"airflow": ("DAG", "DAGs")}
 
+# What the review groups a tool's rows by, where that is not its pipelines: Dagster's are grouped
+# by code location, with its jobs and schedules among them (task 8.9)
+GROUP_WORDS = {"dagster": ("code location", "code locations")}
+
+# A row in the review that is one of these is labelled with what it is, in this order within its
+# pipeline, as Dagster's are: its definitions, its jobs each with its schedules, and the assets
+# downstream (task 8.9). (subkind, one, many)
+ROW_WORDS = (
+    ("dbt_assets", "dbt asset definition", "dbt asset definitions"),
+    ("job", "job", "jobs"),
+    ("schedule", "schedule", "schedules"),
+    ("asset", "asset", "assets"),
+)
+
 
 def tool_label(tool: str | None) -> str:
     """A tool's name as people write it; ``other`` for a node with no tool."""
     if tool is None:
         return "other"
     return TOOL_LABELS.get(tool, tool)
+
+
+def group_word(tool: str | None, count: int) -> str:
+    """What the review groups ``count`` of a tool's rows by: its pipelines, or Dagster's code
+    locations."""
+    if (tool or "") in GROUP_WORDS:
+        one, many = GROUP_WORDS[tool or ""]
+        return one if count == 1 else many
+    return pipeline_word(tool, count)
 
 
 def pipeline_word(tool: str | None, count: int) -> str:

@@ -49,7 +49,8 @@ from lineagepilot_core.readers.tools import count_key
 
 _STRENGTH = (Confidence.DECLARED, Confidence.INFERRED, Confidence.HEURISTIC)
 _SQL_KINDS = frozenset({NodeKind.MODEL, NodeKind.SNAPSHOT})
-_AIRFLOW_ORIGINS = frozenset({Origin.DAG_STATIC, Origin.ANNOTATION})
+# What pipeline readers find: an unknown from any of them may hide a task that runs the change
+_PIPELINE_ORIGINS = frozenset({Origin.DAG_STATIC, Origin.DAGSTER_DEFS, Origin.ANNOTATION})
 
 
 def weakest(*levels: Confidence) -> Confidence:
@@ -313,15 +314,16 @@ def _unknowns(graph: MetadataGraph, hits: dict[str, _Hit], result: Impact) -> No
     """Unresolved records on any target or impacted node, or on any of their columns.
 
     An unresolved reference on a column of an impacted model may hide more impact, so it
-    is listed even when that column was not reached. So is every unknown from the DAG files:
-    a task whose selector cannot be read may run any of these nodes.
+    is listed even when that column was not reached. So is every unknown from the DAG files and
+    the Dagster definitions: a task or job whose selection cannot be read may run any of these
+    nodes (task 8.9).
     """
     nodes = {r.partition("#")[0] for r in hits}
     result.unknowns = sorted(
         (
             u
             for u in graph.unresolved
-            if u.subject.partition("#")[0] in nodes or u.evidence.origin in _AIRFLOW_ORIGINS
+            if u.subject.partition("#")[0] in nodes or u.evidence.origin in _PIPELINE_ORIGINS
         ),
         key=lambda u: (u.subject, u.reference, u.reason),
     )

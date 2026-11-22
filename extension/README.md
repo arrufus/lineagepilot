@@ -2,7 +2,7 @@
 
 See what is upstream and downstream of the model you are editing, and what a change to it would reach, from the dbt artifacts already in your workspace. LineagePilot runs locally: no server, no account, no warehouse connection.
 
-> **Preview.** What LineagePilot shows is accurate as far as it goes, and it says where it could not tell: anything it cannot check is listed under **Unknowns**, never left out. The Airflow linkage is the part to judge carefully. On 35 task links in 12 repositories it had never seen, it linked 15 correctly and listed 19 of the other 20 as unknown. One was wrong, and it made no link where there was none. See [Airflow](#airflow).
+> **What to expect.** What LineagePilot shows is accurate as far as it goes, and it says where it could not tell: anything it cannot check is listed under **Unknowns**, never left out. The Airflow linkage is the part to judge carefully. On 35 task links in 12 repositories it had never seen, it linked 15 correctly and listed 19 of the other 20 as unknown. One was wrong, and it made no link where there was none. See [Airflow](#airflow). The Dagster linkage, new in 0.4.0, made no wrong link on 110 links in 12 repositories it had never seen, but linked only 16: it reads dagster-dbt's own APIs, and lists most of what projects build with their own helpers as unknown. See [Dagster](#dagster).
 
 ## What you get
 
@@ -10,7 +10,7 @@ See what is upstream and downstream of the model you are editing, and what a cha
 - **Hovers** on `ref()` and `source()` calls, and on the columns of the model you are editing: the direct upstream and downstream, with how each link is known (declared in the manifest, inferred from compiled SQL) and the column-lineage state.
 - **Problems**: conformance and PII rules, each linked to its documentation. Results LineagePilot could not check are shown as "Not checked", never as passes. PII findings are *indicators*, from tags, names and lineage, not verified exposure.
 - **Lineage view** in the activity bar: the upstream and downstream of the open file, one level at a time. Click a node to open it.
-- **Pipelines view** in the activity bar, grouped by tool: for Airflow, the DAGs and tasks that run or read the open model, or all of them, each with how sure the link is and why, then what could not be read. Click one to open its DAG file at the task. DAG files are only ever parsed, never imported or run. See [Airflow](#airflow).
+- **Pipelines view** in the activity bar, grouped by tool: for Airflow, the DAGs and tasks that run or read the open model, or all of them; for Dagster, the code locations, with their dbt asset definitions, jobs, schedules and the assets that read dbt. Each comes with how sure the link is and why, then what could not be read. Click one to open its file at the line. DAG files and Dagster definitions are only ever parsed, never imported or run. See [Airflow](#airflow) and [Dagster](#dagster).
 - **Consumers view** in the activity bar, grouped by tool: what reads the open model from outside dbt, such as a metric or a dashboard, and which of its columns.
 - **Lineage graph** (**Show Lineage Graph**, or the graph icon on a node in the Lineage view): the model, or one of its columns, with everything around it to the depth you choose. Filter by kind and tool, highlight by name, and press **+** on a node at the edge to see further. Click a node for its details, its columns and its links, with a preview of its file beside the graph; double-click to open it, or **Impact** to see everything a change could reach. Solid edges are declared in the manifest, dashed ones inferred from SQL. The graph follows your theme and works from the keyboard: Tab to a node, the arrow keys to follow its edges (the view moves along with them), Enter for details, O to open.
 - **Change Impact Review** (**Review Changes**, or the compare icon on the Lineage view): what your branch and working tree change, against the merge-base with the default branch or a base you choose. It shows each changed model and its columns as a diff, then what that reaches, grouped by models, exposures and the dbt semantic layer (down to the metrics whose measures read a changed column), then the pipelines that run them and the consumers that read them, each by tool, then owners, each with how sure it is and what says so, then an **Unknowns** section for everything that could not be checked. **Copy as Markdown** puts it on the clipboard for your pull request; `lineagepilot review` prints the same text for the same inputs. See [Reviewing a change](#reviewing-a-change).
@@ -44,15 +44,15 @@ The same VSIX works on macOS, Linux and Windows: the language server is pure Pyt
 
 ## Get started
 
-When it is installed, VS Code opens the **Get Started with LineagePilot** walkthrough. Open it again at any time with **Help** › **Welcome**, or **Welcome: Open Walkthrough…** in the Command Palette. It covers Python, your dbt artifacts, the sample project, lineage, the review and Airflow.
+When it is installed, VS Code opens the **Get Started with LineagePilot** walkthrough. Open it again at any time with **Help** › **Welcome**, or **Welcome: Open Walkthrough…** in the Command Palette. It covers Python, your dbt artifacts, the sample project, lineage, the review, and Airflow and Dagster.
 
-**No dbt project to hand?** **LineagePilot: Open Sample Project** copies a small project written for LineagePilot to a folder you choose and opens it. It has real dbt 1.12 artifacts, three Airflow DAG files and a prepared change, and needs neither dbt nor Airflow:
+**No dbt project to hand?** **LineagePilot: Open Sample Project** copies a small project written for LineagePilot to a folder you choose and opens it. It has real dbt 1.12 artifacts, three Airflow DAG files, two Dagster code locations and a prepared change, and needs neither dbt, Airflow nor Dagster:
 
 1. Trust the folder when VS Code asks. The review needs Git, which Restricted Mode turns off.
 2. Open `models/marts/orders.sql` for the CodeLens, hovers, the Lineage and Pipelines views and the graph.
 3. In **Source Control**, initialize a repository and commit everything.
 4. **LineagePilot: Apply the Sample Change** renames a column of the mart, and puts the manifest `dbt compile` would write in `target/`.
-5. **LineagePilot: Review Changes** shows what the rename reaches: four models, a dashboard, the metrics and the saved query of the dbt semantic layer, and four Airflow tasks, with their owners, and two unknowns.
+5. **LineagePilot: Review Changes** shows what the rename reaches: four models, a dashboard, the metrics and the saved query of the dbt semantic layer, four Airflow tasks, and the Dagster definitions, job and schedule that run the models, with the assets that read them, all with their owners, and three unknowns.
 
 The sample's own `README.md` says what each file is for.
 
@@ -96,6 +96,7 @@ The interpreter and dbt executable settings are machine-scoped: a workspace's `.
 | `lineagePilot.index.maxArtifactMB` | `512` | Larger artifacts are not indexed. |
 | `lineagePilot.baseline.manifestPath` | empty | The manifest **Review Changes** compares columns with. Absolute, or relative to the dbt project. |
 | `lineagePilot.airflow.dagFolders` | `["**/dags"]` | Folders in the workspace that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. A folder that is a link out of the workspace is not read. |
+| `lineagePilot.dagster.paths` | `["."]` | Folders in the workspace that hold Dagster definitions. `.` is the whole workspace. A folder that is a link out of the workspace is not read. See [Dagster](#dagster). |
 | `lineagePilot.trace.server` | `off` | Log the messages to and from the language server. User settings only (in a remote window, the remote machine's). |
 
 ## Airflow
@@ -115,6 +116,37 @@ Links are labelled by how sure they are. **Most are `heuristic`**, because a pat
 What cannot be read is listed as an unknown, at the line that caused it, rather than guessed: tasks built in a loop or a factory, from a `manifest.json` read when Airflow parses the file, by a wrapper class or a helper two levels deep; selectors that need dbt's state; Jinja or shell variables; a remote manifest; a generated project; a DAG file that cannot load. [corpus/airflow/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/airflow/README.md) says how often the scanner gets it right on repositories it had never seen, and why it misses.
 
 `lineagepilot airflow` prints the same scan on the command line.
+
+## Dagster
+
+LineagePilot reads your Dagster definitions as syntax, to work out which dbt models each asset definition, job and schedule runs, and which of your other assets read them. It never imports or runs them, in any workspace, so dagster and dagster-dbt need not be installed. It follows **dagster 1.13.29 and dagster-dbt 0.29.29**, and understands:
+
+- dbt components: `DbtProjectComponent` in a `defs.yaml`, with its `project` (`{{ project_root }}` included), `select`, `exclude`, `selector` and `translation`.
+- `@dbt_assets`, with `DbtProject(project_dir=…)` or a manifest path, and the older `load_assets_from_dbt_project` and `load_assets_from_dbt_manifest`, also inside a `@repository` function or wrapped in `with_resources`.
+- Asset jobs, `define_asset_job`, whose selection is `AssetSelection` (`.all`, `.keys`, `.assets`, `.groups`, `.upstream`, `.downstream`, `|`, `&` and `-`), `build_dbt_asset_selection`, or a selection string such as `key:orders+` or `group:marts`.
+- Schedules: `ScheduleDefinition`, `@schedule` and `build_schedule_from_dbt_selection`.
+- Assets that read a dbt asset: `@asset(deps=…)`, `AssetIn`, the function's own parameters, `@multi_asset(specs=…)` and `AssetSpec(deps=…)`, by key or through `get_asset_key_for_model`.
+- The code location each is in: a `dg` project's name, a `workspace.yaml` or `dagster_cloud.yaml` entry, `[tool.dagster]` in `pyproject.toml`, or else the module whose `Definitions(…)` call loads it.
+- Values from constants and helpers in other workspace files, and environment variables read with a default.
+
+Asset keys and groups follow dagster-dbt's defaults: `meta.dagster.asset_key`, `[schema, name]` or `[name]`, and `meta.dagster.group` or the dbt group. A component's `translation` is read when it is literal text and `{{ node.<field> }}` placeholders. These rules were checked against dagster-dbt itself.
+
+What cannot be read is listed as an unknown, at the line that caused it, rather than guessed:
+- a custom `DagsterDbtTranslator`;
+- keys or selections worked out when Dagster loads;
+- definitions made in a loop or a factory;
+- a decorator of the workspace's own that makes dbt assets;
+- assets loaded from a package outside the workspace;
+- Python that runs dbt itself (`subprocess`, dbt's Python API, `DbtCliResource.cli` outside `@dbt_assets`, or Dagster Pipes);
+- a legacy loader's groups, which changed between dagster-dbt versions.
+
+A job or asset built on something that cannot be read is an unknown too, not left out. Answer them in the [annotation file](#the-annotation-file), with `tool: dagster`.
+
+[corpus/dagster/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/dagster/README.md) says how often the reader gets it right on repositories it had never seen, and why it misses. **Expect it to do well on projects that use dagster-dbt's own APIs, and to list as unknowns definitions that a project builds with its own helpers.**
+
+`lineagePilot.dagster.paths` sets the folders to look in. By default LineagePilot looks in the whole workspace, for `defs.yaml` files, `pyproject.toml` files with `[tool.dg]` or `[tool.dagster]`, and Python files that import Dagster. If you narrow it, keep the folder that holds your `dg` project's `pyproject.toml` or your `workspace.yaml` in it: without them, code locations cannot be named and a component's `{{ project_root }}` cannot be filled.
+
+`lineagepilot review` and `lineagepilot impact` read Dagster too: `--dagster-path` sets the folders, and `--no-dagster` leaves Dagster out.
 
 ## The annotation file
 
@@ -144,9 +176,10 @@ acknowledged:                     # unknowns you have answered
 - **References** are a dbt node's ID, a table's name (`analytics.facts.gl`), or a model's name when only one model has it. A table found by part of its name is shown as `heuristic`.
 - **A consumer** is shown in the **Consumers** view, the lineage graph, CodeLens and **Review Changes**, under its tool. Start its `id` with the tool (`tableau:`), or give it a `tool:`. A consumer that names only columns is listed only when one of those columns changes; one that names a model is listed whenever the model changes.
 - **What cannot be used**, such as a name that matches no node or a column the model does not list, is shown as an unknown. Problems with the file itself, such as an entry with no `id`, are in the tooltip on **Airflow** in the **Pipelines** view.
+- **A Dagster task** is declared with `tool: dagster`: its `pipeline_id` is the code location, and its `task_id` the asset or definition. `acknowledged` answers a Dagster unknown by `file` and `line`, by code location (`dag_id`) or by task (`task_id`).
 - **`.lineagepilot/airflow.yml`**, the file's name before 0.3.0, is still read. When both files exist, `lineage.yml` is read, and the status says the other was ignored.
 
-The file is read with the DAG files, and read again whenever it changes.
+The file is read with the DAG files and the Dagster definitions, and read again whenever it changes.
 
 ## Custom rules
 
@@ -172,6 +205,7 @@ In the editor:
 - **Columns show as unknown**: column lineage needs compiled SQL (`dbt compile`) and `target/catalog.json` (`dbt docs generate`). A model whose SQL cannot be parsed stays unknown, and the review lists it under Unknowns.
 - **Refresh dbt Artifacts is unavailable**: the workspace is not trusted, and dbt never runs in Restricted Mode. Otherwise, when dbt is not on `PATH`, set `lineagePilot.dbt.executablePath` in your user settings. On Windows it must point at `dbt.exe`, not a batch file.
 - **The Pipelines view shows nothing under Airflow**: LineagePilot looks in folders called `dags`. Set `lineagePilot.airflow.dagFolders` if yours are elsewhere. DAG files over 2 MB are not read, nor more than 5,000 files. **No task in the DAG files read runs dbt** means it read them and found nothing that runs dbt: see [Airflow](#airflow) for what it understands, and use the [annotation file](#the-annotation-file) for the rest.
+- **The Pipelines view shows nothing under Dagster**: LineagePilot looks in the whole workspace, unless `lineagePilot.dagster.paths` says otherwise, for `defs.yaml` files, `pyproject.toml` files with `[tool.dg]` or `[tool.dagster]`, and Python files that import Dagster. A Dagster definition that no `Definitions` call or defs folder is found to load is shown in a code location named after its file, and the tooltip on **Dagster** says how many are.
 
 In the review:
 

@@ -60,6 +60,33 @@ def load(text: str | bytes, max_nodes: int = MAX_EXPANDED_NODES) -> Any:
         loader.dispose()
 
 
+# Documents in one stream, such as a dg project's defs.yaml with several components in it
+MAX_DOCUMENTS = 1_000
+
+
+def load_documents(text: str | bytes, max_nodes: int = MAX_EXPANDED_NODES) -> list[tuple[Any, int]]:
+    """Like ``yaml.safe_load_all``, within the budget: each document with the line it starts on,
+    counting from 1. The budget is for the whole stream, so many small documents cannot add up to
+    what one large one may not."""
+    loader = yaml.SafeLoader(text)
+    documents: list[tuple[Any, int]] = []
+    spent = 0
+    try:
+        while loader.check_node():
+            if len(documents) >= MAX_DOCUMENTS:
+                raise YAMLTooLarge(f"the YAML has more than {MAX_DOCUMENTS} documents")
+            node = loader.get_node()
+            if node is None:
+                continue
+            spent += _check_expansion(node, max_nodes - spent)
+            documents.append((loader.construct_document(node), node.start_mark.line + 1))
+    except RecursionError:
+        raise YAMLTooDeep("the YAML is nested too deeply") from None
+    finally:
+        loader.dispose()
+    return documents
+
+
 def _children(node: yaml.Node) -> list[yaml.Node]:
     if isinstance(node, yaml.MappingNode):
         return [n for pair in node.value for n in pair]
@@ -68,9 +95,10 @@ def _children(node: yaml.Node) -> list[yaml.Node]:
     return []
 
 
-def _check_expansion(root: yaml.Node, max_nodes: int) -> None:
+def _check_expansion(root: yaml.Node, max_nodes: int) -> int:
     """Count the nodes a full walk of the document would visit, without making that walk: an
-    alias is the same node object each time it is used, so each node's size is computed once."""
+    alias is the same node object each time it is used, so each node's size is computed once.
+    Returns that count."""
     size: dict[int, int] = {}
     open_: set[int] = set()  # being counted: met again below itself, it is a cycle
     stack: list[tuple[yaml.Node, bool]] = [(root, False)]
@@ -91,6 +119,7 @@ def _check_expansion(root: yaml.Node, max_nodes: int) -> None:
         open_.add(key)
         stack.append((node, True))
         stack.extend((c, False) for c in _children(node) if id(c) not in size)
+    return size[id(root)]
 
 
 _REPR = reprlib.Repr()

@@ -1,0 +1,62 @@
+{
+  "repo": "lelouvincx/goodreads-elt-pipeline",
+  "url": "https://github.com/lelouvincx/goodreads-elt-pipeline",
+  "sha": "57a0d0b1dad220594a122e1eaa531e36af38a613",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "elt_pipeline/elt_pipeline"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.2.7 (elt_pipeline/requirements.txt); dagster==1.2.3 (requirements.txt)",
+    "dagster-dbt": "dagster-dbt==0.18.7 (elt_pipeline/requirements.txt); dagster-dbt==0.18.3 (requirements.txt)"
+  },
+  "dbt_projects": [
+    "elt_pipeline/dbt_transform"
+  ],
+  "out_of_scope": [
+    {
+      "file": "elt_pipeline/elt_pipeline/assets/warehouse.py",
+      "what": "gold/* and recommendations/book_download_link assets, upstream of the dbt sources gold.* and recommendations.*"
+    },
+    {
+      "file": "elt_pipeline/elt_pipeline/assets/gold.py",
+      "what": "gold assets, upstream; no dbt"
+    },
+    {
+      "file": "elt_pipeline/elt_pipeline/assets/silver.py",
+      "what": "silver assets, upstream; no dbt"
+    },
+    {
+      "file": "elt_pipeline/elt_pipeline/assets/bronze.py",
+      "what": "bronze assets, upstream; no dbt"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_assets",
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "name": "dbt_assets",
+      "file": "elt_pipeline/elt_pipeline/assets/__init__.py",
+      "line": 15,
+      "registered_in": "elt_pipeline/elt_pipeline/__init__.py",
+      "project_path": "elt_pipeline/dbt_transform",
+      "package": "dbt_transform",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "criteria",
+        "search",
+        "search_prior"
+      ],
+      "other_nodes": [],
+      "reason": "load_assets_from_dbt_project(..., key_prefix=['dbt']) with no select: the three models in models/recommendations. Registered by load_assets_from_modules([assets]) in __init__.py, which picks up the list. No seeds or snapshots."
+    }
+  ]
+}

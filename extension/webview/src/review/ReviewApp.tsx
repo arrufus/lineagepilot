@@ -10,7 +10,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Copy, GitCompare, Loader2, Network, RefreshCw } from 'lucide-react';
 
-import { isKnownTool, pipelineWord, subkindLabel, toolOfId, withoutTool } from '../../../src/kinds';
+import { groupWord, isKnownTool, pipelineWord, ROW_WORDS, subkindLabel, toolOfId, withoutTool } from '../../../src/kinds';
 import type {
   ChangedNode, ColumnDiff, Confidence, Location, NodeKind, Origin, ReaderSummary, ReviewImpacted, ReviewResult, Unknown,
 } from '../../../src/protocol';
@@ -29,6 +29,7 @@ const PIPELINE_KINDS: NodeKind[] = ['pipeline', 'task'];
 const DBT_TOOLS = new Set(['dbt_semantic']);
 const ORIGIN_LABELS: Record<Origin, string> = {
   manifest: 'the manifest', compiled_sql: 'compiled SQL', catalog: 'the catalog', dag_static: 'the DAG file', annotation: 'an annotation',
+  dagster_defs: 'the Dagster definitions',
 };
 const BASELINE_LABELS: Record<ColumnDiff['baseline'], string> = {
   baseline_manifest: 'the baseline manifest', catalog: 'catalog.json', none: 'no baseline',
@@ -231,9 +232,11 @@ function TaskRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions
     <tr className="lp-reach-model">
       <td className="lp-identifier">{detail?.pipeline}</td>
       <th scope="row">
-        {node.kind === 'pipeline'
-          ? <span>The whole {pipelineWord(node.tool, 1)}</span>
-          : <NodeName id={node.id} name={node.name} actions={actions} />}
+        {rowWord(node)
+          ? <span>{rowWord(node)} <NodeName id={node.id} name={node.name} actions={actions} /></span>
+          : node.kind === 'pipeline'
+            ? <span>The whole {pipelineWord(node.tool, 1)}</span>
+            : <NodeName id={node.id} name={node.name} actions={actions} />}
         {detail && detail.tasks.length > 0 && (
           <div className="lp-muted">
             Tasks Cosmos should render: <span className="lp-identifier">{detail.tasks.join(', ')}</span>{moreOf(detail.tasks.length, detail.tasksMore)}
@@ -245,6 +248,7 @@ function TaskRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions
           <div>{detail.how.join(', ') || 'Runs'}: <span className="lp-identifier">{detail.runs.join(', ')}</span>{moreOf(detail.runs.length, detail.runsMore)}</div>
         )}
         {detail && detail.after.length > 0 && <div>Runs after <span className="lp-identifier">{detail.after.join(', ')}</span></div>}
+        {detail?.job && <div>Job <span className="lp-identifier">{detail.job}</span>{detail.cron && <>, <span className="lp-identifier">{detail.cron}</span></>}</div>}
       </td>
       <td><ConfidenceMark confidence={node.confidence} /></td>
       <td>
@@ -255,6 +259,50 @@ function TaskRow({ node, actions }: { node: ReviewImpacted; actions: NodeActions
       <td>{node.owner ?? <span className="lp-muted">No owner</span>}</td>
     </tr>
   );
+}
+
+/** What a row is, for a tool whose rows are of several kinds, as Dagster's are. */
+function rowWord(node: ReviewImpacted): string | undefined {
+  return node.subkind ? ROW_WORDS.get(node.subkind)?.[1] : undefined;
+}
+
+/** By pipeline; Dagster's by definitions, then each job with its schedules, then assets. */
+function rowOrder(node: ReviewImpacted): [string, number, string, number, string] {
+  const pipeline = node.pipeline?.pipeline ?? '';
+  const row = node.subkind ? ROW_WORDS.get(node.subkind) : undefined;
+  if (!row) {
+    return [pipeline, 0, node.kind, 0, node.name];
+  }
+  if (node.subkind === 'job' || node.subkind === 'schedule') {
+    const job = node.subkind === 'job' ? node.name : node.pipeline?.job ?? node.name;
+    return [pipeline, 1, job, row[0], node.name];
+  }
+  return [pipeline, node.subkind === 'dbt_assets' ? 0 : 2, '', 0, node.name];
+}
+
+function compareRows(a: ReviewImpacted, b: ReviewImpacted): number {
+  if (!rowWord(a) && !rowWord(b)) {  // as every tool's were before Dagster's (task 8.9)
+    return (a.pipeline?.pipeline ?? '').localeCompare(b.pipeline?.pipeline ?? '') || a.name.localeCompare(b.name);
+  }
+  const [x, y] = [rowOrder(a), rowOrder(b)];
+  for (let i = 0; i < x.length; i++) {
+    if (x[i] !== y[i]) {
+      return x[i] < y[i] ? -1 : 1;
+    }
+  }
+  return 0;
+}
+
+/** How many rows there are, by what each is when every one is labelled, as Dagster's are. */
+function whatRows(nodes: ReviewImpacted[]): string {
+  if (!nodes.every((n) => n.subkind && ROW_WORDS.has(n.subkind))) {
+    return plural(nodes.length, 'task');
+  }
+  const counts = [...ROW_WORDS.entries()]
+    .map(([subkind, [, one, many]]) => [nodes.filter((n) => n.subkind === subkind).length, one, many] as const)
+    .filter(([found]) => found > 0)
+    .map(([found, one, many]) => `${found} ${found === 1 ? one : many}`);
+  return counts.length === 1 ? counts[0] : `${counts.slice(0, -1).join(', ')} and ${counts[counts.length - 1]}`;
 }
 
 /** The tools in some reader summaries and rows, by name: a tool with rows and no reader too. */
@@ -278,9 +326,11 @@ function PipelineTool({ tool, summary, nodes, actions }: {
       </>
     );
   }
-  const sorted = [...nodes].sort((a, b) => (a.pipeline?.pipeline ?? '').localeCompare(b.pipeline?.pipeline ?? '') || a.name.localeCompare(b.name));
+  const sorted = [...nodes].sort(compareRows);
   const pipelines = new Set(sorted.map((node) => node.pipeline?.pipeline));
-  const counted = sorted.length > 0 ? ` (${plural(sorted.length, 'task')} in ${pipelines.size} ${pipelineWord(tool, pipelines.size)})` : '';
+  const counted = sorted.length > 0 ? ` (${whatRows(sorted)} in ${pipelines.size} ${groupWord(tool, pipelines.size)})` : '';
+  const labelled = sorted.length > 0 && sorted.every((n) => n.subkind && ROW_WORDS.has(n.subkind));
+  const column = groupWord(tool, 1);
   return (
     <>
       <h3>{name}{counted}</h3>
@@ -288,7 +338,7 @@ function PipelineTool({ tool, summary, nodes, actions }: {
       {sorted.length > 0 && (
         <table className="lp-impact lp-impact-pipeline" aria-label={`Impacted ${name} tasks`}>
           <thead>
-            <tr><th scope="col">{pipelineWord(tool, 1)}</th><th scope="col">Task</th><th scope="col">What it has to do with this</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
+            <tr><th scope="col">{column[0].toUpperCase() + column.slice(1)}</th><th scope="col">{labelled ? 'Definition' : 'Task'}</th><th scope="col">What it has to do with this</th><th scope="col">Confidence</th><th scope="col">Evidence</th><th scope="col">Owner</th></tr>
           </thead>
           <tbody>
             {sorted.map((node) => <TaskRow key={node.id} node={node} actions={actions} />)}

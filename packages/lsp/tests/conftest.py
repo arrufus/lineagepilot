@@ -40,6 +40,31 @@ V1_DEFS = json.loads((REPO / "protocol" / "v1" / "lineage-protocol.schema.json")
 FIXTURE = REPO / "fixtures" / "pilot-shop"
 CORE_FIXTURES = REPO / "packages" / "core" / "tests" / "fixtures" / "dbt"
 WAIT_S = 60.0
+
+
+async def review_when_read(client: Any, params: dict[str, Any], timeout: float = WAIT_S) -> Any:
+    """A review once no reader is still reading. A protocol 1 status lists no reader after
+    Airflow, so ``settled`` cannot wait for them there, but the review says which are still being
+    read, in any protocol (task 8.2)."""
+    deadline = time.monotonic() + timeout
+    while True:
+        result = await client.request("lineage/reviewChanges", params)
+        if "are still being read" not in result["markdown"] or time.monotonic() > deadline:
+            return result
+        await asyncio.sleep(0.2)
+
+
+def settled(update: dict[str, Any]) -> bool:
+    """The index is done, and so is every reader: the DAG scan and, from task 8.2, each reader in
+    protocol 2's list, which read in parallel and can finish in any order."""
+    finished = ("done", "failed")
+    return (
+        not update["indexing"]
+        and update["airflow"]["stage"] in finished
+        and all(r["stage"] in finished for r in update.get("readers") or [])
+    )
+
+
 BUNDLED_SERVER = os.environ.get("LP_TEST_SERVER")
 
 

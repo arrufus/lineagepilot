@@ -1,0 +1,2854 @@
+{
+ "tool": "dagster",
+ "reader_sha256": "efa4a424905ab4b41b8cfdab2e5f4e02eb8b03d6c915f3f87fb00493898427f2",
+ "commit": "046aa6f8c9b8583b859e0b5d1e2880f5ec235687",
+ "summary": {
+  "labelled_paths": {
+   "expected_links": 110,
+   "expected_resolvable": 109,
+   "expected_unknown": 1,
+   "correct": 10,
+   "misses": 100,
+   "legit_unknowns": 0,
+   "false_positives": 0,
+   "unexpected_unknown_links": 39,
+   "miss_rate": 0.9091,
+   "other_nodes_wrong": 0,
+   "confidence_of_correct": {
+    "heuristic": 10
+   },
+   "without_unsure_labels": {
+    "expected_links": 108,
+    "expected_resolvable": 107,
+    "expected_unknown": 1,
+    "correct": 10,
+    "misses": 98,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 39,
+    "miss_rate": 0.9074,
+    "other_nodes_wrong": 0,
+    "confidence_of_correct": {
+     "heuristic": 10
+    }
+   },
+   "by_unit": {
+    "asset": {
+     "expected_links": 52,
+     "correct": 0,
+     "misses": 52,
+     "miss_rate": 1.0
+    },
+    "dbt_assets": {
+     "expected_links": 17,
+     "correct": 7,
+     "misses": 10,
+     "miss_rate": 0.5882
+    },
+    "dbt_cli": {
+     "expected_links": 4,
+     "correct": 0,
+     "misses": 4,
+     "miss_rate": 1.0
+    },
+    "job": {
+     "expected_links": 28,
+     "correct": 2,
+     "misses": 26,
+     "miss_rate": 0.9286
+    },
+    "schedule": {
+     "expected_links": 9,
+     "correct": 1,
+     "misses": 8,
+     "miss_rate": 0.8889
+    }
+   },
+   "miss_reasons": {
+    "only an unknown at its place": 48,
+    "unknown": 30,
+    "not found: no record and no unknown": 21,
+    "silently dropped: no record and no unknown": 1
+   }
+  },
+  "default_paths": {
+   "expected_links": 110,
+   "expected_resolvable": 109,
+   "expected_unknown": 1,
+   "correct": 18,
+   "misses": 92,
+   "legit_unknowns": 0,
+   "false_positives": 0,
+   "unexpected_unknown_links": 44,
+   "miss_rate": 0.8364,
+   "other_nodes_wrong": 1,
+   "confidence_of_correct": {
+    "heuristic": 18
+   },
+   "without_unsure_labels": {
+    "expected_links": 108,
+    "expected_resolvable": 107,
+    "expected_unknown": 1,
+    "correct": 18,
+    "misses": 90,
+    "legit_unknowns": 0,
+    "false_positives": 0,
+    "unexpected_unknown_links": 44,
+    "miss_rate": 0.8333,
+    "other_nodes_wrong": 1,
+    "confidence_of_correct": {
+     "heuristic": 18
+    }
+   },
+   "by_unit": {
+    "asset": {
+     "expected_links": 52,
+     "correct": 3,
+     "misses": 49,
+     "miss_rate": 0.9423
+    },
+    "dbt_assets": {
+     "expected_links": 17,
+     "correct": 10,
+     "misses": 7,
+     "miss_rate": 0.4118
+    },
+    "dbt_cli": {
+     "expected_links": 4,
+     "correct": 0,
+     "misses": 4,
+     "miss_rate": 1.0
+    },
+    "job": {
+     "expected_links": 28,
+     "correct": 3,
+     "misses": 25,
+     "miss_rate": 0.8929
+    },
+    "schedule": {
+     "expected_links": 9,
+     "correct": 2,
+     "misses": 7,
+     "miss_rate": 0.7778
+    }
+   },
+   "miss_reasons": {
+    "only an unknown at its place": 55,
+    "unknown": 31,
+    "not found: no record and no unknown": 5,
+    "silently dropped: no record and no unknown": 1
+   }
+  }
+ },
+ "repos": [
+  {
+   "repo": "Cam0505/4DStack",
+   "sha": "d893c2bd1d1f81c2d52ff0ec3630d45f170bbe27",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_models",
+      "file": "dagster_project/assets/dbt_assets.py",
+      "line": 18,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 17,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the manifest is not known: it is what path_config.DBT_DIR.joinpath() returns"
+     },
+     {
+      "id": "dbt_assets:dbt_common_models",
+      "file": "dagster_project/assets/dbt_assets.py",
+      "line": 25,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 17,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the manifest is not known: it is what path_config.DBT_DIR.joinpath() returns"
+     },
+     {
+      "id": "job:dbt_job",
+      "file": "dagster_project/jobs/dbt_job.py",
+      "line": 5,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 17,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:RickandMorty_job",
+      "file": "dagster_project/jobs/rick_and_morty_job.py",
+      "line": 5,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:geo_data_job",
+      "file": "dagster_project/jobs/geo_api_job.py",
+      "line": 5,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:open_meteo_job",
+      "file": "dagster_project/jobs/openmeteo_job.py",
+      "line": 5,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:beverage_dim_job",
+      "file": "dagster_project/jobs/beverage_data_job.py",
+      "line": 14,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:dbt_job_schedule",
+      "file": "dagster_project/schedules.py",
+      "line": 10,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": true,
+      "expected_models": 17,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:beverage_dim_job_schedule",
+      "file": "dagster_project/schedules.py",
+      "line": 16,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "dbt_cli:dbt_weather_models",
+      "file": "dagster_project/assets/open_meteo.py",
+      "line": 295,
+      "unit": "dbt_cli",
+      "api": "@asset with dbt resource cli()",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "python_dbt_call",
+      "detail": "dbt_weather_models() runs dbt from Python (context.resources.dbt.cli); what it runs is not read"
+     },
+     {
+      "id": "dbt_cli:dbt_rick_and_morty_models",
+      "file": "dagster_project/assets/rick_and_morty.py",
+      "line": 141,
+      "unit": "dbt_cli",
+      "api": "@asset with dbt resource cli()",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "python_dbt_call",
+      "detail": "dbt_rick_and_morty_models() runs dbt from Python (dbt_cli.cli); what it runs is not read"
+     },
+     {
+      "id": "dbt_cli:dbt_geo_models",
+      "file": "dagster_project/assets/GeoAPI.py",
+      "line": 197,
+      "unit": "dbt_cli",
+      "api": "@asset with dbt resource cli()",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 5,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "python_dbt_call",
+      "detail": "dbt_geo_models() runs dbt from Python (context.resources.dbt.cli); what it runs is not read"
+     },
+     {
+      "id": "dbt_cli:dbt_beverage_data",
+      "file": "dagster_project/assets/Beverages.py",
+      "line": 351,
+      "unit": "dbt_cli",
+      "api": "@asset with dbt resource cli()",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "python_dbt_call",
+      "detail": "dbt_beverage_data() runs dbt from Python (context.resources.dbt.cli); what it runs is not read"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 13,
+     "expected_resolvable": 13,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 13,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 14,
+     "unknown_records": 6,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 1
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 13,
+     "expected_resolvable": 13,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 13,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 15,
+     "unknown_records": 8,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "DevelopmentFinanceObservatory/pipelines",
+   "sha": "d7891ba3d5781015ce9d505ccfe6abca4478094a",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_ingest",
+      "file": "src/dfo_pipelines/defs/dbt_ingest/defs.yaml",
+      "line": 2,
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 99,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "jinja",
+      "detail": "{{ project_root }} in '{{ context.project_root }}/dbt' needs a dg project, and none holds it"
+     },
+     {
+      "id": "asset:imf_weo_dc_export",
+      "file": "src/dfo_pipelines/defs/imf/weo/assets.py",
+      "line": 144,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:oecd_dac1_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac1/assets.py",
+      "line": 127,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:oecd_dac2a_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac2a/assets.py",
+      "line": 121,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:oecd_dac2b_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac2b/assets.py",
+      "line": 119,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:oecd_dac_crs_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac_crs/assets.py",
+      "line": 141,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:world_bank_ids_dc_export",
+      "file": "src/dfo_pipelines/defs/world_bank/ids/assets.py",
+      "line": 311,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:one_climate_finance_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 273,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:oecd_crdf_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 278,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:unfccc_btr_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 283,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:one_conversion_tables_dac_dc_export",
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 76,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 6,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:one_conversion_tables_imf_dc_export",
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 82,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:one_imputed_multilateral_sectors_dc_export",
+      "file": "src/dfo_pipelines/defs/one/imputed_multilateral_sectors/assets.py",
+      "line": 435,
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "a dependency is not known here: starred element"
+     },
+     {
+      "id": "asset:dfo_shared_dc_export",
+      "file": "src/dfo_pipelines/defs/dfo/shared/assets.py",
+      "line": 18,
+      "unit": "asset",
+      "api": "@asset deps",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "it reads dfo_shared/license_types, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [
+     {
+      "file": "src/dfo_pipelines/defs/dfo/shared/assets.py",
+      "line": 90,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dfo_shared_dc_ingestion",
+      "location": "src.dfo_pipelines.defs.dfo.shared.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/dfo/skills/assets.py",
+      "line": 473,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dfo_skills_landing",
+      "location": "src.dfo_pipelines.defs.dfo.skills.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: a FuncV value",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "src/dfo_pipelines/defs/dfo/skills/assets.py",
+      "line": 677,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dfo_skills_dc_ingestion",
+      "location": "src.dfo_pipelines.defs.dfo.skills.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "src/dfo_pipelines/defs/imf/weo/assets.py",
+      "line": 72,
+      "list": "assets",
+      "api": "@asset",
+      "name": "imf_weo_landing",
+      "location": "src.dfo_pipelines.defs.imf.weo.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads imf_weo_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/imf/weo/assets.py",
+      "line": 151,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.imf.weo.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac1/assets.py",
+      "line": 63,
+      "list": "assets",
+      "api": "@asset",
+      "name": "oecd_dac1_landing",
+      "location": "src.dfo_pipelines.defs.oecd.dac1.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads oecd_dac1_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac1/assets.py",
+      "line": 134,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.oecd.dac1.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac2a/assets.py",
+      "line": 63,
+      "list": "assets",
+      "api": "@asset",
+      "name": "oecd_dac2a_landing",
+      "location": "src.dfo_pipelines.defs.oecd.dac2a.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads oecd_dac2a_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac2a/assets.py",
+      "line": 128,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.oecd.dac2a.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac2b/assets.py",
+      "line": 62,
+      "list": "assets",
+      "api": "@asset",
+      "name": "oecd_dac2b_landing",
+      "location": "src.dfo_pipelines.defs.oecd.dac2b.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads oecd_dac2b_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac2b/assets.py",
+      "line": 126,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.oecd.dac2b.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac_crs/assets.py",
+      "line": 82,
+      "list": "assets",
+      "api": "@asset",
+      "name": "oecd_dac_crs_landing",
+      "location": "src.dfo_pipelines.defs.oecd.dac_crs.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads oecd_dac_crs_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/oecd/dac_crs/assets.py",
+      "line": 148,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.oecd.dac_crs.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 122,
+      "list": "assets",
+      "api": "@asset",
+      "name": "one_climate_finance_landing",
+      "location": "src.dfo_pipelines.defs.one.climate_finance.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: a FuncV value"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 290,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.climate_finance.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 296,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.climate_finance.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 302,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.climate_finance.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 90,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.conversion_tables.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 96,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.conversion_tables.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/imputed_multilateral_sectors/assets.py",
+      "line": 364,
+      "list": "assets",
+      "api": "@asset",
+      "name": "one_imputed_multilateral_sectors_landing",
+      "location": "src.dfo_pipelines.defs.one.imputed_multilateral_sectors.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads one_imputed_multilateral_sectors_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/one/imputed_multilateral_sectors/assets.py",
+      "line": 442,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.one.imputed_multilateral_sectors.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/world_bank/ids/assets.py",
+      "line": 154,
+      "list": "assets",
+      "api": "@asset",
+      "name": "world_bank_ids_landing",
+      "location": "src.dfo_pipelines.defs.world_bank.ids.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it reads world_bank_ids_source, which no asset is known to make, and dbt_ingest, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "file": "src/dfo_pipelines/defs/world_bank/ids/assets.py",
+      "line": 318,
+      "list": "assets",
+      "api": "@asset",
+      "name": "dc_ingestion",
+      "location": "src.dfo_pipelines.defs.world_bank.ids.assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "a dependency is not known here: it is what dfo_pipelines.orchestration.dc_ingestion.build_dc_ingestion_asset() returns"
+     },
+     {
+      "file": "src/dfo_pipelines/orchestration/raw_tables.py",
+      "line": 115,
+      "list": "assets",
+      "api": "@multi_asset",
+      "name": "raw_tables",
+      "location": "src.dfo_pipelines.orchestration.raw_tables",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "loop_or_factory",
+      "reason": "the multi_asset's specs: they are worked out",
+      "in_out_of_scope_file": true
+     }
+    ],
+    "metrics": {
+     "expected_links": 14,
+     "expected_resolvable": 14,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 14,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 24,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 23,
+     "unknown_records": 38,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 1
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 14,
+     "expected_resolvable": 14,
+     "expected_unknown": 0,
+     "correct": 2,
+     "misses": 12,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 26,
+     "miss_rate": 0.8571,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 2
+     },
+     "dagster_files": 47,
+     "unknown_records": 39,
+     "location_unknowns_answering_no_label": 1,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "Odunpo/lakehouse-prototype",
+   "sha": "e56db41487de2b4c130206dd3e0ffc913f58d3ac",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_bank",
+      "file": "dagster_dbt_data_vault/dbt/assets/assets.py",
+      "line": 32,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 7,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "job:parsed_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:parsed_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:h_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:h_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:s_users_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:s_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:l_users_accounts_job",
+      "file": "dagster_dbt_data_vault/dbt/jobs/jobs.py",
+      "line": 12,
+      "unit": "job",
+      "api": "define_asset_job (factory create_jobs)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [
+     {
+      "file": "dagster_dbt_data_vault/raw_data/assets/assets_factory.py",
+      "line": 47,
+      "list": "assets",
+      "api": "@asset",
+      "name": "asset_47",
+      "location": "dagster_dbt_data_vault.raw_data.assets.assets_factory",
+      "projects": [
+       "dbt_project"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "loop_or_factory",
+      "reason": "inside function 'RawDataAssetFactory._create_asset', which is never called at module level (factory or runtime callable)",
+      "in_out_of_scope_file": true
+     }
+    ],
+    "metrics": {
+     "expected_links": 8,
+     "expected_resolvable": 8,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 7,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 1,
+     "miss_rate": 0.875,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 19,
+     "unknown_records": 2,
+     "location_unknowns_answering_no_label": 1,
+     "problems": 1
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 8,
+     "expected_resolvable": 8,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 7,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 4,
+     "miss_rate": 0.875,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 20,
+     "unknown_records": 6,
+     "location_unknowns_answering_no_label": 1,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "airbytehq/open-data-stack",
+   "sha": "132ad818bcc89619c4e69bd1599d4d1c27f91943",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_assets",
+      "file": "dagster/stargazer/assets_modern_data_stack/assets/stargazer.py",
+      "line": 148,
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 5,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 6,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "edwinweber/dbt_duckdb_demo_public",
+   "sha": "18befdbacc54350511e903735707dbde88510403",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_seeds_assets",
+      "file": "ddd_python/ddd_dagster/dbt_assets.py",
+      "line": 283,
+      "unit": "dbt_assets",
+      "api": "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "wrapper",
+      "detail": "made by _dbt_multi_asset(), a decorator the reader does not read; its body runs dbt (dbt.cli), so it makes dbt assets, but which ones is not known"
+     },
+     {
+      "id": "dbt_assets:dbt_bronze_assets",
+      "file": "ddd_python/ddd_dagster/dbt_assets.py",
+      "line": 306,
+      "unit": "dbt_assets",
+      "api": "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 28,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "wrapper",
+      "detail": "made by _dbt_multi_asset(), a decorator the reader does not read; its body runs dbt (dbt.cli), so it makes dbt assets, but which ones is not known"
+     },
+     {
+      "id": "dbt_assets:dbt_silver_assets",
+      "file": "ddd_python/ddd_dagster/dbt_assets.py",
+      "line": 332,
+      "unit": "dbt_assets",
+      "api": "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 50,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "wrapper",
+      "detail": "made by _dbt_multi_asset(), a decorator the reader does not read; its body runs dbt (dbt.cli), so it makes dbt assets, but which ones is not known"
+     },
+     {
+      "id": "dbt_assets:dbt_gold_assets",
+      "file": "ddd_python/ddd_dagster/dbt_assets.py",
+      "line": 362,
+      "unit": "dbt_assets",
+      "api": "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 19,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "wrapper",
+      "detail": "made by _dbt_multi_asset(), a decorator the reader does not read; its body runs dbt (dbt.cli), so it makes dbt assets, but which ones is not known"
+     },
+     {
+      "id": "dbt_assets:dbt_data_engineering_assets",
+      "file": "ddd_python/ddd_dagster/dbt_assets.py",
+      "line": 407,
+      "unit": "dbt_assets",
+      "api": "custom @multi_asset built by _dbt_multi_asset (dagster_dbt build_dbt_specs with the given select)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "wrapper",
+      "detail": "made by _dbt_multi_asset(), a decorator the reader does not read; its body runs dbt (dbt.cli), so it makes dbt assets, but which ones is not known"
+     },
+     {
+      "id": "job:dbt_seeds_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 284,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: it selects dbt_seeds_assets, a dbt asset definition that cannot be read"
+     },
+     {
+      "id": "job:dbt_bronze_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 300,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 25,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() on a Const value is not evaluated"
+     },
+     {
+      "id": "job:dbt_bronze_ddd_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 317,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 18,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() on a Const value is not evaluated"
+     },
+     {
+      "id": "job:dbt_bronze_rfam_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 332,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 7,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() on a Const value is not evaluated"
+     },
+     {
+      "id": "job:dbt_silver_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 346,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 50,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() argument not resolvable: comprehension (dynamic)"
+     },
+     {
+      "id": "job:dbt_silver_ddd_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 365,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 36,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() argument not resolvable: comprehension (dynamic)"
+     },
+     {
+      "id": "job:dbt_silver_rfam_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 382,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 14,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: dbt_select is not known here: .join() argument not resolvable: comprehension (dynamic)"
+     },
+     {
+      "id": "job:dbt_gold_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 399,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 19,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: it selects dbt_gold_assets, a dbt asset definition that cannot be read"
+     },
+     {
+      "id": "job:dbt_data_engineering_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 416,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: it selects dbt_data_engineering_assets, a dbt asset definition that cannot be read"
+     },
+     {
+      "id": "job:full_pipeline_job",
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 534,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 103,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "the job's selection: the selection is not one the reader reads: an asset selection combined with an asset selection combined with an asset selection combined with an asset selection combined with dbt_select is not known here: .join() on a Const value is not evaluated"
+     },
+     {
+      "id": "schedule:danish_parliament_full_pipeline_schedule",
+      "file": "ddd_python/ddd_dagster/schedules.py",
+      "line": 23,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 103,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "its job, full_pipeline_job, cannot be read: the job's selection: the selection is not one the reader reads: an asset selection combined with an asset selection combined with an asset selection combined with an asset selection combined with dbt_select is not known here: .join() on a Const value is no"
+     },
+     {
+      "id": "schedule:dbt_data_engineering_schedule",
+      "file": "ddd_python/ddd_dagster/schedules.py",
+      "line": 37,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 9,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "its job, dbt_data_engineering_job, cannot be read: the job's selection: it selects dbt_data_engineering_assets, a dbt asset definition that cannot be read"
+     },
+     {
+      "id": "asset:export/barrier_dbt_gold_complete",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 59,
+      "unit": "asset",
+      "api": "@asset deps",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 10,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "deps is not a list known here: comprehension (dynamic)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_afstemning",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_afstemningstype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_aktoer",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_aktoertype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_moede",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_moedestatus",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_moedetype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_periode",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sag",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagstrin",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagstrinaktoer",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagstrinsstatus",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagstrinstype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagskategori",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagsstatus",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_sagstype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_stemme",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_ddd_stemmetype",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_family",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_genome",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_clan",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_clan_membership",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_author",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_literature_reference",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/silver/export_silver_rfam_dead_family",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 84,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_silver_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_silver_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_actor",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_actor_type",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_case",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_date",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_meeting",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_meeting_status",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_meeting_type",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_individual_votes",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_vote",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     },
+     {
+      "id": "asset:export/gold/export_vote_type",
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 163,
+      "unit": "asset",
+      "api": "@asset deps (factory _make_export_gold_asset)",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "loop_or_factory",
+      "detail": "inside function '_make_export_gold_asset', which is never called at module level (factory or runtime callable)"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 111,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "danish_parliament_incremental_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 128,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "danish_parliament_full_extract_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 145,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "danish_parliament_all_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 166,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "rfam_incremental_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 182,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "rfam_full_extract_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 197,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "rfam_all_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 440,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "export_silver_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 457,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "export_gold_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 496,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "bronze_archive_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/jobs.py",
+      "line": 512,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "ducklake_cleanup_job",
+      "location": "ddd_python.ddd_dagster.definitions",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "it may select the nodes of dbt_bronze_assets, dbt_data_engineering_assets, dbt_gold_assets, dbt_seeds_assets, dbt_silver_assets, dbt asset definitions that cannot be read",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 151,
+      "list": "assets",
+      "api": "@asset",
+      "name": "export/barrier_all_silver_exported",
+      "location": "ddd_python.ddd_dagster.export_assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "deps is not a list known here: comprehension (dynamic)",
+      "in_out_of_scope_file": true
+     },
+     {
+      "file": "ddd_python/ddd_dagster/export_assets.py",
+      "line": 247,
+      "list": "assets",
+      "api": "@asset",
+      "name": "export/barrier_all_gold_exported",
+      "location": "ddd_python.ddd_dagster.export_assets",
+      "projects": [
+       "dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "deps is not a list known here: comprehension (dynamic)",
+      "in_out_of_scope_file": true
+     }
+    ],
+    "metrics": {
+     "expected_links": 53,
+     "expected_resolvable": 53,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 53,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 12,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 12,
+     "unknown_records": 32,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 1
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 53,
+     "expected_resolvable": 53,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 53,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 12,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 23,
+     "unknown_records": 33,
+     "location_unknowns_answering_no_label": 1,
+     "problems": 1
+    }
+   }
+  },
+  {
+   "repo": "flyanakin/CountMoney",
+   "sha": "9a42c6240fb631df9be035bd2054764ad41f09ac",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_assets",
+      "file": "CountMoney_orchestration/repository.py",
+      "line": 39,
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 23,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "job:daily_assets_job",
+      "file": "CountMoney_orchestration/jobs/daily_assets_job.py",
+      "line": 71,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 23,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:daily_assets_job_schedule",
+      "file": "CountMoney_orchestration/repository.py",
+      "line": 83,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 23,
+      "outcome": "miss",
+      "reason": "only an unknown at its place",
+      "category": "not_literal",
+      "detail": "the schedule's job: .resolve() on a JobV value is not evaluated"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [
+     {
+      "file": "CountMoney_orchestration/repository.py",
+      "line": 90,
+      "list": "schedules",
+      "api": "ScheduleDefinition",
+      "name": "schedule_90",
+      "location": "CountMoney_orchestration.repository",
+      "projects": [
+       "CountMoney_model"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "not_literal",
+      "reason": "the schedule's job: it is not a path",
+      "in_out_of_scope_file": true
+     }
+    ],
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 1,
+     "miss_rate": 0.6667,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 12,
+     "unknown_records": 2,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 3,
+     "expected_resolvable": 3,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 2,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 1,
+     "miss_rate": 0.6667,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 15,
+     "unknown_records": 3,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "lelouvincx/goodreads-elt-pipeline",
+   "sha": "57a0d0b1dad220594a122e1eaa531e36af38a613",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_assets",
+      "file": "elt_pipeline/elt_pipeline/assets/__init__.py",
+      "line": 15,
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 3,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 11,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 13,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "mateo-velez/dbt-gcp-dagster-etl-pipeline",
+   "sha": "993a316278efc01bbbf16aa53562ce907bf08742",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_assets",
+      "file": "orch/orch/assets/dbt.py",
+      "line": 5,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 7,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 8,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "nchiht/brazilian_ecommerce_data_platform",
+   "sha": "08fe1350482b6a289294ec5ea691f625c800bbcd",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt_assets",
+      "file": "etl_pipeline/etl_pipeline/assets/dbt_assets.py",
+      "line": 7,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 4,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 12,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 1,
+     "expected_resolvable": 1,
+     "expected_unknown": 0,
+     "correct": 1,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 14,
+     "unknown_records": 0,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "shawnmartin-py/plex-ingest",
+   "sha": "25cd7ed3c276eb0238136a95017f29017df180df",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:staging",
+      "file": "src/plex_ingest/defs/staging/defs.yaml",
+      "line": 2,
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "jinja",
+      "detail": "{{ project_root }} in '{{ context.project_root }}/dbt_project' needs a dg project, and none holds it"
+     },
+     {
+      "id": "job:poll_plex_job",
+      "file": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "line": 3,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:poll_plex_job_schedule",
+      "file": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "line": 20,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "asset:synopsis",
+      "file": "src/plex_ingest/defs/assets/synopsis.py",
+      "line": 9,
+      "unit": "asset",
+      "api": "@asset deps",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "it reads stg_movies, which no asset is known to make, and staging, a dbt asset definition that cannot be read, may make it"
+     },
+     {
+      "id": "asset:streaming_runtime",
+      "file": "src/plex_ingest/defs/assets/streaming_runtime.py",
+      "line": 22,
+      "unit": "asset",
+      "api": "@asset deps",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 1,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "not_literal",
+      "detail": "it reads stg_movies, which no asset is known to make, and staging, a dbt asset definition that cannot be read, may make it"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 5,
+     "expected_resolvable": 5,
+     "expected_unknown": 0,
+     "correct": 0,
+     "misses": 5,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 27,
+     "unknown_records": 3,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 5,
+     "expected_resolvable": 5,
+     "expected_unknown": 0,
+     "correct": 5,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 5
+     },
+     "dagster_files": 46,
+     "unknown_records": 2,
+     "location_unknowns_answering_no_label": 2,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "srdp-hub/srdp",
+   "sha": "8b477b7f4db63661419a0761dfac01e13a7d43ce",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:cbs_dbt_assets",
+      "file": "projects/cbs-example/src/etl/assets/dbt_assets.py",
+      "line": 39,
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "job:srdp_etl_job",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 27,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "job:srdp_etl_backfill_job",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 72,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     },
+     {
+      "id": "schedule:srdp_etl_job_schedule",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 94,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 2,
+      "confidence": "heuristic",
+      "outcome": "correct",
+      "other_nodes_match": true
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [
+     {
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 61,
+      "list": "jobs",
+      "api": "define_asset_job",
+      "name": "executive_summary_job",
+      "location": "projects.cbs-example.src.etl.definitions",
+      "projects": [
+       "projects/cbs-example/dbt"
+      ],
+      "status": "unknown",
+      "models": 0,
+      "category": "custom_translator",
+      "reason": "it selects by key or group, and the keys of cbs_dbt_assets are not known here",
+      "in_out_of_scope_file": true
+     }
+    ],
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 4,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 1,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 4
+     },
+     "dagster_files": 5,
+     "unknown_records": 1,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 4,
+     "expected_resolvable": 4,
+     "expected_unknown": 0,
+     "correct": 4,
+     "misses": 0,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 1,
+     "miss_rate": 0.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {
+      "heuristic": 4
+     },
+     "dagster_files": 9,
+     "unknown_records": 1,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  },
+  {
+   "repo": "vbalalian/estore-analytics",
+   "sha": "b7423d0711dfcb3ce226aeede191179c9266d297",
+   "labelled_paths": {
+    "rows": [
+     {
+      "id": "dbt_assets:dbt",
+      "file": "dagster-project/src/dagster_project/defs/dbt/defs.yaml",
+      "line": 1,
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "confidence": null,
+      "outcome": "miss",
+      "reason": "unknown",
+      "category": "jinja",
+      "detail": "{{ project_root }} in '{{ project_root }}/../dbt-project' needs a dg project, and none holds it"
+     },
+     {
+      "id": "job:dbt_job",
+      "file": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "line": 15,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "job:dbt_snapshot_job",
+      "file": "dagster-project/src/dagster_project/defs/jobs/__init__.py",
+      "line": 21,
+      "unit": "job",
+      "api": "define_asset_job",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:dbt_job_schedule",
+      "file": "dagster-project/src/dagster_project/defs/schedules/__init__.py",
+      "line": 5,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 8,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "schedule:dbt_snapshot_job_schedule",
+      "file": "dagster-project/src/dagster_project/defs/schedules/__init__.py",
+      "line": 11,
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "expect": "resolved",
+      "unsure": false,
+      "expected_models": 0,
+      "outcome": "miss",
+      "reason": "not found: no record and no unknown"
+     },
+     {
+      "id": "asset:omni_ingest",
+      "file": "dagster-project/src/dagster_project/defs/omni_ingest/defs.yaml",
+      "line": 1,
+      "unit": "asset",
+      "api": "CustomOmniComponent (OmniComponent subclass) document AssetSpec deps",
+      "expect": "unknown",
+      "unsure": false,
+      "outcome": "miss",
+      "reason": "silently dropped: no record and no unknown"
+     }
+    ],
+    "false_positives": [],
+    "unexpected_unknown_links": [],
+    "metrics": {
+     "expected_links": 6,
+     "expected_resolvable": 5,
+     "expected_unknown": 1,
+     "correct": 0,
+     "misses": 6,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 1.0,
+     "other_nodes_wrong": 0,
+     "confidence_of_correct": {},
+     "dagster_files": 15,
+     "unknown_records": 1,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   },
+   "default_paths": {
+    "metrics": {
+     "expected_links": 6,
+     "expected_resolvable": 5,
+     "expected_unknown": 1,
+     "correct": 1,
+     "misses": 5,
+     "legit_unknowns": 0,
+     "false_positives": 0,
+     "unexpected_unknown_links": 0,
+     "miss_rate": 0.8333,
+     "other_nodes_wrong": 1,
+     "confidence_of_correct": {
+      "heuristic": 1
+     },
+     "dagster_files": 18,
+     "unknown_records": 4,
+     "location_unknowns_answering_no_label": 0,
+     "problems": 0
+    }
+   }
+  }
+ ]
+}

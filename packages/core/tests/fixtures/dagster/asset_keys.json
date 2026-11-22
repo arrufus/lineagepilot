@@ -1,0 +1,1547 @@
+{
+ "dagster": "1.13.29",
+ "dagster_dbt": "0.29.29",
+ "cases": [
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.broken_report",
+   "node": {
+    "resource_type": "model",
+    "name": "broken_report",
+    "source_name": null,
+    "version": null,
+    "alias": "broken_report",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "broken_report"
+   ],
+   "dbt_assets": [
+    "broken_report"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.customer_revenue",
+   "node": {
+    "resource_type": "model",
+    "name": "customer_revenue",
+    "source_name": null,
+    "version": null,
+    "alias": "customer_revenue",
+    "meta": {
+     "owner": "growth-analytics"
+    },
+    "config": {
+     "meta": {
+      "owner": "growth-analytics"
+     },
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "customer_revenue"
+   ],
+   "dbt_assets": [
+    "customer_revenue"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.metricflow_time_spine",
+   "node": {
+    "resource_type": "model",
+    "name": "metricflow_time_spine",
+    "source_name": null,
+    "version": null,
+    "alias": "metricflow_time_spine",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "metricflow_time_spine"
+   ],
+   "dbt_assets": [
+    "metricflow_time_spine"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.order_counts",
+   "node": {
+    "resource_type": "model",
+    "name": "order_counts",
+    "source_name": null,
+    "version": null,
+    "alias": "order_counts",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": "operations"
+    }
+   },
+   "translator": [
+    "order_counts"
+   ],
+   "dbt_assets": [
+    "order_counts"
+   ],
+   "group": "operations"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.orders",
+   "node": {
+    "resource_type": "model",
+    "name": "orders",
+    "source_name": null,
+    "version": null,
+    "alias": "orders",
+    "meta": {
+     "owner": "finance-data"
+    },
+    "config": {
+     "meta": {
+      "owner": "finance-data"
+     },
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "orders"
+   ],
+   "dbt_assets": [
+    "orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.revenue_tiers",
+   "node": {
+    "resource_type": "model",
+    "name": "revenue_tiers",
+    "source_name": null,
+    "version": null,
+    "alias": "revenue_tiers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "revenue_tiers"
+   ],
+   "dbt_assets": [
+    "revenue_tiers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.stg_customers",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_customers"
+   ],
+   "dbt_assets": [
+    "stg_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "model.impact_shop.stg_orders",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_orders",
+    "meta": {
+     "owner": "data-platform"
+    },
+    "config": {
+     "meta": {
+      "owner": "data-platform"
+     },
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_orders"
+   ],
+   "dbt_assets": [
+    "stg_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "seed.impact_shop.raw_customers",
+   "node": {
+    "resource_type": "seed",
+    "name": "raw_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "raw_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": "raw",
+     "group": null
+    }
+   },
+   "translator": [
+    "raw",
+    "raw_customers"
+   ],
+   "dbt_assets": [
+    "raw",
+    "raw_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "seed.impact_shop.raw_orders",
+   "node": {
+    "resource_type": "seed",
+    "name": "raw_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "raw_orders",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": "raw",
+     "group": null
+    }
+   },
+   "translator": [
+    "raw",
+    "raw_orders"
+   ],
+   "dbt_assets": [
+    "raw",
+    "raw_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "source.impact_shop.shop.raw_customers",
+   "node": {
+    "resource_type": "source",
+    "name": "raw_customers",
+    "source_name": "shop",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "shop",
+    "raw_customers"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop",
+   "unique_id": "source.impact_shop.shop.raw_orders",
+   "node": {
+    "resource_type": "source",
+    "name": "raw_orders",
+    "source_name": "shop",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "shop",
+    "raw_orders"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.customer_ltv",
+   "node": {
+    "resource_type": "model",
+    "name": "customer_ltv",
+    "source_name": null,
+    "version": null,
+    "alias": "customer_ltv",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "customer_ltv"
+   ],
+   "dbt_assets": [
+    "customer_ltv"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.dim_customers",
+   "node": {
+    "resource_type": "model",
+    "name": "dim_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "dim_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "dim_customers"
+   ],
+   "dbt_assets": [
+    "dim_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.dim_products",
+   "node": {
+    "resource_type": "model",
+    "name": "dim_products",
+    "source_name": null,
+    "version": null,
+    "alias": "dim_products",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "dim_products"
+   ],
+   "dbt_assets": [
+    "dim_products"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.fct_orders",
+   "node": {
+    "resource_type": "model",
+    "name": "fct_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "fct_orders",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "fct_orders"
+   ],
+   "dbt_assets": [
+    "fct_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.fct_revenue.v1",
+   "node": {
+    "resource_type": "model",
+    "name": "fct_revenue",
+    "source_name": null,
+    "version": 1,
+    "alias": "fct_revenue_v1",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "fct_revenue_v1"
+   ],
+   "dbt_assets": [
+    "fct_revenue_v1"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.fct_revenue.v2",
+   "node": {
+    "resource_type": "model",
+    "name": "fct_revenue",
+    "source_name": null,
+    "version": 2,
+    "alias": "fct_revenue_v2",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "fct_revenue_v2"
+   ],
+   "dbt_assets": [
+    "fct_revenue_v2"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.fin_daily_summary",
+   "node": {
+    "resource_type": "model",
+    "name": "fin_daily_summary",
+    "source_name": null,
+    "version": null,
+    "alias": "fin_daily_summary",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "fin_daily_summary"
+   ],
+   "dbt_assets": [
+    "fin_daily_summary"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.int_customer_orders",
+   "node": {
+    "resource_type": "model",
+    "name": "int_customer_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "int_customer_orders",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "int_customer_orders"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.int_order_items",
+   "node": {
+    "resource_type": "model",
+    "name": "int_order_items",
+    "source_name": null,
+    "version": null,
+    "alias": "int_order_items",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "int_order_items"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.py_scores",
+   "node": {
+    "resource_type": "model",
+    "name": "py_scores",
+    "source_name": null,
+    "version": null,
+    "alias": "py_scores",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "py_scores"
+   ],
+   "dbt_assets": [
+    "py_scores"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.rpt_legacy",
+   "node": {
+    "resource_type": "model",
+    "name": "rpt_legacy",
+    "source_name": null,
+    "version": null,
+    "alias": "rpt_legacy",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "rpt_legacy"
+   ],
+   "dbt_assets": [
+    "rpt_legacy"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.rpt_weekly",
+   "node": {
+    "resource_type": "model",
+    "name": "rpt_weekly",
+    "source_name": null,
+    "version": null,
+    "alias": "rpt_weekly",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "rpt_weekly"
+   ],
+   "dbt_assets": [
+    "rpt_weekly"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.stg_customers",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_customers"
+   ],
+   "dbt_assets": [
+    "stg_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.stg_orders",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_orders",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_orders"
+   ],
+   "dbt_assets": [
+    "stg_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.stg_payments",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_payments",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_payments",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_payments"
+   ],
+   "dbt_assets": [
+    "stg_payments"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "model.shop.stg_products",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_products",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_products",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_products"
+   ],
+   "dbt_assets": [
+    "stg_products"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "seed.shop.country_codes",
+   "node": {
+    "resource_type": "seed",
+    "name": "country_codes",
+    "source_name": null,
+    "version": null,
+    "alias": "country_codes",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "country_codes"
+   ],
+   "dbt_assets": [
+    "country_codes"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "seed.shop.products",
+   "node": {
+    "resource_type": "seed",
+    "name": "products",
+    "source_name": null,
+    "version": null,
+    "alias": "products",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "products"
+   ],
+   "dbt_assets": [
+    "products"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "snapshot.shop.snap_customers",
+   "node": {
+    "resource_type": "snapshot",
+    "name": "snap_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "snap_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "snap_customers"
+   ],
+   "dbt_assets": [
+    "snap_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "source.shop.raw.customers",
+   "node": {
+    "resource_type": "source",
+    "name": "customers",
+    "source_name": "raw",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "raw",
+    "customers"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "source.shop.raw.orders",
+   "node": {
+    "resource_type": "source",
+    "name": "orders",
+    "source_name": "raw",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "raw",
+    "orders"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "airflow-shop",
+   "unique_id": "source.shop.raw.payments",
+   "node": {
+    "resource_type": "source",
+    "name": "payments",
+    "source_name": "raw",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "raw",
+    "payments"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.broken_report",
+   "node": {
+    "resource_type": "model",
+    "name": "broken_report",
+    "source_name": null,
+    "version": null,
+    "alias": "broken_report",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "broken_report"
+   ],
+   "dbt_assets": [
+    "broken_report"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.customer_revenue",
+   "node": {
+    "resource_type": "model",
+    "name": "customer_revenue",
+    "source_name": null,
+    "version": null,
+    "alias": "customer_revenue",
+    "meta": {
+     "dagster": {
+      "asset_key": [
+       "not",
+       "read"
+      ]
+     }
+    },
+    "config": {
+     "meta": {
+      "owner": "finance"
+     },
+     "schema": null,
+     "group": "finance"
+    }
+   },
+   "translator": [
+    "customer_revenue"
+   ],
+   "dbt_assets": [
+    "customer_revenue"
+   ],
+   "group": "finance"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.metricflow_time_spine",
+   "node": {
+    "resource_type": "model",
+    "name": "metricflow_time_spine",
+    "source_name": null,
+    "version": null,
+    "alias": "metricflow_time_spine",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "metricflow_time_spine"
+   ],
+   "dbt_assets": [
+    "metricflow_time_spine"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.order_counts",
+   "node": {
+    "resource_type": "model",
+    "name": "order_counts",
+    "source_name": null,
+    "version": null,
+    "alias": "order_counts",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": "analytics",
+     "group": "operations"
+    }
+   },
+   "translator": [
+    "analytics",
+    "order_counts"
+   ],
+   "dbt_assets": [
+    "analytics",
+    "order_counts"
+   ],
+   "group": "operations"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.orders",
+   "node": {
+    "resource_type": "model",
+    "name": "orders",
+    "source_name": null,
+    "version": null,
+    "alias": "orders",
+    "meta": {
+     "dagster": {
+      "group": "finance"
+     }
+    },
+    "config": {
+     "meta": {
+      "dagster": {
+       "asset_key": [
+        "mart",
+        "orders"
+       ]
+      }
+     },
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "mart",
+    "orders"
+   ],
+   "dbt_assets": [
+    "mart",
+    "orders"
+   ],
+   "group": "finance"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.revenue_tiers",
+   "node": {
+    "resource_type": "model",
+    "name": "revenue_tiers",
+    "source_name": null,
+    "version": 2,
+    "alias": "revenue_tiers_v2",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "revenue_tiers_v2"
+   ],
+   "dbt_assets": [
+    "revenue_tiers_v2"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.stg_customers",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "stg_customers"
+   ],
+   "dbt_assets": [
+    "stg_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "model.impact_shop.stg_orders",
+   "node": {
+    "resource_type": "model",
+    "name": "stg_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "stg_orders",
+    "meta": {
+     "dagster": {
+      "asset_key": "staging_orders"
+     }
+    },
+    "config": {
+     "meta": {},
+     "schema": null,
+     "group": null
+    }
+   },
+   "translator": [
+    "staging_orders"
+   ],
+   "dbt_assets": [
+    "staging_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "seed.impact_shop.raw_customers",
+   "node": {
+    "resource_type": "seed",
+    "name": "raw_customers",
+    "source_name": null,
+    "version": null,
+    "alias": "raw_customers",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": "raw",
+     "group": null
+    }
+   },
+   "translator": [
+    "raw",
+    "raw_customers"
+   ],
+   "dbt_assets": [
+    "raw",
+    "raw_customers"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "seed.impact_shop.raw_orders",
+   "node": {
+    "resource_type": "seed",
+    "name": "raw_orders",
+    "source_name": null,
+    "version": null,
+    "alias": "raw_orders",
+    "meta": {},
+    "config": {
+     "meta": {},
+     "schema": "raw",
+     "group": null
+    }
+   },
+   "translator": [
+    "raw",
+    "raw_orders"
+   ],
+   "dbt_assets": [
+    "raw",
+    "raw_orders"
+   ],
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "source.impact_shop.shop.raw_customers",
+   "node": {
+    "resource_type": "source",
+    "name": "raw_customers",
+    "source_name": "shop",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "shop",
+    "raw_customers"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  },
+  {
+   "manifest": "impact-shop-variants",
+   "unique_id": "source.impact_shop.shop.raw_orders",
+   "node": {
+    "resource_type": "source",
+    "name": "raw_orders",
+    "source_name": "shop",
+    "version": null,
+    "alias": null,
+    "meta": {},
+    "config": {
+     "meta": {}
+    }
+   },
+   "translator": [
+    "shop",
+    "raw_orders"
+   ],
+   "dbt_assets": null,
+   "group": "default"
+  }
+ ],
+ "jobs": [
+  {
+   "label": "all",
+   "selection": "AssetSelection.all()",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.orders",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "no selection",
+   "selection": null,
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.orders",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "a key",
+   "selection": "AssetSelection.keys(\"stg_customers\")",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "an AssetKey",
+   "selection": "AssetSelection.keys(AssetKey([\"raw\", \"raw_orders\"]))",
+   "nodes": [
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "a key from config.meta",
+   "selection": "AssetSelection.keys(\"mart/orders\")",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "upstream",
+   "selection": "AssetSelection.keys(\"mart/orders\").upstream()",
+   "nodes": [
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "upstream to a depth",
+   "selection": "AssetSelection.keys(\"customer_revenue\").upstream(depth=1)",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "upstream without itself",
+   "selection": "AssetSelection.keys(\"mart/orders\").upstream(include_self=False)",
+   "nodes": [
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "downstream",
+   "selection": "AssetSelection.keys(\"staging_orders\").downstream()",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.orders",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "label": "a group",
+   "selection": "AssetSelection.groups(\"finance\")",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "the default group",
+   "selection": "AssetSelection.groups(\"default\")",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "union",
+   "selection": "AssetSelection.groups(\"finance\") | AssetSelection.keys(\"stg_customers\")",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "difference",
+   "selection": "AssetSelection.all() - AssetSelection.groups(\"finance\")",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "intersection",
+   "selection": "AssetSelection.groups(\"finance\") & AssetSelection.keys(\"mart/orders\")",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "a definition's assets",
+   "selection": "AssetSelection.assets(staging)",
+   "nodes": [
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "label": "a list of definitions",
+   "selection": "[staging]",
+   "nodes": [
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "label": "a dbt selection",
+   "selection": "build_dbt_asset_selection([rest], dbt_select=\"+customer_revenue\")",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "string key",
+   "selection": "\"key:mart/orders\"",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "string all upstream",
+   "selection": "\"+key:mart/orders\"",
+   "nodes": [
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "string one upstream",
+   "selection": "\"1+key:mart/orders\"",
+   "nodes": [
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "label": "string downstream",
+   "selection": "\"key:staging_orders+\"",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.orders",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "label": "string pattern",
+   "selection": "\"key:stg_*\"",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "string group",
+   "selection": "\"group:finance\"",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "string not",
+   "selection": "\"not group:finance\"",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "string precedence",
+   "selection": "\"key:mart/orders or key:staging_orders and group:finance\"",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "string parentheses",
+   "selection": "\"(key:mart/orders or key:staging_orders) and group:finance\"",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "label": "bare name",
+   "selection": "\"stg_customers\"",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "bare one upstream",
+   "selection": "\"+customer_revenue\"",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "bare all upstream",
+   "selection": "\"*customer_revenue\"",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.orders",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "bare two downstream",
+   "selection": "\"stg_customers++\"",
+   "nodes": [
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "label": "star",
+   "selection": "\"*\"",
+   "nodes": [
+    "model.impact_shop.broken_report",
+    "model.impact_shop.customer_revenue",
+    "model.impact_shop.metricflow_time_spine",
+    "model.impact_shop.order_counts",
+    "model.impact_shop.orders",
+    "model.impact_shop.revenue_tiers",
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "label": "a list of strings",
+   "selection": "[\"stg_customers\", \"key:raw/*\"]",
+   "nodes": [
+    "model.impact_shop.stg_customers",
+    "seed.impact_shop.raw_customers",
+    "seed.impact_shop.raw_orders"
+   ]
+  }
+ ],
+ "assets": [
+  {
+   "key": "d_string",
+   "nodes": [
+    "model.impact_shop.customer_revenue"
+   ]
+  },
+  {
+   "key": "d_key",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "key": "d_unmatched",
+   "nodes": []
+  },
+  {
+   "key": "d_group",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "key": "d_model",
+   "nodes": [
+    "model.impact_shop.orders"
+   ]
+  },
+  {
+   "key": "d_definition",
+   "nodes": [
+    "model.impact_shop.stg_customers",
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "key": "d_dep",
+   "nodes": [
+    "model.impact_shop.customer_revenue"
+   ]
+  },
+  {
+   "key": "d_in",
+   "nodes": [
+    "model.impact_shop.stg_orders"
+   ]
+  },
+  {
+   "key": "d_param",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "key": "d_mixed",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "key": "m1",
+   "nodes": [
+    "model.impact_shop.stg_customers"
+   ]
+  },
+  {
+   "key": "m2",
+   "nodes": [
+    "seed.impact_shop.raw_orders"
+   ]
+  },
+  {
+   "key": "ext",
+   "nodes": [
+    "model.impact_shop.revenue_tiers"
+   ]
+  }
+ ],
+ "fixture": {
+  "shop-analytics: definition component": [
+   "model.impact_shop.customer_revenue",
+   "model.impact_shop.orders",
+   "model.impact_shop.revenue_tiers"
+  ],
+  "operations: definition operations_dbt": [
+   "model.impact_shop.order_counts"
+  ],
+  "operations: asset order_counts_export": [
+   "model.impact_shop.order_counts"
+  ],
+  "operations: asset revenue_forecast": [
+   "model.impact_shop.customer_revenue"
+  ],
+  "operations: job hourly_counts": [
+   "model.impact_shop.order_counts"
+  ],
+  "operations: schedule hourly_counts_schedule": {
+   "nodes": [
+    "model.impact_shop.order_counts"
+   ],
+   "job": "hourly_counts",
+   "cron": "0 * * * *"
+  }
+ }
+}

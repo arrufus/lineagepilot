@@ -207,3 +207,7 @@ The scanner of 0.3.0 scores both corpora exactly as the Entry phase's runs recor
 
 
 Task 7.9 moved this corpus here, and the Airflow-only parts of the scorer into [tool.py](tool.py), so that one scorer serves every reader. The scanner scored the same before and after the move: [results/moved.json](results/moved.json) equals a run of the old scorer on the same clones, link for link. That is 17 correct and 87 misses, 82.1%, as after the freeze, and the reader's hash is the same, `d5786081bf4e9abbcc779e8b3d0a9831ea928346e7c11287d9b04e9dfbbabd40`. A run since task 7.9 records `reader_sha256` and `tool` where older runs have `scanner_sha256`.
+
+### The shared evaluator (task 8.4)
+
+Task 8.4 moved the scanner's safe evaluator to `readers/common/evaluator.py`, so that the Dagster reader reads Python the same way. The DAG scan subclasses it, and what Airflow's calls mean stays in `dag_static.py`. Both corpora score the same after the move, link for link: [results/shared-evaluator.json](results/shared-evaluator.json) equals [results/merged.json](results/merged.json), and [fresh/results/shared-evaluator.json](fresh/results/shared-evaluator.json) equals [fresh/results/merged.json](fresh/results/merged.json), apart from the commit and the reader's hash. The runs were made on the change, on top of the commit they record. The scanner's whole output was also compared, byte for byte: every repository in both corpora, in both scans, and the fixtures. None of it changed.

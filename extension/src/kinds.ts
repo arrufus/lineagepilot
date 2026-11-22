@@ -41,6 +41,20 @@ const TOOL_LABELS: ReadonlyMap<string, string> = new Map([
 // What a tool calls its pipelines, where that is not "pipeline": [one, many]
 const PIPELINE_WORDS: ReadonlyMap<string, readonly [string, string]> = new Map([['airflow', ['DAG', 'DAGs']]]);
 
+// What the review groups a tool's rows by, where that is not its pipelines: Dagster's are grouped
+// by code location, with its jobs and schedules among them (task 8.9). As GROUP_WORDS in the core.
+const GROUP_WORDS: ReadonlyMap<string, readonly [string, string]> = new Map([['dagster', ['code location', 'code locations']]]);
+
+/** A row in the review that is one of these is labelled with what it is, in this order within its
+ * pipeline, as Dagster's are: its definitions, its jobs each with its schedules, and the assets
+ * downstream (task 8.9). The core keeps the same table, as ROW_WORDS in readers/tools.py. */
+export const ROW_WORDS: ReadonlyMap<string, readonly [number, string, string]> = new Map([
+  ['dbt_assets', [0, 'dbt asset definition', 'dbt asset definitions']],
+  ['job', [1, 'job', 'jobs']],
+  ['schedule', [2, 'schedule', 'schedules']],
+  ['asset', [3, 'asset', 'assets']],
+]);
+
 // A subkind as people write it, where that is not the subkind with spaces for underscores
 const SUBKIND_LABELS: ReadonlyMap<string, string> = new Map([['dag', 'DAG']]);
 
@@ -65,6 +79,12 @@ export function toolLabel(tool: string | null | undefined): string {
 export function pipelineWord(tool: string | null | undefined, count: number): string {
   const [one, many] = PIPELINE_WORDS.get(tool ?? '') ?? ['pipeline', 'pipelines'];
   return count === 1 ? one : many;
+}
+
+/** What the review groups ``count`` of a tool's rows by: its pipelines, or Dagster's code locations. */
+export function groupWord(tool: string | null | undefined, count: number): string {
+  const words = GROUP_WORDS.get(tool ?? '');
+  return words ? (count === 1 ? words[0] : words[1]) : pipelineWord(tool, count);
 }
 
 /** ``task group`` for ``task_group``, ``DAG`` for ``dag``. */

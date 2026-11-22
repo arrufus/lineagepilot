@@ -42,7 +42,7 @@
       "enum": ["depends_on", "derives", "materialises", "orchestrates", "task_depends_on", "loads", "consumes", "part_of"]
     },
     "Confidence": { "enum": ["declared", "inferred", "heuristic"] },
-    "Origin": { "enum": ["manifest", "compiled_sql", "catalog", "dag_static", "annotation"] },
+    "Origin": { "enum": ["manifest", "compiled_sql", "catalog", "dag_static", "annotation", "dagster_defs"] },
     "Direction": { "enum": ["upstream", "downstream", "both"] },
     "Side": { "enum": ["root", "upstream", "downstream"] },
     "Granularity": { "enum": ["model", "column"] },
@@ -437,7 +437,9 @@
         "tasks": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
         "tasksMore": { "$ref": "#/$defs/Count" },
         "after": { "type": "array", "items": { "$ref": "#/$defs/Name" } },
-        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } }
+        "notes": { "type": "array", "items": { "$ref": "#/$defs/Text" } },
+        "job": { "$ref": "#/$defs/Name", "description": "A Dagster schedule's job (task 8.9). Sent only for a schedule." },
+        "cron": { "$ref": "#/$defs/Name", "description": "A Dagster schedule's cron schedule (task 8.9). Sent only for a schedule." }
       },
       "required": ["tool", "pipeline", "operator", "how", "runs", "runsMore", "tasks", "tasksMore", "after", "notes"],
       "additionalProperties": false

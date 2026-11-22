@@ -439,6 +439,111 @@ flowchart LR
 
 Traversal downstream follows `consumes` and `part_of` into consumers. They are leaves as far as dbt is concerned, because nothing in dbt depends on them. A changed ingestion file maps to its pipeline, and traversal goes through `loads` into the dbt graph.
 
+#### Mapping note: Dagster (task 8.1)
+
+**Approved on 20 November 2026**, with D-a to D-e as recommended below, after the owner's review and before any reader code ([the plan](implementation_plan_next_phase.md), "How every reader phase runs", step 2). Everything else follows from the code as it is, or from dagster-dbt's own source at the pinned version.
+
+**Versions.**
+- **The pin:** dagster 1.13.29 and dagster-dbt 0.29.29, released on 5 November 2026. They were the newest releases that were two weeks old on 20 November 2026.
+- **What the pin decides:** the reader reads text and imports neither package, so the pin decides which APIs and defaults it follows. It also decides which version the conformance check runs (task 8.5).
+- **Python:** dagster-dbt 0.29 needs Python 3.11 to 3.13. The conformance check therefore runs in a CI job of its own, as `selector_conformance.py` does.
+- **Forms the pin lacks:** a form those versions do not have is an unknown that says so, apart from the two loaders of D-c.
+
+**What becomes what.**
+
+| In Dagster | Node | ID | Edges |
+|---|---|---|---|
+| A **code location**: what a workspace loads, a `Definitions` object or a `dg` project's defs folder | `pipeline`, subkind `code_location` | `dagster:<location>` | None of its own |
+| A **dbt asset definition**: an `@dbt_assets` function, or a `DbtProjectComponent` in a `defs.yaml` | `task` in its code location, subkind `dbt_assets` | `dagster:<location>.<definition>` | `orchestrates` each dbt node it materialises: models, seeds and snapshots |
+| A **job** that materialises dbt assets: `define_asset_job` | `pipeline`, subkind `job`. It is one link as a whole, as a Cosmos `DbtDag` is | `dagster:<location>/job/<name>` | `orchestrates` each dbt node its selection materialises |
+| A **schedule** of such a job, or of a dbt selection: `ScheduleDefinition`, `@schedule`, and `build_schedule_from_dbt_selection`, which also makes the job | `pipeline`, subkind `schedule`. It is one link as a whole | `dagster:<location>/schedule/<name>` | `orchestrates` the same dbt nodes as its job. The job and the cron are in its properties |
+| A **non-dbt asset that depends on a dbt asset**: `@asset(deps=…)`, `AssetIn` and `AssetSpec(deps=…)` | `task` in its code location, subkind `asset` (D-b) | `dagster:<location>.<asset key>`, the key's parts joined by `/` | `consumes` each dbt node whose asset key it names |
+
+`<definition>` is the definition's name in Dagster: `@dbt_assets(name=…)`, or else the function's name. For a component it is the component's folder under the defs folder, such as `analytics/dbt`.
+
+**Why IDs nest under the code location, not the job.** One asset definition can be in several jobs. A job can also take part of a definition, through `build_dbt_asset_selection`. A definition is in exactly one code location, though, and the protocol's Pipelines view gives each task one pipeline. So:
+- **Definitions and downstream assets** are tasks in their code location.
+- **Jobs and schedules** are pipelines that are one link as a whole. Each lists the dbt nodes it runs, so the review names the job and the schedule directly. Today's traversal reaches them through `orchestrates` without change.
+
+**A code location's name** is taken from the first of these that applies:
+1. a `dg` project's `pyproject.toml`: `[tool.dg.project] code_location_name`, or else `[project] name`, as dagster-dg-core 1.13.29 does;
+2. the `location_name` of the `workspace.yaml` entry that loads the module or file;
+3. `[tool.dagster]` in `pyproject.toml`: `code_location_name`, or else `module_name`;
+4. otherwise LineagePilot's own fallback (D-d): the module that holds the `Definitions(…)` call, as a dotted path from the workspace.
+
+Some definitions are not loaded by any `Definitions` call or defs folder the reader finds. Such a definition is still read and linked, under a location named after its file, and the reader's summary says so.
+
+**Asset keys.** Keys are not nodes, because each dbt node already is one. A dbt asset definition's task records, in its properties, the key of each dbt node it materialises. Keys match a downstream asset's `deps`, and a job's `AssetSelection.keys`, to dbt nodes.
+
+The key comes from the manifest, by dagster-dbt 0.29.29's default rule (`default_asset_key_fn`):
+- `meta.dagster.asset_key`, from the node's `config.meta` or `meta`, when it is set;
+- otherwise, for a source, `[source_name, name]`;
+- for a versioned model, `[alias]`;
+- for any other node, `[config.schema, name]` when its config sets a schema, or else `[name]`.
+
+What can override the key:
+- **Read:** a component's `translation` whose `key` is a template that uses only literal text and `{{ node.<field> }}` placeholders.
+- **Not read:** a `dagster_dbt_translator=` argument that is anything but `DagsterDbtTranslator()` itself, and any other template. These are the new unknown `custom_translator`.
+
+A custom translator loses only matching by key. The definition's `orchestrates` edges still stand, because its select says which nodes it runs. A downstream asset or a job that names that definition's keys gets an unknown at its own line.
+
+A dbt node's asset group, which `AssetSelection.groups` uses, is dagster-dbt's default too: `meta.dagster.group`, or else the dbt group.
+
+**Selections.**
+- **A definition's own selection:** its `select`, `exclude` and `selector` go through the shared selector engine, which `selector_conformance.py` checks against `dbt ls`. The defaults are dagster-dbt's: `fqn:*`, with no exclude and no selector.
+- **The dbt project** comes from one of these:
+  - `DbtProject(project_dir=…)`;
+  - the manifest path passed as `manifest=`;
+  - the component's `project`, resolved from the component's folder, with `{{ project_root }}` as the `dg` project's root.
+
+  A path that matches no project is `no_project`. A remote project, the component's git form, is `remote_manifest`.
+- **A job's `selection`** is read within the bounded subset of task 8.6:
+  - `AssetSelection.keys`, `.groups` and `.assets`;
+  - `build_dbt_asset_selection`;
+  - `.upstream()` and `.downstream()`;
+  - `|`, `&` and `-`.
+- **Selection strings (D-e):** read selection strings in Dagster's selection syntax as well, limited to `key:` and `group:` with `+`, `and`, `or` and `not`. Anything else is `not_literal`.
+
+**Origin and confidence.** Every edge and unknown has the origin `dagster_defs` (above). Confidence follows the DAG scan's rules:
+- a literal selection resolved against the manifest is `inferred`;
+- a path matched by its tail is `heuristic`;
+- an annotation in `lineage.yml` with `tool: dagster` is `declared`.
+
+**Unknowns** appear at the line that caused them, and each one can be answered in `lineage.yml`:
+
+| Pattern | Category |
+|---|---|
+| A custom translator, or a key template the reader cannot fill | `custom_translator` (new): "Asset keys come from code that runs only when Dagster loads the definitions." |
+| Asset keys or a selection computed at run time | `not_literal` |
+| `@multi_asset` with computed specs, and definitions built by a loop or a factory | `loop_or_factory` |
+| Definitions loaded from a module outside the workspace | `call_not_followed` |
+| Dagster Pipes, and an op or asset that runs dbt from its own code | `python_dbt_call` |
+| A selector that needs state from a run | `unsupported_selector` |
+
+Only `custom_translator` is new. The shared categories' one-line explanations were written for Airflow, and they get wording that names no Airflow operator (task 8.8).
+
+**Not read:** sensors, automation conditions and asset checks; and non-dbt assets upstream of dbt, which are Phase 11's.
+
+**What changes outside the reader.**
+- **New values:** `Origin.DAGSTER_DEFS` and `UnknownCategory.CUSTOM_TRANSLATOR`, in the core and the protocol. If the model's fingerprint changes, `SNAPSHOT_FORMAT` goes to 5; `tests/test_snapshot_format.py` says whether it does.
+- **`consumes` from a task (D-b):**
+  - the Consumers view keeps to consumer nodes; today it lists anything with a `consumes` edge;
+  - the Pipelines view counts a task's `consumes` edges, so a downstream asset is listed under its code location.
+- **Wiring the reader in:**
+  - `lineagePilot.dagster.paths` (task 8.2);
+  - `DagsterReader` in `readers/registry.py`;
+  - Dagster's words for CodeLens, in `readers/tools.py`.
+- **The annotation file** already accepts `tool: dagster` for pipelines.
+
+**Decisions, approved on 20 November 2026 as recommended.**
+- **D-a: the IDs above.** Code locations, with definitions and downstream assets as tasks in them. Jobs and schedules as pipelines that are one link as a whole.
+- **D-b: what a downstream non-dbt asset is.** Recommended, and approved: a task with `consumes` edges. The alternative was a consumer node. As consumers, these assets would appear in the Consumers section and view, away from the Dagster rows the design asks for (§6.4). Their IDs would also share the `dagster:` namespace that `lineage.yml` keeps for pipelines.
+- **D-c: `load_assets_from_dbt_project` and `load_assets_from_dbt_manifest`.** dagster-dbt 0.29.29 no longer exports them. Recommended, and approved: read them as dbt asset definitions, a small cost, because their `project_dir` or `manifest`, `select`, `exclude` and `key_prefix` are literal arguments. The alternative was an unknown that names the version.
+- **D-d: the fallback name for a code location**, when nothing names it: the module that holds the `Definitions(…)` call, as a dotted path from the workspace, as proposed above.
+- **D-e: which of Dagster's selection strings are read:** `key:` and `group:`, with `+`, `and`, `or` and `not`, as proposed above.
+
+Grouping the review's Dagster rows by code location and job is task 8.9's choice, not this note's.
+
 ### 7.2 The reader contract
 
 Every reader is a module under `lineagepilot_core.readers.<tool>`, and declares the following:

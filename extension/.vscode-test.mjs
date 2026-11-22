@@ -89,6 +89,21 @@ function workspace(label, hostile = {}, fixture = 'pilot-shop') {
     '    BashOperator(task_id="say_hello", bash_command="echo hello")',
     '',
   ].join('\n'));
+  // And a Dagster definitions file that does the same: Dagster definitions are only parsed too
+  const dagsterMarker = path.join(markers, 'planted-dagster-ran').replaceAll('\\', '/');
+  fs.mkdirSync(path.join(dir, 'orchestration'), { recursive: true });
+  fs.writeFileSync(path.join(dir, 'orchestration', 'planted_definitions.py'), [
+    'from pathlib import Path',
+    `Path(${JSON.stringify(dagsterMarker)}).write_text("ran")`,
+    'from dagster import Definitions, asset',
+    '',
+    '@asset',
+    'def planted():',
+    `    Path(${JSON.stringify(dagsterMarker)}).write_text("materialised")`,
+    '',
+    'defs = Definitions(assets=[planted])',
+    '',
+  ].join('\n'));
   return dir;
 }
 

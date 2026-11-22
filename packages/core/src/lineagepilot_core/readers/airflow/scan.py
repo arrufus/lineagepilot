@@ -57,10 +57,13 @@ def scan_airflow(
 
 
 def _other_tools(loader: DataFlowAnnotationLoader) -> list[str]:
-    """Tasks declared for a tool with no reader yet are kept out of the graph, and said so."""
+    """Tasks declared for a tool with no reader yet are kept out of the graph, and said so. A
+    tool that has a reader, such as Dagster (task 8.8), links its own."""
+    from lineagepilot_core.readers.registry import READERS  # the registry imports this reader
+
     counts: dict[str, int] = {}
     for annotation in loader.get_all_annotations().values():
-        if annotation.tool != DEFAULT_TOOL:
+        if annotation.tool not in READERS:
             counts[annotation.tool] = counts.get(annotation.tool, 0) + 1
     return [
         f"{n} task{'s' if n > 1 else ''} with tool {tool}: no reader for {tool} yet; ignored"

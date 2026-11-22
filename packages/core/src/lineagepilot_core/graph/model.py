@@ -53,6 +53,7 @@ PIPELINE_KINDS = frozenset({NodeKind.PIPELINE, NodeKind.TASK})
 TOOL_KINDS = PIPELINE_KINDS | {NodeKind.CONSUMER}
 
 AIRFLOW = "airflow"
+DAGSTER = "dagster"
 # How protocol 1 wrote an Airflow DAG and task, before the generic kinds (task 7.5). A protocol 1
 # client still gets these, lineage/airflow always does, and they name the review's Airflow rows
 # until its sections are by tool (task 7.7).
@@ -97,6 +98,7 @@ class Origin(str, Enum):
     CATALOG = "catalog"
     DAG_STATIC = "dag_static"
     ANNOTATION = "annotation"
+    DAGSTER_DEFS = "dagster_defs"
 
 
 class Confidence(str, Enum):
@@ -259,6 +261,25 @@ class AirflowSummary:
     consumers: int = 0  # declared in the annotation file (task 7.4)
 
 
+@dataclass
+class ReaderSummary:
+    """What a reader's last read looked at and found, in the protocol's ``ReaderSummary`` terms
+    (task 8.2). The DAG scan keeps its own ``AirflowSummary``. Not part of a snapshot."""
+
+    tool: str
+    analysed: bool
+    reason: str | None = None  # why not, or why nothing was found
+    paths: tuple[str, ...] = ()  # where it looked: its cleaned setting
+    files: int = 0
+    pipelines: int = 0
+    tasks: int = 0
+    consumers: int = 0
+    links: int = 0
+    unknowns: int = 0
+    opaque_tasks: int = 0
+    problems: tuple[str, ...] = ()
+
+
 class GraphError(ValueError):
     """An operation that would make the graph inconsistent."""
 
@@ -293,12 +314,13 @@ class MetadataGraph:
         # edges of its columns only; any other is impacted when any column of what it reads is.
         self.consumer_lineage: dict[str, ColumnLineageStatus] = {}
         # What each reader's last scan found, by tool. Not part of a snapshot.
-        self.readers: dict[str, AirflowSummary] = {}
+        self.readers: dict[str, AirflowSummary | ReaderSummary] = {}
 
     @property
     def airflow(self) -> AirflowSummary | None:
         """What the last DAG scan found; None until one has been applied."""
-        return self.readers.get(AIRFLOW)
+        summary = self.readers.get(AIRFLOW)
+        return summary if isinstance(summary, AirflowSummary) else None
 
     @airflow.setter
     def airflow(self, summary: AirflowSummary | None) -> None:

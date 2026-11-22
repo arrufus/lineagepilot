@@ -1,0 +1,174 @@
+{
+  "repo": "flyanakin/CountMoney",
+  "url": "https://github.com/flyanakin/CountMoney",
+  "sha": "9a42c6240fb631df9be035bd2054764ad41f09ac",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "CountMoney_orchestration"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.1.7",
+    "dagster-dbt": "dagster-dbt==0.17.7"
+  },
+  "dbt_projects": [
+    "CountMoney_model"
+  ],
+  "out_of_scope": [
+    {
+      "file": "CountMoney_orchestration/assets/tushare.py",
+      "what": "tushare/* assets, upstream of the dbt source tushare"
+    },
+    {
+      "file": "CountMoney_orchestration/assets/airtable.py",
+      "what": "manual_update/airtable_portfolio, a non-dbt asset feeding the airtable source"
+    },
+    {
+      "file": "CountMoney_orchestration/jobs/daily_push_job.py",
+      "what": "graph jobs portfolio_push_job, performance_push_job, preview_push_job, index_monitor_job: ops that read finished tables; they do not run dbt"
+    },
+    {
+      "file": "CountMoney_orchestration/jobs/demo.py",
+      "what": "op job demo; no dbt"
+    },
+    {
+      "file": "CountMoney_orchestration/sensors/warehouse_sensors.py",
+      "what": "sensors"
+    },
+    {
+      "file": "CountMoney_orchestration/repository.py",
+      "what": "second ScheduleDefinition (index_monitor_job); no dbt"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_assets",
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "name": "dbt_assets",
+      "file": "CountMoney_orchestration/repository.py",
+      "line": 39,
+      "registered_in": "CountMoney_orchestration/repository.py",
+      "project_path": "CountMoney_model",
+      "package": "CountMoney_model",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "int_balance_sheet_latest",
+        "int_daily_basic_index_latest",
+        "int_finance_indicator_quarterly",
+        "int_income_past_year",
+        "int_income_pivoted_to_stock",
+        "int_income_statement_latest",
+        "int_performance",
+        "int_portfolio",
+        "int_preview",
+        "performance",
+        "portfolio",
+        "preview",
+        "stg_airtable_portfolio",
+        "stg_tushare_balance_sheet",
+        "stg_tushare_convertible_bond_basic",
+        "stg_tushare_convertible_bond_daily",
+        "stg_tushare_daily_basic_index",
+        "stg_tushare_express",
+        "stg_tushare_finance_indicator",
+        "stg_tushare_forecast",
+        "stg_tushare_income_statement",
+        "stg_tushare_stock_basic",
+        "stock_picks"
+      ],
+      "other_nodes": [],
+      "reason": "load_assets_from_dbt_project(project_dir=DBT_PROJECT_DIR, profiles_dir=...) inside the @repository, no select: every model. In dagster-dbt 0.17.7 only models are assets unless use_build_command=True; the project has no seeds or snapshots anyway. The name is the local variable it is assigned to."
+    },
+    {
+      "id": "job:daily_assets_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "daily_assets_job",
+      "file": "CountMoney_orchestration/jobs/daily_assets_job.py",
+      "line": 71,
+      "registered_in": "CountMoney_orchestration/repository.py",
+      "project_path": "CountMoney_model",
+      "package": "CountMoney_model",
+      "selection_as_written": "selection=AssetSelection.groups(\"marts\").upstream()",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "int_balance_sheet_latest",
+        "int_daily_basic_index_latest",
+        "int_finance_indicator_quarterly",
+        "int_income_past_year",
+        "int_income_pivoted_to_stock",
+        "int_income_statement_latest",
+        "int_performance",
+        "int_portfolio",
+        "int_preview",
+        "performance",
+        "portfolio",
+        "preview",
+        "stg_airtable_portfolio",
+        "stg_tushare_balance_sheet",
+        "stg_tushare_convertible_bond_basic",
+        "stg_tushare_convertible_bond_daily",
+        "stg_tushare_daily_basic_index",
+        "stg_tushare_express",
+        "stg_tushare_finance_indicator",
+        "stg_tushare_forecast",
+        "stg_tushare_income_statement",
+        "stg_tushare_stock_basic",
+        "stock_picks"
+      ],
+      "other_nodes": [],
+      "reason": "In dagster-dbt 0.17.7 a dbt asset's default group is fqn[1], its first folder under models/, so group marts is the four models in models/marts; .upstream() adds every ancestor, which here is every other model (and the tushare assets). Resolved in the @repository against the dbt and tushare assets."
+    },
+    {
+      "id": "schedule:daily_assets_job_schedule",
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "name": "daily_assets_job_schedule",
+      "file": "CountMoney_orchestration/repository.py",
+      "line": 83,
+      "registered_in": "CountMoney_orchestration/repository.py",
+      "project_path": "CountMoney_model",
+      "package": "CountMoney_model",
+      "selection_as_written": "job=daily_assets_job_resolved",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "int_balance_sheet_latest",
+        "int_daily_basic_index_latest",
+        "int_finance_indicator_quarterly",
+        "int_income_past_year",
+        "int_income_pivoted_to_stock",
+        "int_income_statement_latest",
+        "int_performance",
+        "int_portfolio",
+        "int_preview",
+        "performance",
+        "portfolio",
+        "preview",
+        "stg_airtable_portfolio",
+        "stg_tushare_balance_sheet",
+        "stg_tushare_convertible_bond_basic",
+        "stg_tushare_convertible_bond_daily",
+        "stg_tushare_daily_basic_index",
+        "stg_tushare_express",
+        "stg_tushare_finance_indicator",
+        "stg_tushare_forecast",
+        "stg_tushare_income_statement",
+        "stg_tushare_stock_basic",
+        "stock_picks"
+      ],
+      "other_nodes": [],
+      "reason": "First ScheduleDefinition in the @repository (no name=, so Dagster names it daily_assets_job_schedule) runs daily_assets_job."
+    }
+  ]
+}

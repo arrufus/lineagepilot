@@ -104,11 +104,21 @@ class TestWatch:
 class TestOptions:
     def test_every_reader_gets_its_defaults(self, fake):
         options = Options.from_json({})
-        assert options.reader_paths == {"airflow": ["**/dags"], "fake": ["pipelines"]}
+        assert options.reader_paths == {
+            "airflow": ["**/dags"],
+            "dagster": ["."],
+            "fake": ["pipelines"],
+        }
 
     def test_each_reader_has_its_own_option(self, fake):
-        options = Options.from_json({"dagFolders": ["orchestration"], "fakePaths": ["x", 3]})
-        assert options.reader_paths == {"airflow": ["orchestration"], "fake": ["x"]}
+        options = Options.from_json(
+            {"dagFolders": ["orchestration"], "dagsterPaths": ["defs"], "fakePaths": ["x", 3]}
+        )
+        assert options.reader_paths == {
+            "airflow": ["orchestration"],
+            "dagster": ["defs"],
+            "fake": ["x"],
+        }
 
     def test_a_malformed_option_keeps_the_default(self, fake):
         assert Options.from_json({"fakePaths": "x"}).reader_paths["fake"] == ["pipelines"]

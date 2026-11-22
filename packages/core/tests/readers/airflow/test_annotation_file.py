@@ -132,10 +132,14 @@ class TestTools:
             f"""
             pipelines:
               - pipeline_id: nightly
-                tool: dagster
+                tool: dlt
                 tasks:
                   - {{task_id: a, consumes: [{ORDERS}]}}
                   - {{task_id: b, consumes: [{ORDERS}]}}
+              - pipeline_id: orch
+                tool: dagster
+                tasks:
+                  - {{task_id: c, consumes: [{ORDERS}]}}
               - pipeline_id: loader
                 tool: airflow
                 tasks:
@@ -146,10 +150,10 @@ class TestTools:
         assert [t["task"] for t in scan["annotations"]["tasks"]] == ["load"]
         assert scan["annotations"]["tasks"][0]["tool"] == "airflow"
         assert "airflow:loader.load" in graph.nodes
-        assert not any(n.startswith("dagster:") for n in graph.nodes)
-        assert "2 tasks with tool dagster: no reader for dagster yet; ignored" in (
-            graph.airflow.problems
-        )
+        assert not any(n.startswith(("dagster:", "dlt:")) for n in graph.nodes)
+        assert "2 tasks with tool dlt: no reader for dlt yet; ignored" in graph.airflow.problems
+        # Dagster has a reader, which links its own (task 8.8)
+        assert not any("dagster" in problem for problem in graph.airflow.problems)
 
 
 class TestConsumers:

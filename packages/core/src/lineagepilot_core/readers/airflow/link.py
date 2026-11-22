@@ -43,6 +43,8 @@ from lineagepilot_core.readers.common.declared import link_declared, unlink_decl
 from lineagepilot_core.readers.common.references import References
 
 AIRFLOW_ORIGINS = frozenset({Origin.DAG_STATIC, Origin.ANNOTATION})
+# The node IDs of readers that link their own tasks from the annotation file
+OTHER_READERS = ("dagster:",)
 _NOTES_KEPT = 8
 # A longer ID would not fit the protocol, and nobody names a DAG or task like this but on purpose
 MAX_NAME = 1000
@@ -59,8 +61,16 @@ def unlink_airflow(graph: MetadataGraph) -> None:
     for node_id in [n.id for n in graph.nodes.values() if is_airflow(n)]:
         graph.remove_node(node_id)
     unlink_declared(graph)
-    graph.unresolved = [u for u in graph.unresolved if u.evidence.origin not in AIRFLOW_ORIGINS]
+    graph.unresolved = [u for u in graph.unresolved if not _airflow_unknown(u)]
     graph.airflow = None
+
+
+def _airflow_unknown(unknown: Unresolved) -> bool:
+    """One of this reader's: from the DAG scan, or from the annotation file about anything but
+    another reader's node, such as a Dagster task the Dagster linker declared (task 8.8)."""
+    if unknown.evidence.origin is Origin.ANNOTATION:
+        return not unknown.subject.startswith(OTHER_READERS)
+    return unknown.evidence.origin in AIRFLOW_ORIGINS
 
 
 def mark_not_analysed(graph: MetadataGraph, reason: str) -> None:

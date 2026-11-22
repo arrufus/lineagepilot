@@ -1,0 +1,532 @@
+{
+  "repo": "DevelopmentFinanceObservatory/pipelines",
+  "url": "https://github.com/DevelopmentFinanceObservatory/pipelines",
+  "sha": "d7891ba3d5781015ce9d505ccfe6abca4478094a",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "src/dfo_pipelines"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.13.10",
+    "dagster-dbt": "dagster-dbt>=0.29.10"
+  },
+  "dbt_projects": [
+    "dbt"
+  ],
+  "out_of_scope": [
+    {
+      "file": "src/dfo_pipelines/orchestration/landing.py",
+      "what": "landing assets built for each pipeline, upstream of dbt"
+    },
+    {
+      "file": "src/dfo_pipelines/orchestration/raw_tables.py",
+      "what": "raw table multi-assets built for each pipeline, upstream of the dbt sources"
+    },
+    {
+      "file": "src/dfo_pipelines/orchestration/dc_ingestion.py",
+      "what": "*_dc_ingestion assets: depend on export and ingestion assets, not on dbt assets"
+    },
+    {
+      "file": "src/dfo_pipelines/defs/dfo/ontology/assets.py",
+      "what": "dfo_ontology_landing, dfo_ontology_raw_code_mapping_table (upstream of dbt), dfo_ontology_dc_export: no dbt dependency"
+    },
+    {
+      "file": "src/dfo_pipelines/defs/dfo/skills/assets.py",
+      "what": "skills source, landing and export assets: no dbt dependency"
+    },
+    {
+      "file": "src/dfo_pipelines/defs/sensors.py",
+      "what": "automation_condition_sensor"
+    },
+    {
+      "file": "src/dfo_pipelines/orchestration/automation.py",
+      "what": "automation conditions (also used by the component's translation)"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_ingest",
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "name": "dbt_ingest",
+      "file": "src/dfo_pipelines/defs/dbt_ingest/defs.yaml",
+      "line": 2,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "code_mapping",
+        "dc_conversion_tables_dac_observations",
+        "dc_conversion_tables_dac_provenance",
+        "dc_conversion_tables_dac_statvars",
+        "dc_conversion_tables_imf_observations",
+        "dc_conversion_tables_imf_provenance",
+        "dc_conversion_tables_imf_statvars",
+        "dc_dac1_donor_observations",
+        "dc_dac1_flow_observations",
+        "dc_dac1_provenance",
+        "dc_dac1_statvars",
+        "dc_dac2a_observations",
+        "dc_dac2a_provenance",
+        "dc_dac2a_statvars",
+        "dc_dac2b_observations",
+        "dc_dac2b_provenance",
+        "dc_dac2b_statvars",
+        "dc_dac_crs_observations",
+        "dc_dac_crs_provenance",
+        "dc_dac_crs_statvars",
+        "dc_ids_debt_observations",
+        "dc_ids_economy_observations",
+        "dc_ids_provenance",
+        "dc_ids_statvars",
+        "dc_imputed_multilateral_sectors_observations",
+        "dc_imputed_multilateral_sectors_provenance",
+        "dc_imputed_multilateral_sectors_statvars",
+        "dc_oecd_crdf_observations",
+        "dc_oecd_crdf_provenance",
+        "dc_oecd_crdf_statvars",
+        "dc_one_climate_finance_observations",
+        "dc_one_climate_finance_provenance",
+        "dc_one_climate_finance_statvars",
+        "dc_unfccc_btr_observations",
+        "dc_unfccc_btr_provenance",
+        "dc_unfccc_btr_statvars",
+        "dc_weo_observations",
+        "dc_weo_provenance",
+        "dc_weo_statvars",
+        "int_climate_finance_aggregated",
+        "int_climate_finance_btr_totals_resolved",
+        "int_climate_finance_crdf_commitments_resolved",
+        "int_climate_finance_mapped",
+        "int_climate_finance_spending_resolved",
+        "int_climate_finance_statvars",
+        "int_conversion_tables_dac1_resolved",
+        "int_conversion_tables_dac1_series",
+        "int_conversion_tables_dac_deflators",
+        "int_conversion_tables_dac_deflators_unrebased",
+        "int_conversion_tables_dac_observations",
+        "int_conversion_tables_dac_rate_agreement",
+        "int_conversion_tables_dac_rate_band",
+        "int_conversion_tables_dac_rate_members",
+        "int_conversion_tables_dac_rate_references",
+        "int_conversion_tables_dac_rates",
+        "int_conversion_tables_imf_deflators",
+        "int_conversion_tables_imf_deflators_unrebased",
+        "int_conversion_tables_imf_observations",
+        "int_conversion_tables_imf_rate_agreement",
+        "int_conversion_tables_imf_rate_members",
+        "int_conversion_tables_imf_rate_references",
+        "int_conversion_tables_imf_rates",
+        "int_conversion_tables_statvars",
+        "int_conversion_tables_weo_series",
+        "int_dac1_mapped",
+        "int_dac1_resolved",
+        "int_dac1_unified",
+        "int_dac2a_mapped",
+        "int_dac2a_resolved",
+        "int_dac2a_unified",
+        "int_dac2b_mapped",
+        "int_dac2b_resolved",
+        "int_dac2b_unified",
+        "int_dac_crs_mapped",
+        "int_dac_crs_resolved",
+        "int_dac_crs_unified",
+        "int_ids_mapped",
+        "int_ids_observations",
+        "int_ids_pruned",
+        "int_ids_resolved",
+        "int_ids_unified",
+        "int_imputed_multilateral_sectors_aggregated",
+        "int_imputed_multilateral_sectors_mapped",
+        "int_imputed_multilateral_sectors_resolved",
+        "int_weo_dollar_countries",
+        "int_weo_dollar_twins",
+        "int_weo_mapped",
+        "int_weo_resolved",
+        "int_weo_unified",
+        "stg_climate_finance_btr_totals",
+        "stg_climate_finance_crdf_commitments",
+        "stg_climate_finance_spending",
+        "stg_dac1",
+        "stg_dac2a",
+        "stg_dac2b",
+        "stg_dac_crs",
+        "stg_ids",
+        "stg_imputed_multilateral_sectors",
+        "stg_weo"
+      ],
+      "other_nodes": [
+        "seed.climate_finance_methods",
+        "seed.currency_rate_reference",
+        "seed.dac1_indicator_mapping",
+        "seed.dac2a_indicator_mapping",
+        "seed.dac2b_indicator_mapping",
+        "seed.dac_agency_codelist",
+        "seed.dac_aid_t_codelist",
+        "seed.dac_category_codelist",
+        "seed.dac_donor_code_codelist",
+        "seed.dac_finance_t_codelist",
+        "seed.dac_purpose_code_codelist",
+        "seed.dac_recipient_code_codelist",
+        "seed.ids_code_mapping",
+        "seed.ids_measure_mapping",
+        "seed.ids_unit_mapping",
+        "seed.interim_code_mapping",
+        "seed.license_types",
+        "seed.properties",
+        "seed.stat_type_mapping",
+        "seed.unfccc_source",
+        "seed.weo_currency_mapping",
+        "seed.weo_extra_statvars",
+        "seed.weo_indicator_mapping",
+        "seed.weo_source",
+        "seed.weo_staged_indicators"
+      ],
+      "reason": "DbtProjectComponent with no select: fqn:* gives every model and every seed; no model is ephemeral or disabled, no snapshots. The installed packages (dbt_utils, dbt_expectations) have no models. Loaded by load_from_defs_folder."
+    },
+    {
+      "id": "asset:imf_weo_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "imf_weo_dc_export",
+      "file": "src/dfo_pipelines/defs/imf/weo/assets.py",
+      "line": 144,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_weo_observations",
+        "dc_weo_provenance",
+        "dc_weo_statvars"
+      ],
+      "other_nodes": [
+        "seed.weo_source"
+      ],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: imf_weo.dc_weo_provenance, imf_weo.dc_weo_statvars, imf_weo.dc_weo_observations, imf_weo.weo_source; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. imf_weo.weo_source is a seed."
+    },
+    {
+      "id": "asset:oecd_dac1_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "oecd_dac1_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac1/assets.py",
+      "line": 127,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_dac1_donor_observations",
+        "dc_dac1_flow_observations",
+        "dc_dac1_provenance",
+        "dc_dac1_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: oecd_dac1.dc_dac1_provenance, oecd_dac1.dc_dac1_statvars, oecd_dac1.dc_dac1_flow_observations, oecd_dac1.dc_dac1_donor_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:oecd_dac2a_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "oecd_dac2a_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac2a/assets.py",
+      "line": 121,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_dac2a_observations",
+        "dc_dac2a_provenance",
+        "dc_dac2a_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: oecd_dac2a.dc_dac2a_provenance, oecd_dac2a.dc_dac2a_statvars, oecd_dac2a.dc_dac2a_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:oecd_dac2b_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "oecd_dac2b_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac2b/assets.py",
+      "line": 119,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_dac2b_observations",
+        "dc_dac2b_provenance",
+        "dc_dac2b_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: oecd_dac2b.dc_dac2b_provenance, oecd_dac2b.dc_dac2b_statvars, oecd_dac2b.dc_dac2b_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:oecd_dac_crs_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "oecd_dac_crs_dc_export",
+      "file": "src/dfo_pipelines/defs/oecd/dac_crs/assets.py",
+      "line": 141,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_dac_crs_observations",
+        "dc_dac_crs_provenance",
+        "dc_dac_crs_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: oecd_dac_crs.dc_dac_crs_provenance, oecd_dac_crs.dc_dac_crs_statvars, oecd_dac_crs.dc_dac_crs_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:world_bank_ids_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "world_bank_ids_dc_export",
+      "file": "src/dfo_pipelines/defs/world_bank/ids/assets.py",
+      "line": 311,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_ids_debt_observations",
+        "dc_ids_economy_observations",
+        "dc_ids_provenance",
+        "dc_ids_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: world_bank_ids.dc_ids_provenance, world_bank_ids.dc_ids_statvars, world_bank_ids.dc_ids_debt_observations, world_bank_ids.dc_ids_economy_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:one_climate_finance_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "one_climate_finance_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 273,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_one_climate_finance_observations",
+        "dc_one_climate_finance_provenance",
+        "dc_one_climate_finance_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_climate_finance.dc_one_climate_finance_provenance, one_climate_finance.dc_one_climate_finance_statvars, one_climate_finance.dc_one_climate_finance_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. The spec comes from _export_spec(dataset='one_climate_finance'), which names dc_<dataset>_* in schema one_climate_finance."
+    },
+    {
+      "id": "asset:oecd_crdf_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "oecd_crdf_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 278,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_oecd_crdf_observations",
+        "dc_oecd_crdf_provenance",
+        "dc_oecd_crdf_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_climate_finance.dc_oecd_crdf_provenance, one_climate_finance.dc_oecd_crdf_statvars, one_climate_finance.dc_oecd_crdf_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. The spec comes from _export_spec(dataset='oecd_crdf')."
+    },
+    {
+      "id": "asset:unfccc_btr_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "unfccc_btr_dc_export",
+      "file": "src/dfo_pipelines/defs/one/climate_finance/assets.py",
+      "line": 283,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_unfccc_btr_observations",
+        "dc_unfccc_btr_provenance",
+        "dc_unfccc_btr_statvars"
+      ],
+      "other_nodes": [
+        "seed.unfccc_source"
+      ],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_climate_finance.dc_unfccc_btr_provenance, one_climate_finance.dc_unfccc_btr_statvars, one_climate_finance.dc_unfccc_btr_observations, one_climate_finance.unfccc_source; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. The spec comes from _export_spec(dataset='unfccc_btr', source_model=f'{SCHEMA}.unfccc_source'); unfccc_source is a seed."
+    },
+    {
+      "id": "asset:one_conversion_tables_dac_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "one_conversion_tables_dac_dc_export",
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 76,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps",
+        "deps=_diagnostic_keys(table=\"dac\")"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_conversion_tables_dac_observations",
+        "dc_conversion_tables_dac_provenance",
+        "dc_conversion_tables_dac_statvars",
+        "int_conversion_tables_dac_rate_agreement",
+        "int_conversion_tables_dac_rate_band",
+        "int_conversion_tables_imf_rate_agreement"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_conversion_tables.dc_conversion_tables_dac_provenance, one_conversion_tables.dc_conversion_tables_dac_statvars, one_conversion_tables.dc_conversion_tables_dac_observations, one_conversion_tables.int_conversion_tables_dac_rate_agreement, one_conversion_tables.int_conversion_tables_dac_rate_band, one_conversion_tables.int_conversion_tables_imf_rate_agreement; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. The spec comes from _export_spec(table='dac'); the call adds deps=_diagnostic_keys(table='dac'), the three int_conversion_tables_* rate diagnostics in RATE_DIAGNOSTICS['dac']."
+    },
+    {
+      "id": "asset:one_conversion_tables_imf_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "one_conversion_tables_imf_dc_export",
+      "file": "src/dfo_pipelines/defs/one/conversion_tables/assets.py",
+      "line": 82,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps",
+        "deps=_diagnostic_keys(table=\"imf\")"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_conversion_tables_imf_observations",
+        "dc_conversion_tables_imf_provenance",
+        "dc_conversion_tables_imf_statvars",
+        "int_conversion_tables_imf_rate_agreement"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_conversion_tables.dc_conversion_tables_imf_provenance, one_conversion_tables.dc_conversion_tables_imf_statvars, one_conversion_tables.dc_conversion_tables_imf_observations, one_conversion_tables.int_conversion_tables_imf_rate_agreement; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml. The spec comes from _export_spec(table='imf'); deps=_diagnostic_keys(table='imf') adds int_conversion_tables_imf_rate_agreement."
+    },
+    {
+      "id": "asset:one_imputed_multilateral_sectors_dc_export",
+      "unit": "asset",
+      "api": "@asset deps (factory build_dc_export_asset)",
+      "name": "one_imputed_multilateral_sectors_dc_export",
+      "file": "src/dfo_pipelines/defs/one/imputed_multilateral_sectors/assets.py",
+      "line": 435,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "*(dg.AssetKey(model.split(\".\")) for model in models)",
+        "*deps"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "dc_imputed_multilateral_sectors_observations",
+        "dc_imputed_multilateral_sectors_provenance",
+        "dc_imputed_multilateral_sectors_statvars"
+      ],
+      "other_nodes": [],
+      "reason": "The factory build_dc_export_asset (src/dfo_pipelines/orchestration/dc_export.py, @dg.asset at line 49) gives deps AssetKey(model.split('.')) for the spec's provenance_model, statvar_model, each observation input's model and source_model when set. Keys here: one_imputed_multilateral_sectors.dc_imputed_multilateral_sectors_provenance, one_imputed_multilateral_sectors.dc_imputed_multilateral_sectors_statvars, one_imputed_multilateral_sectors.dc_imputed_multilateral_sectors_observations; the default dbt key is [schema, name] and each folder sets +schema in dbt_project.yml."
+    },
+    {
+      "id": "asset:dfo_shared_dc_export",
+      "unit": "asset",
+      "api": "@asset deps",
+      "name": "dfo_shared_dc_export",
+      "file": "src/dfo_pipelines/defs/dfo/shared/assets.py",
+      "line": 18,
+      "registered_in": "src/dfo_pipelines/definitions.py",
+      "project_path": "dbt",
+      "package": "dfo_pipelines",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "dg.AssetKey(LICENSE_TYPES_SEED.split(\".\"))",
+        "dg.AssetKey(PROPERTIES_SEED.split(\".\"))"
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [],
+      "other_nodes": [
+        "seed.license_types",
+        "seed.properties"
+      ],
+      "reason": "deps on the keys dfo_shared/license_types and dfo_shared/properties, two dbt seeds (seeds/dfo/shared, +schema dfo_shared). No models."
+    }
+  ]
+}

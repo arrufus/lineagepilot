@@ -1,0 +1,67 @@
+{
+  "repo": "nchiht/brazilian_ecommerce_data_platform",
+  "url": "https://github.com/nchiht/brazilian_ecommerce_data_platform",
+  "sha": "08fe1350482b6a289294ec5ea691f625c800bbcd",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "etl_pipeline/etl_pipeline"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.7.5",
+    "dagster-dbt": "dagster-dbt==0.23.5"
+  },
+  "dbt_projects": [
+    "etl_pipeline/brazilian_ecom"
+  ],
+  "out_of_scope": [
+    {
+      "file": "etl_pipeline/etl_pipeline/assets/warehouse.py",
+      "what": "warehouse/fact_sales, warehouse/dim_products, warehouse/dim_sellers, warehouse/dim_customers: non-dbt assets upstream of dbt (the asset keys named in the warehouse source's meta.dagster.asset_key)"
+    },
+    {
+      "file": "etl_pipeline/etl_pipeline/assets/bronze_layer.py",
+      "what": "bronze assets, upstream of the warehouse assets; no dbt"
+    },
+    {
+      "file": "etl_pipeline/etl_pipeline/assets/silver_layer.py",
+      "what": "silver assets, upstream of the warehouse assets; no dbt"
+    },
+    {
+      "file": "etl_pipeline/etl_pipeline/assets/gold_layer.py",
+      "what": "gold assets, left out of load_assets_from_modules (commented out); no dbt"
+    },
+    {
+      "file": "etl_pipeline/etl_pipeline/assets/partitioning.py",
+      "what": "partitioned assets in a module no Definitions loads; no dbt"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_assets",
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "name": "dbt_assets",
+      "file": "etl_pipeline/etl_pipeline/assets/dbt_assets.py",
+      "line": 7,
+      "registered_in": "etl_pipeline/etl_pipeline/__init__.py",
+      "project_path": "etl_pipeline/brazilian_ecom",
+      "package": "brazilian_ecom",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "comparison_between_2017_2018",
+        "customers_locations",
+        "sales_values_by_category",
+        "sellers_location"
+      ],
+      "other_nodes": [],
+      "reason": "@dbt_assets(manifest=...) with no select or exclude: the default fqn:* takes every model of the only project (models/analytics). Registered through load_assets_from_modules([..., dbt_assets]) in __init__.py. The manifest (target/manifest.json) is not committed, so the set comes from the project files. No seeds or snapshots (only .gitkeep)."
+    }
+  ]
+}

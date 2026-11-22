@@ -1,0 +1,124 @@
+{
+  "repo": "srdp-hub/srdp",
+  "url": "https://github.com/srdp-hub/srdp",
+  "sha": "8b477b7f4db63661419a0761dfac01e13a7d43ce",
+  "license": "MPL-2.0",
+  "scan": {
+    "paths": [
+      "projects/cbs-example/src/etl"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster>=1.12.17",
+    "dagster-dbt": "dagster-dbt>=0.29.20"
+  },
+  "dbt_projects": [
+    "projects/cbs-example/dbt"
+  ],
+  "out_of_scope": [
+    {
+      "file": "projects/cbs-example/src/etl/assets/example.py",
+      "what": "raw_population (upstream of the dbt source ducklake_main.raw_population, mapped by the translator) and other Polars assets; none depends on a dbt asset"
+    },
+    {
+      "file": "projects/cbs-example/src/etl/assets/enrichment.py",
+      "what": "income_by_province, population_enriched: Polars assets, no dbt"
+    },
+    {
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "what": "enrichment_job and executive_summary_job: no dbt assets"
+    },
+    {
+      "file": "projects/cbs-example/src/etl/sensors.py",
+      "what": "openlineage_sensor"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:cbs_dbt_assets",
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "name": "cbs_dbt_assets",
+      "file": "projects/cbs-example/src/etl/assets/dbt_assets.py",
+      "line": 39,
+      "registered_in": "projects/cbs-example/src/etl/definitions.py",
+      "project_path": "projects/cbs-example/dbt",
+      "package": "cbs_example",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "population_by_province_dbt",
+        "stg_population"
+      ],
+      "other_nodes": [],
+      "reason": "@dbt_assets(manifest=cbs_dbt_project.manifest_path, dagster_dbt_translator=CbsDbtTranslator()) with no select: both models. The translator changes only a source's key."
+    },
+    {
+      "id": "job:srdp_etl_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "srdp_etl_job",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 27,
+      "registered_in": "projects/cbs-example/src/etl/definitions.py",
+      "project_path": "projects/cbs-example/dbt",
+      "package": "cbs_example",
+      "selection_as_written": "selection=[raw_population, population_by_province, population_by_age_group, top_province, executive_summary, cbs_dbt_assets]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "population_by_province_dbt",
+        "stg_population"
+      ],
+      "other_nodes": [],
+      "reason": "The list includes the whole cbs_dbt_assets definition."
+    },
+    {
+      "id": "job:srdp_etl_backfill_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "srdp_etl_backfill_job",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 72,
+      "registered_in": "projects/cbs-example/src/etl/definitions.py",
+      "project_path": "projects/cbs-example/dbt",
+      "package": "cbs_example",
+      "selection_as_written": "selection=[raw_population, population_by_province, population_by_age_group, top_province, executive_summary, cbs_dbt_assets]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "population_by_province_dbt",
+        "stg_population"
+      ],
+      "other_nodes": [],
+      "reason": "The same selection as srdp_etl_job."
+    },
+    {
+      "id": "schedule:srdp_etl_job_schedule",
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "name": "srdp_etl_job_schedule",
+      "file": "projects/cbs-example/src/etl/definitions.py",
+      "line": 94,
+      "registered_in": "projects/cbs-example/src/etl/definitions.py",
+      "project_path": "projects/cbs-example/dbt",
+      "package": "cbs_example",
+      "selection_as_written": "job=srdp_etl_job",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "population_by_province_dbt",
+        "stg_population"
+      ],
+      "other_nodes": [],
+      "reason": "etl_schedule (no name=, so Dagster names it srdp_etl_job_schedule) runs srdp_etl_job."
+    }
+  ]
+}

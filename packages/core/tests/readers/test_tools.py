@@ -7,6 +7,7 @@ from lineagepilot_core.readers.registry import READERS
 from lineagepilot_core.readers.tools import (
     TOOL_LABELS,
     counted,
+    group_word,
     pipeline_word,
     tool_label,
     tool_of_id,
@@ -27,6 +28,15 @@ def test_names():
 def test_pipeline_words():
     assert (pipeline_word("airflow", 1), pipeline_word("airflow", 3)) == ("DAG", "DAGs")
     assert (pipeline_word("dagster", 1), pipeline_word(None, 0)) == ("pipeline", "pipelines")
+
+
+def test_the_review_groups_dagster_by_code_location():
+    """Its jobs and schedules are pipelines, so CodeLens still counts them as such (task 8.9)."""
+    assert (group_word("dagster", 1), group_word("dagster", 2)) == (
+        "code location",
+        "code locations",
+    )
+    assert (group_word("airflow", 2), group_word(None, 1)) == ("DAGs", "pipeline")
 
 
 def test_counted_by_kind_and_tool():

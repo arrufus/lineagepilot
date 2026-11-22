@@ -1,0 +1,50 @@
+{
+  "repo": "airbytehq/open-data-stack",
+  "url": "https://github.com/airbytehq/open-data-stack",
+  "sha": "132ad818bcc89619c4e69bd1599d4d1c27f91943",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "dagster/stargazer/assets_modern_data_stack"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster",
+    "dagster-dbt": "dagster-dbt"
+  },
+  "dbt_projects": [
+    "dagster/stargazer/transformation_dbt",
+    "transformation_dbt"
+  ],
+  "out_of_scope": [
+    {
+      "file": "dagster/stargazer/assets_modern_data_stack/assets/stargazer.py",
+      "what": "airbyte_assets (load_assets_from_connections), upstream of the dbt sources"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_assets",
+      "unit": "dbt_assets",
+      "api": "load_assets_from_dbt_project",
+      "name": "dbt_assets",
+      "file": "dagster/stargazer/assets_modern_data_stack/assets/stargazer.py",
+      "line": 148,
+      "registered_in": "dagster/stargazer/assets_modern_data_stack/repository.py",
+      "project_path": "dagster/stargazer/transformation_dbt",
+      "package": "stargazers",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "mart_gh_cumulative",
+        "mart_gh_stargazer"
+      ],
+      "other_nodes": [],
+      "reason": "load_assets_from_dbt_project(project_dir=DBT_PROJECT_DIR, ...) with no select: every model. DBT_PROJECT_DIR is file_relative_path(utils/constants.py, '../../transformation_dbt'), the project under dagster/stargazer, not the one at the root (which no Dagster code loads). Registered in the @repository with with_resources. No seeds or snapshots."
+    }
+  ]
+}

@@ -3,7 +3,7 @@
 import { strict as assert } from 'assert';
 
 import {
-  kindKey, kindLabel, pipelineWord, subkindLabel, toolLabel, toolOfId, withoutTool,
+  groupWord, kindKey, kindLabel, pipelineWord, subkindLabel, toolLabel, toolOfId, withoutTool,
 } from '../../src/kinds';
 import { DEFAULT_SETTINGS, HostMessage, ViewSettings, WebviewMessage } from '../../src/webviewMessages';
 import { edgeLabel, nodeLabel, plural, transformationLabel } from '../src/labels';
@@ -63,6 +63,9 @@ suite('kinds and tools (task 7.6)', () => {
     assert.equal(kindLabel({ kind: 'pipeline', tool: 'airflow', subkind: 'dag' }), 'Airflow DAG');
     assert.equal(kindLabel({ kind: 'pipeline', tool: 'airflow' }), 'Airflow DAG');
     assert.equal(kindLabel({ kind: 'pipeline', tool: 'dagster' }), 'Dagster pipeline');
+    // The review groups Dagster's rows by code location (task 8.9)
+    assert.deepEqual([groupWord('dagster', 1), groupWord('dagster', 2), groupWord('airflow', 1)], ['code location', 'code locations', 'DAG']);
+    assert.equal(kindLabel({ kind: 'pipeline', tool: 'dagster', subkind: 'job' }), 'Dagster job');
     assert.equal(kindLabel({ kind: 'consumer', tool: 'dbt_semantic', subkind: 'metric' }), 'dbt semantic layer metric');
     assert.equal(kindLabel({ kind: 'consumer', tool: 'looker' }), 'Looker consumer');
     assert.equal(kindLabel({ kind: 'task', tool: null }), 'task');

@@ -1,0 +1,51 @@
+{
+  "repo": "mateo-velez/dbt-gcp-dagster-etl-pipeline",
+  "url": "https://github.com/mateo-velez/dbt-gcp-dagster-etl-pipeline",
+  "sha": "993a316278efc01bbbf16aa53562ce907bf08742",
+  "license": "none found (read as data only)",
+  "scan": {
+    "paths": [
+      "orch/orch"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster",
+    "dagster-dbt": "dagster-dbt"
+  },
+  "dbt_projects": [
+    "orch/dbt_assets"
+  ],
+  "out_of_scope": [
+    {
+      "file": "orch/orch/assets/albion.py",
+      "what": "albion_api_historical_prices, inc_albion_api_market_price, full_albion_dump_market_price: non-dbt assets upstream of dbt (the last two are the staging source's meta.dagster.asset_key)"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:dbt_assets",
+      "unit": "dbt_assets",
+      "api": "@dbt_assets",
+      "name": "dbt_assets",
+      "file": "orch/orch/assets/dbt.py",
+      "line": 5,
+      "registered_in": "orch/orch/__init__.py",
+      "project_path": "orch/dbt_assets",
+      "package": "dbt_assets",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "inc_albion_union_all_market_price"
+      ],
+      "other_nodes": [
+        "seed.full_albion_src_items",
+        "seed.full_albion_src_world"
+      ],
+      "reason": "@dbt_assets(manifest='dbt_assets/target/manifest.json') with no select: fqn:* gives the one model and the two seeds (seeds are dbt assets too). The body appends a run-time tag 'dbt_args' to the build command, which changes a run, not the definition. Manifest not committed; set from project files."
+    }
+  ]
+}

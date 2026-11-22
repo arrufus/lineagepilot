@@ -21,6 +21,8 @@ from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
 from lineagepilot_core.readers.airflow.link import link_airflow
 from lineagepilot_core.readers.airflow.scan import scan_airflow
+from lineagepilot_core.readers.dagster.link import link_dagster
+from lineagepilot_core.readers.dagster.scan import scan_dagster
 
 GOLDEN = Path(__file__).parents[1] / "fixtures" / "review" / "rename-order-total.md"
 BASE = BaseRef("origin/main", "0123456789abcdef0123456789abcdef01234567")
@@ -35,7 +37,7 @@ FILES = [
 
 @pytest.fixture
 def root(tmp_path):
-    root = copy_impact_shop(tmp_path / "impact_shop")
+    root = copy_impact_shop(tmp_path / "impact_shop", dagster=True)
     apply_rename(root)
     return root
 
@@ -43,6 +45,7 @@ def root(tmp_path):
 def render(root, files=FILES, **kwargs):
     graph = index_project(root).graph
     link_airflow(graph, scan_airflow(root, root))
+    link_dagster(graph, scan_dagster(root, root, ["."]))
     return review_changes(graph, files, read_project(root), base=BASE, outside_project=2, **kwargs)[
         "markdown"
     ]
@@ -64,6 +67,8 @@ import sys
 from pathlib import Path
 from lineagepilot_core.readers.airflow.link import link_airflow
 from lineagepilot_core.readers.airflow.scan import scan_airflow
+from lineagepilot_core.readers.dagster.link import link_dagster
+from lineagepilot_core.readers.dagster.scan import scan_dagster
 from lineagepilot_core.analysis.review import BaseRef, ChangedFile, FileStatus, review_changes
 from lineagepilot_core.indexer import index_project
 from lineagepilot_core.project import read_project
@@ -71,6 +76,7 @@ root = Path(sys.argv[1])
 files = [ChangedFile(p, FileStatus.MODIFIED) for p in sys.argv[2:]]
 graph = index_project(root).graph
 link_airflow(graph, scan_airflow(root, root))
+link_dagster(graph, scan_dagster(root, root, ["."]))
 sys.stdout.buffer.write(review_changes(graph, files, read_project(root))["markdown"].encode())
 """
 
@@ -268,7 +274,8 @@ def assert_safe(markdown: str) -> None:
         assert "](" not in outside.replace("\\]", ""), line
         if line.startswith("|"):
             header = line.startswith("|---")
-            assert header or len(split_cells(line)) in (2, 5), line
+            # Owners, impact, and pipeline tables
+            assert header or len(split_cells(line)) in (2, 5, 6), line
 
 
 @given(st.text(min_size=1, max_size=40))
@@ -350,6 +357,24 @@ def test_an_impossibly_long_review_is_still_cut_to_the_limit():
 )  # fmt: skip
 def test_each_section_says_something_when_empty_or_missing(change, expected):
     assert expected in render_markdown(minimal(**change))
+
+
+def test_every_origin_has_words():
+    from lineagepilot_core.export import review_markdown
+    from lineagepilot_core.graph.model import Origin
+
+    assert set(review_markdown._ORIGINS) == {o.value for o in Origin}
+
+
+def test_a_reader_that_found_none_of_its_files_says_nothing():
+    """A review of a project with no Dagster is as it was before task 8.2: a reader with nothing
+    to report has no part, while one that was not analysed still says why."""
+    nothing = reader("dagster", analysed=True, files=0)
+    assert "Dagster" not in render_markdown(minimal(pipelines=[reader(files=3), nothing]))
+    some = render_markdown(minimal(pipelines=[reader("dagster", files=2)]))
+    assert "#### Dagster\n\nNo task in the 2 pipeline files read" in some
+    not_read = render_markdown(minimal(pipelines=[reader("dagster", analysed=False, reason="x")]))
+    assert "Dagster\n\nNot analysed: x." in not_read
 
 
 def test_a_column_change_is_spelled_out():
@@ -507,7 +532,7 @@ def test_every_section_in_the_design_s_order():
         "#### Semantic layer (1)",
         "### Pipelines",
         "#### Airflow (1 task in 1 DAG)",
-        "#### Dagster (1 task in 1 pipeline)",
+        "#### Dagster (1 task in 1 code location)",
         "### Consumers",
         "#### Looker (1)",
         "#### Power BI",
@@ -562,6 +587,92 @@ def test_the_longest_part_is_cut_first():
     # The models are cut until the review fits; the shorter exposures table keeps every row
     assert re.search(r"\.\.\.and \d+ more models\.", markdown)
     assert "more exposures" not in markdown and "`e79`" in markdown
+
+
+def dagster(subkind, name, kind="task", location="loc", **detail):
+    """A Dagster row of the reader's: a definition, job, schedule or asset in a code location."""
+    row = task(f"dagster:{location}.{name}", name, "dagster", location)
+    row["pipeline"].update({"how": ["dbt, through Dagster"], **detail})
+    fields = {"kind": kind, "subkind": subkind, "confidence": "inferred"}
+    return {**row, **fields, "origins": ["dagster_defs"]}
+
+
+def dagster_part(markdown: str) -> str:
+    return markdown.split("#### Dagster")[1].split("\n\n### ")[0]
+
+
+def cells(line: str) -> list[str]:
+    return [cell.strip() for cell in split_cells(line)]
+
+
+def test_dagster_s_rows_by_code_location_definitions_then_each_job_with_its_schedules():
+    """Then the assets downstream, each row saying what it is (task 8.9)."""
+    review = minimal()
+    review["impacted"] += [
+        dagster("asset", "features", how=["reads, as a Dagster asset"]),
+        dagster("schedule", "early", "pipeline", job="b_job"),
+        dagster("schedule", "daily", "pipeline", job="b_job", cron="0 6 * * *"),
+        dagster("job", "b_job", "pipeline"),
+        dagster("job", "a_job", "pipeline"),
+        dagster("schedule", "a_job_schedule", "pipeline", job="a_job", cron="@hourly"),
+        dagster("dbt_assets", "shop"),
+        dagster("job", "other", "pipeline", location="another"),
+    ]
+    review["pipelines"] = [reader("dagster", paths=["."], files=2)]
+    part = dagster_part(render_markdown(review))
+    heading = " (1 dbt asset definition, 3 jobs, 3 schedules and 1 asset in 2 code locations)\n"
+    assert part.startswith(heading)
+    lines = part.splitlines()
+    assert lines[2] == (
+        "| Code location | Definition | What it has to do with this | Confidence | Evidence "
+        "| Owner |"
+    )
+    rows = [cells(line)[:2] for line in lines[4:]]
+    assert rows == [
+        ["`another`", "job `other`"],
+        ["`loc`", "dbt asset definition `shop`"],
+        ["`loc`", "job `a_job`"],
+        ["`loc`", "schedule `a_job_schedule`"],
+        ["`loc`", "job `b_job`"],
+        ["`loc`", "schedule `daily`"],
+        ["`loc`", "schedule `early`"],
+        ["`loc`", "asset `features`"],
+    ]
+    what = {cells(line)[1]: cells(line)[2] for line in lines[4:]}
+    # A schedule names its job, and its cron when it has one
+    assert what["schedule `daily`"] == "dbt, through Dagster: `b`; job `b_job`, `0 6 * * *`"
+    assert what["schedule `early`"] == "dbt, through Dagster: `b`; job `b_job`"
+    assert what["job `b_job`"] == "dbt, through Dagster: `b`"
+
+
+@pytest.mark.parametrize("text", HOSTILE)
+def test_a_schedule_s_job_and_cron_are_text_like_any_name(text):
+    """They come from the workspace's definitions files, as names do (task 8.9)."""
+    review = minimal()
+    review["impacted"].append(
+        dagster("schedule", text, "pipeline", location=text, job=text, cron=text)
+    )
+    review["pipelines"] = [reader("dagster", paths=["."], files=1)]
+    markdown = render_markdown(review)
+    assert_safe(markdown)
+    rows = [line for line in dagster_part(markdown).splitlines()[4:] if line.strip()]
+    assert len(rows) == 1 and len(split_cells(rows[0])) == 6, rows
+
+
+def test_dagster_rows_that_are_not_all_the_reader_s_are_tasks_as_before():
+    """An annotation's task has no subkind of the reader's, so the part counts tasks."""
+    review = minimal()
+    review["impacted"] += [
+        dagster("job", "a_job", "pipeline"),
+        task("dagster:loc.load_b", "load_b", "dagster", "loc"),
+    ]
+    review["pipelines"] = [reader("dagster", paths=["."], files=2)]
+    part = dagster_part(render_markdown(review))
+    assert part.startswith(" (2 tasks in 1 code location)\n")
+    lines = part.splitlines()
+    assert lines[2].startswith("| Code location | Task |")
+    # The reader's row still says what it is, after the annotation's in its code location
+    assert [cells(line)[1] for line in lines[4:]] == ["`load_b`", "job `a_job`"]
 
 
 def test_a_path_with_a_colon_is_dbt_s_unknown_and_an_unnamed_tool_is_its_own():
