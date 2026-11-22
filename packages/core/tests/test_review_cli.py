@@ -50,13 +50,22 @@ def commit_all(cwd, message="x"):
     return git(cwd, "rev-parse", "HEAD")
 
 
-@pytest.fixture
-def repo(tmp_path):
-    """The project, committed on main, in a repository of its own."""
-    root = copy_impact_shop(tmp_path / "impact_shop")
+def committed(root: Path) -> Path:
     git(root, "init", "-q", "-b", "main")
     commit_all(root, "base")
     return root
+
+
+@pytest.fixture
+def repo(tmp_path):
+    """The project, committed on main, in a repository of its own."""
+    return committed(copy_impact_shop(tmp_path / "impact_shop"))
+
+
+@pytest.fixture
+def shop(tmp_path):
+    """The same, with its Dagster code locations, as the acceptance scenario has them (8.9)."""
+    return committed(copy_impact_shop(tmp_path / "impact_shop", dagster=True))
 
 
 def run(*args, out=None):
@@ -202,14 +211,14 @@ class TestReviewCommand:
         cached_twice = run("--project-dir", str(repo), "--base", "main")[1]
         assert first == cached_once == cached_twice
 
-    def test_it_matches_the_golden_file_apart_from_the_commit_and_the_changes_it_adds(self, repo):
-        apply_rename(repo)
-        (repo / "macros" / "cents_to_dollars.sql").write_text("{# changed #}\n")
-        (repo / "models" / "marts" / "brand_new.sql").write_text("select 1 as a\n")
-        code, text = run("--project-dir", str(repo), "--base", "main", "--no-cache")
+    def test_it_matches_the_golden_file_apart_from_the_commit_and_the_changes_it_adds(self, shop):
+        apply_rename(shop)
+        (shop / "macros" / "cents_to_dollars.sql").write_text("{# changed #}\n")
+        (shop / "models" / "marts" / "brand_new.sql").write_text("select 1 as a\n")
+        code, text = run("--project-dir", str(shop), "--base", "main", "--no-cache")
         assert code == EXIT_OK
         golden = GOLDEN.read_text(encoding="utf-8")
-        commit = git(repo, "rev-parse", "HEAD")[:12]
+        commit = git(shop, "rev-parse", "HEAD")[:12]
         # The golden file adds a README and two files outside the project to the same changes
         expected = golden.replace("`origin/main` (`0123456789ab`)", f"`main` (`{commit}`)")
         expected = expected[: expected.index("<details>")]
@@ -276,6 +285,23 @@ class TestAirflowInTheCommands:
         assert code == EXIT_OK and "`refresh_counts`" in text and "`daily_marts`" not in text
         code, text = run(*args, "--dag-folder", "nowhere")
         assert code == EXIT_OK and "no DAG files were found in nowhere" in text
+
+    def test_dagster_is_read_too_and_says_nothing_when_there_is_none(self, repo):
+        apply_rename(repo)
+        code, text = run("--project-dir", str(repo), "--base", "main")
+        assert code == EXIT_OK and "Dagster" not in text
+        out = io.StringIO()
+        code = main(["review", "--project-dir", str(repo), "--base", "main", "--json"], out)
+        [dagster] = [s for s in json.loads(out.getvalue())["pipelines"] if s["tool"] == "dagster"]
+        assert dagster["analysed"] and dagster["files"] == 0 and dagster["paths"] == ["."]
+
+    def test_no_dagster_and_dagster_paths_say_so(self, repo):
+        apply_rename(repo)
+        args = ("--project-dir", str(repo), "--base", "main")
+        code, text = run(*args, "--no-dagster")
+        assert code == EXIT_OK and "#### Dagster\n\nNot analysed: --no-dagster was given." in text
+        code, text = run(*args, "--dagster-path", "nowhere")
+        assert code == EXIT_OK and "no Dagster files were found in nowhere" in text
 
     def test_a_snapshot_never_holds_a_dag_scan(self, repo):
         apply_rename(repo)

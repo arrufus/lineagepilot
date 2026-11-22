@@ -6,6 +6,7 @@ Each reader is measured on repositories it was not built from. The repositories 
 |---|---|---|
 | Airflow | [airflow/](airflow/README.md), 17 repositories, 106 links (Phase 5) | 84.0% missed on the frozen run, with no false positives |
 | Airflow, the second corpus | [airflow/fresh/](airflow/README.md#a-second-corpus-after-the-entry-fixes-lp-aax), 12 repositories, 35 links (the Entry phase, LP-aax) | 57.1% missed, with no false positives |
+| Dagster | [dagster/](dagster/README.md), 12 repositories, 110 links (Phase 8) | 85.5% missed with the default setting, 92.7% in the labels' folders, with no false positives; 69 of the 110 links silent. After the silent links were fixed, in-sample: 83.6% missed, 6 silent |
 
 ## A tool's folder
 

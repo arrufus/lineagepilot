@@ -33,6 +33,10 @@ from lineagepilot_core.readers.airflow.scan import scan_airflow, scan_workspace
 from lineagepilot_core.readers.common.categories import explanation, label
 from lineagepilot_core.readers.common.declared import link_declared, read_declared
 from lineagepilot_core.readers.common.workspace import default_workspace
+from lineagepilot_core.readers.dagster.discovery import DEFAULT_PATHS as DEFAULT_DAGSTER_PATHS
+from lineagepilot_core.readers.dagster.link import link_dagster
+from lineagepilot_core.readers.dagster.link import mark_not_analysed as dagster_not_analysed
+from lineagepilot_core.readers.dagster.scan import scan_dagster
 from lineagepilot_core.snapshot import SnapshotCache
 
 EXIT_OK, EXIT_UNKNOWN, EXIT_USAGE = 0, 1, 2
@@ -69,13 +73,26 @@ def build_parser() -> argparse.ArgumentParser:
         command.add_argument(
             "--workspace",
             type=Path,
-            help="the folder DAG files are read from; default: the git repository, or the project",
+            help="the folder DAG files and Dagster definitions are read from; "
+            "default: the git repository, or the project",
         )
         command.add_argument(
             "--dag-folder",
             action="append",
             metavar="FOLDER",
             help=f"a folder or pattern in the workspace; default: {DEFAULT_DAG_FOLDERS[0]}",
+        )
+
+    def dagster_options(command: argparse.ArgumentParser) -> None:
+        command.add_argument(
+            "--dagster-path",
+            action="append",
+            metavar="FOLDER",
+            help="a folder or pattern in the workspace holding Dagster definitions; "
+            "default: the whole workspace",
+        )
+        command.add_argument(
+            "--no-dagster", action="store_true", help="do not read Dagster definitions"
         )
 
     index = commands.add_parser("index", help="index the project and report its status")
@@ -94,6 +111,7 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_options(impact_command)
     airflow_options(impact_command)
     impact_command.add_argument("--no-airflow", action="store_true", help="do not read DAG files")
+    dagster_options(impact_command)
 
     review = commands.add_parser(
         "review", help="what the changes on this branch affect, as Markdown for a pull request"
@@ -114,6 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     artifact_options(review)
     airflow_options(review)
     review.add_argument("--no-airflow", action="store_true", help="do not read DAG files")
+    dagster_options(review)
 
     airflow = commands.add_parser(
         "airflow",
@@ -178,6 +197,16 @@ def main(argv: list[str] | None = None, out: TextIO | None = None) -> int:
             manifest=result.manifest_path,
         )
         link_airflow(result.graph, scan)
+    if args.no_dagster:
+        dagster_not_analysed(result.graph, "--no-dagster was given")
+    else:
+        dagster = scan_dagster(
+            args.project_dir,
+            args.workspace or default_workspace(args.project_dir),
+            args.dagster_path or DEFAULT_DAGSTER_PATHS,
+            manifest=result.manifest_path,
+        )
+        link_dagster(result.graph, dagster)
     if project is not None:
         return _review(args, project, result.graph, out)
     targets, problems = resolve_targets(result.graph, args.targets, args.project_dir)

@@ -19,6 +19,7 @@ ANNOTATE = f"Declare what it runs in {LINEAGE_FILE}."
 class UnknownCategory(str, Enum):
     REMOTE_MANIFEST = "remote_manifest"
     MANIFEST_GENERATED = "manifest_generated"
+    CUSTOM_TRANSLATOR = "custom_translator"
     WRAPPER = "wrapper"
     LOOP_OR_FACTORY = "loop_or_factory"
     GENERATED_PROJECT = "generated_project"
@@ -36,23 +37,28 @@ class UnknownCategory(str, Enum):
     LIMIT = "limit"
 
 
-# (a short label, one line saying why it cannot be read)
+# (a short label, one line saying why it cannot be read). The lines name no one tool's terms, as
+# every reader shares them (task 8.8); a reader's own words go in each unknown's reason.
 _EXPLANATIONS = {
     UnknownCategory.REMOTE_MANIFEST: (
         "remote manifest",
-        "Cosmos reads this manifest from remote storage, which is not read offline.",
+        "The manifest or the project is fetched from remote storage, which is not read offline.",
     ),
     UnknownCategory.MANIFEST_GENERATED: (
         "tasks generated from a manifest",
-        "The DAG builds its tasks from manifest.json when Airflow parses it.",
+        "The file builds its tasks from manifest.json when the tool loads it.",
+    ),
+    UnknownCategory.CUSTOM_TRANSLATOR: (
+        "custom translator",
+        "Dagster's asset keys come from code that runs only when Dagster loads the definitions.",
     ),
     UnknownCategory.WRAPPER: (
         "wrapper",
-        "A class or helper in the workspace builds operators from values that cannot be read.",
+        "A class or helper in the workspace builds tasks from values that cannot be read.",
     ),
     UnknownCategory.LOOP_OR_FACTORY: (
         "loop or factory",
-        "Tasks are created a number of times that is only known when the file runs.",
+        "Tasks or assets are made a number of times that is only known when the file runs.",
     ),
     UnknownCategory.GENERATED_PROJECT: (
         "generated project",
@@ -60,19 +66,19 @@ _EXPLANATIONS = {
     ),
     UnknownCategory.UNSUPPORTED_SELECTOR: (
         "unsupported selector",
-        "This selector needs state dbt has at run time, or a method the scanner does not support.",
+        "This selector needs state dbt has at run time, or a method the reader does not support.",
     ),
     UnknownCategory.JINJA: (
         "Jinja",
-        "A template in the command is only filled in when the task runs.",
+        "A template is only filled in when the task runs or the tool loads the file.",
     ),
     UnknownCategory.DAG_NOT_LOADABLE: (
         "DAG cannot load",
-        "The file cannot be parsed, so Airflow could not load it either.",
+        "The file cannot be parsed, so the tool could not load it either.",
     ),
     UnknownCategory.NOT_FOLLOWED: (
         "call not followed",
-        "A function that creates operators is called, and the scanner does not follow that call.",
+        "A function or module that makes tasks is called or loaded, and it is not followed.",
     ),
     UnknownCategory.SHELL_SCRIPT: (
         "shell script",
@@ -80,11 +86,11 @@ _EXPLANATIONS = {
     ),
     UnknownCategory.PYTHON_DBT: (
         "dbt from Python",
-        "dbt is called from Python code inside a task, which is not analysed.",
+        "dbt is run from Python code inside a task or an asset, which is not analysed.",
     ),
     UnknownCategory.OTHER_OPERATOR: (
         "other operator",
-        "This operator mentions dbt, but what it runs cannot be read from the DAG file.",
+        "This task mentions dbt, but what it runs cannot be read from its file.",
     ),
     UnknownCategory.NOT_LITERAL: (
         "value not known",
@@ -92,11 +98,11 @@ _EXPLANATIONS = {
     ),
     UnknownCategory.NO_PROJECT: (
         "no dbt project",
-        "The path in the DAG file matches no dbt project in the workspace; map it if it moved.",
+        "The path in the file matches no dbt project in the workspace; map it if it moved.",
     ),
     UnknownCategory.DEPENDENCY: (
         "task order",
-        "An operand of a task dependency is not a task the scanner knows.",
+        "An operand of a task dependency is not a task the reader knows.",
     ),
     UnknownCategory.SQL: (
         "SQL not read",

@@ -38,9 +38,9 @@ Compared with the merge-base of `HEAD` and `main` (`abc`).
 |---|---|---|---|---|---|
 | `daily` | `run_b` | dbt run: `b` | heuristic | annotation | `etl` |
 
-#### Dagster (1 task in 1 pipeline)
+#### Dagster (1 task in 1 code location)
 
-| Pipeline | Task | What it has to do with this | Confidence | Evidence | Owner |
+| Code location | Task | What it has to do with this | Confidence | Evidence | Owner |
 |---|---|---|---|---|---|
 | `nightly` | `load_b` | dbt run: `b` | heuristic | annotation | No owner |
 

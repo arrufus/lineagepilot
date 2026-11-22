@@ -1,10 +1,10 @@
 # LineagePilot
 
-A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models and exposures, the Airflow tasks that run them, and what reads them, from the dbt semantic layer's metrics to the dashboards you declare. It reads the dbt artifacts already in your workspace, and needs no server, no account and no warehouse connection.
+A VS Code extension that shows, inside the editor, what a dbt change will break: downstream dbt models and exposures, the Airflow tasks and Dagster assets that run them, and what reads them, from the dbt semantic layer's metrics to the dashboards you declare. It reads the dbt artifacts already in your workspace, and needs no server, no account and no warehouse connection.
 
 **Install** it from the VS Code Marketplace or Open VSX: search the Extensions view for **LineagePilot**, or run `code --install-extension lineagepilot.lineagepilot`. Each release's VSIX is also on [GitHub releases](https://github.com/arrufus/lineagepilot/releases/latest). The [extension's README](extension/README.md) covers using it.
 
-**It is a Preview.** What it cannot check, it lists under **Unknowns** rather than leaving out. The Airflow linkage is the part to judge carefully: on repositories it had never seen, it linked 15 of 35 tasks and listed all but one of the rest as unknown ([corpus/airflow/README.md](corpus/airflow/README.md)).
+**What to expect.** What it cannot check, it lists under **Unknowns** rather than leaving out. The Airflow linkage is the part to judge carefully: on repositories it had never seen, it linked 15 of 35 tasks and listed all but one of the rest as unknown ([corpus/airflow/README.md](corpus/airflow/README.md)). The Dagster linkage, new in 0.4.0, linked 16 of 110 and made no wrong link; most of the rest are listed as unknown ([corpus/dagster/README.md](corpus/dagster/README.md)).
 
 **Problems and ideas** go in [GitHub issues](https://github.com/arrufus/lineagepilot/issues). **Security problems** do not: report them privately, as [SECURITY.md](SECURITY.md) describes.
 
@@ -118,3 +118,13 @@ The same CI runs cover Phase 6's code on Linux, macOS and Windows. The first mac
 - `.lineagepilot/lineage.yml` replaces `airflow.yml`, which is still read, and declares consumers;
 - `corpus/score.py` scores any reader's corpus, one folder per tool;
 - at 5,000 models with every reader on, every budget holds: a review of 100 changed models takes 231–261 ms (budget 300 ms) and the warm start 0.94 s (budget 1 s) ([design §11](docs/design.md#11-performance-budgets)).
+
+**Phase 8, Dagster (LP-252), was built from 20 to 22 November 2026**, and ends with release 0.4.0 ([extension/CHANGELOG.md](extension/CHANGELOG.md)). It is the first reader added through Phase 7's contract:
+- a mapping note, approved before any code, pins dagster 1.13.29 and dagster-dbt 0.29.29 ([design_next_phase.md §7.1](docs/design_next_phase.md#mapping-note-dagster-task-81));
+- Dagster is read as syntax, never imported or run: dbt components, `@dbt_assets` and the legacy loaders, asset keys and groups, jobs and schedules, the assets downstream of dbt, and code locations. What cannot be read is an unknown at its line, and `.lineagepilot/lineage.yml` answers it with `tool: dagster`;
+- `scripts/dagster_key_conformance.py` runs real dagster-dbt in CI and checks the reader's keys, groups, jobs, schedules and downstream assets against it;
+- the review groups Dagster's rows by code location, and the acceptance scenario passes with a Dagster component and a Python definitions file, in the golden file, through the CLI and in a real VS Code.
+
+**The held-out miss rate is 85.5%, with no false positives** ([corpus/dagster/README.md](corpus/dagster/README.md)). On 110 links in 12 repositories labelled blind, the frozen reader got 16 right with its default setting, gave no wrong link, and said nothing on 69. That silence broke the definition of done, so its four causes were fixed before the release; on the same corpus, now in-sample, 18 are right and 6 are silent (LP-3d5). One repository with its own decorator over dbt holds 53 of the links. The other causes are filed (LP-3d5, LP-ms8, LP-9kf, LP-8yt), and a fresh corpus would be needed to measure a reader tuned on this one. LineagePilot is no longer marked Preview from 0.4.0 (LP-7ah).
+
+Prepared during Phase 8 for Phase 9 was less than the plan asked: Q2, how G2 is measured, and the BI corpora and Power BI fixtures are filed under LP-253, not done.

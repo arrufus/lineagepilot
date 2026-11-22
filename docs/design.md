@@ -706,7 +706,7 @@ How the Airflow linkage is tested (Phase 5):
 | # | Decision | Consequences |
 |---|---|---|
 | — | **Gate G1 passed**, by the product owner's judgment (LP-7er.4). | No check-ins were filed as GitHub issues, so the tally in [beta.md](beta.md) was not used. The public release comes before the next phase ([design_next_phase.md](design_next_phase.md)). |
-| — | **The first public release is 0.2.0, marked Preview** on the Marketplace, with no pre-release channel. | `"preview": true` in the extension's manifest. The release notes and READMEs state the Airflow scanner's held-out result. |
+| — | **The first public release is 0.2.0, marked Preview** on the Marketplace, with no pre-release channel. | `"preview": true` in the extension's manifest. The release notes and READMEs state the Airflow scanner's held-out result. **Revised 21 November 2026 (LP-7ah):** LineagePilot is no longer a Preview from 0.4.0. `"preview"` has been `false` since 16 November, so 0.3.0 was not marked Preview either, though its release notes call it one. The READMEs no longer do, and they still state each reader's held-out result. |
 | — | **D-7 revised: the usage counts are removed** (above). | No telemetry, and no counting of any kind. |
 | — | **The source is published as a new public repository**, `arrufus/lineagepilot`, from a copy of this history with the unlicensed fixtures filtered out. This repository becomes a private archive. | Replacing the fixtures in a new commit would leave them in the history, and in pull request refs GitHub keeps. The steps are in [release.md](release.md#publishing-the-source). |
 

@@ -2,7 +2,7 @@
   "name": "lineagepilot",
   "displayName": "LineagePilot",
   "description": "Lineage and change impact for your project's models, exposures and Airflow tasks, from the artifacts already in your workspace. No server, no account.",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "publisher": "lineagepilot",
   "private": true,
   "preview": false,
@@ -92,6 +92,19 @@
           ],
           "scope": "resource",
           "markdownDescription": "Folders, relative to the workspace folder, that hold Airflow DAG files. `**/dags` finds any folder called `dags`, up to six levels down. DAG files are only ever parsed, never imported or run."
+        },
+        "lineagePilot.dagster.paths": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          },
+          "maxItems": 50,
+          "default": [
+            "."
+          ],
+          "scope": "resource",
+          "markdownDescription": "Folders, relative to the workspace folder, that hold Dagster definitions. `.` is the whole workspace, where LineagePilot looks for `defs.yaml` files, `pyproject.toml` files with `[tool.dg]` or `[tool.dagster]`, and Python files that import Dagster. Dagster definitions are only ever parsed, never imported or run."
         },
         "lineagePilot.trace.server": {
           "type": "string",
@@ -336,8 +349,8 @@
           },
           {
             "id": "airflow",
-            "title": "Link your Airflow tasks",
-            "description": "LineagePilot reads DAG files as syntax, never importing or running them, and links their tasks to the models they run. What it cannot read is listed, and `.lineagepilot/lineage.yml` can answer it.\n[Open the Pipelines View](command:lineagePilot.pipelines.focus)",
+            "title": "Link your Airflow and Dagster pipelines",
+            "description": "LineagePilot reads DAG files and Dagster definitions as syntax, never importing or running them, and links their tasks, assets, jobs and schedules to the models they run. What it cannot read is listed, and `.lineagepilot/lineage.yml` can answer it.\n[Open the Pipelines View](command:lineagePilot.pipelines.focus)",
             "media": {
               "markdown": "media/walkthrough/airflow.md"
             },

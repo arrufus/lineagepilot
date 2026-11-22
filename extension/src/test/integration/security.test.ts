@@ -104,13 +104,21 @@ suite(`interpreter (${label})`, () => {
   });
 });
 
-suite('DAG files', () => {
+suite('pipeline files', () => {
   test('a DAG file is read and never run, trusted or not', async function () {
     this.timeout(120_000);
     const server = await readyServer();
     await until('the DAG files to be read', 100_000, () => readerOf(server.status)?.stage === 'done');
     assert.ok(readerOf(server.status)!.summary.files >= 1, 'no DAG file was read');
     assert.equal(ran('planted-dag-ran'), undefined, 'a DAG file was imported or run');
+  });
+
+  test('a Dagster definitions file is read and never run, trusted or not (task 8.9)', async function () {
+    this.timeout(120_000);
+    const server = await readyServer();
+    await until('the Dagster files to be read', 100_000, () => readerOf(server.status, 'dagster')?.stage === 'done');
+    assert.ok(readerOf(server.status, 'dagster')!.summary.files >= 1, 'no Dagster file was read');
+    assert.equal(ran('planted-dagster-ran'), undefined, 'a Dagster definitions file was imported or run');
   });
 });
 

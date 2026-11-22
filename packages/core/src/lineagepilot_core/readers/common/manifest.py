@@ -1,6 +1,7 @@
 """A small, read-only view of a dbt ``manifest.json``.
 
-Only the fields the selector engine and the Cosmos task-id mapping need are kept.
+Only the fields the selector engine, the Cosmos task-id mapping and Dagster's asset keys need
+are kept.
 The file is read as JSON text with a size cap; nothing in it is executed.
 """
 
@@ -41,6 +42,11 @@ class Node:
     version: Any = None
     source_name: str | None = None
     external: bool = False
+    # What Dagster's asset keys are made from (task 8.5)
+    alias: str | None = None
+    schema: str | None = None
+    database: str | None = None
+    meta: dict[str, Any] = field(default_factory=dict)
 
     @property
     def materialized(self) -> str | None:
@@ -135,7 +141,15 @@ def _node_from_json(uid: str, raw: dict[str, Any]) -> Node:
         version=raw.get("version"),
         source_name=raw.get("source_name"),
         external=external,
+        alias=_text(raw.get("alias")),
+        schema=_text(raw.get("schema")),
+        database=_text(raw.get("database")),
+        meta=raw.get("meta") if isinstance(raw.get("meta"), dict) else {},
     )
+
+
+def _text(value: Any) -> str | None:
+    return value if isinstance(value, str) else None
 
 
 def _strings(value: Any) -> list[str]:

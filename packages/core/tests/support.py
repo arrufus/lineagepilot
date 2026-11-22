@@ -34,9 +34,13 @@ def project_config(name: str, catalog: bool = True) -> dict[str, str]:
     return config
 
 
-def copy_impact_shop(destination: Path) -> Path:
-    """A working copy of the project as deployed, with target/ ignored as in a real repository."""
-    ignore = shutil.ignore_patterns("changes", "variants", "make_fixture.py", "PROVENANCE.json")
+def copy_impact_shop(destination: Path, dagster: bool = False) -> Path:
+    """A working copy of the project as deployed, with target/ ignored as in a real repository.
+
+    Its Dagster code locations (task 8.9) only with ``dagster``: the Dagster reader's own tests
+    write the definitions each one needs, and read the whole workspace."""
+    left_out = ("changes", "variants", "make_fixture.py", "PROVENANCE.json")
+    ignore = shutil.ignore_patterns(*left_out, *(() if dagster else ("dagster",)))
     shutil.copytree(IMPACT_SHOP, destination, ignore=ignore)
     (destination / ".gitignore").write_text("target/\n", encoding="utf-8")
     return destination

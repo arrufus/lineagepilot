@@ -1,0 +1,8 @@
+# The operations team's dbt profile: a local DuckDB file, as make_fixture.py builds the shop with
+impact_shop:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: impact_shop.duckdb
+      threads: 1

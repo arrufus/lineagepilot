@@ -1,0 +1,9 @@
+# The acceptance scenario's Dagster component (task 8.9): the marts, as assets, from the dbt
+# project two folders above the dg project. order_counts is the operations team's, in
+# dagster/operations/definitions.py, and broken_report is never built.
+type: dagster_dbt.DbtProjectComponent
+
+attributes:
+  project: "{{ project_root }}/../.."
+  select: "orders+"
+  exclude: "order_counts broken_report"

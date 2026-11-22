@@ -1,0 +1,164 @@
+{
+  "repo": "shawnmartin-py/plex-ingest",
+  "url": "https://github.com/shawnmartin-py/plex-ingest",
+  "sha": "25cd7ed3c276eb0238136a95017f29017df180df",
+  "license": "MIT",
+  "scan": {
+    "paths": [
+      "src/plex_ingest"
+    ],
+    "workspace": "."
+  },
+  "labelled_by": "blind: read the repository's files only; no reader, no execution",
+  "dagster_pins": {
+    "dagster": "dagster==1.13.13",
+    "dagster-dbt": "dagster-dbt>=0.29.12"
+  },
+  "dbt_projects": [
+    "dbt_project"
+  ],
+  "out_of_scope": [
+    {
+      "file": "src/plex_ingest/defs/assets/raw_movies.py",
+      "what": "raw_movies, upstream of dbt (the source plex_ingest.raw_movies)"
+    },
+    {
+      "file": "src/plex_ingest/defs/assets/embeddings.py",
+      "what": "embeddings: reads the stg_movies table in its body but declares no dependency on the dbt asset (inputs synopsis, enrichment)"
+    },
+    {
+      "file": "src/plex_ingest/defs/assets/enrichment.py",
+      "what": "enrichment: reads the stg_movies table in its body but declares no dependency on the dbt asset (input synopsis)"
+    },
+    {
+      "file": "src/plex_ingest/defs/assets/qdrant_collection.py",
+      "what": "qdrant_collection: deps on embeddings, synopsis, enrichment, streaming_runtime, none of them dbt"
+    },
+    {
+      "file": "src/plex_ingest/defs/assets/stg_watch_history.py",
+      "what": "stg_watch_history, a Python asset, not dbt"
+    },
+    {
+      "file": "src/plex_ingest/defs/checks/synopsis_match.py",
+      "what": "asset check"
+    },
+    {
+      "file": "src/plex_ingest/defs/sensors/sync_tmdb_id_partitions.py",
+      "what": "sensor"
+    },
+    {
+      "file": "src/plex_ingest/defs/sensors/sync_watch_history_partitions.py",
+      "what": "sensor"
+    },
+    {
+      "file": "src/plex_ingest/defs/sensors/run_dedup.py",
+      "what": "sensor"
+    }
+  ],
+  "links": [
+    {
+      "id": "dbt_assets:staging",
+      "unit": "dbt_assets",
+      "api": "DbtProjectComponent",
+      "name": "staging",
+      "file": "src/plex_ingest/defs/staging/defs.yaml",
+      "line": 2,
+      "registered_in": "src/plex_ingest/definitions.py",
+      "project_path": "dbt_project",
+      "package": "plex_ingest",
+      "selection_as_written": null,
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "stg_movies"
+      ],
+      "other_nodes": [],
+      "reason": "DbtProjectComponent with no select: fqn:* gives the project's only model. Loaded by load_from_defs_folder."
+    },
+    {
+      "id": "job:poll_plex_job",
+      "unit": "job",
+      "api": "define_asset_job",
+      "name": "poll_plex_job",
+      "file": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "line": 3,
+      "registered_in": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "project_path": "dbt_project",
+      "package": "plex_ingest",
+      "selection_as_written": "selection=[\"raw_movies\", \"stg_movies\", \"stg_watch_history\", \"streaming_runtime\"]",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "stg_movies"
+      ],
+      "other_nodes": [],
+      "reason": "Selection by key strings; stg_movies is the dbt model's default key (no schema config). stg_watch_history is a Python asset, not dbt."
+    },
+    {
+      "id": "schedule:poll_plex_job_schedule",
+      "unit": "schedule",
+      "api": "ScheduleDefinition",
+      "name": "poll_plex_job_schedule",
+      "file": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "line": 20,
+      "registered_in": "src/plex_ingest/defs/schedules/poll_plex_daily.py",
+      "project_path": "dbt_project",
+      "package": "plex_ingest",
+      "selection_as_written": "job=poll_plex_job",
+      "deps_as_written": [],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "stg_movies"
+      ],
+      "other_nodes": [],
+      "reason": "poll_plex_schedule (no name=, so Dagster names it poll_plex_job_schedule) runs poll_plex_job."
+    },
+    {
+      "id": "asset:synopsis",
+      "unit": "asset",
+      "api": "@asset deps",
+      "name": "synopsis",
+      "file": "src/plex_ingest/defs/assets/synopsis.py",
+      "line": 9,
+      "registered_in": "src/plex_ingest/definitions.py",
+      "project_path": "dbt_project",
+      "package": "plex_ingest",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "\"stg_movies\""
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "stg_movies"
+      ],
+      "other_nodes": [],
+      "reason": "deps=['stg_movies'], the dbt model's key."
+    },
+    {
+      "id": "asset:streaming_runtime",
+      "unit": "asset",
+      "api": "@asset deps",
+      "name": "streaming_runtime",
+      "file": "src/plex_ingest/defs/assets/streaming_runtime.py",
+      "line": 22,
+      "registered_in": "src/plex_ingest/definitions.py",
+      "project_path": "dbt_project",
+      "package": "plex_ingest",
+      "selection_as_written": null,
+      "deps_as_written": [
+        "\"stg_movies\""
+      ],
+      "expect": "resolved",
+      "unknown_reason": null,
+      "models": [
+        "stg_movies"
+      ],
+      "other_nodes": [],
+      "reason": "deps=['stg_movies'], the dbt model's key."
+    }
+  ]
+}

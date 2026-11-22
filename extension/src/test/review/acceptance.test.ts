@@ -10,7 +10,7 @@ import * as vscode from 'vscode';
 import type { ReviewResult } from '../../protocol';
 import type { ReviewPanel } from '../../reviewPanel';
 import type { PipelineItem, TaskItem } from '../../views/pipelinesTree';
-import { api, ran, readerOf, readyServer, root, until } from '../integration/helpers';
+import { api, ran, readerOf, readersSettled, readyServer, root, until } from '../integration/helpers';
 
 const S = 'model.impact_shop';
 
@@ -48,13 +48,14 @@ suite('acceptance: rename a mart column', () => {
     overlay(path.join(root(), 'changes', 'rename-order-total'), root());
     await until('the server to index the new manifest', 120_000, () => {
       const status = server.status;
-      return status.generation > generation && !status.indexing && status.columnLineage === 'done' && readerOf(status)?.stage === 'done' ? status : undefined;
+      return status.generation > generation && !status.indexing && status.columnLineage === 'done' && readerOf(status)?.stage === 'done' && readersSettled(status) ? status : undefined;
     });
 
     panel = (await vscode.commands.executeCommand<ReviewPanel>('lineagePilot.reviewChanges', root()))!;
     review = await until('the review of the rename', 90_000, async () => {
       const latest = panel.latest;
-      if (latest?.pipelines?.find((r) => r.tool === 'airflow')?.analysed && latest.changedNodes.some((n) => n.columns.removed.length > 0)) {
+      // Every reader analysed: a review taken while one is still reading says it was not
+      if (latest?.pipelines?.length && latest.pipelines.every((r) => r.analysed) && latest.changedNodes.some((n) => n.columns.removed.length > 0)) {
         return latest;
       }
       await panel.run();
@@ -116,7 +117,7 @@ suite('acceptance: rename a mart column', () => {
   });
 
   test('the review lists the Airflow task and its owner', () => {
-    assert.deepEqual(review.pipelines?.map((r) => [r.tool, r.analysed]), [['airflow', true]]);
+    assert.deepEqual(review.pipelines?.map((r) => [r.tool, r.analysed]), [['airflow', true], ['dagster', true]]);
     const group = review.impacted.find((n) => n.id === 'airflow:daily_marts.marts');
     // Protocol 2's words (D-9): a task, of Airflow, that Airflow calls a task group
     assert.deepEqual([group?.kind, group?.tool, group?.subkind], ['task', 'airflow', 'task_group']);
@@ -144,6 +145,29 @@ suite('acceptance: rename a mart column', () => {
     const unknown = review.unknowns.find((u) => u.subject === 'airflow:backfill');
     assert.equal(unknown?.reference, 'loop or factory');
     assert.match(unknown?.reason ?? '', /^dags\/backfill\.py:12: /);
+  });
+
+  // The Phase 8 exit: a Dagster component and a Python definitions file (task 8.9)
+  test('the review lists the Dagster definitions, the job and its schedule, and the assets that read the models', () => {
+    const rows = new Map(review.impacted.filter((n) => n.tool === 'dagster').map((n) => [n.id, n]));
+    const component = rows.get('dagster:shop-analytics.marts');
+    assert.deepEqual([component?.kind, component?.subkind, component?.pipeline?.pipeline], ['task', 'dbt_assets', 'shop-analytics']);
+    assert.deepEqual(component?.pipeline?.runs, ['customer_revenue', 'orders', 'revenue_tiers']);
+    assert.equal(rows.get('dagster:operations.operations_dbt')?.pipeline?.operator, '@dbt_assets');
+    assert.equal(rows.get('dagster:operations/job/hourly_counts')?.subkind, 'job');
+    const schedule = rows.get('dagster:operations/schedule/hourly_counts_schedule');
+    assert.deepEqual([schedule?.kind, schedule?.pipeline?.job, schedule?.pipeline?.cron], ['pipeline', 'hourly_counts', '0 * * * *']);
+    // An asset in one code location reads a dbt asset in the other
+    const forecast = rows.get('dagster:operations.revenue_forecast');
+    assert.deepEqual([forecast?.subkind, forecast?.pipeline?.how, forecast?.pipeline?.runs], ['asset', ['reads, as a Dagster asset'], ['customer_revenue']]);
+    assert.match(review.markdown, /#### Dagster \(2 dbt asset definitions, 1 job, 1 schedule and 2 assets in 2 code locations\)/);
+    assert.match(review.markdown, /\| `operations` \| schedule `hourly_counts_schedule` \| dbt, through Dagster: `order_counts`; job `hourly_counts`, `0 \* \* \* \*` \|/);
+  });
+
+  test('Python that runs dbt in a Dagster asset is an unknown at its line', () => {
+    const unknown = review.unknowns.find((u) => u.subject === 'dagster:operations.snapshots');
+    assert.equal(unknown?.reference, 'dbt from Python');
+    assert.match(unknown?.reason ?? '', /^dagster\/operations\/definitions\.py:42: snapshots\(\) runs dbt from Python/);
   });
 
   test('the task opens in its DAG file, at its line', async () => {
@@ -176,6 +200,15 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(pipelinesTree.getTreeItem(unknowns).label, 'Could not be read (1)');
     const [unknown] = pipelinesTree.getChildren(unknowns);
     assert.equal(pipelinesTree.getTreeItem(unknown).label, 'backfill');
+    // Dagster's code location, job and schedule, and what it could not read (task 8.9)
+    const dagster = await until('Dagster in the view', 30_000, () =>
+      pipelinesTree.items.find((item) => pipelinesTree.getTreeItem(item).label === 'Dagster'));
+    const located = pipelinesTree.getChildren(dagster).filter((item) => item.type === 'pipeline');
+    assert.deepEqual(located.map((item) => (item as PipelineItem).pipeline.name).sort(), ['hourly_counts', 'hourly_counts_schedule', 'operations']);
+    const operations = located.find((item) => (item as PipelineItem).pipeline.name === 'operations')!;
+    assert.deepEqual(pipelinesTree.getChildren(operations).map((item) => (item as TaskItem).task.name), ['operations_dbt', 'order_counts_export']);
+    const unread = pipelinesTree.getChildren(dagster).find((item) => item.type === 'unknowns');
+    assert.equal(unread && pipelinesTree.getTreeItem(unread).label, 'Could not be read (1)');
   });
 
   test('CodeLens counts the tasks', async () => {
@@ -183,9 +216,10 @@ suite('acceptance: rename a mart column', () => {
     await vscode.workspace.openTextDocument(orders);
     const lenses = await until('the lens', 30_000, async () => {
       const found = await vscode.commands.executeCommand<vscode.CodeLens[]>('vscode.executeCodeLensProvider', orders);
-      return found?.find((lens) => /Airflow tasks/.test(lens.command?.title ?? ''));
+      return found?.find((lens) => /Airflow \d+/.test(lens.command?.title ?? ''));
     });
-    assert.match(lenses.command?.title ?? '', /\d+ Airflow tasks/);
+    // Several tools' tasks are counted together, by tool (task 7.6)
+    assert.match(lenses.command?.title ?? '', /\d+ tasks \(Airflow \d+, Dagster \d+\)|\d+ tasks \(Dagster \d+, Airflow \d+\)/);
   });
 
   test('Copy as Markdown gives the review, ready for a pull request', async () => {
@@ -194,7 +228,7 @@ suite('acceptance: rename a mart column', () => {
     assert.equal(text, review.markdown);
     assert.match(text, /Removed: `order_total`/);
     assert.match(text, /\| `customer_revenue` \| Column `lifetime_value` \| inferred \| compiled SQL, from `orders\.order_total` \| `growth-analytics` \|/);
-    assert.match(text, /### Unknowns \(2\)/);
+    assert.match(text, /### Unknowns \(3\)/);
   });
 
   // Through VS Code's own file watchers, not a simulated event: the demo script relies on these
@@ -258,5 +292,7 @@ suite('acceptance: rename a mart column', () => {
   test('nothing planted in the workspace ran', () => {
     assert.equal(ran('planted-python-ran'), undefined);
     assert.equal(ran('planted-dbt-ran'), undefined);
+    assert.equal(ran('planted-dag-ran'), undefined);
+    assert.equal(ran('planted-dagster-ran'), undefined);
   });
 });

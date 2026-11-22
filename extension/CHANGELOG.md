@@ -2,6 +2,42 @@
 
 The versions of LineagePilot, newest first. Each release's entry is its release notes.
 
+## 0.4.0
+
+What a dbt change reaches now includes Dagster: the dbt asset definitions, jobs and schedules that run your models, and the assets that read them. LineagePilot is no longer marked **Preview**.
+
+- **Dagster linkage.** Dagster definitions are read as syntax, never imported or run, so Dagster need not be installed. The rules followed are dagster 1.13.29's and dagster-dbt 0.29.29's. LineagePilot reads:
+  - dbt components: `DbtProjectComponent` in a `defs.yaml`, with its project, selection and `translation`;
+  - `@dbt_assets`, with `DbtProject`, and the older `load_assets_from_dbt_project` and `load_assets_from_dbt_manifest`, also inside a `@repository` function;
+  - asset jobs (`define_asset_job`), with `AssetSelection`, `build_dbt_asset_selection` and selection strings such as `group:marts+`;
+  - schedules: `ScheduleDefinition`, `@schedule` and `build_schedule_from_dbt_selection`;
+  - assets that read a dbt asset, through `deps`, `AssetIn`, `AssetSpec` or `get_asset_key_for_model`;
+  - the code location each is in, from a `dg` project, `workspace.yaml`, `dagster_cloud.yaml`, `[tool.dagster]` or the `Definitions` call that loads it.
+
+  Asset keys and groups follow dagster-dbt's defaults, `meta.dagster` and a component's `translation`, and were checked against dagster-dbt itself.
+- **Where Dagster shows.** Dagster is in the **Pipelines** view, CodeLens, the lineage graph and **Review Changes**. In the review, Dagster's rows are grouped by code location: the dbt asset definitions first, then each job followed by its schedules, then the assets that read dbt. A schedule's row names its job and cron.
+- **What cannot be read is an unknown, at the line that caused it:**
+  - a custom `DagsterDbtTranslator`;
+  - keys worked out at run time;
+  - assets or jobs made in a loop or a factory;
+  - a decorator of your own that makes dbt assets;
+  - assets loaded from outside the workspace;
+  - Python that runs dbt itself, through `subprocess`, dbt's Python API, `DbtCliResource.cli` or Dagster Pipes.
+
+  What is built on an unknown, such as a job over a definition that cannot be read, is an unknown too, not left out. `.lineagepilot/lineage.yml` answers Dagster's unknowns with `tool: dagster`.
+- **`lineagePilot.dagster.paths`** sets the folders to look in. The default is the whole workspace.
+- **The command line**: `lineagepilot review` and `lineagepilot impact` read Dagster too. `--dagster-path` sets the folders, and `--no-dagster` leaves Dagster out.
+- **The sample project** has two Dagster code locations beside its DAG files, and **Review Changes** lists what they run.
+- **Airflow**: a DAG folder whose `__init__.py` imports its own modules (`from . import x`) no longer makes the scan stop with "expression nesting too deep".
+
+**What to expect from the Dagster linkage.** It was measured on 110 links in 12 public repositories it had never seen. It linked 16 correctly, gave no wrong link, and made no link where there was none. Most of the rest it could not read. The repositories it does well on are those that use dagster-dbt's own APIs; one repository with its own decorator over dbt holds half the links, and none of them can be read. That run also found the reader silent on 69 links, with no link and no unknown, which this release fixes: on the same repositories, it now links 18 and lists all but 6 of the rest as unknown, at the line that caused each one. That second figure is no longer a measure on repositories it had never seen ([corpus/dagster/README.md](https://github.com/arrufus/lineagepilot/blob/main/corpus/dagster/README.md)).
+
+**If you read LineagePilot's output in a script:**
+- Dagster's nodes have `"tool": "dagster"`. A code location, a job and a schedule are kind `pipeline`, and a dbt asset definition and an asset that reads dbt are kind `task`.
+- The review's JSON gives a schedule's job and cron, as `job` and `cron`, on its row.
+
+**The first start after upgrading indexes each project again**, because the index cache's format changed.
+
 ## 0.3.0
 
 What a dbt change reaches now goes past dbt's models and Airflow's tasks, to what reads your models: the dbt semantic layer, and anything else you declare. It is still a **Preview**.

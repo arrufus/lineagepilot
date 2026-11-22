@@ -12,8 +12,8 @@ and checks that:
 - it holds lineagepilot-<version>.vsix and SHA256SUMS, fully uploaded;
 - the VSIX downloaded whole: its SHA-256 is the one in SHA256SUMS and the one GitHub recorded on
   upload, and its package.json is the version the tag names;
-- the release workflow's run for the tag succeeded on the tagged commit, every job in it passed,
-  and its release job logged the same SHA-256 as it named the file;
+- the release workflow's run for the tag succeeded on the tagged commit, every job in it passed
+  or was not due, and its release job logged the same SHA-256 as it named the file;
 - each file has a build provenance attestation, once the repository is public.
 
 It ends by saying who can download the release. It exits 1 if a check failed, and 2 if it could not
@@ -44,6 +44,9 @@ SUMS = "SHA256SUMS"
 REQUIRED_JOBS = ("verify", "core", "lsp", "extension", "secret-scan", "github-release")
 # Jobs that run only when LP_PUBLISH_REGISTRIES is 'true', so may be skipped
 REGISTRY_JOBS = ("marketplace", "open-vsx")
+# Jobs that run only when the workflow is started by hand from main, so a release run, which a tag
+# starts, always skips them (LP-dai)
+MANUAL_JOBS = ("marketplace-sign-in",)
 DOCS = "docs/release.md"
 
 
@@ -192,7 +195,8 @@ def job_problems(jobs: list[dict]) -> list[str]:
     problems = [f"no {required} job" for required in REQUIRED_JOBS
                 if not any(n == required or n.startswith(required + " / ") for n in names)]
     for job in jobs:
-        if job["conclusion"] == "success" or (job["name"] in REGISTRY_JOBS and job["conclusion"] == "skipped"):
+        not_due = job["name"] in REGISTRY_JOBS + MANUAL_JOBS and job["conclusion"] == "skipped"
+        if job["conclusion"] == "success" or not_due:
             continue
         problems.append(f"{job['name']}: {job['conclusion'] or job['status']}")
     return problems
